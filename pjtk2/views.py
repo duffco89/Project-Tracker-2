@@ -1,10 +1,21 @@
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.core.context_processors import csrf
+from django.views.generic import ListView
+from django.core.urlresolvers import reverse
 
-from pjtk2.models import Milestone
+
+from pjtk2.models import Milestone, Project
 #from pjtk2.forms import MilestoneForm
-from pjtk2.forms import AdditionalReportsForm, CoreReportsForm
+from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, NewProjectForm
+
+
+
+class ProjectList(ListView):
+    queryset = Project.objects.all()
+    template_name = "ProjectList.html"
+    
+project_list = ProjectList.as_view()
 
 
 def ReportMilestones(request):
@@ -14,5 +25,25 @@ def ReportMilestones(request):
 
     return render_to_response('simpleform.html',
                               {'core':core, 'additional':additional},
+                              context_instance=RequestContext(request)
+        )
+
+
+
+
+
+def NewProject(request):
+
+    if request.method == 'POST': # If the form has been submitted...
+        form = NewProjectForm(request.POST) # A form bound to the POST data
+        if form.is_valid():
+           project = form.cleaned_data()
+           project.save()
+           pk = project.pk
+        return HttpResponseRedirect()
+    else:
+        form = NewProjectForm() # An unbound form
+    return render_to_response('ProjectForm.html',
+                              {'form':form},
                               context_instance=RequestContext(request)
         )

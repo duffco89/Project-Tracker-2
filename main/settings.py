@@ -16,6 +16,8 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -50,22 +52,27 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = ''
+MEDIA_ROOT = '/site-media/'
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-MEDIA_URL = ''
+#MEDIA_URL = ''
+
+# URL prefix for static files.
+# Example: "http://media.lawrence.com/static/"
+STATIC_URL = '/static_root/'
+ADMIN_MEDIA_PREFIX = '/admin/media/'
 
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = root("static_root/")
 
-# URL prefix for static files.
-# Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+
+
+
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -85,6 +92,18 @@ STATICFILES_FINDERS = (
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '0yo*&amp;!557a9o8=+2b_9mrcfc=n$*7vc-hr@b56y^x#&amp;a+pidx@'
+
+
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.core.context_processors.static",
+    "django.contrib.messages.context_processors.messages",
+    )
+
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
@@ -122,6 +141,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
+    'django_wsgiserver',
     'pjtk2',
     'south',
 )
@@ -154,3 +174,14 @@ LOGGING = {
         },
     }
 }
+
+## import socket
+## STATIC_PORT=8090
+## STATIC_HOSTADDR = socket.gethostbyname(socket.gethostname())
+## STATIC_HOST= STATIC_HOSTADDR + ":" + str(STATIC_PORT)
+## STATIC_URL = 'http://' + STATIC_HOST + STATIC_URL
+## #STATIC_URL = 'http://127.0.0.1:8000' + STATIC_URL
+
+print "STATIC_URL: %s" % STATIC_URL
+print "STATIC_ROOT: %s" % STATIC_ROOT
+print "ADMIN_MEDIA_PREFIX : %s" % ADMIN_MEDIA_PREFIX

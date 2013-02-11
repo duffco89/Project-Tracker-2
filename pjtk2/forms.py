@@ -1,5 +1,8 @@
+from django.forms import ModelForm
 from django import forms
-from pjtk2.models import Milestone
+from pjtk2.models import Milestone, Project
+
+
 
 class CoreReportsForm(forms.Form):
     reports = Milestone.objects.filter(category='Common')
@@ -21,4 +24,8 @@ class AdditionalReportsForm(forms.Form):
         label = "",
         required = True,
         )
-    
+
+
+class NewProjectForm(forms.ModelForm):
+    class Meta:
+        model = Project 

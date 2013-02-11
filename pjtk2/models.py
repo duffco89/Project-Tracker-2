@@ -74,6 +74,7 @@ class Project(models.Model):
         ret = "%s (%s)" % (self.PRJ_NM, self.PRJ_CD)
         return ret
 
+    @models.permalink    
     def get_absolute_url(self):
         ret = "/projects/%s/" % self.slug
         return ret
@@ -83,11 +84,11 @@ class Project(models.Model):
         from:http://stackoverflow.com/questions/7971689/
              generate-slug-field-in-existing-table
         Slugify name if it doesn't exist. IMPORTANT: doesn't check to see
-        if slug is a dupe!
+        if slug is a dupicate!
         """
         if not self.slug:
             self.slug = slugify(self.PRJ_CD)
-        super(Project, self).save()
+        super(Project, self).save( *args, **kwargs)
 
 class ProjectReports(models.Model):
     '''list of reporting requirements for each project'''

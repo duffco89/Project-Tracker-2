@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>  {% block title  %} UGMLU  {% endblock %}  </title>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}worg.css" />
+    {% block header  %} {% endblock %}
+  </head>
+
+
+<body>  
+{% block content  %} {% endblock %}
+{% block extracontent  %} {% endblock %}
+</body>
+</html>

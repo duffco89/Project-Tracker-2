@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title  %} {{ block.super }}| New Project  {% endblock %}
+
+
+
+{% block content  %} 
+
+<h1>New Project</h1>
+
+<form method="POST" id="" action="">
+  {{form.as_p}}  
+  <input type="submit" name="Submit" value="project" />
+</form>
+
+{% endblock %}
