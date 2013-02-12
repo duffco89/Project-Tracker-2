@@ -1,5 +1,17 @@
 {% extends "base.html" %}
 
+{% block extrahead %}
+<script>
+$(function() {
+$( "#id_PRJ_DATE0" ).datepicker();
+});
+$(function() {
+$( "#id_PRJ_DATE1" ).datepicker();
+});
+</script>
+{% endblock %}
+
+
 {% block title  %} {{ block.super }}| New Project  {% endblock %}
 
 

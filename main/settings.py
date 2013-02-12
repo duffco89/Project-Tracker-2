@@ -17,7 +17,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 
-
+#username and password: cottrillad, django
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

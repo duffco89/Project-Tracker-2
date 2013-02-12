@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.core.context_processors import csrf
 from django.views.generic import ListView
@@ -28,7 +28,17 @@ def ReportMilestones(request):
                               context_instance=RequestContext(request)
         )
 
-
+g
+def project_milestones(request, slug):
+    project = get_object_or_404(Project, slug=slug)
+    core =  CoreReportsForm()
+    additional = AdditionalReportsForm()
+    return render_to_response('simpleform.html',
+                              {'core':core, 'additional':additional,
+                               'project':project},
+                              context_instance=RequestContext(request)
+        )
+    
 
 
 

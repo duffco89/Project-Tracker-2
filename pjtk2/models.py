@@ -1,4 +1,4 @@
-from django.db import models
+\from django.db import models
 from django.contrib.auth.models import User
 from django.contrib import admin
 from django.template.defaultfilters import slugify
@@ -43,9 +43,9 @@ class Project(models.Model):
     YEAR = models.CharField(max_length=4)
     PRJ_DATE0 = models.DateField("Start Date", blank=False)
     PRJ_DATE1 = models.DateField("End Date", blank=False)
-    PRJ_CD = models.CharField(max_length=13, unique=True, blank=False)
-    PRJ_NM = models.CharField(max_length=50, blank=False)
-    PRJ_LDR = models.CharField(max_length=40, blank=False)
+    PRJ_CD = models.CharField("Project Code", max_length=13, unique=True, blank=False)
+    PRJ_NM = models.CharField("Proejct Name", max_length=50, blank=False)
+    PRJ_LDR = models.CharField("Project Lead", max_length=40, blank=False)
     COMMENT = models.TextField(blank=False)
     MasterDatabase = models.ForeignKey("TL_DataLocations")
     ProjectType = models.ForeignKey("TL_ProjType")

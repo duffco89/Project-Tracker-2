@@ -3,23 +3,29 @@
 <html>
   <head>
     <title>  {% block title  %} UGMLU  {% endblock %}  </title>
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}worg.css" />
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/worg.css" />
   </head>
 
 
 
 <body>  
+
+<p> <a href="{% url ProjectList %}">Return to Index</a> </p>
+
 <h1>New UGLMU Project</h1>
 <hr />
 <p>It is {% now "jS F Y H:i" %}</p>
 
+
+
 <h2>Project Information:</h2>
 <p>This section will include information about the project:</p>
 <ul>
-  <li>Project Code</li>
-  <li>Project Name</li>
-  <li>Project Lead</li>
-  <li>start and end dates</li>
+  <li>Project Code:  {{ project.PRJ_CD }} </li>
+  <li>Project Name:  {{ project.PRJ_NM }}</li>
+  <li>Project Lead:  {{ project.PRJ_LDR }}</li>
+  <li>start and end dates:  {{ project.PRJ_DATE0 }}  - 
+  {{ project.PRJ_DATE1 }} </li>
   <li>Project Description</li>
   <li>keywords</li>
   <li>yada-yada-yada</li>

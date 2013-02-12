@@ -4,6 +4,17 @@ from pjtk2.models import Milestone, Project
 
 
 
+def make_custom_datefield(f, **kwargs):
+    '''from: http://strattonbrazil.blogspot.ca/2011/03/using-jquery-uis-date-picker-on-all.html'''
+    from django.db import models
+    formfield = f.formfield(**kwargs)
+    if isinstance(f, models.DateField):
+        formfield.widget.format = '%m/%d/%Y'
+        formfield.widget.attrs.update({'class':'datepicker'})
+    return formfield
+
+
+
 class CoreReportsForm(forms.Form):
     reports = Milestone.objects.filter(category='Common')
     #we need to convert the querset to a tuple of tuples
@@ -27,5 +38,6 @@ class AdditionalReportsForm(forms.Form):
 
 
 class NewProjectForm(forms.ModelForm):
+    formfield_callback = make_custom_datefield
     class Meta:
         model = Project 
