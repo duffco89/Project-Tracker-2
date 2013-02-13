@@ -11,7 +11,9 @@
 {% if object_list %}
   <ul id="object_list">
     {% for project in object_list %}
-      <li><a href="{{ Project.get_absolute_url }}">{{ project.PRJ_CD }}</a> - {{ project.PRJ_NM  }}  </li> 
+      <li><a href="{{ project.get_absolute_url }}">
+     {{ project.PRJ_CD }}</a> - {{ project.PRJ_NM  }} | 
+     <a href="{% url ViewReports project.slug %}">View Reports</a> </li> 
     {% endfor %}
   </ul>
 {% else %}
@@ -20,8 +22,9 @@
 
 {% endif %}
 
-
-<a href="{% url NewProject %}">Create a new project</a>
-
+<p>
+<a href="{% url NewProject %}">Create a new project</a> |
+<a href="{% url Reports %}">Reports Form</a>
+</p>
 
 {% endblock %}
