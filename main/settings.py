@@ -52,12 +52,14 @@ USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
-MEDIA_ROOT = '/site-media/'
+MEDIA_ROOT = root("uploads/")
+#MEDIA_ROOT = "C:/1work/DropBox/Dropbox/PythonStuff/djcode/pjtk2/uploads/reports/"
+print "MEDIA_ROOT = %s" % MEDIA_ROOT
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
-#MEDIA_URL = ''
+#MEDIA_URL = root()
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -119,7 +121,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'main.middleware.LoginRequiredMiddleware',
+#'main.middleware.LoginRequiredMiddleware',
 )
 
 ROOT_URLCONF = 'main.urls'

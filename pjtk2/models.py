@@ -76,7 +76,7 @@ class Project(models.Model):
         ret = "%s (%s)" % (self.PRJ_NM, self.PRJ_CD)
         return ret
 
-    @models.permalink    
+    @models.permalink
     def get_absolute_url(self):
         ret = "/projects/%s/" % self.slug
         return ret
@@ -108,7 +108,8 @@ class Reports(models.Model):
     current = models.BooleanField(default=True)
     #projectreport = models.ManyToManyField('ProjectReports')
     projectreport = models.ForeignKey('ProjectReports')
-    report_path = models.CharField(max_length = 300, default="")
+    #report_path = models.CharField(max_length = 300, default="")
+    report_path = models.FileField(upload_to="reports/")
     uploaded_on = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.CharField(max_length = 300)
     report_hash = models.CharField(max_length = 300)

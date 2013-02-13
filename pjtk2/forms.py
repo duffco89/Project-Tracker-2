@@ -15,8 +15,8 @@ def make_custom_datefield(f, **kwargs):
 
 
 
-class CoreReportsForm(forms.Form, slug):
-    #slug="LHA_IA11_998"
+class CoreReportsForm(forms.Form):
+    slug="LHA_IA11_998"
     corereports = Milestone.objects.filter(category='Common')
     #we need to convert the querset to a tuple of tuples
     corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
