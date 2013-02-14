@@ -5,9 +5,9 @@ from django.views.generic import ListView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 
-from pjtk2.models import Milestone, Project
+from pjtk2.models import Milestone, Project, Reports
 #from pjtk2.forms import MilestoneForm
-from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, NewProjectForm
+from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, NewProjectForm, DocumentForm
 
 import pdb
 
@@ -99,18 +99,29 @@ def ReportUpload(request):
     pass
 
 
+def uploadlist(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            
+            newreport = Reports(report_path = request.FILES['report_path'])
 
-##  #from http://www.allbuttonspressed.com/projects/django-filetransfers
-##  from filetransfers.api import prepare_upload
-##  
-##  def upload_handler(request):
-##      view_url = reverse('upload.views.upload_handler')
-##      if request.method == 'POST':
-##          form = UploadForm(request.POST, request.FILES)
-##          form.save()
-##          return HttpResponseRedirect(view_url)
-##  
-##      upload_url, upload_data = prepare_upload(request, view_url)
-##      form = UploadForm()
-##      return direct_to_template(request, 'upload/upload.html',
-##          {'form': form, 'upload_url': upload_url, 'upload_data': upload_data})
+            pdb.set_trace()
+            newreport.save()
+
+            # Redirect to the document list after POST
+            return HttpResponseRedirect(reverse('pjtk2.views.uploadlist'))
+    else:
+        form = DocumentForm() # A empty, unbound form
+
+    # Load documents for the list page
+    reports = Reports.objects.all()
+    # Render list page with the documents and the form
+    return render_to_response(
+        'upload_example.html',
+        {'reports': reports, 'form': form},
+        context_instance=RequestContext(request)
+    )
+
+    

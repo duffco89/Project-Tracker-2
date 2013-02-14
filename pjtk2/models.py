@@ -115,7 +115,7 @@ class Reports(models.Model):
     report_hash = models.CharField(max_length = 300)
 
     def __unicode__(self):
-        return self.report_path
+        return str(self.report_path)
 
 class AdminMilestone(admin.ModelAdmin):
     list_display = ('label', 'category',)

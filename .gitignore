@@ -1,5 +1,6 @@
 static/*
 admin2/*
+uploads/*
 static_root/*
 *.pyc
 db/*

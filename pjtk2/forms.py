@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 from django import forms
-from pjtk2.models import Milestone, Project, ProjectReports
+from pjtk2.models import Milestone, Project, ProjectReports, Reports
 
 
 
@@ -57,3 +57,22 @@ class NewProjectForm(forms.ModelForm):
     formfield_callback = make_custom_datefield
     class Meta:
         model = Project 
+
+
+class DocumentForm(forms.ModelForm):
+    '''A simple little demo form for testing file uploads'''
+    class Meta:
+        model = Reports
+
+        
+##   class DocumentForm(forms.Form):
+##       reportfile = forms.FileField(
+##           label='Select a file',
+##           help_text='max. 42 megabytes'
+##       )
+##       #current = forms.BooleanField()
+    #projectreport = forms.??
+    #upload_date = forms.DateField(default = datetime.datetime.today)
+    #uploaded_by = forms.CharField(default = "me")
+    #hash = forms.CharField(default = "fakehash")    
+    

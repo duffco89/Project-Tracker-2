@@ -13,4 +13,5 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^(?P<slug>[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3})/$', 'project_milestones', name='ProjectMilestones'),
     
     url(r'^reportupload/$', 'ReportUpload', name='ReportUpload'),
+    url(r'^uploadlist/$', 'uploadlist', name='UploadList'),
 )
