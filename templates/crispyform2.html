@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block extrahead %}
+<script>
+$(document).ready(function() {
+    $('.dateinput').datepicker({ format: "yyyy/mm/dd" });
+}); 
+</script>
+{% endblock %}
+
+
+{% crispy example_form example_form.helper %}
+ 
+{% block content %}
+{% crispy form %}
+{% endblock %}

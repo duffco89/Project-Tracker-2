@@ -1,0 +1,920 @@
+[
+    {
+        "pk": 12,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "project",
+            "name": "Project List",
+            "app_label": "pjtk2"
+        }
+    },
+    {
+        "pk": 9,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "milestone",
+            "name": "Reporting Milestones",
+            "app_label": "pjtk2"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "contenttype",
+            "name": "content type",
+            "app_label": "contenttypes"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "group",
+            "name": "group",
+            "app_label": "auth"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "logentry",
+            "name": "log entry",
+            "app_label": "admin"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "migrationhistory",
+            "name": "migration history",
+            "app_label": "south"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "permission",
+            "name": "permission",
+            "app_label": "auth"
+        }
+    },
+    {
+        "pk": 13,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "projectreports",
+            "name": "project reports",
+            "app_label": "pjtk2"
+        }
+    },
+    {
+        "pk": 14,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "report",
+            "name": "report",
+            "app_label": "pjtk2"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "session",
+            "name": "session",
+            "app_label": "sessions"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "site",
+            "name": "site",
+            "app_label": "sites"
+        }
+    },
+    {
+        "pk": 11,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "tl_database",
+            "name": "t l_ database",
+            "app_label": "pjtk2"
+        }
+    },
+    {
+        "pk": 10,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "tl_projtype",
+            "name": "t l_ proj type",
+            "app_label": "pjtk2"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "contenttypes.contenttype",
+        "fields": {
+            "model": "user",
+            "name": "user",
+            "app_label": "auth"
+        }
+    },
+    {
+        "pk": "ea9d0cc2a9e4d1f66355750e375d6f1b",
+        "model": "sessions.session",
+        "fields": {
+            "expire_date": "2013-03-04T22:53:13.236Z",
+            "session_data": "YTE1YmExMjUyMDJhOGY3YTU0NGFiZTY4NWVkN2MyMjFlOTlhYjQwYTqAAn1xAShVEl9hdXRoX3Vz\nZXJfYmFja2VuZHECVSlkamFuZ28uY29udHJpYi5hdXRoLmJhY2tlbmRzLk1vZGVsQmFja2VuZHED\nVQ1fYXV0aF91c2VyX2lkcQRLAXUu\n"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "sites.site",
+        "fields": {
+            "domain": "example.com",
+            "name": "example.com"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "pjtk2.milestone",
+        "fields": {
+            "category": "Core",
+            "order": 1,
+            "label": "Project Proposal"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "pjtk2.milestone",
+        "fields": {
+            "category": "Core",
+            "order": 2,
+            "label": "Project Proposal Presentation"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "pjtk2.milestone",
+        "fields": {
+            "category": "Core",
+            "order": 3,
+            "label": "Field Protocol"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "pjtk2.milestone",
+        "fields": {
+            "category": "Core",
+            "order": 4,
+            "label": "Completion Report"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "pjtk2.milestone",
+        "fields": {
+            "category": "Core",
+            "order": 5,
+            "label": "Completion Presentation"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "pjtk2.milestone",
+        "fields": {
+            "category": "Core",
+            "order": 6,
+            "label": "Summary Report"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "pjtk2.milestone",
+        "fields": {
+            "category": "Custom",
+            "order": 99,
+            "label": "Contaminants Collected"
+        }
+    },
+    {
+        "pk": 8,
+        "model": "pjtk2.milestone",
+        "fields": {
+            "category": "Custom",
+            "order": 99,
+            "label": "CWT Report"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "pjtk2.tl_projtype",
+        "fields": {
+            "Project_Type": "Offshore Index"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "pjtk2.tl_projtype",
+        "fields": {
+            "Project_Type": "Port Creel"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "pjtk2.tl_projtype",
+        "fields": {
+            "Project_Type": "Roving Creel"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "pjtk2.tl_projtype",
+        "fields": {
+            "Project_Type": "Early Season Trap Netting (ESTN)"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "pjtk2.tl_projtype",
+        "fields": {
+            "Project_Type": "Fall Walleye Index Netting (FWIN)"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "pjtk2.tl_projtype",
+        "fields": {
+            "Project_Type": "Commercial Catch Sampling"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "pjtk2.tl_database",
+        "fields": {
+            "Path": "C:\\Somewhere",
+            "MasterDatabase": "CF Master"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "pjtk2.tl_database",
+        "fields": {
+            "Path": "C:\\Somewhere2",
+            "MasterDatabase": "IA Offshore"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "pjtk2.tl_database",
+        "fields": {
+            "Path": "C:\\SomewhereElse",
+            "MasterDatabase": "IA Nearshore"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "pjtk2.tl_database",
+        "fields": {
+            "Path": "C:\\Somewhere",
+            "MasterDatabase": "Sport Fish Master"
+        }
+    },
+    {
+        "pk": 19,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_logentry",
+            "name": "Can add log entry",
+            "content_type": 7
+        }
+    },
+    {
+        "pk": 20,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_logentry",
+            "name": "Can change log entry",
+            "content_type": 7
+        }
+    },
+    {
+        "pk": 21,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_logentry",
+            "name": "Can delete log entry",
+            "content_type": 7
+        }
+    },
+    {
+        "pk": 4,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_group",
+            "name": "Can add group",
+            "content_type": 2
+        }
+    },
+    {
+        "pk": 5,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_group",
+            "name": "Can change group",
+            "content_type": 2
+        }
+    },
+    {
+        "pk": 6,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_group",
+            "name": "Can delete group",
+            "content_type": 2
+        }
+    },
+    {
+        "pk": 1,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_permission",
+            "name": "Can add permission",
+            "content_type": 1
+        }
+    },
+    {
+        "pk": 2,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_permission",
+            "name": "Can change permission",
+            "content_type": 1
+        }
+    },
+    {
+        "pk": 3,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_permission",
+            "name": "Can delete permission",
+            "content_type": 1
+        }
+    },
+    {
+        "pk": 7,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_user",
+            "name": "Can add user",
+            "content_type": 3
+        }
+    },
+    {
+        "pk": 8,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_user",
+            "name": "Can change user",
+            "content_type": 3
+        }
+    },
+    {
+        "pk": 9,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_user",
+            "name": "Can delete user",
+            "content_type": 3
+        }
+    },
+    {
+        "pk": 10,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_contenttype",
+            "name": "Can add content type",
+            "content_type": 4
+        }
+    },
+    {
+        "pk": 11,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_contenttype",
+            "name": "Can change content type",
+            "content_type": 4
+        }
+    },
+    {
+        "pk": 12,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_contenttype",
+            "name": "Can delete content type",
+            "content_type": 4
+        }
+    },
+    {
+        "pk": 25,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_milestone",
+            "name": "Can add Reporting Milestones",
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 26,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_milestone",
+            "name": "Can change Reporting Milestones",
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 27,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_milestone",
+            "name": "Can delete Reporting Milestones",
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 34,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_project",
+            "name": "Can add Project List",
+            "content_type": 12
+        }
+    },
+    {
+        "pk": 35,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_project",
+            "name": "Can change Project List",
+            "content_type": 12
+        }
+    },
+    {
+        "pk": 36,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_project",
+            "name": "Can delete Project List",
+            "content_type": 12
+        }
+    },
+    {
+        "pk": 37,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_projectreports",
+            "name": "Can add project reports",
+            "content_type": 13
+        }
+    },
+    {
+        "pk": 38,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_projectreports",
+            "name": "Can change project reports",
+            "content_type": 13
+        }
+    },
+    {
+        "pk": 39,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_projectreports",
+            "name": "Can delete project reports",
+            "content_type": 13
+        }
+    },
+    {
+        "pk": 40,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_report",
+            "name": "Can add report",
+            "content_type": 14
+        }
+    },
+    {
+        "pk": 41,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_report",
+            "name": "Can change report",
+            "content_type": 14
+        }
+    },
+    {
+        "pk": 42,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_report",
+            "name": "Can delete report",
+            "content_type": 14
+        }
+    },
+    {
+        "pk": 31,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_tl_database",
+            "name": "Can add t l_ database",
+            "content_type": 11
+        }
+    },
+    {
+        "pk": 32,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_tl_database",
+            "name": "Can change t l_ database",
+            "content_type": 11
+        }
+    },
+    {
+        "pk": 33,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_tl_database",
+            "name": "Can delete t l_ database",
+            "content_type": 11
+        }
+    },
+    {
+        "pk": 28,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_tl_projtype",
+            "name": "Can add t l_ proj type",
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 29,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_tl_projtype",
+            "name": "Can change t l_ proj type",
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 30,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_tl_projtype",
+            "name": "Can delete t l_ proj type",
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 13,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_session",
+            "name": "Can add session",
+            "content_type": 5
+        }
+    },
+    {
+        "pk": 14,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_session",
+            "name": "Can change session",
+            "content_type": 5
+        }
+    },
+    {
+        "pk": 15,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_session",
+            "name": "Can delete session",
+            "content_type": 5
+        }
+    },
+    {
+        "pk": 16,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_site",
+            "name": "Can add site",
+            "content_type": 6
+        }
+    },
+    {
+        "pk": 17,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_site",
+            "name": "Can change site",
+            "content_type": 6
+        }
+    },
+    {
+        "pk": 18,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_site",
+            "name": "Can delete site",
+            "content_type": 6
+        }
+    },
+    {
+        "pk": 22,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "add_migrationhistory",
+            "name": "Can add migration history",
+            "content_type": 8
+        }
+    },
+    {
+        "pk": 23,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "change_migrationhistory",
+            "name": "Can change migration history",
+            "content_type": 8
+        }
+    },
+    {
+        "pk": 24,
+        "model": "auth.permission",
+        "fields": {
+            "codename": "delete_migrationhistory",
+            "name": "Can delete migration history",
+            "content_type": 8
+        }
+    },
+    {
+        "pk": 1,
+        "model": "auth.user",
+        "fields": {
+            "username": "adam",
+            "first_name": "",
+            "last_name": "",
+            "is_active": true,
+            "is_superuser": true,
+            "is_staff": true,
+            "last_login": "2013-02-18T22:53:12.824Z",
+            "groups": [],
+            "user_permissions": [],
+            "password": "pbkdf2_sha256$10000$HdV7QcaNBBo8$yulhNi2urT7nzIKEunr/2+WsbWtLbb2lL7VCDbyztT4=",
+            "email": "racottrill@bmts.com",
+            "date_joined": "2013-02-18T22:49:28.102Z"
+        }
+    },
+    {
+        "pk": 18,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:29:54.879Z",
+            "object_repr": "CWT Report",
+            "object_id": "8",
+            "change_message": "",
+            "user": 1,
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 17,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:29:43.014Z",
+            "object_repr": "Contaminants Collected",
+            "object_id": "7",
+            "change_message": "",
+            "user": 1,
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 16,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:29:21.352Z",
+            "object_repr": "Summary Report",
+            "object_id": "6",
+            "change_message": "",
+            "user": 1,
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 15,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:28:55.893Z",
+            "object_repr": "Completion Presentation",
+            "object_id": "5",
+            "change_message": "",
+            "user": 1,
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 14,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:28:30.508Z",
+            "object_repr": "Completion Report",
+            "object_id": "4",
+            "change_message": "",
+            "user": 1,
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 13,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:28:16.250Z",
+            "object_repr": "Field Protocol",
+            "object_id": "3",
+            "change_message": "",
+            "user": 1,
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 12,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:28:00.492Z",
+            "object_repr": "Project Proposal Presentation",
+            "object_id": "2",
+            "change_message": "",
+            "user": 1,
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 11,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:27:37.652Z",
+            "object_repr": "Project Proposal",
+            "object_id": "1",
+            "change_message": "",
+            "user": 1,
+            "content_type": 9
+        }
+    },
+    {
+        "pk": 10,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:25:32.860Z",
+            "object_repr": "Commercial Catch Sampling",
+            "object_id": "6",
+            "change_message": "",
+            "user": 1,
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 9,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:25:18.131Z",
+            "object_repr": "Fall Walleye Index Netting (FWIN)",
+            "object_id": "5",
+            "change_message": "",
+            "user": 1,
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 8,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:25:02.303Z",
+            "object_repr": "Early Season Trap Netting (ESTN)",
+            "object_id": "4",
+            "change_message": "",
+            "user": 1,
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 7,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:24:38.161Z",
+            "object_repr": "Roving Creel",
+            "object_id": "3",
+            "change_message": "",
+            "user": 1,
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 6,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:24:28.869Z",
+            "object_repr": "Port Creel",
+            "object_id": "2",
+            "change_message": "",
+            "user": 1,
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 5,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:24:16.860Z",
+            "object_repr": "Offshore Index",
+            "object_id": "1",
+            "change_message": "",
+            "user": 1,
+            "content_type": 10
+        }
+    },
+    {
+        "pk": 4,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:23:58.823Z",
+            "object_repr": "Sport Fish Master",
+            "object_id": "4",
+            "change_message": "",
+            "user": 1,
+            "content_type": 11
+        }
+    },
+    {
+        "pk": 3,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:23:44.097Z",
+            "object_repr": "IA Nearshore",
+            "object_id": "3",
+            "change_message": "",
+            "user": 1,
+            "content_type": 11
+        }
+    },
+    {
+        "pk": 2,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:23:26.803Z",
+            "object_repr": "IA Offshore",
+            "object_id": "2",
+            "change_message": "",
+            "user": 1,
+            "content_type": 11
+        }
+    },
+    {
+        "pk": 1,
+        "model": "admin.logentry",
+        "fields": {
+            "action_flag": 1,
+            "action_time": "2013-02-18T23:23:09.405Z",
+            "object_repr": "CF Master",
+            "object_id": "1",
+            "change_message": "",
+            "user": 1,
+            "content_type": 11
+        }
+    }
+]

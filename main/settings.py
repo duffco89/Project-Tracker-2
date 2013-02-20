@@ -25,7 +25,7 @@ DATABASES = {
     }
 }
 
-print 'database name: %s/db/pjtk2.db' % root()
+#print 'database name: %s/db/pjtk2.db' % root()
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -54,7 +54,7 @@ USE_TZ = True
 # Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = root("uploads/")
 #MEDIA_ROOT = "C:/1work/DropBox/Dropbox/PythonStuff/djcode/pjtk2/uploads/reports/"
-print "MEDIA_ROOT = %s" % MEDIA_ROOT
+#print "MEDIA_ROOT = %s" % MEDIA_ROOT
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
@@ -136,7 +136,7 @@ TEMPLATE_DIRS = (
     root('templates')
 )
 
-INSTALLED_APPS = (
+DJANGO_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -145,9 +145,21 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
     'django_wsgiserver',
+)
+
+THIRDPARTY_APPS = (
+    'crispy_forms',    
+    )
+
+MY_APPS =(
     'pjtk2',
     'south',
-)
+    )
+
+INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
+
+
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -185,6 +197,6 @@ LOGGING = {
 ## STATIC_URL = 'http://' + STATIC_HOST + STATIC_URL
 ## #STATIC_URL = 'http://127.0.0.1:8000' + STATIC_URL
 
-print "STATIC_URL: %s" % STATIC_URL
-print "STATIC_ROOT: %s" % STATIC_ROOT
-print "ADMIN_MEDIA_PREFIX : %s" % ADMIN_MEDIA_PREFIX
+#print "STATIC_URL: %s" % STATIC_URL
+#print "STATIC_ROOT: %s" % STATIC_ROOT
+#print "ADMIN_MEDIA_PREFIX : %s" % ADMIN_MEDIA_PREFIX

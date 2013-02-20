@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Minimal Django File Upload Example</title>   
+    </head>
+    <body>
+    <!-- List of uploaded reports -->
+    {% if reports %}
+        <ul>
+        {% for report in reports %}
+            <li><a href="{{ report.report_path }}">{{ report.report_path }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No reports.</p>
+    {% endif %}
+
+        <!-- Upload form. Note enctype attribute! -->
+        <form action="{% url UploadList %}" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+	    {{ form.as_p }}
+
+            <p><input type="submit" value="Upload" /></p>
+        </form>
+    </body>
+</html> 

@@ -8,7 +8,8 @@ from django.template.defaultfilters import slugify
 # Create your models here.
 
 MILESTONE_CHOICES = {
-    ('Common','common'),
+    ('Core','core'),
+    ('Suggested','suggested'),    
     ('Custom','custom'),
 }
 
@@ -20,6 +21,7 @@ class Milestone(models.Model):
 
     class Meta:
         verbose_name = "Reporting Milestones"
+        verbose_name_plural = "Reporting Milestones"
         ordering = ['order']
 
 
@@ -30,13 +32,19 @@ class Milestone(models.Model):
 class TL_ProjType(models.Model):
     Project_Type = models.CharField(max_length=150)
 
+    class Meta:
+        verbose_name = "Project Type"
+    
     def __unicode__(self):
         return self.Project_Type
 
-class TL_DataLocations(models.Model):
+class TL_Database(models.Model):
     MasterDatabase = models.CharField(max_length=250)
     Path = models.CharField(max_length=250)
 
+    class Meta:
+        verbose_name = "Master Database"
+    
     def __unicode__(self):
         return self.MasterDatabase
 
@@ -49,7 +57,7 @@ class Project(models.Model):
     PRJ_NM = models.CharField("Proejct Name", max_length=50, blank=False)
     PRJ_LDR = models.CharField("Project Lead", max_length=40, blank=False)
     COMMENT = models.TextField(blank=False)
-    MasterDatabase = models.ForeignKey("TL_DataLocations")
+    MasterDatabase = models.ForeignKey("TL_Database")
     ProjectType = models.ForeignKey("TL_ProjType")
     Approved = models.BooleanField(default = False)
     SignOff  = models.BooleanField(default = False)
@@ -58,11 +66,12 @@ class Project(models.Model):
     DataScrubbed  = models.BooleanField(default = False)
     DataMerged  = models.BooleanField(default = False)
     Conducted  = models.BooleanField(default = False)
-    Max_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3)
-    Min_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3)
-    Max_DD_LON = models.DecimalField(max_digits=5, decimal_places=3)
-    Min_DD_LON = models.DecimalField(max_digits=5, decimal_places=3)
-    Owner = models.CharField(max_length=40)
+    Max_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, null=True)
+    Min_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, null=True)
+    Max_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, null=True)
+    Min_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, null=True)
+    Owner = models.ForeignKey(User)
+    #Owner = models.CharField(max_length=40,blank=True)
     slug = models.SlugField()
 
     class Meta:
@@ -90,7 +99,11 @@ class Project(models.Model):
         """
         if not self.slug:
             self.slug = slugify(self.PRJ_CD)
+        if not self.YEAR:            
+            self.YEAR = self.PRJ_DATE0.year
         super(Project, self).save( *args, **kwargs)
+
+    
 
 class ProjectReports(models.Model):
     '''list of reporting requirements for each project'''
@@ -99,11 +112,12 @@ class ProjectReports(models.Model):
 
     class Meta:
         unique_together = ("project", "report_type",)
-
+        verbose_name_plural = "Project Reports"
+        
     def __unicode__(self):
         return "%s - %s" % (self.project, self.report_type)
 
-class Reports(models.Model):
+class Report(models.Model):
     '''class for reporting milestones'''
     current = models.BooleanField(default=True)
     #projectreport = models.ManyToManyField('ProjectReports')
@@ -124,7 +138,7 @@ class AdminMilestone(admin.ModelAdmin):
 class AdminTL_ProjType(admin.ModelAdmin):
     pass
 
-class AdminTL_DataLocations(admin.ModelAdmin):
+class AdminTL_Database(admin.ModelAdmin):
     pass
 
 class AdminProject(admin.ModelAdmin):
@@ -134,7 +148,7 @@ class AdminProjectReports(admin.ModelAdmin):
     list_display = ('project', 'report_type',)
     list_filter = ('project', 'report_type')
 
-class AdminReports(admin.ModelAdmin):
+class AdminReport(admin.ModelAdmin):
     #list_display = ('current', 'ProjectReports_project', 'ProjectReports_report__type',)
     list_display = ('current', 'report_path','uploaded_on', 'uploaded_by')
     #    list_filter = ('ProjectReports__project',)
@@ -143,7 +157,7 @@ class AdminReports(admin.ModelAdmin):
 
 admin.site.register(Milestone, AdminMilestone)
 admin.site.register(TL_ProjType, AdminTL_ProjType)
-admin.site.register(TL_DataLocations, AdminTL_DataLocations)
+admin.site.register(TL_Database, AdminTL_Database)
 admin.site.register(Project, AdminProject)
 admin.site.register(ProjectReports, AdminProjectReports)
-admin.site.register(Reports, AdminReports)
+admin.site.register(Report, AdminReport)

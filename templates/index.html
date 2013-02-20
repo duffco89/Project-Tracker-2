@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title  %} {{ block.super }}| Index  {% endblock %}
+
+{% block content  %} 
+
+<h1>Site Index</h1>
+
+<ul>
+   <li><a href="{% url Reports %}">Reports Form</a></li>
+   <li><a href="{% url ProjectList %}">Project List</a></li>
+   <li><a href="{% url NewProject %}">Create a new project</a></li>
+   <li><a href="{% url ReportUpload %}">Report Upload</a></li>
+   <li><a href="{% url UploadList %}">Upload List</a></li>
+   <li><a href="{% url CrispyForm %}">Crispy-form example 1</a></li>
+   <li><a href="{% url CrispyForm2 %}">Crispy-form example 2</a></li>
+</ul>
+
+{% endblock %}

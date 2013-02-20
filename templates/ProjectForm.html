@@ -1,28 +1,26 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 
 {% block extrahead %}
+
 <script>
-$(function() {
-$( "#id_PRJ_DATE0" ).datepicker();
-});
-$(function() {
-$( "#id_PRJ_DATE1" ).datepicker();
-});
+$(document).ready(function() {
+    $('.dateinput').datepicker({ format: "yyyy/mm/dd" });
+}); 
 </script>
+
 {% endblock %}
 
 
 {% block title  %} {{ block.super }}| New Project  {% endblock %}
 
 
+{% crispy NewProjectForm NewProjectForm.helper %}
 
 {% block content  %} 
 
 <h1>New Project</h1>
 
-<form method="POST" id="" action="">
-  {{form.as_p}}  
-  <input type="submit" name="Submit" value="project" />
-</form>
+{% crispy form %}
 
 {% endblock %}
