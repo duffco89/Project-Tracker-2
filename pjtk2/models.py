@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib import admin
 from django.template.defaultfilters import slugify
-
+from django.core.urlresolvers import reverse
 
 
 # Create your models here.
@@ -85,10 +85,11 @@ class Project(models.Model):
         ret = "%s (%s)" % (self.PRJ_NM, self.PRJ_CD)
         return ret
 
-    @models.permalink
+    #@models.permalink
     def get_absolute_url(self):
-        ret = "/projects/%s/" % self.slug
-        return ret
+        #slug = str(self.slug)
+        url = reverse('pjtk2.views.ViewReports', kwargs={'slug':self.slug})
+        return url
 
     def save(self, *args, **kwargs):
         """

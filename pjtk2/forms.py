@@ -203,18 +203,20 @@ class NewProjectForm(forms.Form):
         '''
         pattern  = "^[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3}$"
 
-        data =  self.cleaned_data["PRJ_CD"]
-        if re.search(pattern,data):
+        project_code =  self.cleaned_data["PRJ_CD"]
+        if re.search(pattern, project_code):
             #make sure that this project code doesn't already exist:
             try:
-                proj = Project.objects.get(PRJ_CD=data)
+                proj = Project.objects.get(PRJ_CD=project_code)
             except Project.DoesNotExist:
                 proj = None
             if proj:
-                errmsg = "Project Code already exists (<a href='/somehwere'>view</a>)."
+                url = proj.get_absolute_url()
+                print url
+                errmsg = "Project Code already exists (<a href='%s'>view</a>)." % url
                 raise forms.ValidationError(mark_safe(errmsg))
             else:
-                return data
+                return project_code
         else:
             raise forms.ValidationError("Malformed Project Code.")
             

@@ -5,7 +5,8 @@ from django.views.generic import ListView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 
-from pjtk2.models import Milestone, Project, Report, ProjectReports
+from pjtk2.models import Milestone, Project, Report, ProjectReports 
+from pjtk2.models import TL_ProjType, TL_Database
 #from pjtk2.forms import MilestoneForm
 from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, NewProjectForm, DocumentForm 
 
@@ -105,7 +106,39 @@ def ViewReports(request, slug):
                               context_instance=RequestContext(request)
         )
 
+def edit_project(request,slug):
+    pass
+    
+def copy_project(request,slug):
+    project = get_object_or_404(Project, slug=slug)
+    if project:
+        data = dict(
+                PRJ_CD = project.PRJ_CD,
+                PRJ_NM = project.PRJ_NM,
+                PRJ_LDR = project.PRJ_LDR,
+                PRJ_DATE0 = project.PRJ_DATE0,                
+                PRJ_DATE1 = project.PRJ_DATE1,
+                COMMENT = project.COMMENT,
+                ProjectType = project.ProjectType.id,
+                MasterDatabase = project.MasterDatabase.id,
+            )
 
+    if request.method == 'POST': # If the form has been submitted...
+        form = NewProjectForm(data=request.POST, user=request.user)
+        if form.is_valid():
+            new_project = form.save()
+            return HttpResponseRedirect(new_project.get_absolute_url())
+        else:
+            return render_to_response('ProjectForm.html',
+                              {'form':form},
+                              context_instance=RequestContext(request))
+    else:
+        form = NewProjectForm(data = data, user=request.user) 
+    return render_to_response('ProjectForm.html',
+                              {'form':form},
+                              context_instance=RequestContext(request)
+        )
+    
 
 def project_milestones(request, slug):
     project = get_object_or_404(Project, slug=slug)
@@ -121,25 +154,18 @@ def project_milestones(request, slug):
 
 
 def NewProject(request):
-    #pdb.set_trace()
-    if request.method == 'POST': # If the form has been submitted...
-        form = NewProjectForm(data=request.POST, user=request.user) # A form bound to the POST data
+    if request.method == 'POST': 
+        form = NewProjectForm(data=request.POST, user=request.user)
         if form.is_valid():
-            #project = form.cleaned_data
-            #project["Owner"] = request.user
-            #project.save()
-            #pk = project.pk
-            form.save()
-            #slug = form.slug
-            #print slug
-            return HttpResponseRedirect(reverse("ProjectList"))
+            new_project = form.save()
+            return HttpResponseRedirect(new_project.get_absolute_url())
         else:
             return render_to_response('ProjectForm.html',
                               {'form':form},
                               context_instance=RequestContext(request))
             
     else:
-        form = NewProjectForm(user=request.user) # An unbound form
+        form = NewProjectForm(user=request.user)
     return render_to_response('ProjectForm.html',
                               {'form':form},
                               context_instance=RequestContext(request)
@@ -175,6 +201,8 @@ def uploadlist(request):
         context_instance=RequestContext(request)
     )
 
+#=============================================
+#=============================================
 from django.shortcuts import render
 from forms import CrispyForm, ExampleForm
  

@@ -10,8 +10,9 @@
 
 <body>  
 
-<p> <a href="{% url ProjectList %}">Return to Index</a> </p>
-
+<p> <a href="{% url ProjectList %}">Return to Index</a> | 
+    <a href="#">View My Projects</a> 
+</p>
 
 <h1>New UGLMU Project</h1>
 <hr />
@@ -21,13 +22,39 @@
 <ul>
   <li>Project Code:  {{ project.PRJ_CD }} </li>
   <li>Project Name:  {{ project.PRJ_NM }}</li>
-  <li>Project Lead:  {{ project.PRJ_LDR }}</li>
+  <li>Project Lead:  <a href="#">{{ project.PRJ_LDR }}</a> </li>
   <li>start and end dates:  {{ project.PRJ_DATE0 }}  - 
   {{ project.PRJ_DATE1 }} </li>
-  <li>Project Description</li>
-  <li>keywords</li>
+  <li>Project Description:</li>
+    {% if project.COMMENT %}
+    <p>{{ project.COMMENT  }} </p>
+    {% endif %}
+  <li>Project Type:  <a href="#">
+  {{ project.ProjectType.Project_Type}}</a> <em>(This will be a link
+  to the wiki entry for this project type )</em>
+ </li> 
+  <li>Master Database: <a href="#">
+  {{ project.MasterDatabase.MasterDatabase }}</a>
+  <em>(This will be a link to a summary page showing where this
+  database is, and provide a list of recently appended projects and
+  projects pending. )</em></li>
+
+  <li>keywords <em>(each will be a hyperlink)</em> </li>
   <li>yada-yada-yada</li>
 </ul>
+
+<a href="{% url EditProject project.slug %}"> <button>Edit Information</button> </a>
+<a href="{% url CopyProject project.slug %}"> <button>Copy Project</button> </a>
+
+<p>By the way, here are two disabled check boxes:</p>
+<ul>
+  <li> <input type="checkbox" disabled="disabled"
+  checked="checked"> Checked </li> 
+<li>   <input type="checkbox" disabled="disabled"> Unchecked </li>
+</ul>
+ 
+
+
 
 <hr />
 
@@ -40,7 +67,7 @@
   <ul style="list-style-type: none;">
     {{core.as_ul}}
   </ul>
-<input type="submit" name="Save" value="Submit Project" />
+<!--<input type="submit" name="Save" value="Copy Project" /> -->
   </form>
 
 <!--
