@@ -122,7 +122,14 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
 #'main.middleware.LoginRequiredMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
+
+INTERNAL_IPS = ('127.0.0.1', )   #added for debug toolbar
+DEBUG_TOOLBAR_CONFIG = {
+    'INTERCEPT_REDIRECTS': False,
+}
+
 
 ROOT_URLCONF = 'main.urls'
 
@@ -148,12 +155,15 @@ DJANGO_APPS = (
 )
 
 THIRDPARTY_APPS = (
+    'south',    
     'crispy_forms',    
+    'debug_toolbar',
     )
+
+CRISPY_FAIL_SILENTLY = not DEBUG
 
 MY_APPS =(
     'pjtk2',
-    'south',
     )
 
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS

@@ -50,7 +50,7 @@ class TL_Database(models.Model):
 
 class Project(models.Model):
     '''Class to hold a record for each project'''
-    YEAR = models.CharField(max_length=4)
+    YEAR = models.CharField(max_length=4, blank=True, editable=False)
     PRJ_DATE0 = models.DateField("Start Date", blank=False)
     PRJ_DATE1 = models.DateField("End Date", blank=False)
     PRJ_CD = models.CharField("Project Code", max_length=13, unique=True, blank=False)
@@ -66,13 +66,17 @@ class Project(models.Model):
     DataScrubbed  = models.BooleanField(default = False)
     DataMerged  = models.BooleanField(default = False)
     Conducted  = models.BooleanField(default = False)
-    Max_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, null=True)
-    Min_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, null=True)
-    Max_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, null=True)
-    Min_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, null=True)
-    Owner = models.ForeignKey(User)
+    Max_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
+                                     null=True, blank=True)
+    Min_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
+                                     null=True, blank=True)
+    Max_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, 
+                                     null=True, blank=True)
+    Min_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, 
+                                     null=True, blank=True)
+    Owner = models.ForeignKey(User, blank=True)
     #Owner = models.CharField(max_length=40,blank=True)
-    slug = models.SlugField()
+    slug = models.SlugField(blank=True, editable=False)
 
     class Meta:
         verbose_name = "Project List"

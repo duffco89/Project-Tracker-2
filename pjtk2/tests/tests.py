@@ -20,7 +20,12 @@ from django.test import TestCase
 
 
 class TestProjectForm(TestCase):
-    
+
+    def setUp(self):
+        ProjTypeFactory.create()
+        DatabaseFactory.create()
+        ProjectFactory.create()
+        
     def test_good_data(self):
         """All fields contain valid data """        
         proj = dict(
@@ -35,10 +40,41 @@ class TestProjectForm(TestCase):
             Owner = "Bob Sakamano",
            )
 
-        form = NewProjectForm(data=proj, user=UserFactory.build())
-        form.full_clean()
+        form = NewProjectForm(data=proj)
+        if form.errors:
+            print "form.errors: %s" % form.errors
+        if form.non_field_errors():
+            print "form.non_field_errors(): %s" % form.non_field_errors()
+
+            
         self.assertEqual(form.is_valid(), True)
 
+    def test_duplicate_project_code(self):
+        """Duplicate Project code"""        
+        proj = dict(
+            PRJ_CD = "LHA_IA12_123",
+            PRJ_NM = "Fake Project",
+            PRJ_LDR = "Bob Sakamano",
+            PRJ_DATE0 = datetime.strptime("January 15, 2012", "%B %d, %Y"),
+            PRJ_DATE1 = datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            COMMENT = "This is a fake project",
+            ProjectType = 1,
+            MasterDatabase = 1,
+            Owner = "Bob Sakamano",
+           )
+
+        form = NewProjectForm(data=proj)
+        #if form.errors:
+        #    print "form.errors: %s" % form.errors
+        #if form.non_field_errors():
+        #    print "form.non_field_errors: %s" % form.non_field_errors()
+            
+        errmsg = "Project Code already exists"
+        self.assertIn(errmsg, str(form.errors['PRJ_CD']))
+        self.assertEqual(form.is_valid(), False)
+
+
+        
     def test_wrong_year_in_project_code(self):
         """Year on project code does not agree with start and end dates. """
         
@@ -54,7 +90,7 @@ class TestProjectForm(TestCase):
             Owner = "Bob Sakamano",
            )
 
-        form = NewProjectForm(data=proj, user=UserFactory.build())
+        form = NewProjectForm(data=proj)
         errmsg = "Project dates do not agree with project code."
         self.assertIn(errmsg, form.non_field_errors())
         self.assertEqual(form.is_valid(), False)
@@ -73,7 +109,7 @@ class TestProjectForm(TestCase):
             Owner = "Bob Sakamano",
            )
 
-        form = NewProjectForm(data=proj, user=UserFactory.build())
+        form = NewProjectForm(data=proj)
         errmsg = "Project end date occurs before start date."
         self.assertIn(errmsg, form.non_field_errors())
         self.assertEqual(form.is_valid(), False)
@@ -104,7 +140,7 @@ class TestProjectForm(TestCase):
 
         for code in badcodes:
             proj['PRJ_CD'] = code
-            form = NewProjectForm(data=proj, user=UserFactory.build())
+            form = NewProjectForm(data=proj)
             self.assertIn(errmsg, form.errors['PRJ_CD'])
             self.assertEqual(form.is_valid(), False)
 
@@ -130,7 +166,7 @@ class TestProjectForm(TestCase):
 
         for code in goodcodes:
             proj['PRJ_CD'] = code
-            form = NewProjectForm(data=proj, user=UserFactory.build())
+            form = NewProjectForm(data=proj)
             self.assertEqual(form.is_valid(), True)
         
 
@@ -148,7 +184,7 @@ class TestProjectForm(TestCase):
             Owner = "Bob Sakamano",
            )
 
-        form = NewProjectForm(data=proj, user=UserFactory.build())
+        form = NewProjectForm(data=proj)
         errmsg = "Project start and end date occur in different years."
         self.assertIn(errmsg, form.non_field_errors())
         self.assertEqual(form.is_valid(), False)

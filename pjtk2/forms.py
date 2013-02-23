@@ -94,13 +94,8 @@ class AdditionalReportsForm(forms.Form):
 ##          model = Project
 ##          exclude = ("slug", "YEAR", "Owner",)
 
-CHOICE_LIST = [
-    ('', '----'), # replace the value '----' with whatever you want, it won't matter
-    (1, 'Rock'),
-    (2, 'Hard Place')
-]
 
-class NewProjectForm(forms.Form):
+class NewProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
     cleaning methods to ensure that project code is valid, dates agree
     and ....  for a new project, we need project code, name, comment,
@@ -143,28 +138,45 @@ class NewProjectForm(forms.Form):
         required = True,
     )
     
-    ProjectType = forms.ChoiceField(
+    ##ProjectType = forms.ChoiceField(
+    ##    label = "Project Type:",
+    ##    choices=  [(x.id, x.Project_Type) for x in PROJ_TYPES],
+    ##    required = True,
+    ##)
+    ##
+    ##MasterDatabase = forms.ChoiceField(
+    ##    label = "Master Database:",
+    ##    choices = [(x.id, x.MasterDatabase) for x in MASTER_DBs],        
+    ##    required = True,
+    ##)
+
+    ProjectType = forms.ModelChoiceField(
         label = "Project Type:",
-        choices=  [(x.id, x.Project_Type) for x in PROJ_TYPES],
+        queryset = TL_ProjType.objects.all(),
         required = True,
     )
-
-    MasterDatabase = forms.ChoiceField(
+    
+    MasterDatabase = forms.ModelChoiceField(
         label = "Master Database:",
-        choices = [(x.id, x.MasterDatabase) for x in MASTER_DBs],        
+        queryset = TL_Database.objects.all(),
         required = True,
     )
-
-
+    
     Keywords = forms.CharField(
         label = "Keywords:",
         max_length = 80,
         required = False,
     )
 
-    
-    def __init__(self, user, *args, **kwargs):
+    class Meta:
+        model=Project
+        exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
+        
+    def __init__(self, *args, **kwargs):
         #user = kwargs.pop('user')
+        readonly = kwargs.pop('readonly', False)
+        #instance = kwargs.pop('instance',None)
+        
         self.helper = FormHelper()
         self.helper.form_id = 'ProjectForm'
         self.helper.form_class = 'blueForms'
@@ -192,34 +204,43 @@ class NewProjectForm(forms.Form):
         )
 
         super(NewProjectForm, self).__init__(*args, **kwargs)
-        #self.fields['Owner'].queryset = User.objects.filter(pk = user.id)
-        self.user = user
-
+        #self.user = user
+        self.readonly = readonly
+        #self.instance = instance
+        
+        if readonly:
+            self.fields["PRJ_CD"].widget.attrs['readonly'] = True 
     
     def clean_PRJ_CD(self):
         '''a clean method to ensure that the project code matches the
-        following regular expression:
-        NOTE: field name must match exactly!
+        given regular expression.  method also ensure that project
+        code is unique.  If duplicate code is entered, an error
+        message will be displayed including link to project with that
+        project code.  The method only applies to new projects.  When
+        editing a project, project code is readonly.
         '''
         pattern  = "^[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3}$"
-
         project_code =  self.cleaned_data["PRJ_CD"]
-        if re.search(pattern, project_code):
-            #make sure that this project code doesn't already exist:
-            try:
-                proj = Project.objects.get(PRJ_CD=project_code)
-            except Project.DoesNotExist:
-                proj = None
-            if proj:
-                url = proj.get_absolute_url()
-                print url
-                errmsg = "Project Code already exists (<a href='%s'>view</a>)." % url
-                raise forms.ValidationError(mark_safe(errmsg))
+
+        if self.readonly == False: 
+            if re.search(pattern, project_code):
+                #make sure that this project code doesn't already exist:
+                try:
+                    proj = Project.objects.get(PRJ_CD=project_code)
+                except Project.DoesNotExist:
+                    proj = None
+                if proj:
+                    url = proj.get_absolute_url()
+                    print url
+                    errmsg = "Project Code already exists (<a href='%s'>view</a>)." % url
+                    raise forms.ValidationError(mark_safe(errmsg))
+                else:
+                    return project_code
             else:
-                return project_code
+                raise forms.ValidationError("Malformed Project Code.")
         else:
-            raise forms.ValidationError("Malformed Project Code.")
-            
+            #do nothing, just return the project code as is
+            return project_code
 
     def clean(self):
         '''make sure that project start and end dates are in the same
@@ -248,25 +269,31 @@ class NewProjectForm(forms.Form):
         return cleaned_data
         
          
-    def save(self):
-        '''A custom method to save the new project to the
-        database. Once saved, automatically create create records in
-        ProjectReports table to serve as place holders for the core
-        reports.'''
+        #    def save(self):
+        #'''A custom method to save the new project to the
+        #database. Once saved, automatically create create records in
+        #ProjectReports table to serve as place holders for the core
+        #reports.'''
 
-        new_project = Project.objects.create(
-                PRJ_CD = self.cleaned_data["PRJ_CD"],
-                PRJ_NM = self.cleaned_data["PRJ_NM"],
-                PRJ_LDR = self.cleaned_data["PRJ_LDR"],
-                PRJ_DATE0 = self.cleaned_data["PRJ_DATE0"],                
-                PRJ_DATE1 = self.cleaned_data["PRJ_DATE1"],
-                COMMENT = self.cleaned_data["COMMENT"],
-                ProjectType = TL_ProjType.objects.get(id=self.cleaned_data["ProjectType"]),
-                MasterDatabase = TL_Database.objects.get(id=self.cleaned_data["MasterDatabase"]),
-                Owner = self.user,
-                )
-
-        return new_project
+        
+       ## new_project = Project.objects.create(
+       ##         PRJ_CD = self.cleaned_data["PRJ_CD"],
+       ##         PRJ_NM = self.cleaned_data["PRJ_NM"],
+       ##         PRJ_LDR = self.cleaned_data["PRJ_LDR"],
+       ##         PRJ_DATE0 = self.cleaned_data["PRJ_DATE0"],                
+       ##         PRJ_DATE1 = self.cleaned_data["PRJ_DATE1"],
+       ##         COMMENT = self.cleaned_data["COMMENT"],
+       ##         ProjectType = self.cleaned_data["ProjectType"],
+       ##         MasterDatabase = self.cleaned_data["MasterDatabase"],
+       ## #ProjectType = TL_ProjType.objects.get(id=self.cleaned_data["ProjectType"]),
+       ## #MasterDatabase = TL_Database.objects.get(id=self.cleaned_data["MasterDatabase"]),
+       ##         Owner = self.user,
+       ##         )
+       ##
+       ## #if self.readonly:
+       ## #    del new_project['PRJ_CD']
+       ## 
+       ## return new_project
 
         
 class DocumentForm(forms.ModelForm):

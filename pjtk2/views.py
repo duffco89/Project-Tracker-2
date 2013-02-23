@@ -106,10 +106,19 @@ def ViewReports(request, slug):
                               context_instance=RequestContext(request)
         )
 
-def edit_project(request,slug):
-    pass
     
-def copy_project(request,slug):
+def edit_project(request, slug):
+    return crud_project(request, slug, action='Edit')
+
+def copy_project(request, slug):
+    return crud_project(request, slug, action='Copy')
+
+def new_project(request):
+    return crud_project(request, slug=None, action='New')
+
+
+def get_project_data(slug):
+    '''A helper function to get the basic data needed for project forms '''
     project = get_object_or_404(Project, slug=slug)
     if project:
         data = dict(
@@ -119,26 +128,123 @@ def copy_project(request,slug):
                 PRJ_DATE0 = project.PRJ_DATE0,                
                 PRJ_DATE1 = project.PRJ_DATE1,
                 COMMENT = project.COMMENT,
-                ProjectType = project.ProjectType.id,
-                MasterDatabase = project.MasterDatabase.id,
-            )
+                #ProjectType = project.ProjectType.id,
+                #MasterDatabase = project.MasterDatabase.id,
+                ProjectType = TL_ProjType.objects.get(id=project.ProjectType.id),
+                MasterDatabase = TL_Database.objects.get(id=project.MasterDatabase.id),
+        )
+    return data
 
+
+## def edit_project(request, slug, action='Edit'):
+##     '''A view to create, copy and edit projects, depending on the
+##     value of action.'''
+##     
+##     instance = get_object_or_404(Project, slug=slug)
+##     if request.method == 'POST': # If the form has been submitted...     
+##         form = NewProjectForm(request.POST, instance=instance, 
+##                                   user=request.user, readonly=True)                 
+##         if form.is_valid():
+##             project = form.save()
+##             return HttpResponseRedirect(project.get_absolute_url())
+##         else:
+##             return render_to_response('ProjectForm.html',
+##                               {'form':form, 'action':action},
+##                               context_instance=RequestContext(request))
+##     else:
+##         form = NewProjectForm(user=request.user, instance=instance)            
+## 
+##     return render_to_response('ProjectForm.html',
+##                               {'form':form, 'action':action},
+##                               context_instance=RequestContext(request))
+## 
+
+    
+def crud_project(request, slug, action='New'):
+    '''A view to create, copy and edit projects, depending on the
+    value of action.'''
+    
+    if slug:
+        instance = Project.objects.get(slug=slug)
+        #data = get_project_data(slug)
+    else:
+        instance = Project()
+        #data = None
+       
     if request.method == 'POST': # If the form has been submitted...
-        form = NewProjectForm(data=request.POST, user=request.user)
+        #pdb.set_trace()
+        if action=='Edit':
+            form = NewProjectForm(request.POST, instance=instance, 
+                                   readonly=True)
+        else:
+            form = NewProjectForm(request.POST)
+                                  
         if form.is_valid():
-            new_project = form.save()
-            return HttpResponseRedirect(new_project.get_absolute_url())
+            #pdb.set_trace()
+            form = form.save(commit=False)
+            form.Owner = request.user
+            form.save()
+            proj = Project.objects.get(slug=form.slug)
+            #pdb.set_trace()
+            return HttpResponseRedirect(proj.get_absolute_url())            
         else:
             return render_to_response('ProjectForm.html',
-                              {'form':form},
+                              {'form':form, 'action':action},
                               context_instance=RequestContext(request))
     else:
-        form = NewProjectForm(data = data, user=request.user) 
+        if action == "Edit":
+            form = NewProjectForm(instance=instance, readonly=True)
+        elif action == "Copy":
+            form = NewProjectForm(instance=instance)            
+        else:
+            form = NewProjectForm(instance=instance)                    
     return render_to_response('ProjectForm.html',
-                              {'form':form},
+                              {'form':form, 'action':action},
                               context_instance=RequestContext(request)
         )
+        
     
+##  def copy_project(request, slug, action):
+##      project = get_object_or_404(Project, slug=slug)
+##      if project:
+##          data = dict(
+##                  PRJ_CD = project.PRJ_CD,
+##                  PRJ_NM = project.PRJ_NM,
+##                  PRJ_LDR = project.PRJ_LDR,
+##                  PRJ_DATE0 = project.PRJ_DATE0,                
+##                  PRJ_DATE1 = project.PRJ_DATE1,
+##                  COMMENT = project.COMMENT,
+##                  ProjectType = project.ProjectType.id,
+##                  MasterDatabase = project.MasterDatabase.id,
+##              )
+##  
+##      if request.method == 'POST': # If the form has been submitted...
+##          if edit:
+##              form = NewProjectForm(data=request.POST, 
+##                                    user=request.user, readonly=True)
+##          else:
+##              form = NewProjectForm(data=request.POST, 
+##                                    user=request.user)            
+##          if form.is_valid():
+##              new_project = form.save()
+##              return HttpResponseRedirect(new_project.get_absolute_url())
+##          else:
+##              return render_to_response('ProjectForm.html',
+##                                {'form':form},
+##                                context_instance=RequestContext(request))
+##      else:
+##          if edit:
+##              form = NewProjectForm(data=data,
+##                                    user=request.user, readonly=True)
+##          else:
+##              form = NewProjectForm(data=data,
+##                                    user=request.user)            
+##          
+##      return render_to_response('ProjectForm.html',
+##                                {'form':form},
+##                                context_instance=RequestContext(request)
+##          )
+##      
 
 def project_milestones(request, slug):
     project = get_object_or_404(Project, slug=slug)
@@ -153,24 +259,24 @@ def project_milestones(request, slug):
 
 
 
-def NewProject(request):
-    if request.method == 'POST': 
-        form = NewProjectForm(data=request.POST, user=request.user)
-        if form.is_valid():
-            new_project = form.save()
-            return HttpResponseRedirect(new_project.get_absolute_url())
-        else:
-            return render_to_response('ProjectForm.html',
-                              {'form':form},
-                              context_instance=RequestContext(request))
-            
-    else:
-        form = NewProjectForm(user=request.user)
-    return render_to_response('ProjectForm.html',
-                              {'form':form},
-                              context_instance=RequestContext(request)
-        )
-
+##  def NewProject(request):
+##      if request.method == 'POST': 
+##          form = NewProjectForm(data=request.POST, user=request.user)
+##          if form.is_valid():
+##              new_project = form.save()
+##              return HttpResponseRedirect(new_project.get_absolute_url())
+##          else:
+##              return render_to_response('ProjectForm.html',
+##                                {'form':form},
+##                                context_instance=RequestContext(request))
+##              
+##      else:
+##          form = NewProjectForm(user=request.user)
+##      return render_to_response('ProjectForm.html',
+##                                {'form':form},
+##                                context_instance=RequestContext(request)
+##          )
+##  
 
 def ReportUpload(request):
     pass
