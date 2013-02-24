@@ -4,11 +4,14 @@ from django.core.context_processors import csrf
 from django.views.generic import ListView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
+from django.forms.formsets import formset_factory
+
 
 from pjtk2.models import Milestone, Project, Report, ProjectReports 
 from pjtk2.models import TL_ProjType, TL_Database
 #from pjtk2.forms import MilestoneForm
-from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, ProjectForm, DocumentForm 
+from pjtk2.forms import ProjectForm, ProjectForm2, DocumentForm 
+from pjtk2.forms import AdditionalReportsForm, CoreReportsForm
 
 import pdb
 
@@ -156,7 +159,20 @@ def crud_project(request, slug, action='New'):
                               context_instance=RequestContext(request)
         )
         
+
+def project_formset(request):
+    ProjectFormSet = formset_factory(ProjectForm2)
     
+    if request.method == 'POST':
+        formset = ProjectFormSet(request.POST, request.FILES)
+        if formset.is_valid():
+            # do something with the formset.cleaned_data
+            pass
+    else:
+        formset = ProjectFormSet()
+    return render_to_response('manage_projects.html', 
+                              {'formset': formset}, 
+                               context_instance=RequestContext(request))
 
 def project_milestones(request, slug):
     project = get_object_or_404(Project, slug=slug)

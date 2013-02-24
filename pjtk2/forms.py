@@ -8,6 +8,75 @@ from pjtk2.models import Milestone, Project, ProjectReports, Report, TL_ProjType
 import pdb
 import re
 
+
+
+
+class ProjectForm2(forms.ModelForm):
+    '''This a form for new projects using crispy-forms and including
+    cleaning methods to ensure that project code is valid, dates agree
+    and ....  for a new project, we need project code, name, comment,
+    leader, start date, end date, database, project type,'''
+
+    Approved = forms.BooleanField(
+        label = "Approved:",
+    )
+    
+    PRJ_NM = forms.CharField(
+        label = "Project Name:",
+        max_length = 200,
+        required = True,
+    )
+    
+    PRJ_CD = forms.CharField(
+        label = "Project Code:",
+        max_length = 80,
+        required = True,
+    )
+
+    PRJ_LDR = forms.CharField(
+        label = "Project Leader:",
+        max_length = 80,
+        required = True,
+    )
+        
+    PRJ_DATE0 = forms.DateField(
+        label = "Start Date:",
+        required = True,
+    )
+
+    PRJ_DATE1 = forms.DateField(
+        label = "End Date:",
+        required = True,
+    )
+    
+    ProjectType = forms.ModelChoiceField(
+        label = "Project Type:",
+        queryset = TL_ProjType.objects.all(),
+        required = True,
+    )
+    
+    MasterDatabase = forms.ModelChoiceField(
+        label = "Master Database:",
+        queryset = TL_Database.objects.all(),
+        required = True,
+    )
+    
+    class Meta:
+        model=Project
+        exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
+                   "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
+
+
+
+
+
+
+
+
+
+
+
+
 def make_custom_datefield(f, **kwargs):
     '''from: http://strattonbrazil.blogspot.ca/2011/03/using-jquery-uis-date-picker-on-all.html'''
     from django.db import models
@@ -422,3 +491,7 @@ class ExampleForm(forms.Form):
 
         
         super(ExampleForm, self).__init__(*args, **kwargs)
+
+
+
+

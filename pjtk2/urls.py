@@ -7,6 +7,9 @@ urlpatterns = patterns('pjtk2.views',
 
     #CRUD Projects
     url(r'^projects/$', 'project_list', name='ProjectList'),
+
+    #project formset:
+    url(r'^projectsformset/$', 'project_formset', name='ProjectFormSet'),
     
     url(r'^newproject/$', 'new_project', name='NewProject'),
     
@@ -16,7 +19,9 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^editproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'edit_project', name='EditProject'),
 
-    # Reports and milestones    
+
+
+# Reports and milestones    
     url(r'^(?P<slug>[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3})/$', 'project_milestones', name='ProjectMilestones'),
 
     url(r'^reports/$', 'ReportMilestones', name='Reports'),
