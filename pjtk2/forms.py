@@ -95,14 +95,11 @@ class AdditionalReportsForm(forms.Form):
 ##          exclude = ("slug", "YEAR", "Owner",)
 
 
-class NewProjectForm(forms.ModelForm):
+class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
     cleaning methods to ensure that project code is valid, dates agree
     and ....  for a new project, we need project code, name, comment,
     leader, start date, end date, database, project type,'''
-
-    PROJ_TYPES = TL_ProjType.objects.all()
-    MASTER_DBs = TL_Database.objects.all()    
     
     PRJ_NM = forms.CharField(
         label = "Project Name:",
@@ -138,18 +135,6 @@ class NewProjectForm(forms.ModelForm):
         required = True,
     )
     
-    ##ProjectType = forms.ChoiceField(
-    ##    label = "Project Type:",
-    ##    choices=  [(x.id, x.Project_Type) for x in PROJ_TYPES],
-    ##    required = True,
-    ##)
-    ##
-    ##MasterDatabase = forms.ChoiceField(
-    ##    label = "Master Database:",
-    ##    choices = [(x.id, x.MasterDatabase) for x in MASTER_DBs],        
-    ##    required = True,
-    ##)
-
     ProjectType = forms.ModelChoiceField(
         label = "Project Type:",
         queryset = TL_ProjType.objects.all(),
@@ -170,12 +155,11 @@ class NewProjectForm(forms.ModelForm):
 
     class Meta:
         model=Project
-        exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
+        exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
+                   "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
         
     def __init__(self, *args, **kwargs):
-        #user = kwargs.pop('user')
         readonly = kwargs.pop('readonly', False)
-        #instance = kwargs.pop('instance',None)
         
         self.helper = FormHelper()
         self.helper.form_id = 'ProjectForm'
@@ -195,7 +179,6 @@ class NewProjectForm(forms.ModelForm):
                 'ProjectType',
                 'MasterDatabase',                
                 'Keywords',
-        #Field('Owner', type='hidden'),
                 HTML("""<p><em>(comma separated values)</em></p> """),
             ),
             ButtonHolder(
@@ -203,10 +186,8 @@ class NewProjectForm(forms.ModelForm):
             )
         )
 
-        super(NewProjectForm, self).__init__(*args, **kwargs)
-        #self.user = user
+        super(ProjectForm, self).__init__(*args, **kwargs)
         self.readonly = readonly
-        #self.instance = instance
         
         if readonly:
             self.fields["PRJ_CD"].widget.attrs['readonly'] = True 
@@ -217,7 +198,7 @@ class NewProjectForm(forms.ModelForm):
         code is unique.  If duplicate code is entered, an error
         message will be displayed including link to project with that
         project code.  The method only applies to new projects.  When
-        editing a project, project code is readonly.
+        editing a project, project code is readonly and does need to be checked.
         '''
         pattern  = "^[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3}$"
         project_code =  self.cleaned_data["PRJ_CD"]
@@ -248,16 +229,17 @@ class NewProjectForm(forms.ModelForm):
         Also make sure that the year in project code matches the start
         and end dates.'''
 
-        cleaned_data = super(NewProjectForm, self).clean()
+        cleaned_data = super(ProjectForm, self).clean()
         start_date = cleaned_data.get('PRJ_DATE0')
         end_date = cleaned_data.get('PRJ_DATE1')
         project_code = cleaned_data.get('PRJ_CD')
         
-        if start_date and end_date and project_code:
-                
+        if start_date and end_date and project_code:                
+            
             if end_date < start_date:
                 errmsg = "Project end date occurs before start date."
                 raise forms.ValidationError(errmsg)
+            
             if end_date.year != start_date.year:
                 errmsg = "Project start and end date occur in different years."
                 raise forms.ValidationError(errmsg)
@@ -265,35 +247,8 @@ class NewProjectForm(forms.ModelForm):
             if end_date.strftime("%y") != project_code[6:8]:
                 errmsg = "Project dates do not agree with project code."
                 raise forms.ValidationError(errmsg)
-
         return cleaned_data
         
-         
-        #    def save(self):
-        #'''A custom method to save the new project to the
-        #database. Once saved, automatically create create records in
-        #ProjectReports table to serve as place holders for the core
-        #reports.'''
-
-        
-       ## new_project = Project.objects.create(
-       ##         PRJ_CD = self.cleaned_data["PRJ_CD"],
-       ##         PRJ_NM = self.cleaned_data["PRJ_NM"],
-       ##         PRJ_LDR = self.cleaned_data["PRJ_LDR"],
-       ##         PRJ_DATE0 = self.cleaned_data["PRJ_DATE0"],                
-       ##         PRJ_DATE1 = self.cleaned_data["PRJ_DATE1"],
-       ##         COMMENT = self.cleaned_data["COMMENT"],
-       ##         ProjectType = self.cleaned_data["ProjectType"],
-       ##         MasterDatabase = self.cleaned_data["MasterDatabase"],
-       ## #ProjectType = TL_ProjType.objects.get(id=self.cleaned_data["ProjectType"]),
-       ## #MasterDatabase = TL_Database.objects.get(id=self.cleaned_data["MasterDatabase"]),
-       ##         Owner = self.user,
-       ##         )
-       ##
-       ## #if self.readonly:
-       ## #    del new_project['PRJ_CD']
-       ## 
-       ## return new_project
 
         
 class DocumentForm(forms.ModelForm):
