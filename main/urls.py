@@ -10,7 +10,7 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', direct_to_template, {'template': 'index.html'}),
+    url(r'^$', direct_to_template, {'template': 'index.html'},name='home'),
      url(r'^admin/', include(admin.site.urls), name='admin'),
      url(r'^test/', include('pjtk2.urls')),
      )  #+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

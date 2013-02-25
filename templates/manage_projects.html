@@ -18,6 +18,8 @@
 <hr />
 
 <form method="post" action="">
+{% csrf_token %}
+{{ formset.management_form }}
 {{ formset.non_form_errors.as_ul }}
 <table id="formset" class="form">
 {% for form in formset.forms %}
@@ -44,7 +46,9 @@
   </tr>
 {% endfor %}
 </table>
+<hr />
 
+<input type="submit" name="" value="Approve Projects" />
 
 </form>
 

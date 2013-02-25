@@ -10,7 +10,33 @@ import re
 
 
 
+class ReadOnlyText(forms.TextInput):
+  '''from:
+  http://stackoverflow.com/questions/1134085/rendering-a-value-as-text-instead-of-field-inside-a-django-form'''
 
+  input_type = 'text'
+  def render(self, name, value, attrs=None):
+     if value is None: 
+         value = ''
+     return value
+
+
+##  url = proj.get_absolute_url()
+##  prj_cd = proj.PRJ_CD
+##  link = "<a href='%s'>%s</a>" % (url, prj_cd) 
+
+class HyperlinkWidget(forms.TextInput):
+    def __init__(self, attrs={}):
+        super(HyperlinkWidget, self).__init__(attrs)
+
+    def render(self, name, value, attrs=None):
+        output = []
+        if value is None:
+            value = ''
+        output.append('<a href="/test/viewreports/%s">%s</a>' % (value.lower(), value))
+        return mark_safe(u''.join(output))
+
+     
 class ProjectForm2(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
     cleaning methods to ensure that project code is valid, dates agree
@@ -19,52 +45,37 @@ class ProjectForm2(forms.ModelForm):
 
     Approved = forms.BooleanField(
         label = "Approved:",
+        required =False,
     )
     
     PRJ_NM = forms.CharField(
-        label = "Project Name:",
-        max_length = 200,
-        required = True,
+        widget = ReadOnlyText,
+        label = "Project Name",
+        required =False,
     )
     
     PRJ_CD = forms.CharField(
-        label = "Project Code:",
+        widget = HyperlinkWidget,
+        label = "Project Code",
         max_length = 80,
-        required = True,
+        required = False,
     )
 
     PRJ_LDR = forms.CharField(
-        label = "Project Leader:",
+        widget = ReadOnlyText,
+        label = "Project Leader",
         max_length = 80,
-        required = True,
-    )
-        
-    PRJ_DATE0 = forms.DateField(
-        label = "Start Date:",
-        required = True,
-    )
-
-    PRJ_DATE1 = forms.DateField(
-        label = "End Date:",
-        required = True,
+        required = False,
     )
     
-    ProjectType = forms.ModelChoiceField(
-        label = "Project Type:",
-        queryset = TL_ProjType.objects.all(),
-        required = True,
-    )
-    
-    MasterDatabase = forms.ModelChoiceField(
-        label = "Master Database:",
-        queryset = TL_Database.objects.all(),
-        required = True,
-    )
     
     class Meta:
         model=Project
-        exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
-                   "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
+        fields = ('Approved', 'PRJ_CD', 'PRJ_NM', 'PRJ_LDR') 
+
+        
+        #exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
+        #           "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
 
 
 
@@ -281,7 +292,6 @@ class ProjectForm(forms.ModelForm):
                     proj = None
                 if proj:
                     url = proj.get_absolute_url()
-                    print url
                     errmsg = "Project Code already exists (<a href='%s'>view</a>)." % url
                     raise forms.ValidationError(mark_safe(errmsg))
                 else:

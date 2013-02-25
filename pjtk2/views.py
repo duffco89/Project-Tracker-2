@@ -4,7 +4,7 @@ from django.core.context_processors import csrf
 from django.views.generic import ListView
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
-from django.forms.formsets import formset_factory
+from django.forms.models import modelformset_factory
 
 
 from pjtk2.models import Milestone, Project, Report, ProjectReports 
@@ -21,6 +21,13 @@ class ProjectList(ListView):
     template_name = "ProjectList.html"
 
 project_list = ProjectList.as_view()
+
+
+class ApprovedProjectsList(ListView):
+    queryset = Project.objects.filter(Approved = True)
+    template_name = "ApprovedProjectList.html"
+
+approved_projects_list = ApprovedProjectsList.as_view()
 
 
 def ReportMilestones(request):
@@ -161,19 +168,37 @@ def crud_project(request, slug, action='New'):
         
 
 def project_formset(request):
-    ProjectFormSet = formset_factory(ProjectForm2)
+    ProjectFormSet = modelformset_factory(Project, ProjectForm2, extra=0)
+    projects = Project.objects.all()
     
     if request.method == 'POST':
-        formset = ProjectFormSet(request.POST, request.FILES)
+        #pdb.set_trace()
+        formset = ProjectFormSet(request.POST, queryset = projects)
+
         if formset.is_valid():
             # do something with the formset.cleaned_data
-            pass
+            #formset.save()
+            
+            instances = formset.save(commit=False)
+            pdb.set_trace()
+            for obj in instances:                
+                #THIS NEEDS TO BE IMPROVED - ONLY UPDATE THOSE RECORDS
+                #THAT HAVE BEEN CHANGED
+                #think about some quick set operations
+                Project.objects.filter(slug=obj.slug).update(Approved=obj.Approved)
+            return HttpResponseRedirect(reverse('ApprovedProjectsList'))
+        else:
+            return render_to_response('manage_projects.html', 
+                              {'formset': formset}, 
+                               context_instance=RequestContext(request))
     else:
-        formset = ProjectFormSet()
+        formset = ProjectFormSet(queryset = projects)
     return render_to_response('manage_projects.html', 
                               {'formset': formset}, 
                                context_instance=RequestContext(request))
 
+
+    
 def project_milestones(request, slug):
     project = get_object_or_404(Project, slug=slug)
     core =  CoreReportsForm()
