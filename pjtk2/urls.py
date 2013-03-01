@@ -19,15 +19,21 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^editproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'edit_project', name='EditProject'),
 
+    url(r'^projectdetail/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+        'ProjectDetail', name='ProjectDetail'),
 
 
 # Reports and milestones    
-    url(r'^(?P<slug>[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3})/$', 'project_milestones', name='ProjectMilestones'),
+    url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+        'report_milestones', name='Reports'),
 
-    url(r'^reports/$', 'ReportMilestones', name='Reports'),
+#    url(r'^reportformset/', 'report_formset', name='ReportFormSet'),
+
+        
     
-    url(r'^viewreports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
-        'ViewReports', name='ViewReports'),
+#url(r'^(?P<slug>[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3})/$', 
+#       'project_milestones', name='ProjectMilestones'),
+
 
     
     url(r'^reportupload/$', 'ReportUpload', name='ReportUpload'),

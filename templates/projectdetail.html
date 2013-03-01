@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>  {% block title  %} UGMLU  {% endblock %}  </title>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/worg.css" />
+  </head>
+
+<body>
+
+<p>  
+<a href="{% url 'home' %}">Index </a> | 
+<a href="{% url 'ProjectList' %}">Return to Index</a> | 
+<a href="#">View My Projects</a> 
+</p>
+<hr />
+<h1>Project Details</h1>
+  <p><strong>Project Code:</strong>  {{ project.PRJ_CD }} </p>
+  <p><strong>Project Name:</strong>  {{ project.PRJ_NM }}</p>
+  <p><strong>Project Lead:</strong>  <a href="#">{{ project.PRJ_LDR }}</a> </p>
+  <p><strong>Start and End Dates:</strong>  {{ project.PRJ_DATE0 }}  - 
+  {{ project.PRJ_DATE1 }} </p>
+  <p><strong>Project Description:</strong></p>
+    {% if project.COMMENT %}
+    <p>{{ project.COMMENT  }} </p>
+    {% endif %}
+  <p><strong>Project Type:</strong>  <a href="#">
+  {{ project.ProjectType.Project_Type}}</a> 
+ </p> 
+  <p><strong>Master Database:</strong> <a href="#">
+  {{ project.MasterDatabase.MasterDatabase }}</a>
+  <p><strong>keywords:</strong> <a href="#">lake trout</a>,
+  <a href="#">index netting</a>,
+  <a href="#">FLIN</a>,
+  <a href="#">fake keywords</a>
+  </p>
+
+<form>
+<fieldset>
+<legend> Milestones:</legend>
+  <input type="checkbox" disabled="disabled" 
+    {% if project.Approved  %} checked="checked" {% endif %}> Approved
+  <input type="checkbox" disabled="disabled"  
+    {% if project.Conducted  %} checked="checked" {% endif %}> Conducted
+  <input type="checkbox" disabled="disabled"
+    {% if project.DataScrubbed  %} checked="checked" {% endif %}> Data Scrubbed
+  <input type="checkbox" disabled="disabled"
+    {% if project.DataMerged  %} checked="checked" {% endif %}> Data Merged
+  <input type="checkbox" disabled="disabled"
+    {% if project.SignOff  %} checked="checked" {% endif %}> Signed Off
+</fieldset>
+</form>
+
+<br />
+ 
+<a href="{% url 'EditProject' project.slug %}"> <button>Edit Information</button> </a>
+<a href="{% url 'CopyProject' project.slug %}"> <button>Copy Project</button> </a>
+<a href="#"> <button>Bookmark Project</button> </a>
+
+
+
+<hr />
+
+<h2>Reporting Requirements:</h2>
+
+<p><em>(To be editable only for managers.)</em></p>
+
+<h3>Core Reporting Requirements:</h3>
+  <form method="POST" id="core" action=""> {% csrf_token %}
+  <ul style="list-style-type: none;">
+    {{core.as_ul}}
+  </ul>
+<!--<input type="submit" name="Save" value="Copy Project" /> -->
+  </form>
+
+<!--
+<h3>Additional Reporting Requirements:</h3>
+  <form method="POST" id="custom" action="{%  url 'ProjectList' %}">
+  <ul style="list-style-type: none;">
+   {{additional.as_ul}}
+  </ul>
+  </form>
+
+<hr />
+<input type="submit" name="Save" value="Submit Project" />
+-->
+</body>
+</html>

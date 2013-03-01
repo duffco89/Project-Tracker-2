@@ -7,8 +7,8 @@
 {% block content  %} 
 
 <p> 
-<a href="{% url home %}">Index </a> | 
-<a href="{% url ProjectList %}"> Project List </a> | 
+<a href="{% url 'home' %}">Index </a> | 
+<a href="{% url 'ProjectList' %}"> Project List </a> | 
 <a href="#">View My Projects</a> 
 </p>
 
@@ -20,7 +20,7 @@
     {% for project in object_list %}
       <li><a href="{{ project.get_absolute_url }}">
      {{ project.PRJ_CD }}</a> - {{ project.PRJ_NM  }} | 
-     <a href="{% url ViewReports project.slug %}">View Reports</a> </li> 
+     <a href="{% url 'ProjectDetail' project.slug %}">Project Detail</a> </li> 
     {% endfor %}
   </ul>
 {% else %}
@@ -30,8 +30,9 @@
 {% endif %}
 
 <p>
-<a href="{% url NewProject %}">Create a new project</a> |
-<a href="{% url Reports %}">Reports Form</a>
+<a href="{% url 'ProjectFormSet' %}">Update this list</a> | 
+<a href="{% url 'NewProject' %}">Create a new project</a> | 
+
 </p>
 
 {% endblock %}

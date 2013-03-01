@@ -151,13 +151,14 @@ DJANGO_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.admin',
-    'django_wsgiserver',
+
 )
 
 THIRDPARTY_APPS = (
     'south',    
     'crispy_forms',    
     'debug_toolbar',
+#'django_wsgiserver',
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG

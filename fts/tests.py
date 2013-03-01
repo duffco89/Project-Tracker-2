@@ -105,7 +105,7 @@ class ProjectTest(LiveServerTestCase):
          
         #find a project link and click on it too:
         link = self.browser.find_element_by_link_text("LHA_IA12_123").click()
-        pdb.set_trace()
+        #pdb.set_trace()
 
         
     def test_view_project_list(self):
@@ -128,15 +128,15 @@ class ProjectTest(LiveServerTestCase):
         PRJ_CD = "LHA_IA12_123"
         
         #bob opens the browser and navigates to the new project page:
-        url = "/test/viewreports/%s/" % PRJ_CD.lower()
+        url = "/test/projectdetail/%s/" % PRJ_CD.lower()
         self.browser.get(self.live_server_url + url)
 
         heading = self.browser.find_element_by_tag_name('h1')                
-        self.assertIn('UGLMU Project', heading.text)        
+        self.assertIn('Project Details', heading.text)        
 
         heading = self.browser.find_elements_by_tag_name('h2')                
-        self.assertIn('Project Information', heading[0].text)        
-        self.assertIn('Reporting Requirements', heading[1].text)
+        #self.assertIn('Project Information', heading[0].text)        
+        self.assertIn('Reporting Requirements', heading[0].text)
         
         #make sure the project we just entered in on this page:                
         body = self.browser.find_element_by_tag_name('body')                
@@ -191,7 +191,7 @@ class ProjectTest(LiveServerTestCase):
         
         PRJ_CD = "LHA_IA12_123"
         #bob opens the browser and navigates to the new project page:
-        url = "/test/viewreports/%s/" % PRJ_CD.lower()
+        url = "/test/projectdetail/%s/" % PRJ_CD.lower()
 
         #bob opens the browser and navigates to the new project page:
         self.browser.get(self.live_server_url + url)

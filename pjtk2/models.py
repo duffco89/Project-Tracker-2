@@ -59,13 +59,15 @@ class Project(models.Model):
     COMMENT = models.TextField(blank=False)
     MasterDatabase = models.ForeignKey("TL_Database")
     ProjectType = models.ForeignKey("TL_ProjType")
+
     Approved = models.BooleanField(default = False)
-    SignOff  = models.BooleanField(default = False)
+    Conducted  = models.BooleanField(default = False)
     FieldWorkComplete  = models.BooleanField(default = False)
     AgeStructures = models.BooleanField(default = False)
     DataScrubbed  = models.BooleanField(default = False)
     DataMerged  = models.BooleanField(default = False)
-    Conducted  = models.BooleanField(default = False)
+    SignOff  = models.BooleanField(default = False)
+    
     Max_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
                                      null=True, blank=True)
     Min_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
@@ -92,7 +94,7 @@ class Project(models.Model):
     #@models.permalink
     def get_absolute_url(self):
         #slug = str(self.slug)
-        url = reverse('pjtk2.views.ViewReports', kwargs={'slug':self.slug})
+        url = reverse('pjtk2.views.ProjectDetail', kwargs={'slug':self.slug})
         return url
 
     def save(self, *args, **kwargs):

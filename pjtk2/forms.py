@@ -26,6 +26,10 @@ class ReadOnlyText(forms.TextInput):
 ##  link = "<a href='%s'>%s</a>" % (url, prj_cd) 
 
 class HyperlinkWidget(forms.TextInput):
+    """This is a widget that will insert a hyperlink to a project
+    detail page in a form set.  Currently, the url is hardwired and
+    should be updated using get_absolute_url"""
+    
     def __init__(self, attrs={}):
         super(HyperlinkWidget, self).__init__(attrs)
 
@@ -33,15 +37,12 @@ class HyperlinkWidget(forms.TextInput):
         output = []
         if value is None:
             value = ''
-        output.append('<a href="/test/viewreports/%s">%s</a>' % (value.lower(), value))
+        output.append('<a href="/test/projectdetail/%s">%s</a>' % (value.lower(), value))
         return mark_safe(u''.join(output))
 
      
 class ProjectForm2(forms.ModelForm):
-    '''This a form for new projects using crispy-forms and including
-    cleaning methods to ensure that project code is valid, dates agree
-    and ....  for a new project, we need project code, name, comment,
-    leader, start date, end date, database, project type,'''
+    '''This project form is used for view to approve/unapprove multiple projects.'''
 
     Approved = forms.BooleanField(
         label = "Approved:",
@@ -78,16 +79,6 @@ class ProjectForm2(forms.ModelForm):
         #           "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
 
 
-
-
-
-
-
-
-
-
-
-
 def make_custom_datefield(f, **kwargs):
     '''from: http://strattonbrazil.blogspot.ca/2011/03/using-jquery-uis-date-picker-on-all.html'''
     from django.db import models
@@ -99,13 +90,39 @@ def make_custom_datefield(f, **kwargs):
 
 
 class CoreReportsForm(forms.Form):
+    '''Dynamically add checkboxe widgets to a form depending on
+    reports identified as core.  this form is currently used in both
+    project details page and reporting requirements.  A different form
+    should be developed for project details.'''
+    
     #pass
     def __init__(self, *args, **kwargs):
         self.reports = kwargs.pop('reports')
-        #self.reports = kwargs['reports']
+        self.project = kwargs.pop('project', None)
+        
         super(CoreReportsForm, self).__init__(*args, **kwargs)
         corereports = self.reports["core"]["reports"]
         assigned = self.reports["core"]["assigned"]
+        project = self.project
+
+        if project:
+          self.fields['PRJ_NM'] = forms.CharField(
+              widget = ReadOnlyText,
+              #initial = project['PRJ_NM'],            
+              initial = project.PRJ_NM,               
+              label = "Project Name",
+              required =False,
+          )
+
+          self.fields['PRJ_CD'] = forms.CharField(
+              widget = HyperlinkWidget,
+              #initial = project['PRJ_CD'],            
+              initial = project.PRJ_CD,            
+              label = "Project Code",
+              max_length = 80,
+              required = False,
+          )
+    
         
         self.fields['core'] = forms.MultipleChoiceField(
             choices = corereports,
@@ -115,47 +132,7 @@ class CoreReportsForm(forms.Form):
             widget = forms.widgets.CheckboxSelectMultiple(),
             )
 
-        self.fields['custom'] = forms.MultipleChoiceField(
-            choices = self.reports["custom"]["reports"],
-            initial = self.reports["custom"]["assigned"],
-            label = "",
-            required = True,
-            )
 
-
-    
-##          #slug = self.slug
-##          #slug = project.slug
-##          #slug="LHA_IA11_998"
-##  
-##          #pdb.set_trace()
-##      
-##      corereports = Milestone.objects.filter(category='Common')
-##      #we need to convert the querset to a tuple of tuples
-##      corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
-##  
-##      if(slug):
-##          try:
-##              #get a queryset that contains the core reports that are currently
-##              #assigned to this project
-##              assigned_reports = ProjectReports.objects.filter(project__slug=
-##                              slug).filter(report_type__category='Common')
-##              initial = [x.report_type_id for x in list(assigned_reports)]
-##          except ProjectReports.DoesNotExist:
-##              initial = [x[0] for x in corereports]
-##      else:
-##          initial = [x[0] for x in corereports]
-##  
-##  
-##          #inital and choices will be passed in as elements of "extra_args"
-##          
-##      ckboxes = forms.MultipleChoiceField(
-##          choices = corereports,
-##          initial = initial,
-##          label = "",
-##          required = True,
-##          widget = forms.widgets.CheckboxSelectMultiple(),
-##          )
 
 class AdditionalReportsForm(forms.Form):
     reports = Milestone.objects.filter(category='Custom')
@@ -233,6 +210,34 @@ class ProjectForm(forms.ModelForm):
         required = False,
     )
 
+    Approved = forms.BooleanField(
+        label = "Approved",
+        required =False,
+    )
+
+    Conducted = forms.BooleanField(
+        label = "Conducted",
+        required =False,
+    )
+
+    DataScrubbed = forms.BooleanField(
+        label = "DataScrubbed",
+        required =False,
+    )
+
+    DataMerged = forms.BooleanField(
+        label = "Data Merged",
+        required =False,
+    )
+
+    SignOff = forms.BooleanField(
+        label = "Sign Off",
+        required =False,
+    )
+
+
+
+    
     class Meta:
         model=Project
         exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
@@ -247,6 +252,36 @@ class ProjectForm(forms.ModelForm):
         self.helper.form_method = 'post'
         self.helper.form_action = ''
 
+
+        
+##        if request.user == "manager" | request.user == "DBA":        
+##            self.helper.layout = Layout(
+##            Fieldset(
+##                    'Project Elements',
+##                    'PRJ_NM',                
+##                    'PRJ_CD',
+##                    'PRJ_LDR',                
+##                    'COMMENT',                
+##                    Field('PRJ_DATE0', datadatepicker='datepicker'),                
+##                    Field('PRJ_DATE1', datadatepicker='datepicker'),
+##                    'ProjectType',
+##                    'MasterDatabase',                
+##                    'Keywords',
+##                    HTML("""<p><em>(comma separated values)</em></p> """),
+##                    Fieldset(
+##                      "Milestones",
+##                      'Approved',
+##                      'Conducted',
+##                      'DataScrubbed',
+##                      'DataMerged',
+##                      'SignOff'
+##                    ),
+##                  ),
+##                ButtonHolder(
+##                    Submit('submit', 'Submit')
+##                )
+##            )
+##        else:
         self.helper.layout = Layout(
         Fieldset(
                 'Project Elements',
@@ -260,12 +295,28 @@ class ProjectForm(forms.ModelForm):
                 'MasterDatabase',                
                 'Keywords',
                 HTML("""<p><em>(comma separated values)</em></p> """),
-            ),
+                Fieldset(
+                  "Milestones",
+                  HTML("""<input type="checkbox" disabled="disabled"
+                       {% if project.Approved  %} checked="checked" {% endif %}> Approved"""),
+                  'Conducted',
+                  'DataScrubbed',
+                  HTML("""<input type="checkbox" disabled="disabled"
+                  {% if project.DataMerged  %} checked="checked" {% endif %}> Data Merged <br />"""),
+                  HTML("""<input type="checkbox" disabled="disabled"
+                       {% if project.SignOff  %} checked="checked" {% endif %}> Signed Off"""),
+                ),                    
+
+              ),
             ButtonHolder(
                 Submit('submit', 'Submit')
             )
-        )
+         )
 
+
+
+
+        
         super(ProjectForm, self).__init__(*args, **kwargs)
         self.readonly = readonly
         

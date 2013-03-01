@@ -9,7 +9,7 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from django import forms
 
-from pjtk2.models import Project, TL_ProjType, TL_Database
+from pjtk2.models import *
 from pjtk2.forms import ProjectForm
 from pjtk2.tests.factories import *
 
@@ -25,6 +25,17 @@ class TestProjectForm(TestCase):
         ProjTypeFactory.create()
         DatabaseFactory.create()
         ProjectFactory.create()
+        MilestoneFactory.create(label = "Proposal",
+                                order = 1)
+        MilestoneFactory.create(label = "Proposal Presentation",
+                                order = 2)
+        MilestoneFactory.create(label = "Field Protocol Proposal",
+                                order = 3)
+        MilestoneFactory.create(label = "Completion Report",
+                                order = 4)
+        MilestoneFactory.create(label = "Completion Presentation",
+                                order = 5)
+
         
     def test_good_data(self):
         """All fields contain valid data """        
@@ -45,7 +56,6 @@ class TestProjectForm(TestCase):
             print "form.errors: %s" % form.errors
         if form.non_field_errors():
             print "form.non_field_errors(): %s" % form.non_field_errors()
-
             
         self.assertEqual(form.is_valid(), True)
 

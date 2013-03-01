@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>  {% block title  %} UGMLU  {% endblock %}  </title>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/worg.css" />
+  </head>
+
+<body>
+
+<p>  
+<a href="{% url 'home' %}">Index </a> | 
+<a href="{% url 'ProjectList' %}">Return to Index</a> | 
+<a href="#">View My Projects</a> 
+</p>
+
+<h1> Report Forms</h1>
+<hr />
+
+<h3>Core Reporting Requirements:</h3>
+  <form method="POST" id="core" action=""> {% csrf_token %}
+  <ul style="list-style-type: none;">
+    {{core.as_ul}}
+  </ul>
+<!--<input type="submit" name="Save" value="Copy Project" /> -->
+  </form>
+
+
+<h3>Additional Reporting Requirements:</h3>
+  <form method="POST" id="custom" action="{%  url 'ProjectList' %}">
+  <ul style="list-style-type: none;">
+   {{additional.as_ul}}
+  </ul>
+  </form>
+
+<hr />
+<input type="submit" name="Save" value="Submit Project" />
+
+</body>
+</html>
