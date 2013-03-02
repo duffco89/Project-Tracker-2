@@ -8,6 +8,10 @@ from django.http import HttpResponseRedirect
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
 
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth import logout
+
 from pjtk2.models import Milestone, Project, Report, ProjectReports 
 from pjtk2.models import TL_ProjType, TL_Database
 #from pjtk2.forms import MilestoneForm
@@ -99,14 +103,30 @@ class ApprovedProjectsList(ListView):
     template_name = "ApprovedProjectList.html"
 
 approved_projects_list = ApprovedProjectsList.as_view()
-    
-        
+
+
+
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect('/accounts/login')
+
+
+
+@login_required            
 def ProjectDetail(request, slug):
     '''View project details.'''
-    #pdb.set_trace()
     
     project = get_object_or_404(Project, slug=slug)
     reports = get_reports(slug)
+    
+    user = User.objects.get(username__exact=request.user)
+    canEdit = ((user.groups.filter(name='manager').count>0) or 
+                 (user.is_superuser) or 
+                 (user.username == project.Owner.username))
+    if canEdit:
+        editButton = True
+    else:
+        editButton = False
     
     if request.method=="POST":
         core =  CoreReportsForm(request.POST, reports=reports)
@@ -123,7 +143,8 @@ def ProjectDetail(request, slug):
     return render_to_response('projectdetail.html',
                               {'core':core,
                                #'additional':additional,
-                               'project':project
+                               'project':project,
+                               'editButton':editButton,
                                },
                               context_instance=RequestContext(request)
         )
@@ -140,7 +161,7 @@ def copy_project(request, slug):
 def new_project(request):
     return crud_project(request, slug=None, action='New')
 
-    
+@login_required    
 def crud_project(request, slug, action='New'):
     '''A view to create, copy and edit projects, depending on the
     value of 'action'.'''
@@ -150,10 +171,13 @@ def crud_project(request, slug, action='New'):
     else:
         instance = Project()
 
-        #if request.user.manager == True:    
-    manager = True
-    #else:
-    #manager = False
+    #find out if the user is a manager or superuser, if so set manager
+    #to true so that he or she can edit all fields.
+    user = User.objects.get(username__exact=request.user)
+    if user.groups.filter(name='manager').count>0 | user.is_superuser:
+        manager = True
+    else:
+        manager = False
         
     if request.method == 'POST': # If the form has been submitted...
         if action == 'Edit':
@@ -189,7 +213,7 @@ def crud_project(request, slug, action='New'):
                               context_instance=RequestContext(request)
         )
         
-
+@login_required
 def project_formset(request):
     '''create a list of projects, project names and an
     approved/unapproved checkbox widget.'''
@@ -203,17 +227,6 @@ def project_formset(request):
         if formset.is_valid():
             # do something with the formset.cleaned_data
             formset.save()
-            ###orig will contain the origianl value of approved for each slug
-            ##original = Project.objects.only('slug','Approved')
-            ##instances = formset.save(commit=False)
-            ###pdb.set_trace()
-            ##for obj in instances:                
-            ##    #THIS NEEDS TO BE IMPROVED - ONLY UPDATE THOSE RECORDS
-            ##    #THAT HAVE BEEN CHANGED
-            ##    #think about some quick set operations
-            ##    orig = original.filter(slug=obj.slug).values('Approved')
-            ##    if orig != obj.Approved:                    
-            ##        Project.objects.filter(slug=obj.slug).update(Approved=obj.Approved)
             return HttpResponseRedirect(reverse('ApprovedProjectsList'))
         else:
             return render_to_response('manage_projects.html', 

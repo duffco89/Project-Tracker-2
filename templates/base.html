@@ -13,6 +13,13 @@
   </head>
 
 <body>  
+
+{% if user.is_authenticated %}
+Welcome {{ user.username }} [<a href="{% url 'logout' %}">Logout</a>, My Profile]
+{% else %}
+[Login or Register]
+{% endif %} 
+
 {% block content  %} {% endblock %}
 {% block extracontent  %} {% endblock %}
 </body>

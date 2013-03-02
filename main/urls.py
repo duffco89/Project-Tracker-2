@@ -18,7 +18,15 @@ urlpatterns = patterns('',
      url(r'^test/', include('pjtk2.urls')),
      )  #+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
+
+
+
 urlpatterns += patterns('',
         (r'^static_root/(?P<path>.*)$', 'django.views.static.serve',
-        {'document_root': 'static'}),
+              {'document_root': 'static'}),
+
+        url(r'^accounts/login/$', 'django.contrib.auth.views.login', 
+            {'template_name':'auth/login.html'},name='login'),
+        url(r'^accounts/logout/$', 'pjtk2.views.logout_view',name='logout'), 
+
             )

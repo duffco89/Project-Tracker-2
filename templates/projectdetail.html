@@ -14,6 +14,7 @@
 <a href="#">View My Projects</a> 
 </p>
 <hr />
+
 <h1>Project Details</h1>
   <p><strong>Project Code:</strong>  {{ project.PRJ_CD }} </p>
   <p><strong>Project Name:</strong>  {{ project.PRJ_NM }}</p>
@@ -52,8 +53,10 @@
 </form>
 
 <br />
- 
-<a href="{% url 'EditProject' project.slug %}"> <button>Edit Information</button> </a>
+{% if editButton %} 
+<a href="{% url 'EditProject' project.slug %}"> <button>Edit
+    Information</button> </a>
+{% endif  %}
 <a href="{% url 'CopyProject' project.slug %}"> <button>Copy Project</button> </a>
 <a href="#"> <button>Bookmark Project</button> </a>
 
@@ -84,5 +87,11 @@
 <hr />
 <input type="submit" name="Save" value="Submit Project" />
 -->
+
+
+
+
+
+
 </body>
 </html>
