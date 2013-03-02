@@ -110,14 +110,50 @@ class TestProjectForm(TestCase):
         self.assertIn(errmsg, str(form.errors['PRJ_CD']))
         self.assertEqual(form.is_valid(), False)
 
+
+
+
+
+        
+
+    def test_prjcd_too_long(self):
+        """project code does not match required pattern """
+
+        #here are a list of bad, or malformed project codes:
+        badcodes = ["LHA_IS12A_110", "LHA_IS12_1103","LHAR_IS12_110", "LHA_IS12_110A"]
+        
+        proj = dict(
+            PRJ_CD = "LHA_xxx12_103",
+            PRJ_NM = "Fake Project",
+            PRJ_LDR = "Bob Sakamano",
+            PRJ_DATE0 = datetime.strptime("March 15, 2012", "%B %d, %Y"),
+            PRJ_DATE1 = datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            COMMENT = "This is a fake project",
+            ProjectType = 1,
+            MasterDatabase = 1,
+            Owner = "Bob Sakamano",
+           )
+
+        errmsg = "Ensure this value has at most 12 characters"
+
+        for code in badcodes:
+            proj['PRJ_CD'] = code
+            form = ProjectForm(data=proj)
+            self.assertIn(errmsg, str(form.errors['PRJ_CD']))
+            self.assertEqual(form.is_valid(), False)
+
+
+        
+        
     def test_malformed_prjcd(self):
         """project code does not match required pattern """
 
         #here are a list of bad, or malformed project codes:
-        badcodes = ["LHA_12_103", "LHA_I12D_103", " LH_IS12_103",
+        badcodes = ["LHA_12_103",   "LHA_I12D_103", " LH_IS12_103",
                     "LH2_IA12_103", "L00_IA12_103", "LHA_IS12103",
-                    "LHA-IS12_103", "LHA_I12D-103", "LHA_IS12_1103",
-                    "LHA_IS12A_110", "LHA_IS12_110A" "LHAR_IS12_110"]
+                    "LHA-IS12_103", "LHA_I12D-103", "A_IS12_1103",
+                    "LHA_IS12_abc", "lha_ID12_103", "LHA_is12_113",                    
+                    "LHA_IS1A_110", "LA_IS12_110A", "LH_IS12_110"]
         
         proj = dict(
             PRJ_CD = "LHA_12_103",

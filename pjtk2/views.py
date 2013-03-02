@@ -17,6 +17,16 @@ from pjtk2.forms import AdditionalReportsForm, CoreReportsForm
 import pdb
 
 
+def resetMilestones(project):
+    '''a function to make sure that all of the project milestones are
+    set to zero. Used when copying an existing project - we don't want
+    to copy its milestones too'''
+    project.Approved = False
+    project.Conducted = False
+    project.DataScrubbed = False
+    project.DataMerged = False                        
+    project.SignOff = False
+    return project
 
 def initialReports(slug):
 
@@ -122,12 +132,15 @@ def ProjectDetail(request, slug):
 def edit_project(request, slug):
     return crud_project(request, slug, action='Edit')
 
+    
 def copy_project(request, slug):
     return crud_project(request, slug, action='Copy')
 
+    
 def new_project(request):
     return crud_project(request, slug=None, action='New')
 
+    
 def crud_project(request, slug, action='New'):
     '''A view to create, copy and edit projects, depending on the
     value of 'action'.'''
@@ -136,13 +149,18 @@ def crud_project(request, slug, action='New'):
         instance = Project.objects.get(slug=slug)
     else:
         instance = Project()
-       
+
+        #if request.user.manager == True:    
+    manager = True
+    #else:
+    #manager = False
+        
     if request.method == 'POST': # If the form has been submitted...
         if action == 'Edit':
             form = ProjectForm(request.POST, instance=instance, 
-                                   readonly=True)
+                                   readonly=True, manager=manager)
         else:
-            form = ProjectForm(request.POST)
+            form = ProjectForm(request.POST, manager=manager)
                                   
         if form.is_valid():
             form = form.save(commit=False)
@@ -159,11 +177,13 @@ def crud_project(request, slug, action='New'):
                               context_instance=RequestContext(request))
     else:
         if action == "Edit":
-            form = ProjectForm(instance=instance, readonly=True)
+            form = ProjectForm(instance=instance, readonly=True, manager=manager)
         elif action == "Copy":
-            form = ProjectForm(instance=instance)            
+            #make sure that project milestones are reset to false for new projects
+            instance = resetMilestones(instance)            
+            form = ProjectForm(instance=instance, manager=manager)            
         else:
-            form = ProjectForm(instance=instance)                    
+            form = ProjectForm(instance=instance, manager=manager)                    
     return render_to_response('ProjectForm.html',
                               {'form':form, 'action':action, 'project':instance},
                               context_instance=RequestContext(request)
@@ -182,18 +202,18 @@ def project_formset(request):
 
         if formset.is_valid():
             # do something with the formset.cleaned_data
-            #formset.save()
-            #orig will contain the origianl value of approved for each slug
-            original = Project.objects.only('slug','Approved')
-            instances = formset.save(commit=False)
-            #pdb.set_trace()
-            for obj in instances:                
-                #THIS NEEDS TO BE IMPROVED - ONLY UPDATE THOSE RECORDS
-                #THAT HAVE BEEN CHANGED
-                #think about some quick set operations
-                orig = original.filter(slug=obj.slug).values('Approved')
-                if orig != obj.Approved:                    
-                    Project.objects.filter(slug=obj.slug).update(Approved=obj.Approved)
+            formset.save()
+            ###orig will contain the origianl value of approved for each slug
+            ##original = Project.objects.only('slug','Approved')
+            ##instances = formset.save(commit=False)
+            ###pdb.set_trace()
+            ##for obj in instances:                
+            ##    #THIS NEEDS TO BE IMPROVED - ONLY UPDATE THOSE RECORDS
+            ##    #THAT HAVE BEEN CHANGED
+            ##    #think about some quick set operations
+            ##    orig = original.filter(slug=obj.slug).values('Approved')
+            ##    if orig != obj.Approved:                    
+            ##        Project.objects.filter(slug=obj.slug).update(Approved=obj.Approved)
             return HttpResponseRedirect(reverse('ApprovedProjectsList'))
         else:
             return render_to_response('manage_projects.html', 

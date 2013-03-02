@@ -74,10 +74,20 @@ class ProjectForm2(forms.ModelForm):
         model=Project
         fields = ('Approved', 'PRJ_CD', 'PRJ_NM', 'PRJ_LDR') 
 
+    def clean_PRJ_CD(self):
+        '''return the original value of PRJ_CD'''
+        return self.instance.PRJ_CD
         
-        #exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
-        #           "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
+    def clean_PRJ_NM(self):
+        '''return the original value of PRJ_NM'''
+        return self.instance.PRJ_NM
 
+    def clean_PRJ_LDR(self):
+        '''return the original value of PRJ_LDR'''
+        return self.instance.PRJ_LDR
+        
+
+        
 
 def make_custom_datefield(f, **kwargs):
     '''from: http://strattonbrazil.blogspot.ca/2011/03/using-jquery-uis-date-picker-on-all.html'''
@@ -90,8 +100,8 @@ def make_custom_datefield(f, **kwargs):
 
 
 class CoreReportsForm(forms.Form):
-    '''Dynamically add checkboxe widgets to a form depending on
-    reports identified as core.  this form is currently used in both
+    '''Dynamically add checkbox widgets to a form depending on
+    reports identified as core.  This form is currently used in both
     project details page and reporting requirements.  A different form
     should be developed for project details.'''
     
@@ -160,19 +170,17 @@ class ProjectForm(forms.ModelForm):
     
     PRJ_NM = forms.CharField(
         label = "Project Name:",
-        max_length = 200,
         required = True,
     )
     
     PRJ_CD = forms.CharField(
         label = "Project Code:",
-        max_length = 80,
+        max_length = 12,
         required = True,
     )
 
     PRJ_LDR = forms.CharField(
         label = "Project Leader:",
-        max_length = 80,
         required = True,
     )
     
@@ -245,6 +253,7 @@ class ProjectForm(forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
+        manager = kwargs.pop('manager', False)        
         
         self.helper = FormHelper()
         self.helper.form_id = 'ProjectForm'
@@ -252,36 +261,6 @@ class ProjectForm(forms.ModelForm):
         self.helper.form_method = 'post'
         self.helper.form_action = ''
 
-
-        
-##        if request.user == "manager" | request.user == "DBA":        
-##            self.helper.layout = Layout(
-##            Fieldset(
-##                    'Project Elements',
-##                    'PRJ_NM',                
-##                    'PRJ_CD',
-##                    'PRJ_LDR',                
-##                    'COMMENT',                
-##                    Field('PRJ_DATE0', datadatepicker='datepicker'),                
-##                    Field('PRJ_DATE1', datadatepicker='datepicker'),
-##                    'ProjectType',
-##                    'MasterDatabase',                
-##                    'Keywords',
-##                    HTML("""<p><em>(comma separated values)</em></p> """),
-##                    Fieldset(
-##                      "Milestones",
-##                      'Approved',
-##                      'Conducted',
-##                      'DataScrubbed',
-##                      'DataMerged',
-##                      'SignOff'
-##                    ),
-##                  ),
-##                ButtonHolder(
-##                    Submit('submit', 'Submit')
-##                )
-##            )
-##        else:
         self.helper.layout = Layout(
         Fieldset(
                 'Project Elements',
@@ -296,33 +275,60 @@ class ProjectForm(forms.ModelForm):
                 'Keywords',
                 HTML("""<p><em>(comma separated values)</em></p> """),
                 Fieldset(
-                  "Milestones",
-                  HTML("""<input type="checkbox" disabled="disabled"
-                       {% if project.Approved  %} checked="checked" {% endif %}> Approved"""),
-                  'Conducted',
-                  'DataScrubbed',
-                  HTML("""<input type="checkbox" disabled="disabled"
-                  {% if project.DataMerged  %} checked="checked" {% endif %}> Data Merged <br />"""),
-                  HTML("""<input type="checkbox" disabled="disabled"
-                       {% if project.SignOff  %} checked="checked" {% endif %}> Signed Off"""),
-                ),                    
-
+                      "Milestones",
+                      'Approved',
+                      'Conducted',
+                      'DataScrubbed',
+                      'DataMerged',
+                      'SignOff'
+                    ),
               ),
             ButtonHolder(
                 Submit('submit', 'Submit')
             )
          )
 
-
-
-
         
         super(ProjectForm, self).__init__(*args, **kwargs)
         self.readonly = readonly
+        self.manager = manager
+
+        if not manager:
+            self.fields["Approved"].widget.attrs['disabled'] = True 
+            self.fields["SignOff"].widget.attrs['disabled'] = True             
+            self.fields["DataMerged"].widget.attrs['disabled'] = True                         
         
         if readonly:
             self.fields["PRJ_CD"].widget.attrs['readonly'] = True 
-    
+
+
+    def clean_Approved(self):
+        '''if this wasn't a manager, reset the Approved value to the
+        original (read only always returns false)'''
+        if not self.manager:
+            return self.instance.Approved
+        else:
+            return self.cleaned_data["Approved"]
+
+    def clean_SignOff(self):
+        '''if this wasn't a manager, reset the SignOff value to the
+        original (read only always returns false)'''
+        if not self.manager:
+            return self.instance.SignOff
+        else:
+            return self.cleaned_data["SignOff"]
+
+        
+    def clean_DataMerged(self):
+        '''if this wasn't a manager, reset the DataMerged value to the
+        original (read only always returns false)'''
+        if not self.manager:
+            return self.instance.DataMerged
+        else:
+            return self.cleaned_data["DataMerged"]
+        
+            
+            
     def clean_PRJ_CD(self):
         '''a clean method to ensure that the project code matches the
         given regular expression.  method also ensure that project
