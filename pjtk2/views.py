@@ -15,23 +15,23 @@ from django.contrib.auth import logout
 from pjtk2.models import Milestone, Project, Report, ProjectReports 
 from pjtk2.models import TL_ProjType, TL_Database
 #from pjtk2.forms import MilestoneForm
-from pjtk2.forms import ProjectForm, ProjectForm2, DocumentForm 
+from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm 
 from pjtk2.forms import AdditionalReportsForm, CoreReportsForm
 
 import pdb
 
 
-def resetMilestones(project):
-    '''a function to make sure that all of the project milestones are
-    set to zero. Used when copying an existing project - we don't want
-    to copy its milestones too'''
-    project.Approved = False
-    project.Conducted = False
-    project.DataScrubbed = False
-    project.DataMerged = False                        
-    project.SignOff = False
-    return project
-
+##  def resetMilestones(project):
+##      '''a function to make sure that all of the project milestones are
+##      set to zero. Used when copying an existing project - we don't want
+##      to copy its milestones too'''
+##      project.Approved = False
+##      project.Conducted = False
+##      project.DataScrubbed = False
+##      project.DataMerged = False                        
+##      project.SignOff = False
+##      return project
+  
 def initialReports(slug):
 
     '''A function that will add a record into "ProjectReports" for
@@ -45,7 +45,7 @@ def initialReports(slug):
         pr.save()
         
 
-def get_reports(slug):
+def get_assignments(slug):
     '''a function to get the core and custom reports currently
     assigned to a project.  It will return a two element dictionary
     containing the core and custom reports.  If this is a new project,
@@ -117,7 +117,7 @@ def ProjectDetail(request, slug):
     '''View project details.'''
     
     project = get_object_or_404(Project, slug=slug)
-    reports = get_reports(slug)
+    reports = get_assignments(slug)
     
     user = User.objects.get(username__exact=request.user)
     canEdit = ((user.groups.filter(name='manager').count>0) or 
@@ -204,7 +204,8 @@ def crud_project(request, slug, action='New'):
             form = ProjectForm(instance=instance, readonly=True, manager=manager)
         elif action == "Copy":
             #make sure that project milestones are reset to false for new projects
-            instance = resetMilestones(instance)            
+            #instance = resetMilestones(instance)            
+            instance.resetMilestones()            
             form = ProjectForm(instance=instance, manager=manager)            
         else:
             form = ProjectForm(instance=instance, manager=manager)                    
@@ -217,7 +218,7 @@ def crud_project(request, slug, action='New'):
 def project_formset(request):
     '''create a list of projects, project names and an
     approved/unapproved checkbox widget.'''
-    ProjectFormSet = modelformset_factory(Project, ProjectForm2, extra=0)
+    ProjectFormSet = modelformset_factory(Project, ApproveProjectsForm, extra=0)
     projects = Project.objects.all()
     
     if request.method == 'POST':
@@ -238,16 +239,18 @@ def project_formset(request):
                               {'formset': formset}, 
                                context_instance=RequestContext(request))
 
-##  def project_milestones(request, slug):
-##      '''Another obsolete function.'''
-##      project = get_object_or_404(Project, slug=slug)
-##      core =  CoreReportsForm()
-##      additional = AdditionalReportsForm()
-##      return render_to_response('projectdetail.html',
-##                                {'core':core, 'additional':additional,
-##                                 'project':project},
-##                                context_instance=RequestContext(request)
-##          )
+
+def project_reports(request, slug):
+    '''Another obsolete function.'''
+    project = get_object_or_404(Project, slug=slug)
+    #core =  CoreReportsForm()
+    #additional = AdditionalReportsForm()
+    return render_to_response('projectreports.html',
+                              {'core':core, 
+                               'additional':additional,
+                               'project':project},
+                              context_instance=RequestContext(request)
+        )
     
 
 
@@ -262,11 +265,10 @@ def uploadlist(request):
     if request.method == 'POST':
         form = DocumentForm(request.POST, request.FILES)
         if form.is_valid():
-
-            newreport = Report(report_path = request.FILES['report_path'])
             #pdb.set_trace()
-            newreport.save()
-
+            #newreport = Report(report_path = request.FILES['report_path'])
+            #newreport.save()
+            form.save()
             # Redirect to the document list after POST
             return HttpResponseRedirect(reverse('pjtk2.views.uploadlist'))
     else:
@@ -299,10 +301,10 @@ def crispy2(request):
 
     
 def report_milestones(request, slug):
-    '''This function will render a form of requestedreporting requirements for
-    each project.'''
+    '''This function will render a form of requested reporting
+    requirements for each project.'''
     #slug = "lha_ia13_abc"
-    reports = get_reports(slug) 
+    reports = get_assignments(slug) 
     project = Project.objects.get(slug = slug)
     #project = project.value("PRJ_CD", "PRJ_NM")
     #project = dict(PRJ_CD="LHA_IA13_ABC", PRJ_NM="Netting in Bobwho Bay")

@@ -70,11 +70,12 @@
 
 <h3>Core Reporting Requirements:</h3>
   <form method="POST" id="core" action=""> {% csrf_token %}
-  <ul style="list-style-type: none;">
-    {{core.as_ul}}
-  </ul>
-<!--<input type="submit" name="Save" value="Copy Project" /> -->
+  
+    {{core.as_table}}
+  
   </form>
+
+<a href="{% url 'Reports' project.slug %}"> <button>Update Reports</button> </a>
 
 <!--
 <h3>Additional Reporting Requirements:</h3>

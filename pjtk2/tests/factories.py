@@ -30,8 +30,6 @@ class ProjectFactory(factory.Factory):
     PRJ_LDR = "Bob Sakamano"
     PRJ_DATE0 = datetime.strptime("January 15, 2012", "%B %d, %Y")
     PRJ_DATE1 = datetime.strptime("May 15, 2012", "%B %d, %Y")
-    #PRJ_DATE0 = "January 15, 2012"
-    #PRJ_DATE1 = "May 15, 2012"
     COMMENT = "This is a fake project"
     ProjectType = factory.SubFactory(ProjTypeFactory)
     MasterDatabase = factory.SubFactory(DatabaseFactory)
@@ -50,7 +48,6 @@ class ProjectReportsFactory(factory.Factory):
     '''list of reporting requirements for each project'''
     project = factory.SubFactory(ProjectFactory)
     report_type = factory.SubFactory(MilestoneFactory)
-
 
 class ReportFactory(factory.Factory):
     FACTORY_FOR = Report

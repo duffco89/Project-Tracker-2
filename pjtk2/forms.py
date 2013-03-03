@@ -8,6 +8,17 @@ from pjtk2.models import Milestone, Project, ProjectReports, Report, TL_ProjType
 import pdb
 import re
 
+#==================================
+#  WIDGETS
+
+def make_custom_datefield(f, **kwargs):
+    '''from: http://strattonbrazil.blogspot.ca/2011/03/using-jquery-uis-date-picker-on-all.html'''
+    from django.db import models
+    formfield = f.formfield(**kwargs)
+    if isinstance(f, models.DateField):
+        formfield.widget.format = '%m/%d/%Y'
+        formfield.widget.attrs.update({'class':'datepicker'})
+    return formfield
 
 
 class ReadOnlyText(forms.TextInput):
@@ -19,11 +30,6 @@ class ReadOnlyText(forms.TextInput):
      if value is None: 
          value = ''
      return value
-
-
-##  url = proj.get_absolute_url()
-##  prj_cd = proj.PRJ_CD
-##  link = "<a href='%s'>%s</a>" % (url, prj_cd) 
 
 class HyperlinkWidget(forms.TextInput):
     """This is a widget that will insert a hyperlink to a project
@@ -40,9 +46,13 @@ class HyperlinkWidget(forms.TextInput):
         output.append('<a href="/test/projectdetail/%s">%s</a>' % (value.lower(), value))
         return mark_safe(u''.join(output))
 
-     
-class ProjectForm2(forms.ModelForm):
-    '''This project form is used for view to approve/unapprove multiple projects.'''
+#==================================
+#  FORMS
+
+        
+class ApproveProjectsForm(forms.ModelForm):
+    '''This project form is used for view to approve/unapprove
+    multiple projects.'''
 
     Approved = forms.BooleanField(
         label = "Approved:",
@@ -89,14 +99,6 @@ class ProjectForm2(forms.ModelForm):
 
         
 
-def make_custom_datefield(f, **kwargs):
-    '''from: http://strattonbrazil.blogspot.ca/2011/03/using-jquery-uis-date-picker-on-all.html'''
-    from django.db import models
-    formfield = f.formfield(**kwargs)
-    if isinstance(f, models.DateField):
-        formfield.widget.format = '%m/%d/%Y'
-        formfield.widget.attrs.update({'class':'datepicker'})
-    return formfield
 
 
 class CoreReportsForm(forms.Form):

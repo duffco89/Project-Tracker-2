@@ -91,6 +91,40 @@ class Project(models.Model):
         ret = "%s (%s)" % (self.PRJ_NM, self.PRJ_CD)
         return ret
 
+    def get_reports(self):
+        '''get all of the reports that are currenly associated with
+        this project'''
+        return Report.objects.filter(projectreport__project=self)
+
+    def get_assignments(self):
+        '''get all of the reports have been assigned to 
+        this project'''
+        return ProjectReports.objects.filter(project=self)
+
+
+    def get_completed(self):
+        '''get the project reports that have uploaded reports
+        associated with them.'''
+        return ProjectReports.objects.filter(project=self).filter(report__in=Report.objects.filter(projectreport__project=self))
+
+
+    def get_outstanding(self):
+        return ProjectReports.objects.filter(project=self).exclude(report__in=Report.objects.filter(projectreport__project=self))
+
+
+    def resetMilestones(self):
+        '''a function to make sure that all of the project milestones are
+        set to zero. Used when copying an existing project - we don't want
+        to copy its milestones too'''
+        self.Approved = False
+        self.Conducted = False
+        self.DataScrubbed = False
+        self.DataMerged = False                        
+        self.SignOff = False
+        return self
+
+
+
     #@models.permalink
     def get_absolute_url(self):
         #slug = str(self.slug)
@@ -122,10 +156,13 @@ class ProjectReports(models.Model):
         verbose_name_plural = "Project Reports"
         
     def __unicode__(self):
-        return "%s - %s" % (self.project, self.report_type)
+        return "%s - %s" % (self.project.PRJ_CD, self.report_type)
 
+        
+        
 class Report(models.Model):
-    '''class for reporting milestones'''
+    '''class for reports.  A single report can be linked to multiple
+    entries in Project Reports'''
     current = models.BooleanField(default=True)
     #projectreport = models.ManyToManyField('ProjectReports')
     projectreport = models.ForeignKey('ProjectReports')
@@ -138,6 +175,7 @@ class Report(models.Model):
     def __unicode__(self):
         return str(self.report_path)
 
+        
 class AdminMilestone(admin.ModelAdmin):
     list_display = ('label', 'category',)
 
