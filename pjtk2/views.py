@@ -15,8 +15,8 @@ from django.contrib.auth import logout
 from pjtk2.models import Milestone, Project, Report, ProjectReports 
 from pjtk2.models import TL_ProjType, TL_Database
 #from pjtk2.forms import MilestoneForm
-from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm 
-from pjtk2.forms import AdditionalReportsForm, CoreReportsForm
+from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm, ReportsForm 
+from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
 
 import pdb
 
@@ -83,6 +83,42 @@ def get_assignments(slug):
     
     return(reports)
 
+def get_assignments_with_paths(slug, core=True):
+    '''function that will return a list of dictionaries for each of the
+    reporting requirements.  each dictionary will indicate what the
+    report is required, whether or not it has been requested for this
+    project, and if it is available, a path to the assocatiated
+    report.'''
+    
+    project = Project.objects.get(slug=slug)
+
+    if core:
+        assignments = project.get_core_assignments()
+    else:
+        assignments = project.get_custom_assignments()
+        
+    assign_dicts = []
+    for assignment in assignments:
+        try:
+            filepath = Report.objects.get(projectreport=assignment)
+        except Report.DoesNotExist:
+            filepath = None
+        required = assignment.required
+        report_type = assignment.report_type
+        category = assignment.report_type.category
+        assign_dicts.append(dict(
+            required = required,
+            category = category,
+            report_type = report_type,
+            filepath = filepath
+        ))
+    return assign_dicts
+    
+
+
+
+
+    
 #===========================
 #Generic Views    
 
@@ -118,7 +154,10 @@ def ProjectDetail(request, slug):
     
     project = get_object_or_404(Project, slug=slug)
     reports = get_assignments(slug)
-    
+
+    core = get_assignments_with_paths(slug)
+    custom = get_assignments_with_paths(slug, core=False)
+
     user = User.objects.get(username__exact=request.user)
     canEdit = ((user.groups.filter(name='manager').count>0) or 
                  (user.is_superuser) or 
@@ -127,28 +166,58 @@ def ProjectDetail(request, slug):
         editButton = True
     else:
         editButton = False
-    
-    if request.method=="POST":
-        core =  CoreReportsForm(request.POST, reports=reports)
-
-        if core.is_valid():
-            #form.save()
-            return HttpResponseRedirect(reverse('ProjectList'))
-    else:
-        core =  CoreReportsForm(reports=reports)
-    #reports = MilestoneForm()
-
-    #additional = AdditionalReportsForm()
 
     return render_to_response('projectdetail.html',
                               {'core':core,
-                               #'additional':additional,
+                               'custom':custom,
                                'project':project,
                                'editButton':editButton,
                                },
                               context_instance=RequestContext(request)
         )
 
+
+
+def update_assignments(request, slug): 
+
+    '''render a form containing all of the assignments associated with
+    this project.'''  
+    
+    project = Project.objects.get(slug = slug) 
+    assignments = project.get_assignments()
+
+    AssignmentFormSet = modelformset_factory(ProjectReports, AssignmentForm, extra=0)
+
+    reports = get_assignments(slug)
+    #core =  CoreReportsForm(reports=reports)
+    #additional = AdditionalReportsForm()
+    #pdb.set_trace()
+    
+    if request.method == 'POST':
+        #pdb.set_trace()
+        #formset = AssignmentFormSet(request.POST, initial=initial)
+        formset = AssignmentFormSet(request.POST, initial = assignments)
+
+        if formset.is_valid():
+            # do something with the formset.cleaned_data
+            formset.save()
+            return HttpResponseRedirect(project.get_absolute_url())
+        else:
+            return render_to_response('scratch.html', 
+                              {'formset': formset}, 
+                               context_instance=RequestContext(request))
+    else:
+        formset = AssignmentFormSet(queryset = assignments)
+        #formset = AssignmentFormSet(initial=initial)
+        return render_to_response('scratch.html', 
+                              {'formset': formset,
+    #'core':core, 
+    #                           'additional':additional,
+                              }, 
+                               context_instance=RequestContext(request))
+
+
+    
     
 def edit_project(request, slug):
     return crud_project(request, slug, action='Edit')
@@ -300,30 +369,47 @@ def crispy2(request):
 
 
     
+
+    
 def report_milestones(request, slug):
     '''This function will render a form of requested reporting
     requirements for each project.'''
-    #slug = "lha_ia13_abc"
+
+    project = Project.objects.get(slug = slug)    
     reports = get_assignments(slug) 
-    project = Project.objects.get(slug = slug)
-    #project = project.value("PRJ_CD", "PRJ_NM")
-    #project = dict(PRJ_CD="LHA_IA13_ABC", PRJ_NM="Netting in Bobwho Bay")
     
     if request.method=="POST":
-        core =  CoreReportsForm(request.POST, reports=reports, 
-                                project=project)
-        #pdb.set_trace()
-        if core.is_valid():
-            #form.save()
-            return HttpResponseRedirect(reverse('ProjectList'))
+        core =  ReportsForm(request.POST, reports=reports) 
+        custom = ReportsForm(request.POST, reports = reports,
+                             core=False)
+        pdb.set_trace()
+        if core.is_valid() and custom.is_valid():
+            #form.save()            
+            #CORE REPORTS:
+            #for the core reports, its relatively easy - filter on the
+            #project code and exlude any report_types that are not in
+            #the list of id numbers contained in 'core'.
+             ProjectReports.objects.filter(project = 
+                  project).exclude(report_type__in=core).update(required=False)
+
+             #CUSTOM REPORTS: for the custom reports, we need see if
+             # it already exists in ProjectReports.  If so, 
+             ProjectReports.objects.filter(project = 
+                  project).exclude(report_type__in=custom).update(required=False)
+             ProjectReports.objects.filter(project = 
+                  project).filter(report_type__in=custom).update(required=True)
+
+            
+             return HttpResponseRedirect(project.get_absolute_url())
     else:
-        core =  CoreReportsForm(reports = reports, project=project)
-    #reports = MilestoneForm()
-    #additional = AdditionalReportsForm()
+        core =  ReportsForm(reports = reports)
+        custom =  ReportsForm(reports = reports, core=False)
+        
 
     return render_to_response('reportform.html',
                               {'core':core,
-                               #'additional':additional
+                               'custom':custom,
+                               'project':project
                                },
                               context_instance=RequestContext(request)
         )

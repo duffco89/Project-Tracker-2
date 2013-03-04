@@ -99,41 +99,70 @@ class ApproveProjectsForm(forms.ModelForm):
 
         
 
-
-
-class CoreReportsForm(forms.Form):
-    '''Dynamically add checkbox widgets to a form depending on
-    reports identified as core.  This form is currently used in both
-    project details page and reporting requirements.  A different form
-    should be developed for project details.'''
+class ReportsForm(forms.Form):
+    '''generalized from CoreReportsForms to be used for both core and
+    custom reports.Dynamically add checkbox widgets to a form
+    depending on reports identified as core.  This form is currently
+    used to update reporting requirements.'''
     
     #pass
     def __init__(self, *args, **kwargs):
         self.reports = kwargs.pop('reports')
-        self.project = kwargs.pop('project', None)
+        self.core = kwargs.pop('core', True)
+        
+        #self.project = kwargs.pop('project', None)
+        
+        super(ReportsForm, self).__init__(*args, **kwargs)
+        if self.core:
+            what = 'core'
+        else:
+            what = 'custom'
+
+        reports = self.reports[what]["reports"]
+        assigned = self.reports[what]["assigned"]
+        
+        self.fields[what] = forms.MultipleChoiceField(
+            choices = reports,
+            initial = assigned,
+            label = "",
+            required = False,
+            widget = forms.widgets.CheckboxSelectMultiple(),
+            )
+        
+
+
+class CoreReportsForm(forms.Form):
+    '''Dynamically add checkbox widgets to a form depending on reports
+    identified as core.  This form is currently used to update
+    reporting requirements.  '''
+    
+    #pass
+    def __init__(self, *args, **kwargs):
+        self.reports = kwargs.pop('reports')
+        #self.project = kwargs.pop('project', None)
         
         super(CoreReportsForm, self).__init__(*args, **kwargs)
         corereports = self.reports["core"]["reports"]
         assigned = self.reports["core"]["assigned"]
-        project = self.project
+        #project = self.project
 
-        if project:
-          self.fields['PRJ_NM'] = forms.CharField(
-              widget = ReadOnlyText,
-              #initial = project['PRJ_NM'],            
-              initial = project.PRJ_NM,               
-              label = "Project Name",
-              required =False,
-          )
-
-          self.fields['PRJ_CD'] = forms.CharField(
-              widget = HyperlinkWidget,
-              #initial = project['PRJ_CD'],            
-              initial = project.PRJ_CD,            
-              label = "Project Code",
-              max_length = 80,
-              required = False,
-          )
+        ## if project:
+        ##   self.fields['PRJ_NM'] = forms.CharField(
+        ##       widget = ReadOnlyText,
+        ##       #initial = project['PRJ_NM'],            
+        ##       initial = project.PRJ_NM,               
+        ##       label = "Project Name",
+        ##       required =False,
+        ##   )
+        ## 
+        ##   self.fields['PRJ_CD'] = forms.CharField(
+        ##       widget = HyperlinkWidget,
+        ##       #initial = project['PRJ_CD'],            
+        ##       initial = project.PRJ_CD,            
+        ##       label = "Project Code",
+        ##       max_length = 80,
+        ##       required = False,
+        ##   )
     
         
         self.fields['core'] = forms.MultipleChoiceField(
@@ -561,6 +590,33 @@ class ExampleForm(forms.Form):
         
         super(ExampleForm, self).__init__(*args, **kwargs)
 
+
+
+
+
+class AssignmentForm(forms.ModelForm):
+    '''A basic form for reporting requirements associated with a project'''
+
+    required = forms.BooleanField(
+         label = "",
+         required =False,
+     )
+
+    class Meta:
+        model=ProjectReports
+        fields = ('required', 'report_type')
+        widgets = {
+        #'required':forms.BooleanField(label=""),
+          'report_type':forms.HiddenInput(),        
+        }
+    
+    def clean_report_type(self):
+        '''return the original value of report_type'''
+        return self.instance.report_type
+
+
+
+        
 
 
 

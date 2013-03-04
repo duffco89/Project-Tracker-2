@@ -24,7 +24,6 @@ class Milestone(models.Model):
         verbose_name_plural = "Reporting Milestones"
         ordering = ['order']
 
-
     def __unicode__(self):
         return self.label
 
@@ -91,26 +90,34 @@ class Project(models.Model):
         ret = "%s (%s)" % (self.PRJ_NM, self.PRJ_CD)
         return ret
 
-    def get_reports(self):
-        '''get all of the reports that are currenly associated with
-        this project'''
-        return Report.objects.filter(projectreport__project=self)
-
     def get_assignments(self):
         '''get all of the reports have been assigned to 
-        this project'''
+        this project - no distinction between core or custom reports'''
         return ProjectReports.objects.filter(project=self)
 
+    def get_core_assignments(self):
+        '''get all of the core reports have been assigned to 
+        this project'''
+        return self.get_assignments().filter(report_type__category='Core')
 
-    def get_completed(self):
+    def get_custom_assignments(self):
+        '''get a list of any custom reports that have been assigned to
+        this project'''
+        return self.get_assignments().exclude(report_type__category='Core')
+
+    def get_complete(self):
         '''get the project reports that have uploaded reports
         associated with them.'''
         return ProjectReports.objects.filter(project=self).filter(report__in=Report.objects.filter(projectreport__project=self))
 
-
     def get_outstanding(self):
+        '''these are the required reports that have not been sumitted yet'''
         return ProjectReports.objects.filter(project=self).exclude(report__in=Report.objects.filter(projectreport__project=self))
 
+    def get_reports(self):
+        '''get all of the reports that are currenly associated with
+        this project'''
+        return Report.objects.filter(projectreport__project=self)
 
     def resetMilestones(self):
         '''a function to make sure that all of the project milestones are
@@ -150,7 +157,8 @@ class ProjectReports(models.Model):
     '''list of reporting requirements for each project'''
     project = models.ForeignKey('Project')
     report_type = models.ForeignKey('Milestone')
-
+    required  = models.BooleanField(default=True)
+    
     class Meta:
         unique_together = ("project", "report_type",)
         verbose_name_plural = "Project Reports"

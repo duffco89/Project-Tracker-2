@@ -61,33 +61,79 @@
 <a href="#"> <button>Bookmark Project</button> </a>
 
 
-
 <hr />
 
 <h2>Reporting Requirements:</h2>
 
-<p><em>(To be editable only for managers.)</em></p>
-
 <h3>Core Reporting Requirements:</h3>
-  <form method="POST" id="core" action=""> {% csrf_token %}
-  
-    {{core.as_table}}
-  
-  </form>
 
-<a href="{% url 'Reports' project.slug %}"> <button>Update Reports</button> </a>
+{% if core %}
+    <table>
+    {% for report in core  %}
+       <tr>
+         <td> <input type="checkbox" disabled="disabled"
+            {% if report.required %} checked="checked" {% endif %}>
+        {{ report.report_type }}
+	   </td>
+        
+        {% if report.filepath %}
+            <td><a href="#">{{ report.filepath }}</a></td>
+        {% else %}
+            {% if report.required %}
+                <td><div class="na"><em> Report not available yet. </em></div><td>
+            {% else %}
+                <td><div class="na"><em> Not requested. </em></div></td>
+            {% endif %}
+        {% endif %}
+        </tr>
+    {% endfor %}
+    </table>
+{% else %}
+    <p><em>No reporting requirements associated with this project. </em></p>
+{% endif %}
 
-<!--
+<h3>Associated Files:</h3>
+
+<em>This feature has not been implemented yet. </em>
+
 <h3>Additional Reporting Requirements:</h3>
-  <form method="POST" id="custom" action="{%  url 'ProjectList' %}">
-  <ul style="list-style-type: none;">
-   {{additional.as_ul}}
-  </ul>
-  </form>
 
-<hr />
-<input type="submit" name="Save" value="Submit Project" />
--->
+{% if custom %}
+    <table>
+    {% for report in custom  %}
+       <tr>
+         <td> <input type="checkbox" disabled="disabled"
+            {% if report.required %} checked="checked" {% endif %}>
+        {{ report.report_type }}
+	   </td>
+        
+        {% if report.filepath %}
+            <td><a href="#">{{ report.filepath }}</a></td>
+        {% else %}
+            {% if report.required %}
+                <td><div class="na"><em> Report not available yet. </em></div><td>
+            {% else %}
+                <td><div class="na"><em> Not requested. </em></div></td>
+            {% endif %}
+        {% endif %}
+        </tr>
+    {% endfor %}
+  </table>
+{% else %}
+    <p><em>No additonal reporting requirements associated with this project. </em></p>
+{% endif %}
+
+
+<br />
+<br />
+
+<a href="#"> <button>Upload Reports</button> </a>
+<a href="{% url 'UpdateAssignments' project.slug %}"> <button>
+Change Reporting Requirements</button> </a>
+
+<br />
+<a href="{% url 'Reports' project.slug %}"> <button>
+Change Reporting Requirements 2</button> </a>
 
 
 

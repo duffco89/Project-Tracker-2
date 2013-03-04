@@ -14,27 +14,30 @@
 <a href="#">View My Projects</a> 
 </p>
 
-<h1> Report Forms</h1>
+<h1> Reporting Requirements for {{ project.PRJ_CD }}</h1>
 <hr />
 
+<h2> {{ project.PRJ_NM }} </h2>
+
+<form method="POST" id="reports" action="">
+{% csrf_token %}
 <h3>Core Reporting Requirements:</h3>
-  <form method="POST" id="core" action=""> {% csrf_token %}
-  <ul style="list-style-type: none;">
-    {{core.as_ul}}
-  </ul>
-<!--<input type="submit" name="Save" value="Copy Project" /> -->
-  </form>
+
+    <ul style="list-style-type: none;">
+      {{core.as_ul}}
+    </ul>
+
 
 
 <h3>Additional Reporting Requirements:</h3>
-  <form method="POST" id="custom" action="{%  url 'ProjectList' %}">
-  <ul style="list-style-type: none;">
-   {{additional.as_ul}}
-  </ul>
-  </form>
-
+  
+    <ul style="list-style-type: none;">
+      {{custom.as_ul}}
+    </ul>
+  
 <hr />
-<input type="submit" name="Save" value="Submit Project" />
+<input type="submit" name="Save" value="Save Changes" />
+</form>
 
 </body>
 </html>
