@@ -20,18 +20,29 @@ from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
 
 import pdb
 
+def is_manager(user):
+    '''A simple little function to find out if the current user is a
+    manager (or better)'''
+    if user.groups.filter(name='manager').count()>0 | user.is_superuser:
+        manager = True
+    else:
+        manager = False
+    return(manager)
 
-##  def resetMilestones(project):
-##      '''a function to make sure that all of the project milestones are
-##      set to zero. Used when copying an existing project - we don't want
-##      to copy its milestones too'''
-##      project.Approved = False
-##      project.Conducted = False
-##      project.DataScrubbed = False
-##      project.DataMerged = False                        
-##      project.SignOff = False
-##      return project
-  
+def canEdit(user, project):
+    '''Another helper function to see if this user should be allowed
+    to edit this project.  In order to edit the use must be either the
+    project Owner, a manager or a superuser.'''
+    canEdit = ((user.groups.filter(name='manager').count()>0) or 
+                 (user.is_superuser) or 
+                 (user.username == project.Owner.username))
+    if canEdit:
+        canEdit = True
+    else:
+        canEdit = False
+    return(canEdit)
+    
+    
 def initialReports(slug):
 
     '''A function that will add a record into "ProjectReports" for
@@ -119,15 +130,8 @@ def get_assignments_with_paths(slug, core=True):
         ))
     return assign_dicts
     
-
-
-
-
-    
 #===========================
 #Generic Views    
-
-
 
 class HomePageView(TemplateView):
     template_name = "index.html"
@@ -146,12 +150,12 @@ class ApprovedProjectsList(ListView):
 approved_projects_list = ApprovedProjectsList.as_view()
 
 
-
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect('/accounts/login')
 
-
+#===========================
+# My application Views
 
 @login_required            
 def ProjectDetail(request, slug):
@@ -163,66 +167,21 @@ def ProjectDetail(request, slug):
     core = get_assignments_with_paths(slug)
     custom = get_assignments_with_paths(slug, core=False)
 
-    user = User.objects.get(username__exact=request.user)
-    canEdit = ((user.groups.filter(name='manager').count>0) or 
-                 (user.is_superuser) or 
-                 (user.username == project.Owner.username))
-    if canEdit:
-        editButton = True
-    else:
-        editButton = False
+    user = User.objects.get(username__exact=request.user)       
+    edit = canEdit(user, project)
+    manager = is_manager(user)
 
     return render_to_response('projectdetail.html',
                               {'core':core,
                                'custom':custom,
                                'project':project,
-                               'editButton':editButton,
+                               'edit':edit,
+                               'manager':manager
                                },
                               context_instance=RequestContext(request)
         )
 
 
-
-def update_assignments(request, slug): 
-
-    '''render a form containing all of the assignments associated with
-    this project.'''  
-    
-    project = Project.objects.get(slug = slug) 
-    assignments = project.get_assignments()
-
-    AssignmentFormSet = modelformset_factory(ProjectReports, AssignmentForm, extra=0)
-
-    reports = get_assignments(slug)
-    #core =  CoreReportsForm(reports=reports)
-    #additional = AdditionalReportsForm()
-    #pdb.set_trace()
-    
-    if request.method == 'POST':
-        #pdb.set_trace()
-        #formset = AssignmentFormSet(request.POST, initial=initial)
-        formset = AssignmentFormSet(request.POST, initial = assignments)
-
-        if formset.is_valid():
-            # do something with the formset.cleaned_data
-            formset.save()
-            return HttpResponseRedirect(project.get_absolute_url())
-        else:
-            return render_to_response('scratch.html', 
-                              {'formset': formset}, 
-                               context_instance=RequestContext(request))
-    else:
-        formset = AssignmentFormSet(queryset = assignments)
-        #formset = AssignmentFormSet(initial=initial)
-        return render_to_response('scratch.html', 
-                              {'formset': formset,
-    #'core':core, 
-    #                           'additional':additional,
-                              }, 
-                               context_instance=RequestContext(request))
-
-
-    
     
 def edit_project(request, slug):
     return crud_project(request, slug, action='Edit')
@@ -248,10 +207,8 @@ def crud_project(request, slug, action='New'):
     #find out if the user is a manager or superuser, if so set manager
     #to true so that he or she can edit all fields.
     user = User.objects.get(username__exact=request.user)
-    if user.groups.filter(name='manager').count>0 | user.is_superuser:
-        manager = True
-    else:
-        manager = False
+
+    manager = is_manager(user)
         
     if request.method == 'POST': # If the form has been submitted...
         if action == 'Edit':
@@ -313,24 +270,43 @@ def project_formset(request):
                               {'formset': formset}, 
                                context_instance=RequestContext(request))
 
+    
+def report_milestones(request, slug):
+    '''This function will render a form of requested reporting
+    requirements for each project.  Used by managers to update
+    reporting requirements for each project..'''
 
-def project_reports(request, slug):
-    '''Another obsolete function.'''
-    project = get_object_or_404(Project, slug=slug)
-    #core =  CoreReportsForm()
-    #additional = AdditionalReportsForm()
-    return render_to_response('projectreports.html',
-                              {'core':core, 
-                               'additional':additional,
-                               'project':project},
+    project = Project.objects.get(slug = slug)    
+    reports = get_assignments(slug) 
+
+    if request.method=="POST":
+        core =  ReportsForm(request.POST, project=project, reports=reports) 
+        custom = ReportsForm(request.POST, project=project, reports = reports,
+                             core=False)
+        
+        if core.is_valid() and custom.is_valid():
+            core.save()            
+            custom.save()
+            
+            return HttpResponseRedirect(project.get_absolute_url())
+    else:
+        core =  ReportsForm(project=project, reports = reports)
+        custom =  ReportsForm(project=project, reports = reports, core=False)
+        
+
+    return render_to_response('reportform.html',
+                              {'core':core,
+                               'custom':custom,
+                               'project':project
+                               },
                               context_instance=RequestContext(request)
         )
-    
+
 
 
 def ReportUpload(request):
     pass
-
+    
 
 def uploadlist(request):
     '''An example view that illustrates how to handle uploading files.
@@ -357,6 +333,13 @@ def uploadlist(request):
         context_instance=RequestContext(request)
     )
 
+
+
+
+
+
+
+    
 #=============================================
 #=============================================
 from django.shortcuts import render
@@ -374,51 +357,6 @@ def crispy2(request):
 
 
     
-
-    
-def report_milestones(request, slug):
-    '''This function will render a form of requested reporting
-    requirements for each project.'''
-
-    project = Project.objects.get(slug = slug)    
-    reports = get_assignments(slug) 
-
-    jj = reports['core']
-    print "Core reports currently associated with this project:"
-    print jj['reports']
-    print jj['assigned']
-
-    jj = reports['custom']
-    print "Custom reports currently associated with this project:"
-    print jj['reports']
-    print jj['assigned']
-
-        
-    #pdb.set_trace()
-    
-    if request.method=="POST":
-        core =  ReportsForm(request.POST, project=project, reports=reports) 
-        custom = ReportsForm(request.POST, project=project, reports = reports,
-                             core=False)
-        
-        if core.is_valid() and custom.is_valid():
-            core.save()            
-            custom.save()
-            
-            return HttpResponseRedirect(project.get_absolute_url())
-    else:
-        core =  ReportsForm(project=project, reports = reports)
-        custom =  ReportsForm(project=project, reports = reports, core=False)
-        
-
-    return render_to_response('reportform.html',
-                              {'core':core,
-                               'custom':custom,
-                               'project':project
-                               },
-                              context_instance=RequestContext(request)
-        )
-
 
 ##def report_formset(request):
 ##    #  YOU ARE HERE
@@ -458,3 +396,74 @@ def report_milestones(request, slug):
 ##                              {'formset': formset}, 
 ##                               context_instance=RequestContext(request))
 ##    
+
+
+
+
+    
+
+##  def project_reports(request, slug):
+##      '''Another obsolete function.'''
+##      project = get_object_or_404(Project, slug=slug)
+##      #core =  CoreReportsForm()
+##      #additional = AdditionalReportsForm()
+##      return render_to_response('projectreports.html',
+##                                {'core':core, 
+##                                 'additional':additional,
+##                                 'project':project},
+##                                context_instance=RequestContext(request)
+##          )
+    
+
+
+##  def update_assignments(request, slug): 
+##  
+##      '''render a form containing all of the assignments associated with
+##      this project.'''  
+##      
+##      project = Project.objects.get(slug = slug) 
+##      assignments = project.get_assignments()
+##  
+##      AssignmentFormSet = modelformset_factory(ProjectReports, AssignmentForm, extra=0)
+##  
+##      reports = get_assignments(slug)
+##      #core =  CoreReportsForm(reports=reports)
+##      #additional = AdditionalReportsForm()
+##      #pdb.set_trace()
+##      
+##      if request.method == 'POST':
+##          #pdb.set_trace()
+##          #formset = AssignmentFormSet(request.POST, initial=initial)
+##          formset = AssignmentFormSet(request.POST, initial = assignments)
+##  
+##          if formset.is_valid():
+##              # do something with the formset.cleaned_data
+##              formset.save()
+##              return HttpResponseRedirect(project.get_absolute_url())
+##          else:
+##              return render_to_response('scratch.html', 
+##                                {'formset': formset}, 
+##                                 context_instance=RequestContext(request))
+##      else:
+##          formset = AssignmentFormSet(queryset = assignments)
+##          #formset = AssignmentFormSet(initial=initial)
+##          return render_to_response('scratch.html', 
+##                                {'formset': formset,
+##      #'core':core, 
+##      #                           'additional':additional,
+##                                }, 
+##                                 context_instance=RequestContext(request))
+##  
+
+
+
+##  def resetMilestones(project):
+##      '''a function to make sure that all of the project milestones are
+##      set to zero. Used when copying an existing project - we don't want
+##      to copy its milestones too'''
+##      project.Approved = False
+##      project.Conducted = False
+##      project.DataScrubbed = False
+##      project.DataMerged = False                        
+##      project.SignOff = False
+##      return project

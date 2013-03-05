@@ -6,8 +6,13 @@ development team.)"""
 
 
 from datetime import datetime
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.core.urlresolvers import reverse
+from django.test.client import Client
 from django import forms
+
+import unittest
+import pdb
 
 from pjtk2.models import *
 from pjtk2.forms import ProjectForm
@@ -15,7 +20,30 @@ from pjtk2.tests.factories import *
 
 from django.test import TestCase
 
-import pdb
+class CreateManagerTestCase(unittest.TestCase):
+
+    def setUp(self):
+        managerGrp = Group(name='manager')
+        managerGrp.save()
+         
+        self.manager = UserFactory.create(username="bosshog")         
+        self.manager.groups.add(managerGrp)
+
+    def test_is_manager(self):
+
+        grpcnt =  self.manager.groups.filter(name='manager').count()         
+        self.assertTrue(grpcnt >0)
+         
+class LoginTestCase(unittest.TestCase):
+    def setUp(self):        
+        self.client = Client()
+        self.user = User.objects.create_user('john', 'lennon@thebeatles.com', 
+        
+    def testLogin(self):
+        self.client.login(username='john', password='johnpassword')
+        response = self.client.get(reverse('login'))
+        self.assertEqual(response.status_code, 200)
+
 
 
 class TestProjectModel(TestCase):
@@ -103,6 +131,14 @@ class TestProjectModel(TestCase):
         self.assertEqual(project.slug, should_be)
         should_be = "20" + prj_cd[6:8]                
         self.assertEqual(str(project.YEAR), should_be)                
+
+
+
+#Views
+class IndexViewsTestCase(TestCase):
+    def test_index(self):
+        resp = self.client.get('')
+        self.assertEqual(resp.status_code,200)
 
         
         

@@ -53,7 +53,7 @@
 </form>
 
 <br />
-{% if editButton %} 
+{% if edit %} 
 <a href="{% url 'EditProject' project.slug %}"> <button>Edit
     Information</button> </a>
 {% endif  %}
@@ -126,15 +126,13 @@
 
 <br />
 <br />
-
+{% if edit %}
 <a href="#"> <button>Upload Reports</button> </a>
-<a href="{% url 'UpdateAssignments' project.slug %}"> <button>
-Change Reporting Requirements</button> </a>
-
-<br />
+{% endif %}
+{% if manager %}
 <a href="{% url 'Reports' project.slug %}"> <button>
-Change Reporting Requirements 2</button> </a>
-
+Change Reporting Requirements</button> </a>
+{% endif %}
 
 
 

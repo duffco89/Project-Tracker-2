@@ -136,32 +136,15 @@ class ReportsForm(forms.Form):
         project = self.project
         what = self.what
 
-        print "what: %s " % what
-        print "cleaned_data: %s " % cleaned_data
-        
-        
-        #pdb.set_trace()        
         #turn OFF any ProjectReports that are not in cleaned data
-
-        jj = ProjectReports.objects.filter(project = 
-                  project).filter(report_type__category=
-                  what.title()).exclude(report_type__in=cleaned_data[what])
-        print "These reports will be set to FALSE: %s" % jj
- 
         ProjectReports.objects.filter(project = project).exclude(report_type__in=
                   cleaned_data[what]).filter(report_type__category=
                   what.title()).update(required=False)
 
         #turn ON any ProjectReports that are in cleaned data
-        jj = ProjectReports.objects.filter(project = 
-                  project).filter(report_type__category=
-                  what.title()).filter(report_type__in=cleaned_data[what])
-        print "These reports will be set to TRUE: %s" % jj
-
         ProjectReports.objects.filter(project = 
                   project).filter(report_type__category=
                   what.title()).filter(report_type__in=cleaned_data[what]).update(required=True)
-
 
         #now we need to see if there are any new reports for this project
         #queryset of all 'what' (custom or core) reports assocaited with project

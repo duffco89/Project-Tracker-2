@@ -29,8 +29,8 @@ urlpatterns = patterns('pjtk2.views',
 
 #    url(r'^reportformset/', 'report_formset', name='ReportFormSet'),
 
-    url(r'^updateassignments/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
-        'update_assignments', name='UpdateAssignments'),
+#    url(r'^updateassignments/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+#        'update_assignments', name='UpdateAssignments'),
               
     
 #url(r'^(?P<slug>[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3})/$', 

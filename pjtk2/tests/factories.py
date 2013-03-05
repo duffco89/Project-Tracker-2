@@ -14,6 +14,16 @@ class UserFactory(factory.Factory):
     email = 'johndoe@hotmail.com'    
     #admin = False
 
+
+class ManagerFactory(factory.Factory):
+    FACTORY_FOR = User
+    first_name = 'Boss'
+    last_name = 'Hogg'
+    username = 'bosshogg'
+    email = 'bosshogg@hotmail.com'    
+    manager = True
+
+    
 class ProjTypeFactory(factory.Factory):
     FACTORY_FOR = TL_ProjType
     Project_Type = "Offshore Index"
