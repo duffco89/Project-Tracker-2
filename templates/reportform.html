@@ -22,18 +22,12 @@
 <form method="POST" id="reports" action="">
 {% csrf_token %}
 <h3>Core Reporting Requirements:</h3>
-
-    <ul style="list-style-type: none;">
-      {{core.as_ul}}
-    </ul>
-
-
+    
+      {{core.as_p}}
 
 <h3>Additional Reporting Requirements:</h3>
   
-    <ul style="list-style-type: none;">
-      {{custom.as_ul}}
-    </ul>
+      {{custom.as_p}}
   
 <hr />
 <input type="submit" name="Save" value="Save Changes" />

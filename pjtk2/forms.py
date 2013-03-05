@@ -101,7 +101,7 @@ class ApproveProjectsForm(forms.ModelForm):
 
 class ReportsForm(forms.Form):
     '''generalized from CoreReportsForms to be used for both core and
-    custom reports.Dynamically add checkbox widgets to a form
+    custom reports. Dynamically add checkbox widgets to a form
     depending on reports identified as core.  This form is currently
     used to update reporting requirements.'''
     
@@ -109,8 +109,7 @@ class ReportsForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.reports = kwargs.pop('reports')
         self.core = kwargs.pop('core', True)
-        
-        #self.project = kwargs.pop('project', None)
+        self.project = kwargs.pop('project', None)
         
         super(ReportsForm, self).__init__(*args, **kwargs)
         if self.core:
@@ -118,6 +117,8 @@ class ReportsForm(forms.Form):
         else:
             what = 'custom'
 
+        self.what = what
+        
         reports = self.reports[what]["reports"]
         assigned = self.reports[what]["assigned"]
         
@@ -130,6 +131,55 @@ class ReportsForm(forms.Form):
             )
         
 
+    def save(self):
+        cleaned_data = self.cleaned_data
+        project = self.project
+        what = self.what
+
+        print "what: %s " % what
+        print "cleaned_data: %s " % cleaned_data
+        
+        
+        #pdb.set_trace()        
+        #turn OFF any ProjectReports that are not in cleaned data
+
+        jj = ProjectReports.objects.filter(project = 
+                  project).filter(report_type__category=
+                  what.title()).exclude(report_type__in=cleaned_data[what])
+        print "These reports will be set to FALSE: %s" % jj
+ 
+        ProjectReports.objects.filter(project = project).exclude(report_type__in=
+                  cleaned_data[what]).filter(report_type__category=
+                  what.title()).update(required=False)
+
+        #turn ON any ProjectReports that are in cleaned data
+        jj = ProjectReports.objects.filter(project = 
+                  project).filter(report_type__category=
+                  what.title()).filter(report_type__in=cleaned_data[what])
+        print "These reports will be set to TRUE: %s" % jj
+
+        ProjectReports.objects.filter(project = 
+                  project).filter(report_type__category=
+                  what.title()).filter(report_type__in=cleaned_data[what]).update(required=True)
+
+
+        #now we need to see if there are any new reports for this project
+        #queryset of all 'what' (custom or core) reports assocaited with project
+        jj=ProjectReports.objects.filter(project=project).filter(report_type__category=what.title())
+        #id numbers for milestone objects already associated with this project
+        in_ProjectReports = str([x['report_type_id'] for x in jj.values()])
+
+        # these are the new custom reports types id's that need to associated with
+        # this project (ones in cleaned_data but not in ProjectReports)
+        newreports = list(set(cleaned_data.values()[0])-set(in_ProjectReports))
+
+        #Then loop over new reports adding a new record for each one with
+        #required=True
+        if newreports:
+            for report in newreports:
+                ProjectReports.objects.create(project=project,
+                                              required=True, 
+                                              report_type_id=report)
 
 class CoreReportsForm(forms.Form):
     '''Dynamically add checkbox widgets to a form depending on reports

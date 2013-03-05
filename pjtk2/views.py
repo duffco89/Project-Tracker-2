@@ -51,10 +51,13 @@ def get_assignments(slug):
     containing the core and custom reports.  If this is a new project,
     all of the core elements will be populated by default as all of
     the deliverables will be required.'''
-
+    
     #get a queryset of all reports we consider 'core'
     corereports = Milestone.objects.filter(category='Core')
     customreports = Milestone.objects.filter(category='Custom')
+
+    #pdb.set_trace()
+    
     #we need to convert the querset to a tuple of tuples
     corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
     customreports = tuple([(x[0], x[1]) for x in customreports.values_list()])    
@@ -64,11 +67,13 @@ def get_assignments(slug):
     project = Project.objects.filter(slug=slug)
     if project:
             core_assigned = ProjectReports.objects.filter(project__slug=
-                            slug).filter(report_type__category='Core')
+                            slug).filter(required=True).filter(report_type__category=
+                            'Core')
             core_assigned = [x.report_type_id for x in list(core_assigned)]
 
             custom_assigned = ProjectReports.objects.filter(project__slug=
-                            slug).filter(report_type__category='Custom')
+                            slug).filter(required=True).filter(report_type__category=
+                            'Custom')
             custom_assigned = [x.report_type_id for x in list(custom_assigned)]
  
     else:
@@ -87,7 +92,7 @@ def get_assignments_with_paths(slug, core=True):
     '''function that will return a list of dictionaries for each of the
     reporting requirements.  each dictionary will indicate what the
     report is required, whether or not it has been requested for this
-    project, and if it is available, a path to the assocatiated
+    project, and if it is available, a path to the associated
     report.'''
     
     project = Project.objects.get(slug=slug)
@@ -377,33 +382,33 @@ def report_milestones(request, slug):
 
     project = Project.objects.get(slug = slug)    
     reports = get_assignments(slug) 
+
+    jj = reports['core']
+    print "Core reports currently associated with this project:"
+    print jj['reports']
+    print jj['assigned']
+
+    jj = reports['custom']
+    print "Custom reports currently associated with this project:"
+    print jj['reports']
+    print jj['assigned']
+
+        
+    #pdb.set_trace()
     
     if request.method=="POST":
-        core =  ReportsForm(request.POST, reports=reports) 
-        custom = ReportsForm(request.POST, reports = reports,
+        core =  ReportsForm(request.POST, project=project, reports=reports) 
+        custom = ReportsForm(request.POST, project=project, reports = reports,
                              core=False)
-        pdb.set_trace()
+        
         if core.is_valid() and custom.is_valid():
-            #form.save()            
-            #CORE REPORTS:
-            #for the core reports, its relatively easy - filter on the
-            #project code and exlude any report_types that are not in
-            #the list of id numbers contained in 'core'.
-             ProjectReports.objects.filter(project = 
-                  project).exclude(report_type__in=core).update(required=False)
-
-             #CUSTOM REPORTS: for the custom reports, we need see if
-             # it already exists in ProjectReports.  If so, 
-             ProjectReports.objects.filter(project = 
-                  project).exclude(report_type__in=custom).update(required=False)
-             ProjectReports.objects.filter(project = 
-                  project).filter(report_type__in=custom).update(required=True)
-
+            core.save()            
+            custom.save()
             
-             return HttpResponseRedirect(project.get_absolute_url())
+            return HttpResponseRedirect(project.get_absolute_url())
     else:
-        core =  ReportsForm(reports = reports)
-        custom =  ReportsForm(reports = reports, core=False)
+        core =  ReportsForm(project=project, reports = reports)
+        custom =  ReportsForm(project=project, reports = reports, core=False)
         
 
     return render_to_response('reportform.html',
