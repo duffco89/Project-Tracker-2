@@ -6,3 +6,4 @@ uploads/*
 static_root/*
 *.pyc
 db/*
+coverage/*
