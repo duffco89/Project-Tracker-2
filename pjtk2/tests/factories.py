@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from pjtk2.models import *
 
 
-
 class UserFactory(factory.Factory):
     FACTORY_FOR = User
     first_name = 'John'
@@ -13,7 +12,18 @@ class UserFactory(factory.Factory):
     username = 'johndoe'
     email = 'johndoe@hotmail.com'    
     #admin = False
+    password = 'abc'
 
+    #from: http://www.rkblog.rk.edu.pl/w/p/using-factory-boy-django-application-tests/
+    @classmethod
+    def _prepare(cls, create, **kwargs):
+        password = kwargs.pop('password', None)
+        user = super(UserFactory, cls)._prepare(create, **kwargs)
+        if password:
+            user.set_password(password)
+            if create:
+                user.save()
+        return user
 
 class ManagerFactory(factory.Factory):
     FACTORY_FOR = User

@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.conf.urls import patterns, include, url
 
 #import pjtk2.views
@@ -9,7 +10,7 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^projects/$', 'project_list', name='ProjectList'),
     url(r'^projects/approved$', 'approved_projects_list', name='ApprovedProjectsList'),
     #project formset:
-    url(r'^projectsformset/$', 'project_formset', name='ProjectFormSet'),
+    url(r'^approveprojects/$', 'approveprojects', name='ApproveProjects'),
     
     url(r'^newproject/$', 'new_project', name='NewProject'),
     
