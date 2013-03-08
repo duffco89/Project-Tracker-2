@@ -4,6 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
 from django.test.client import Client
 from django.test import TestCase
+
 from pjtk2.tests.factories import *
 
 
