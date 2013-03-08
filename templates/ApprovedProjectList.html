@@ -30,7 +30,10 @@
 {% endif %}
 
 <p>
-<a href="{% url 'ProjectFormSet' %}">Update this list</a> | 
+{% if manager %}
+<a href="{% url 'ApproveProjects' %}">Update this list</a> | 
+{% endif %}
+
 <a href="{% url 'NewProject' %}">Create a new project</a> | 
 
 </p>

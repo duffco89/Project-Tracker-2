@@ -82,7 +82,7 @@ class Project(models.Model):
     class Meta:
         verbose_name = "Project List"
         ordering = ['-PRJ_DATE1']
-
+        
     def ProjectSuffix(self):
         return self.PRJ_CD[-3:]
 

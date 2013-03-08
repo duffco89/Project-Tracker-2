@@ -8,7 +8,9 @@ from django.http import HttpResponseRedirect
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
 
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
+from django.utils.decorators import method_decorator
+
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 
@@ -136,10 +138,17 @@ def get_assignments_with_paths(slug, core=True):
 class HomePageView(TemplateView):
     template_name = "index.html"
 
+
+    
 class ProjectList(ListView):
     queryset = Project.objects.all()
     template_name = "ProjectList.html"
 
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ProjectList, self).dispatch(*args, **kwargs)
+
+    
 project_list = ProjectList.as_view()
 
 
@@ -147,12 +156,23 @@ class ApprovedProjectsList(ListView):
     queryset = Project.objects.filter(Approved = True)
     template_name = "ApprovedProjectList.html"
 
+
+    def get_context_data(self, **kwargs):
+        context = super(ApprovedProjectsList, self).get_context_data(**kwargs)
+        context['manager'] = is_manager(self.request.user)
+        return context
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ApprovedProjectsList, self).dispatch(*args, **kwargs)
+
+    
 approved_projects_list = ApprovedProjectsList.as_view()
 
 
 def logout_view(request):
     logout(request)
-    return HttpResponseRedirect('/accounts/login')
+    return HttpResponseRedirect(reverse('login'))
 
 #===========================
 # My application Views
@@ -246,11 +266,22 @@ def crud_project(request, slug, action='New'):
         )
         
 @login_required
-def project_formset(request):
+#@permission_required('Project.can_change_Approved')
+def approveprojects(request):
     '''create a list of projects, project names and an
     approved/unapproved checkbox widget.'''
+
+    if is_manager(request.user)==False:
+        return HttpResponseRedirect(reverse('ApprovedProjectsList'))
+    
+    
     ProjectFormSet = modelformset_factory(Project, ApproveProjectsForm, extra=0)
-    projects = Project.objects.all()
+    projects = Project.objects.all().filter(SignOff=False)
+
+    if projects.count()==0:
+        empty=True
+    else:
+        empty=False
     
     if request.method == 'POST':
         #pdb.set_trace()
@@ -261,13 +292,15 @@ def project_formset(request):
             formset.save()
             return HttpResponseRedirect(reverse('ApprovedProjectsList'))
         else:
-            return render_to_response('manage_projects.html', 
-                              {'formset': formset}, 
+            return render_to_response('ApproveProjects.html', 
+                              {'formset': formset,
+                               'empty':empty}, 
                                context_instance=RequestContext(request))
     else:
         formset = ProjectFormSet(queryset = projects)
-    return render_to_response('manage_projects.html', 
-                              {'formset': formset}, 
+    return render_to_response('ApproveProjects.html', 
+                              {'formset': formset,
+                               'empty':empty}, 
                                context_instance=RequestContext(request))
 
     
