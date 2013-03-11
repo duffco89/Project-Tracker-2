@@ -38,12 +38,14 @@
 
 <button id="opener">New Report Type</button>
 
+
 <div id="AddReportDialog" title="Add New Report">
 <form method="POST" id="dialog" action="">
     {% csrf_token  %}
-    Report Name:<input type="text" name="fname"/> 
+    Report Name:<input type="text" name="NewReport"/> 
     <input type="submit"  value="Submit" />  
 </form>
+
 </div>
  <script>
     $( "#AddReportDialog" ).dialog({ autoOpen: false });

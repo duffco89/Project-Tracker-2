@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.template.defaultfilters import slugify
 from django.core.urlresolvers import reverse
 
+import pdb
 
 # Create your models here.
 
@@ -15,9 +16,10 @@ MILESTONE_CHOICES = {
 
 class Milestone(models.Model):
     '''Look-up table of reporting milestone'''
-    label = models.CharField(max_length=30)
-    category = models.CharField(max_length=30, choices=MILESTONE_CHOICES)
-    order = models.IntegerField()
+    label = models.CharField(max_length=30, unique=True)
+    category = models.CharField(max_length=30, choices=MILESTONE_CHOICES,
+                                default='Custom')
+    order = models.IntegerField(default=99)
 
     class Meta:
         verbose_name = "Reporting Milestones"
@@ -95,15 +97,23 @@ class Project(models.Model):
         this project - no distinction between core or custom reports'''
         return ProjectReports.objects.filter(project=self)
 
-    def get_core_assignments(self):
+    def get_core_assignments(self, all=True):
         '''get all of the core reports have been assigned to 
         this project'''
-        return self.get_assignments().filter(report_type__category='Core')
+
+        if all==True:
+            assignments = self.get_assignments().filter(
+                report_type__category='Core')
+        else:
+            assignments = self.get_assignments().filter(
+                report_type__category='Core').filter(required=True) 
+        return assignments
 
     def get_custom_assignments(self):
         '''get a list of any custom reports that have been assigned to
         this project'''
-        return self.get_assignments().exclude(report_type__category='Core')
+        return self.get_assignments().filter(required=True).exclude(
+            report_type__category='Core')
 
     def get_complete(self):
         '''get the project reports that have uploaded reports
@@ -119,6 +129,38 @@ class Project(models.Model):
         this project'''
         return Report.objects.filter(projectreport__project=self)
 
+
+    def get_assignment_dicts(self):
+        '''return a dictionary of dictionaries containing elements of
+        all core and custom reports as well as vectors indicating
+        which ones have been assigned to this project.'''
+        #get a queryset of all reports we consider 'core'
+        corereports = Milestone.objects.filter(category='Core')
+        customreports = Milestone.objects.filter(category='Custom')
+
+        #pdb.set_trace()
+    
+        #we need to convert the querset to a tuple of tuples
+        corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
+        customreports = tuple([(x[0], x[1]) for x in customreports.values_list()])    
+        #see if there is a project associated with this slug, if so, get
+        #the reports currently assigned to the project, if not return a
+        #dictionary with all reports assigned
+        core_assigned = self.get_core_assignments()
+        core_assigned = [x.report_type_id for x in list(core_assigned)]
+
+        custom_assigned = self.get_custom_assignments()
+        custom_assigned = [x.report_type_id for x in list(custom_assigned)]
+ 
+        #put the reports and assigned reports in a dictionary    
+        core = dict(reports=corereports, assigned=core_assigned)
+        custom = dict(reports=customreports, assigned=custom_assigned)
+
+        reports = dict(core=core, custom=custom)
+    
+        return reports
+
+
     def resetMilestones(self):
         '''a function to make sure that all of the project milestones are
         set to zero. Used when copying an existing project - we don't want
@@ -130,7 +172,15 @@ class Project(models.Model):
         self.SignOff = False
         return self
 
+    def initialReports(self):
+        '''A function that will add a record into "ProjectReports" for
+        each of the core report for newly created projects'''
+        #project = Project.objects.get(slug=slug)
+        corereports = Milestone.objects.filter(category='Core')
 
+        for report in corereports:
+            pr = ProjectReports(project=self, report_type = report)
+            pr.save()
 
     #@models.permalink
     def get_absolute_url(self):
@@ -145,14 +195,18 @@ class Project(models.Model):
         Slugify name if it doesn't exist. IMPORTANT: doesn't check to see
         if slug is a dupicate!
         """
+        new=False
         if not self.slug:
             self.slug = slugify(self.PRJ_CD)
+            new = True
         if not self.YEAR:            
             self.YEAR = self.PRJ_DATE0.year
         super(Project, self).save( *args, **kwargs)
-
+        if new:
+            self.initialReports()
     
 
+            
 class ProjectReports(models.Model):
     '''list of reporting requirements for each project'''
     project = models.ForeignKey('Project')

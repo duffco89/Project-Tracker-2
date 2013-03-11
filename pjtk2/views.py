@@ -43,63 +43,7 @@ def canEdit(user, project):
     else:
         canEdit = False
     return(canEdit)
-    
-    
-def initialReports(slug):
-
-    '''A function that will add a record into "ProjectReports" for
-    each of the core report for newly created projects'''
-
-    project = Project.objects.get(slug=slug)
-    corereports = Milestone.objects.filter(category='Core')
-
-    for report in corereports:
-        pr = ProjectReports(project=project, report_type = report)
-        pr.save()
         
-
-def get_assignments(slug):
-    '''a function to get the core and custom reports currently
-    assigned to a project.  It will return a two element dictionary
-    containing the core and custom reports.  If this is a new project,
-    all of the core elements will be populated by default as all of
-    the deliverables will be required.'''
-    
-    #get a queryset of all reports we consider 'core'
-    corereports = Milestone.objects.filter(category='Core')
-    customreports = Milestone.objects.filter(category='Custom')
-
-    #pdb.set_trace()
-    
-    #we need to convert the querset to a tuple of tuples
-    corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
-    customreports = tuple([(x[0], x[1]) for x in customreports.values_list()])    
-    #see if there is a project associated with this slug, if so, get
-    #the reports currently assigned to the project, if not return a
-    #dictionary with all reports assigned
-    project = Project.objects.filter(slug=slug)
-    if project:
-            core_assigned = ProjectReports.objects.filter(project__slug=
-                            slug).filter(required=True).filter(report_type__category=
-                            'Core')
-            core_assigned = [x.report_type_id for x in list(core_assigned)]
-
-            custom_assigned = ProjectReports.objects.filter(project__slug=
-                            slug).filter(required=True).filter(report_type__category=
-                            'Custom')
-            custom_assigned = [x.report_type_id for x in list(custom_assigned)]
- 
-    else:
-        core_assigned = [x[0] for x in corereports]
-        custom_assigned = [x[0] for x in customreports]
-
-    #put the reports and assigned reports in a dictionary    
-    core = dict(reports=corereports, assigned=core_assigned)
-    custom = dict(reports=customreports, assigned=custom_assigned)
-
-    reports = dict(core=core, custom=custom)
-    
-    return(reports)
 
 def get_assignments_with_paths(slug, core=True):
     '''function that will return a list of dictionaries for each of the
@@ -182,7 +126,8 @@ def ProjectDetail(request, slug):
     '''View project details.'''
     
     project = get_object_or_404(Project, slug=slug)
-    reports = get_assignments(slug)
+    #reports = get_assignments(slug)
+    #reports = project.get_assignment_dicts()
 
     core = get_assignments_with_paths(slug)
     custom = get_assignments_with_paths(slug, core=False)
@@ -242,9 +187,7 @@ def crud_project(request, slug, action='New'):
             form.Owner = request.user
             form.save()
             proj = Project.objects.get(slug=form.slug)
-            if action != "Edit":
-                #add a record for each report
-                initialReports(form.slug)
+
             return HttpResponseRedirect(proj.get_absolute_url())            
         else:
             return render_to_response('ProjectForm.html',
@@ -310,18 +253,32 @@ def report_milestones(request, slug):
     reporting requirements for each project..'''
 
     project = Project.objects.get(slug = slug)    
-    reports = get_assignments(slug) 
+    #reports = get_assignments(slug) 
+    reports = project.get_assignment_dicts() 
 
     if request.method=="POST":
-        core =  ReportsForm(request.POST, project=project, reports=reports) 
-        custom = ReportsForm(request.POST, project=project, reports = reports,
-                             core=False)
-        
-        if core.is_valid() and custom.is_valid():
-            core.save()            
-            custom.save()
+        NewReport = request.POST.get('NewReport')
+        if NewReport:
+            NewReport = NewReport.title()
+            #verify that this reporting requirement doesn't already exist
+            # then add it to the reporting requirements
+            try:
+                Milestone.objects.get_or_create(label=NewReport)
+            except Exception:
+                pass
+            #now redirect back to the update reports form for this project
+            return HttpResponseRedirect(reverse('Reports', args=(project.slug,)))
             
-            return HttpResponseRedirect(project.get_absolute_url())
+        else:
+            core =  ReportsForm(request.POST, project=project, reports=reports) 
+            custom = ReportsForm(request.POST, project=project, reports = reports,
+                                 core=False)
+            
+            if core.is_valid() and custom.is_valid():
+                core.save()            
+                custom.save()
+                
+                return HttpResponseRedirect(project.get_absolute_url())
     else:
         core =  ReportsForm(project=project, reports = reports)
         custom =  ReportsForm(project=project, reports = reports, core=False)
@@ -390,113 +347,3 @@ def crispy2(request):
 
 
     
-
-##def report_formset(request):
-##    #  YOU ARE HERE
-##    '''create a list of projects, project names and an
-##    approved/unapproved checkbox widget.'''
-##    ReportFormSet = formset_factory(CoreReportsForm2, extra=0)
-##    projects = Project.objects.all()
-##    reports = Milestone.objects.filter(category='Core')    
-##    
-##    initial = []
-##
-##    for project in projects:
-##        assigned = ProjectReports.objects.filter(project__slug=
-##                            project.slug).filter(report_type__category='Core')
-##        assigned = assigned.values()
-##        #assigned['PRJ_CD'] = project.PRJ_CD
-##        #assigned['PRJ_CD'] = project.PRJ_NM
-##        initial.append(assigned)
-##    pdb.set_trace()
-##        
-##    if request.method == 'POST':
-##        #pdb.set_trace()
-##        formset = ReportFormSet(request.POST, reports=reports)
-##        if formset.is_valid():
-##            # do something with the formset.cleaned_data
-##            #formset.save()
-##            #orig will contain the origianl value of approved for each slug
-##            #pdb.set_trace()
-##            return HttpResponseRedirect(reverse('ApprovedProjectsList'))
-##        else:
-##            return render_to_response('manage_projects.html', 
-##                              {'formset': formset}, 
-##                               context_instance=RequestContext(request))
-##    else:
-##        formset = ReportFormSet(initial = initial, reports=reports)
-##    return render_to_response('manage_projects.html', 
-##                              {'formset': formset}, 
-##                               context_instance=RequestContext(request))
-##    
-
-
-
-
-    
-
-##  def project_reports(request, slug):
-##      '''Another obsolete function.'''
-##      project = get_object_or_404(Project, slug=slug)
-##      #core =  CoreReportsForm()
-##      #additional = AdditionalReportsForm()
-##      return render_to_response('projectreports.html',
-##                                {'core':core, 
-##                                 'additional':additional,
-##                                 'project':project},
-##                                context_instance=RequestContext(request)
-##          )
-    
-
-
-##  def update_assignments(request, slug): 
-##  
-##      '''render a form containing all of the assignments associated with
-##      this project.'''  
-##      
-##      project = Project.objects.get(slug = slug) 
-##      assignments = project.get_assignments()
-##  
-##      AssignmentFormSet = modelformset_factory(ProjectReports, AssignmentForm, extra=0)
-##  
-##      reports = get_assignments(slug)
-##      #core =  CoreReportsForm(reports=reports)
-##      #additional = AdditionalReportsForm()
-##      #pdb.set_trace()
-##      
-##      if request.method == 'POST':
-##          #pdb.set_trace()
-##          #formset = AssignmentFormSet(request.POST, initial=initial)
-##          formset = AssignmentFormSet(request.POST, initial = assignments)
-##  
-##          if formset.is_valid():
-##              # do something with the formset.cleaned_data
-##              formset.save()
-##              return HttpResponseRedirect(project.get_absolute_url())
-##          else:
-##              return render_to_response('scratch.html', 
-##                                {'formset': formset}, 
-##                                 context_instance=RequestContext(request))
-##      else:
-##          formset = AssignmentFormSet(queryset = assignments)
-##          #formset = AssignmentFormSet(initial=initial)
-##          return render_to_response('scratch.html', 
-##                                {'formset': formset,
-##      #'core':core, 
-##      #                           'additional':additional,
-##                                }, 
-##                                 context_instance=RequestContext(request))
-##  
-
-
-
-##  def resetMilestones(project):
-##      '''a function to make sure that all of the project milestones are
-##      set to zero. Used when copying an existing project - we don't want
-##      to copy its milestones too'''
-##      project.Approved = False
-##      project.Conducted = False
-##      project.DataScrubbed = False
-##      project.DataMerged = False                        
-##      project.SignOff = False
-##      return project
