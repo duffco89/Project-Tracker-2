@@ -88,3 +88,89 @@ class TestProjectModel(TestCase):
         self.assertEqual(project.slug, should_be)
         should_be = "20" + prj_cd[6:8]                
         self.assertEqual(str(project.YEAR), should_be)                
+
+class TestMilestoneModel(TestCase):        
+
+    def setUp(self):
+
+        core1 = MilestoneFactory.create(label="core1",
+                                        category = 'Core', order=1)
+        core2 = MilestoneFactory.create(label="core2",
+                                        category = 'Core', order=2)
+        core3 = MilestoneFactory.create(label="core3",
+                                        category = 'Core', order=3)
+        self.project = ProjectFactory.create()
+
+
+    def test_initial_reports_on_save_method(self):
+        # make some fake reports, the three core reports should be
+        # automatically associated with a new project, and verify that
+        # the custom report is not when the project is created.
+                
+        myreports = ProjectReports.objects.filter(project=self.project)
+        self.assertEqual(myreports.count(), 3)
+
+    def test_get_assigment_methods(self):
+        
+        self.assertEqual(self.project.get_assignments().count(), 3)
+        self.assertNotEqual(self.project.get_assignments().count(), 2)
+        self.assertNotEqual(self.project.get_assignments().count(), 4)
+        
+        self.assertEqual(self.project.get_core_assignments().count(), 3)
+        self.assertEqual(self.project.get_custom_assignments().count(), 0)
+        
+        #we haven't uploaded any reports, so this should be 0
+        self.assertEqual(self.project.get_complete().count(), 0)
+
+    def test_get_assigment_methods_w_custom_report(self): 
+
+        '''verify that custom reports are can be added and retrieved
+        as expected.'''
+
+        custom1 = MilestoneFactory.create(label="custom1", 
+                                          category = 'Custom', order=99)
+
+        projectreport = ProjectReportsFactory(project=self.project,
+                                             report_type=custom1)
+        
+        self.assertEqual(self.project.get_assignments().count(), 4)
+        self.assertNotEqual(self.project.get_assignments().count(), 3)
+        self.assertNotEqual(self.project.get_assignments().count(), 5)
+        
+        self.assertEqual(self.project.get_core_assignments().count(), 3)
+        self.assertEqual(self.project.get_custom_assignments().count(), 1)
+
+        report = self.project.get_custom_assignments()[0]
+        self.assertEqual(report.required, True)
+        self.assertEqual(str(report.report_type), 'custom1')
+        
+        #we haven't uploaded any reports, so this should be 0
+        self.assertEqual(self.project.get_complete().count(), 0)
+
+        
+        
+class TestModelReports(TestCase):        
+
+    def setUp(self):
+
+
+        core1 = MilestoneFactory.create(label="core1",
+                                        category = 'Core', order=1)
+        self.project = ProjectFactory.create()
+
+        #retrieve the project report that would have been created for
+        #the new project
+        self.projectreport = ProjectReports.objects.get(project=self.project,
+                                                   report_type=core1)
+        
+        self.report = ReportFactory(projectreport=self.projectreport,
+                               report_path="path\to\fake\file.txt")
+
+    def test_get_reports(self):
+        self.assertEqual(self.report.report_path, "path\to\fake\file.txt")
+        self.fail("Finish this test.")
+
+        
+        
+        
+        
