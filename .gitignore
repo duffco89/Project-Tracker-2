@@ -1,5 +1,9 @@
+
+venv/*
 static/*
-admin2/*
+admin/*
+coverage/*
 static_root/*
 *.pyc
 db/*
+uploads/*
