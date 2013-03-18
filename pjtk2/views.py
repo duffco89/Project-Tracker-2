@@ -1,9 +1,11 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.core.context_processors import csrf
+
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
+from django.core.context_processors import csrf
 from django.core.urlresolvers import reverse
+from django.core.servers.basehttp import FileWrapper
 from django.http import HttpResponseRedirect, HttpResponse
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
@@ -24,6 +26,8 @@ from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
 
 import os
 import pdb
+import mimetypes
+
 
 def is_manager(user):
     '''A simple little function to find out if the current user is a
@@ -331,7 +335,7 @@ def uploadlist(request):
 
 def serve_file(request, filename):
     '''from:http://stackoverflow.com/questions/2464888/downloading-a-csv-file-in-django?rq=1
-    
+
     This function is my first attempt at a function used to
     serve/download files.  It works for basic text files, but seems to
     corrupt pdf and ppt files (maybe other binaries too).  It also
@@ -339,11 +343,20 @@ def serve_file(request, filename):
     file doesn t actully exist.
     '''
 
-    data = open(os.path.join(settings.MEDIA_ROOT,filename),'r').read()
-    resp = HttpResponse(data, mimetype='application/x-download')
+    content_type = mimetypes.guess_type(filename)[0]
+
+    #data = open(os.path.join(settings.MEDIA_ROOT,filename),'r').read()
+    #resp = HttpResponse(data, mimetype='application/x-download')
+    #resp = HttpResponse(data, mimetype=content_type)
+
+    data = FileWrapper(file(os.path.join(settings.MEDIA_ROOT,filename),'rb'))
+    resp = HttpResponse(data, mimetype=content_type)
     filename = os.path.split(filename)[-1]
     resp['Content-Disposition'] = 'attachment;filename=%s' % filename
+
     return resp
+
+
 
 
 
