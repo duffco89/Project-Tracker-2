@@ -4,7 +4,7 @@ from django.core.context_processors import csrf
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
 
@@ -13,13 +13,16 @@ from django.utils.decorators import method_decorator
 
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
+from django.conf import settings
 
-from pjtk2.models import Milestone, Project, Report, ProjectReports 
+
+from pjtk2.models import Milestone, Project, Report, ProjectReports
 from pjtk2.models import TL_ProjType, TL_Database
 #from pjtk2.forms import MilestoneForm
-from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm, ReportsForm 
+from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm, ReportsForm
 from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
 
+import os
 import pdb
 
 def is_manager(user):
@@ -35,15 +38,15 @@ def canEdit(user, project):
     '''Another helper function to see if this user should be allowed
     to edit this project.  In order to edit the use must be either the
     project Owner, a manager or a superuser.'''
-    canEdit = ((user.groups.filter(name='manager').count()>0) or 
-                 (user.is_superuser) or 
+    canEdit = ((user.groups.filter(name='manager').count()>0) or
+                 (user.is_superuser) or
                  (user.username == project.Owner.username))
     if canEdit:
         canEdit = True
     else:
         canEdit = False
     return(canEdit)
-        
+
 
 def get_assignments_with_paths(slug, core=True):
     '''function that will return a list of dictionaries for each of the
@@ -51,14 +54,14 @@ def get_assignments_with_paths(slug, core=True):
     report is required, whether or not it has been requested for this
     project, and if it is available, a path to the associated
     report.'''
-    
+
     project = Project.objects.get(slug=slug)
 
     if core:
         assignments = project.get_core_assignments()
     else:
         assignments = project.get_custom_assignments()
-        
+
     assign_dicts = []
     for assignment in assignments:
         try:
@@ -75,15 +78,15 @@ def get_assignments_with_paths(slug, core=True):
             filepath = filepath
         ))
     return assign_dicts
-    
+
 #===========================
-#Generic Views    
+#Generic Views
 
 class HomePageView(TemplateView):
     template_name = "index.html"
 
 
-    
+
 class ProjectList(ListView):
     queryset = Project.objects.all()
     template_name = "ProjectList.html"
@@ -92,7 +95,7 @@ class ProjectList(ListView):
     def dispatch(self, *args, **kwargs):
         return super(ProjectList, self).dispatch(*args, **kwargs)
 
-    
+
 project_list = ProjectList.as_view()
 
 
@@ -105,12 +108,12 @@ class ApprovedProjectsList(ListView):
         context = super(ApprovedProjectsList, self).get_context_data(**kwargs)
         context['manager'] = is_manager(self.request.user)
         return context
-    
+
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ApprovedProjectsList, self).dispatch(*args, **kwargs)
 
-    
+
 approved_projects_list = ApprovedProjectsList.as_view()
 
 
@@ -121,10 +124,10 @@ def logout_view(request):
 #===========================
 # My application Views
 
-@login_required            
+@login_required
 def ProjectDetail(request, slug):
     '''View project details.'''
-    
+
     project = get_object_or_404(Project, slug=slug)
     #reports = get_assignments(slug)
     #reports = project.get_assignment_dicts()
@@ -132,7 +135,7 @@ def ProjectDetail(request, slug):
     core = get_assignments_with_paths(slug)
     custom = get_assignments_with_paths(slug, core=False)
 
-    user = User.objects.get(username__exact=request.user)       
+    user = User.objects.get(username__exact=request.user)
     edit = canEdit(user, project)
     manager = is_manager(user)
 
@@ -147,23 +150,23 @@ def ProjectDetail(request, slug):
         )
 
 
-    
+
 def edit_project(request, slug):
     return crud_project(request, slug, action='Edit')
 
-    
+
 def copy_project(request, slug):
     return crud_project(request, slug, action='Copy')
 
-    
+
 def new_project(request):
     return crud_project(request, slug=None, action='New')
 
-@login_required    
+@login_required
 def crud_project(request, slug, action='New'):
     '''A view to create, copy and edit projects, depending on the
     value of 'action'.'''
-    
+
     if slug:
         instance = Project.objects.get(slug=slug)
     else:
@@ -174,21 +177,21 @@ def crud_project(request, slug, action='New'):
     user = User.objects.get(username__exact=request.user)
 
     manager = is_manager(user)
-        
+
     if request.method == 'POST': # If the form has been submitted...
         if action == 'Edit':
-            form = ProjectForm(request.POST, instance=instance, 
+            form = ProjectForm(request.POST, instance=instance,
                                    readonly=True, manager=manager)
         else:
             form = ProjectForm(request.POST, manager=manager)
-                                  
+
         if form.is_valid():
             form = form.save(commit=False)
             form.Owner = request.user
             form.save()
             proj = Project.objects.get(slug=form.slug)
 
-            return HttpResponseRedirect(proj.get_absolute_url())            
+            return HttpResponseRedirect(proj.get_absolute_url())
         else:
             return render_to_response('ProjectForm.html',
                               {'form':form, 'action':action, 'project':instance},
@@ -198,16 +201,16 @@ def crud_project(request, slug, action='New'):
             form = ProjectForm(instance=instance, readonly=True, manager=manager)
         elif action == "Copy":
             #make sure that project milestones are reset to false for new projects
-            #instance = resetMilestones(instance)            
-            instance.resetMilestones()            
-            form = ProjectForm(instance=instance, manager=manager)            
+            #instance = resetMilestones(instance)
+            instance.resetMilestones()
+            form = ProjectForm(instance=instance, manager=manager)
         else:
-            form = ProjectForm(instance=instance, manager=manager)                    
+            form = ProjectForm(instance=instance, manager=manager)
     return render_to_response('ProjectForm.html',
                               {'form':form, 'action':action, 'project':instance},
                               context_instance=RequestContext(request)
         )
-        
+
 @login_required
 #@permission_required('Project.can_change_Approved')
 def approveprojects(request):
@@ -216,8 +219,8 @@ def approveprojects(request):
 
     if is_manager(request.user)==False:
         return HttpResponseRedirect(reverse('ApprovedProjectsList'))
-    
-    
+
+
     ProjectFormSet = modelformset_factory(Project, ApproveProjectsForm, extra=0)
     projects = Project.objects.all().filter(SignOff=False)
 
@@ -225,7 +228,7 @@ def approveprojects(request):
         empty=True
     else:
         empty=False
-    
+
     if request.method == 'POST':
         #pdb.set_trace()
         formset = ProjectFormSet(request.POST, queryset = projects)
@@ -235,26 +238,26 @@ def approveprojects(request):
             formset.save()
             return HttpResponseRedirect(reverse('ApprovedProjectsList'))
         else:
-            return render_to_response('ApproveProjects.html', 
+            return render_to_response('ApproveProjects.html',
                               {'formset': formset,
-                               'empty':empty}, 
+                               'empty':empty},
                                context_instance=RequestContext(request))
     else:
         formset = ProjectFormSet(queryset = projects)
-    return render_to_response('ApproveProjects.html', 
+    return render_to_response('ApproveProjects.html',
                               {'formset': formset,
-                               'empty':empty}, 
+                               'empty':empty},
                                context_instance=RequestContext(request))
 
-    
+
 def report_milestones(request, slug):
     '''This function will render a form of requested reporting
     requirements for each project.  Used by managers to update
     reporting requirements for each project..'''
 
-    project = Project.objects.get(slug = slug)    
-    #reports = get_assignments(slug) 
-    reports = project.get_assignment_dicts() 
+    project = Project.objects.get(slug = slug)
+    #reports = get_assignments(slug)
+    reports = project.get_assignment_dicts()
 
     if request.method=="POST":
         NewReport = request.POST.get('NewReport')
@@ -268,21 +271,21 @@ def report_milestones(request, slug):
                 pass
             #now redirect back to the update reports form for this project
             return HttpResponseRedirect(reverse('Reports', args=(project.slug,)))
-            
+
         else:
-            core =  ReportsForm(request.POST, project=project, reports=reports) 
+            core =  ReportsForm(request.POST, project=project, reports=reports)
             custom = ReportsForm(request.POST, project=project, reports = reports,
                                  core=False)
-            
+
             if core.is_valid() and custom.is_valid():
-                core.save()            
+                core.save()
                 custom.save()
-                
+
                 return HttpResponseRedirect(project.get_absolute_url())
     else:
         core =  ReportsForm(project=project, reports = reports)
         custom =  ReportsForm(project=project, reports = reports, core=False)
-        
+
 
     return render_to_response('reportform.html',
                               {'core':core,
@@ -296,7 +299,7 @@ def report_milestones(request, slug):
 
 def ReportUpload(request):
     pass
-    
+
 
 def uploadlist(request):
     '''An example view that illustrates how to handle uploading files.
@@ -326,24 +329,36 @@ def uploadlist(request):
 
 
 
-
-
-
+def serve_file(request, filename):
+    '''from:http://stackoverflow.com/questions/2464888/downloading-a-csv-file-in-django?rq=1
     
+    This function is my first attempt at a function used to
+    serve/download files.  It works for basic text files, but seems to
+    corrupt pdf and ppt files (maybe other binaries too).  It also
+    should be updated to include some error trapping just incase the
+    file doesn t actully exist.
+    '''
+
+    data = open(os.path.join(settings.MEDIA_ROOT,filename),'r').read()
+    resp = HttpResponse(data, mimetype='application/x-download')
+    filename = os.path.split(filename)[-1]
+    resp['Content-Disposition'] = 'attachment;filename=%s' % filename
+    return resp
+
+
+
+
+
+
 #=============================================
 #=============================================
 from django.shortcuts import render
 from forms import CrispyForm, ExampleForm
- 
+
 def crispy(request):
 # This view is missing all form handling logic for simplicity of the example
-    return render(request, 'crispyform.html', {'form': CrispyForm()})    
+    return render(request, 'crispyform.html', {'form': CrispyForm()})
 
 def crispy2(request):
 # This view is missing all form handling logic for simplicity of the example
-    return render(request, 'crispyform2.html', {'form': ExampleForm()})    
-
-
-
-
-    
+    return render(request, 'crispyform2.html', {'form': ExampleForm()})

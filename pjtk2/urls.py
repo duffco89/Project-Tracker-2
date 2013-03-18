@@ -11,12 +11,12 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^projects/approved$', 'approved_projects_list', name='ApprovedProjectsList'),
     #project formset:
     url(r'^approveprojects/$', 'approveprojects', name='ApproveProjects'),
-    
+
     url(r'^newproject/$', 'new_project', name='NewProject'),
-    
+
     url(r'^copyproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'copy_project', name='CopyProject'),
-        
+
     url(r'^editproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'edit_project', name='EditProject'),
 
@@ -24,7 +24,7 @@ urlpatterns = patterns('pjtk2.views',
         'ProjectDetail', name='ProjectDetail'),
 
 
-# Reports and milestones    
+# Reports and milestones
     url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'report_milestones', name='Reports'),
 
@@ -32,15 +32,17 @@ urlpatterns = patterns('pjtk2.views',
 
 #    url(r'^updateassignments/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
 #        'update_assignments', name='UpdateAssignments'),
-              
-    
-#url(r'^(?P<slug>[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3})/$', 
+
+
+#url(r'^(?P<slug>[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3})/$',
 #       'project_milestones', name='ProjectMilestones'),
 
 
-    
     url(r'^reportupload/$', 'ReportUpload', name='ReportUpload'),
     url(r'^uploadlist/$', 'uploadlist', name='UploadList'),
+
+    #this function is used to download reports and files from project pages
+    url(r'^serve_file/(?P<filename>.+)/$', 'serve_file', name='serve_file'),    
 
     # some silly examples
     url(r'^crispy/$', 'crispy', name='CrispyForm'),

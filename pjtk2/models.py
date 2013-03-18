@@ -163,7 +163,7 @@ class Project(models.Model):
 
     def resetMilestones(self):
         '''a function to make sure that all of the project milestones are
-        set to zero. Used when copying an existing project - we don't want
+        set to zero. Used when copying an existing project - we don t want
         to copy its milestones too'''
         self.Approved = False
         self.Conducted = False
