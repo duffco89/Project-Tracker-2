@@ -1,11 +1,12 @@
-# Django settings for main project.
+# Django settings for pjtk2 project.
 
 import os
+
+PROJECT_ROOT =  os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
+
+#these are from Kennith Love's best practices
 here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
-
-PROJECT_ROOT = here("..")
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
-
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -16,7 +17,6 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-
 #username and password: cottrillad, django
 DATABASES = {
     'default': {
@@ -25,7 +25,7 @@ DATABASES = {
     }
 }
 
-print 'database name: %s/db/pjtk2.db' % root()
+#print 'database name: %s/db/pjtk2.db' % root()
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -54,16 +54,17 @@ USE_TZ = True
 # Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = root("uploads/")
 #MEDIA_ROOT = "C:/1work/DropBox/Dropbox/PythonStuff/djcode/pjtk2/uploads/reports/"
-print "MEDIA_ROOT = %s" % MEDIA_ROOT
+#print "MEDIA_ROOT = %s" % MEDIA_ROOT
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 #MEDIA_URL = root()
-
+#MEDIA_URL = 'uploads/'
+MEDIA_URL = 'reports/'
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static_root/'
+
 ADMIN_MEDIA_PREFIX = '/admin/media/'
 
 # Absolute path to the directory static files should be collected to.
@@ -71,18 +72,29 @@ ADMIN_MEDIA_PREFIX = '/admin/media/'
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
 STATIC_ROOT = root("static_root/")
-
-
-
-
+#STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static_root')
+#STATIC_ROOT = ""
+STATIC_URL = "/static/"
 
 # Additional locations of static files
 STATICFILES_DIRS = (
     # Put strings here, like "/home/html/static" or "C:/www/django/static".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    root('static'),
+    # root('/pjtk2/static/'),
+    #os.path.abspath(os.path.join(PROJECT_ROOT, 'static/'))
+    #'C:/1work/Python/djcode/pjtk2/static/',
+    os.path.join(PROJECT_ROOT, 'static'),
+
 )
+
+# print "MEDIA_ROOT %s" % MEDIA_ROOT
+# print "MEDIA_URL %s" % MEDIA_URL
+# print "ADMIN_MEDIA_PREFIX %s" % ADMIN_MEDIA_PREFIX
+# print "STATIC_URL %s" % STATIC_URL
+# print "STATIC_ROOT %s" % STATIC_ROOT
+# print "STATICFILES_DIRS %s" % STATICFILES_DIRS
+
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -98,11 +110,11 @@ SECRET_KEY = '0yo*&amp;!557a9o8=+2b_9mrcfc=n$*7vc-hr@b56y^x#&amp;a+pidx@'
 
 
 TEMPLATE_CONTEXT_PROCESSORS = (
+    "django.core.context_processors.static",
     "django.contrib.auth.context_processors.auth",
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
-    "django.core.context_processors.static",
     "django.contrib.messages.context_processors.messages",
     )
 
@@ -122,7 +134,14 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
 #'main.middleware.LoginRequiredMiddleware',
+#'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
+
+#INTERNAL_IPS = ('127.0.0.1', )   #added for debug toolbar
+DEBUG_TOOLBAR_CONFIG = {
+    'INTERCEPT_REDIRECTS': False,
+}
+
 
 ROOT_URLCONF = 'main.urls'
 
@@ -136,18 +155,32 @@ TEMPLATE_DIRS = (
     root('templates')
 )
 
-INSTALLED_APPS = (
+DJANGO_APPS = (
     'django.contrib.auth',
+    'django.contrib.staticfiles',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
     'django.contrib.admin',
-    'django_wsgiserver',
-    'pjtk2',
-    'south',
+
 )
+
+THIRDPARTY_APPS = (
+    'south',
+    'crispy_forms',
+    'debug_toolbar',
+    )
+
+CRISPY_FAIL_SILENTLY = not DEBUG
+
+MY_APPS =(
+    'pjtk2',
+    'fts',
+    )
+
+INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -178,13 +211,13 @@ LOGGING = {
     }
 }
 
-## import socket
-## STATIC_PORT=8090
-## STATIC_HOSTADDR = socket.gethostbyname(socket.gethostname())
-## STATIC_HOST= STATIC_HOSTADDR + ":" + str(STATIC_PORT)
-## STATIC_URL = 'http://' + STATIC_HOST + STATIC_URL
-## #STATIC_URL = 'http://127.0.0.1:8000' + STATIC_URL
+##  import socket
+##  STATIC_PORT=8090
+##  STATIC_HOSTADDR = socket.gethostbyname(socket.gethostname())
+##  STATIC_HOST= STATIC_HOSTADDR + ":" + str(STATIC_PORT)
+##  STATIC_URL = 'http://' + STATIC_HOST + STATIC_URL
+##  #STATIC_URL = 'http://127.0.0.1:8000' + STATIC_URL
 
-print "STATIC_URL: %s" % STATIC_URL
-print "STATIC_ROOT: %s" % STATIC_ROOT
-print "ADMIN_MEDIA_PREFIX : %s" % ADMIN_MEDIA_PREFIX
+#print "STATIC_URL: %s" % STATIC_URL
+#print "STATIC_ROOT: %s" % STATIC_ROOT
+#print "ADMIN_MEDIA_PREFIX : %s" % ADMIN_MEDIA_PREFIX

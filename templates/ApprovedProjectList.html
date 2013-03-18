@@ -8,28 +8,33 @@
 
 <p> 
 <a href="{% url 'home' %}">Index </a> | 
-<a href="{% url 'ApprovedProjectsList' %}">Approved Project List</a> | 
+<a href="{% url 'ProjectList' %}"> Project List </a> | 
 <a href="#">View My Projects</a> 
 </p>
 
-<h1>Projects</h1>
+
+<h1>Approved Projects</h1>
 
 {% if object_list %}
   <ul id="object_list">
     {% for project in object_list %}
       <li><a href="{{ project.get_absolute_url }}">
-     {{ project.PRJ_CD }}</a> - {{ project.PRJ_NM  }} |
-     <a href="{% url 'Reports' project.slug %}">Reporting Requirements</a> </li> 
+     {{ project.PRJ_CD }}</a> - {{ project.PRJ_NM  }} | 
+     <a href="{% url 'ProjectDetail' project.slug %}">Project Detail</a> </li> 
     {% endfor %}
   </ul>
 {% else %}
 
-<p>Sorry no projects available.</p>
+<p>Sorry no projects have been approved yet.</p>
 
 {% endif %}
 
 <p>
-<a href="{% url 'NewProject' %}">Create a new project</a> |
+{% if manager %}
+<a href="{% url 'ApproveProjects' %}">Update this list</a> | 
+{% endif %}
+
+<a href="{% url 'NewProject' %}">Create a new project</a> | 
 
 </p>
 

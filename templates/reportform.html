@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>  {% block title  %} UGMLU  {% endblock %}  </title>
+    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/worg.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/pepper-grinder/jquery-ui-1.10.0.custom.css"/>
+    <script src="{{ STATIC_URL }}js/jquery-1.9.0.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery-ui-1.10.0.custom.js"></script>
+  </head>
+
+<body>
+
+<p>  
+<a href="{% url 'home' %}">Index </a> | 
+<a href="{% url 'ProjectList' %}">Return to Index</a> | 
+<a href="#">View My Projects</a> 
+</p>
+
+<h1> Reporting Requirements for {{ project.PRJ_CD }}</h1>
+<hr />
+
+<h2> {{ project.PRJ_NM }} </h2>
+
+<form method="POST" id="reports" action="">
+{% csrf_token %}
+<h3>Core Reporting Requirements:</h3>
+    
+      {{core.as_p}}
+
+<h3>Additional Reporting Requirements:</h3>
+  
+      {{custom.as_p}}
+  
+<hr />
+<input type="submit" name="Save" value="Save Changes" />
+</form>
+
+<button id="opener">New Report Type</button>
+
+
+<div id="AddReportDialog" title="Add New Report">
+<form method="POST" id="dialog" action="">
+    {% csrf_token  %}
+    Report Name:<input type="text" name="NewReport"/> 
+    <input type="submit"  value="Submit" />  
+</form>
+
+</div>
+ <script>
+    $( "#AddReportDialog" ).dialog({ autoOpen: false });
+    $( "#opener" ).click(function() {
+        $( "#AddReportDialog" ).dialog( "open" );
+    });
+</script>
+
+
+
+</body>
+</html>
