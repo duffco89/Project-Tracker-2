@@ -132,7 +132,7 @@
 <br />
 <br />
 {% if edit %}
-<a href="#" onclick="javascript:window.location=this.href"> 
+<a href="{% url 'ReportUpload' project.slug %}" onclick="javascript:window.location=this.href"> 
   <button>Upload Reports</button> </a>
 {% endif %}
 {% if manager %}

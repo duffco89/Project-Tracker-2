@@ -649,7 +649,61 @@ class AssignmentForm(forms.ModelForm):
 
 
 
-        
+## class ReportUploadForm(forms.ModelForm):
+##     """this form is was used to first deevelop a report upload form.
+##     It looks like itshould work, but didn't include entries for
+##     outstanding reports""" 
+##     
+##     current = forms.BooleanField(
+##         label = "Required",
+##         required =False,
+##     )
+##     
+##     projectreport= forms.CharField(
+##         widget = ReadOnlyText,
+##         label = "Report Name",
+##         required =False,
+##     )
+## 
+##     reportpath = forms.FileField(
+##         label = "File",
+##         required =False,        
+##         )
+##     
+##     class Meta:
+##         model=Report
+##         fields = ('current', 'projectreport', 'reportpath')
+## 
+
+class ReportUploadForm(forms.Form):
+    """this form is was used to first deevelop a report upload form.
+    It looks like itshould work, but didn't include entries for
+    outstanding reports""" 
+
+    #TODO - make READONLY
+    required = forms.BooleanField(
+        label = "Required",
+        required =False,
+    )
+    
+    report_type = forms.CharField(
+        widget = ReadOnlyText,
+        label = "Report Name",
+        required =False,
+    )
+
+    filepath = forms.FileField(
+        label = "File",
+        required =False,        
+        )
+    
+    #category = forms.CharField(
+    #    widget = ReadOnlyText,
+    #    label = "category",
+    #    required =False,
+    #)
+
+
 
 
 

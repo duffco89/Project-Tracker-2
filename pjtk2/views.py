@@ -22,7 +22,7 @@ from pjtk2.models import Milestone, Project, Report, ProjectReports
 from pjtk2.models import TL_ProjType, TL_Database
 #from pjtk2.forms import MilestoneForm
 from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm, ReportsForm
-from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
+from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm, ReportUploadForm
 
 import os
 import pdb
@@ -301,8 +301,42 @@ def report_milestones(request, slug):
 
 
 
-def ReportUpload(request):
-    pass
+def ReportUpload(request, slug):
+    '''This view will render a formset with filefields for each of the
+    reports associated with this project.'''
+
+    #for development purposes, lets use a project that we know has
+    #some reports associated with it.
+    #slug = "zzz_zz13_zzz"
+    project = Project.objects.get(slug=slug)
+
+    #ReportFormSet = modelformset_factory(Report, ReportUploadForm, extra=0)
+    #reports = project.get_reports()
+
+    reports = get_assignments_with_paths(slug)
+    ReportFormSet = formset_factory(ReportUploadForm, extra=0)
+
+    formset = ReportFormSet(request.POST or None,  initial = reports)    
+    
+    if request.method == 'POST': 
+        #formset = ReportFormSet(request.POST,  queryset = reports)
+        formset = ReportFormSet(request.POST,  initial = reports)    
+        if formset.is_valid(): 
+            #do something
+            return HttpResponseRedirect(project.get_absolute_url())
+        #else:
+        #formset = ReportFormSet(queryset = reports)
+        #formset = ReportFormSet(initial = reports)
+    return render_to_response('UploadReports.html', {
+                'formset': formset,
+                'project':project,
+                },
+                context_instance=RequestContext(request))
+
+
+
+    
+
 
 
 def uploadlist(request):
