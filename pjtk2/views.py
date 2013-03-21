@@ -22,7 +22,9 @@ from pjtk2.models import Milestone, Project, Report, ProjectReports
 from pjtk2.models import TL_ProjType, TL_Database
 #from pjtk2.forms import MilestoneForm
 from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm, ReportsForm
-from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm, ReportUploadForm
+#from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
+
+from pjtk2.forms import  ReportUploadForm,  ReportUploadFormSet
 
 import os
 import pdb
@@ -69,7 +71,7 @@ def get_assignments_with_paths(slug, core=True):
     assign_dicts = []
     for assignment in assignments:
         try:
-            filepath = Report.objects.get(projectreport=assignment)
+            filepath = Report.objects.get(projectreport=assignment, current=True)
         except Report.DoesNotExist:
             filepath = None
         required = assignment.required
@@ -303,30 +305,27 @@ def report_milestones(request, slug):
 
 def ReportUpload(request, slug):
     '''This view will render a formset with filefields for each of the
-    reports associated with this project.'''
+    reports associated with this project.  It used a custom formset
+    that has been extended to accept a user and a project - these are
+    needed to insert Reports.'''
 
-    #for development purposes, lets use a project that we know has
-    #some reports associated with it.
-    #slug = "zzz_zz13_zzz"
     project = Project.objects.get(slug=slug)
 
-    #ReportFormSet = modelformset_factory(Report, ReportUploadForm, extra=0)
-    #reports = project.get_reports()
-
     reports = get_assignments_with_paths(slug)
-    ReportFormSet = formset_factory(ReportUploadForm, extra=0)
-
-    formset = ReportFormSet(request.POST or None,  initial = reports)    
+    ReportFormSet = formset_factory(ReportUploadForm, 
+                                    formset=ReportUploadFormSet, extra=0)
     
     if request.method == 'POST': 
-        #formset = ReportFormSet(request.POST,  queryset = reports)
-        formset = ReportFormSet(request.POST,  initial = reports)    
+        formset = ReportFormSet(request.POST,  request.FILES, 
+                                initial = reports, 
+                                project=project,
+                                user = request.user)    
         if formset.is_valid(): 
-            #do something
+            for form in formset:
+                form.save()
             return HttpResponseRedirect(project.get_absolute_url())
-        #else:
-        #formset = ReportFormSet(queryset = reports)
-        #formset = ReportFormSet(initial = reports)
+    else:
+        formset = ReportFormSet(initial = reports)
     return render_to_response('UploadReports.html', {
                 'formset': formset,
                 'project':project,
@@ -336,6 +335,32 @@ def ReportUpload(request, slug):
 
 
     
+
+
+def serve_file(request, filename):
+    '''from:http://stackoverflow.com/questions/2464888/downloading-a-csv-file-in-django?rq=1
+
+    This function is my first attempt at a function used to
+    serve/download files.  It works for basic text files, but seems to
+    corrupt pdf and ppt files (maybe other binaries too).  It also
+    should be updated to include some error trapping just incase the
+    file doesn t actully exist.
+    '''
+
+    content_type = mimetypes.guess_type(filename)[0]
+
+    #data = open(os.path.join(settings.MEDIA_ROOT,filename),'r').read()
+    #resp = HttpResponse(data, mimetype='application/x-download')
+    #resp = HttpResponse(data, mimetype=content_type)
+
+    data = FileWrapper(file(os.path.join(settings.MEDIA_ROOT,filename),'rb'))
+    response = HttpResponse(data, mimetype=content_type)
+    filename = os.path.split(filename)[-1]
+    response['Content-Disposition'] = 'attachment;filename=%s' % filename
+
+    return response
+
+
 
 
 
@@ -363,34 +388,6 @@ def uploadlist(request):
         {'reports': reports, 'form': form},
         context_instance=RequestContext(request)
     )
-
-
-
-
-def serve_file(request, filename):
-    '''from:http://stackoverflow.com/questions/2464888/downloading-a-csv-file-in-django?rq=1
-
-    This function is my first attempt at a function used to
-    serve/download files.  It works for basic text files, but seems to
-    corrupt pdf and ppt files (maybe other binaries too).  It also
-    should be updated to include some error trapping just incase the
-    file doesn t actully exist.
-    '''
-
-    content_type = mimetypes.guess_type(filename)[0]
-
-    #data = open(os.path.join(settings.MEDIA_ROOT,filename),'r').read()
-    #resp = HttpResponse(data, mimetype='application/x-download')
-    #resp = HttpResponse(data, mimetype=content_type)
-
-    data = FileWrapper(file(os.path.join(settings.MEDIA_ROOT,filename),'rb'))
-    resp = HttpResponse(data, mimetype=content_type)
-    filename = os.path.split(filename)[-1]
-    resp['Content-Disposition'] = 'attachment;filename=%s' % filename
-
-    return resp
-
-
 
 
 

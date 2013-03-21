@@ -1,4 +1,5 @@
 from django.forms import ModelForm
+from django.forms.formsets import BaseFormSet
 from django import forms
 from django.contrib.auth.models import User
 
@@ -164,66 +165,106 @@ class ReportsForm(forms.Form):
                                               required=True, 
                                               report_type_id=report)
 
-class CoreReportsForm(forms.Form):
-    '''Dynamically add checkbox widgets to a form depending on reports
-    identified as core.  This form is currently used to update
-    reporting requirements.  '''
-    
-    #pass
+
+class ReportUploadFormSet(BaseFormSet):
+    '''modified from
+    here:http://stackoverflow.com/questions/5426031/django-formset-set-current-user
+    allows additional parameters to be passed to formset.  Project and
+    user are required to upload reports'''
     def __init__(self, *args, **kwargs):
-        self.reports = kwargs.pop('reports')
-        #self.project = kwargs.pop('project', None)
-        
-        super(CoreReportsForm, self).__init__(*args, **kwargs)
-        corereports = self.reports["core"]["reports"]
-        assigned = self.reports["core"]["assigned"]
-        #project = self.project
+        self. project = kwargs.pop('project', None)
+        self. user = kwargs.pop('user', None)
+        super(ReportUploadFormSet, self).__init__(*args, **kwargs)
 
-        ## if project:
-        ##   self.fields['PRJ_NM'] = forms.CharField(
-        ##       widget = ReadOnlyText,
-        ##       #initial = project['PRJ_NM'],            
-        ##       initial = project.PRJ_NM,               
-        ##       label = "Project Name",
-        ##       required =False,
-        ##   )
-        ## 
-        ##   self.fields['PRJ_CD'] = forms.CharField(
-        ##       widget = HyperlinkWidget,
-        ##       #initial = project['PRJ_CD'],            
-        ##       initial = project.PRJ_CD,            
-        ##       label = "Project Code",
-        ##       max_length = 80,
-        ##       required = False,
-        ##   )
+    def _construct_forms(self): 
+        self.forms = []
+        for i in xrange(self.total_form_count()):
+            self.forms.append(self._construct_form(i, project=self.project,
+                                                   user=self.user))
+
+        
+
+class ReportUploadForm(forms.Form):
+    """this form is was used to first deevelop a report upload form.
+    It looks like itshould work, but didn't include entries for
+    outstanding reports""" 
+
+    #TODO - make READONLY
+    required = forms.BooleanField(
+        label = "Required",
+        required =False,
+    )
     
+    report_type = forms.CharField(
+        widget = ReadOnlyText,
+        label = "Report Name",
+        required =False,
+    )
+
+    filepath = forms.FileField(
+        label = "File",
+        required =False,        
+        )    
+
+    def __init__(self, *args, **kwargs):
+        self.project = kwargs.pop('project')
+        self.user = kwargs.pop('user')
+        super(ReportUploadForm, self).__init__(*args, **kwargs)
+        self.fields["required"].widget.attrs['disabled'] = True
+        #self.fields["filepath"].widget.attrs['style'] = "text-align: right;"
+        self.fields["filepath"].widget.attrs['size'] = "40"        
+        self.fields["filepath"].widget.attrs['class'] = "fileinput"        
+                         
+    def clean_report_type(self):
+        '''return the original value of required'''
+        return self.initial['report_type']
+
+    def clean_required(self):
+        '''return the original value of report_type'''
+        return self.initial['required']
+                
+    def save(self):
+        '''see if a report already exists for this projectreport, if
+        so, make sure that it Current flag is set to false 
         
-        self.fields['core'] = forms.MultipleChoiceField(
-            choices = corereports,
-            initial = assigned,
-            label = "",
-            required = True,
-            widget = forms.widgets.CheckboxSelectMultiple(),
-            )
+        - populate uploaded by with user name
+        
+        - calculate hash of file 
+        
+        - verify that it matches certain criteria (file
+        types/extentions) depending on reporting milestone
+        
+        - if this is a presentation or summary report, see if the
+        project has any sister projects, if so, update projectreports
+        for them too.
+        
+        '''
+
+        if 'filepath' in self.changed_data:        
+            
+            projectreport = ProjectReports.objects.get(
+                project=self.project, report_type=self.clean_report_type)
+
+            #see if there is already is a report for this projectreport
+            try:
+                oldReport = Report.objects.get(projectreport=projectreport, 
+                                               current=True)
+            except Report.DoesNotExist:
+                oldReport = None
+
+            #if so set current to False so we can add another
+            if oldReport:
+                oldReport.current = False
+                oldReport.save()
+            
+            newReport = Report.objects.create(
+                    projectreport = projectreport,
+                    report_path = self.cleaned_data['filepath'],
+                    uploaded_by = self.user.username,
+                    report_hash = "Fake Hash"
+                )
 
 
-
-class AdditionalReportsForm(forms.Form):
-    reports = Milestone.objects.filter(category='Custom')
-    #we need to convert the querset to a tuple of tuples
-    reports = tuple([(x[0], x[1]) for x in reports.values_list()])
-    ckboxes = forms.MultipleChoiceField(
-        choices = reports,
-        label = "",
-        required = True,
-        )
-
-
-##  class NewProjectForm(forms.ModelForm):
-##      formfield_callback = make_custom_datefield
-##      class Meta:
-##          model = Project
-##          exclude = ("slug", "YEAR", "Owner",)
 
 
 class ProjectForm(forms.ModelForm):
@@ -626,84 +667,70 @@ class ExampleForm(forms.Form):
 
 
 
-
-class AssignmentForm(forms.ModelForm):
-    '''A basic form for reporting requirements associated with a project'''
-
-    required = forms.BooleanField(
-         label = "",
-         required =False,
-     )
-
-    class Meta:
-        model=ProjectReports
-        fields = ('required', 'report_type')
-        widgets = {
-        #'required':forms.BooleanField(label=""),
-          'report_type':forms.HiddenInput(),        
-        }
-    
-    def clean_report_type(self):
-        '''return the original value of report_type'''
-        return self.instance.report_type
-
-
-
-## class ReportUploadForm(forms.ModelForm):
-##     """this form is was used to first deevelop a report upload form.
-##     It looks like itshould work, but didn't include entries for
-##     outstanding reports""" 
-##     
-##     current = forms.BooleanField(
-##         label = "Required",
-##         required =False,
-##     )
-##     
-##     projectreport= forms.CharField(
-##         widget = ReadOnlyText,
-##         label = "Report Name",
-##         required =False,
-##     )
 ## 
-##     reportpath = forms.FileField(
-##         label = "File",
-##         required =False,        
-##         )
-##     
+## class AssignmentForm(forms.ModelForm):
+##     '''A basic form for reporting requirements associated with a project'''
+## 
+##     required = forms.BooleanField(
+##          label = "",
+##          required =False,
+##      )
+## 
 ##     class Meta:
-##         model=Report
-##         fields = ('current', 'projectreport', 'reportpath')
+##         model=ProjectReports
+##         fields = ('required', 'report_type')
+##         widgets = {
+##         #'required':forms.BooleanField(label=""),
+##           'report_type':forms.HiddenInput(),        
+##         }
+##     
+##     def clean_report_type(self):
+##         '''return the original value of report_type'''
+##         return self.instance.report_type
 ## 
-
-class ReportUploadForm(forms.Form):
-    """this form is was used to first deevelop a report upload form.
-    It looks like itshould work, but didn't include entries for
-    outstanding reports""" 
-
-    #TODO - make READONLY
-    required = forms.BooleanField(
-        label = "Required",
-        required =False,
-    )
-    
-    report_type = forms.CharField(
-        widget = ReadOnlyText,
-        label = "Report Name",
-        required =False,
-    )
-
-    filepath = forms.FileField(
-        label = "File",
-        required =False,        
-        )
-    
-    #category = forms.CharField(
-    #    widget = ReadOnlyText,
-    #    label = "category",
-    #    required =False,
-    #)
-
-
-
-
-
+## 
+## 
+##                 
+## class CoreReportsForm(forms.Form):
+##     '''Dynamically add checkbox widgets to a form depending on reports
+##     identified as core.  This form is currently used to update
+##     reporting requirements.  '''
+##     
+##     #pass
+##     def __init__(self, *args, **kwargs):
+##         self.reports = kwargs.pop('reports')
+##         #self.project = kwargs.pop('project', None)
+##         
+##         super(CoreReportsForm, self).__init__(*args, **kwargs)
+##         corereports = self.reports["core"]["reports"]
+##         assigned = self.reports["core"]["assigned"]
+##     
+##         
+##         self.fields['core'] = forms.MultipleChoiceField(
+##             choices = corereports,
+##             initial = assigned,
+##             label = "",
+##             required = True,
+##             widget = forms.widgets.CheckboxSelectMultiple(),
+##             )
+## 
+## 
+## 
+## class AdditionalReportsForm(forms.Form):
+##     reports = Milestone.objects.filter(category='Custom')
+##     #we need to convert the querset to a tuple of tuples
+##     reports = tuple([(x[0], x[1]) for x in reports.values_list()])
+##     ckboxes = forms.MultipleChoiceField(
+##         choices = reports,
+##         label = "",
+##         required = True,
+##         )
+                
+## 
+## 
+## ##  class NewProjectForm(forms.ModelForm):
+## ##      formfield_callback = make_custom_datefield
+## ##      class Meta:
+## ##          model = Project
+## ##          exclude = ("slug", "YEAR", "Owner",)
+## 
