@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block extrahead  %} 
+<link rel="stylesheet" type="text/css" 
+  href="{{ STATIC_URL }}css/themeblue.css" /> 
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/tablesorter.css" /> 
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script> 
+ <script>
+$(function() {
+$( "#tabs" ).tabs();
+});
+</script>
+<script>
+$(document).ready(function() 
+    { 
+        $("table.tablesorter-blue").tablesorter(); 
+    } 
+); 
+</script>
+{% endblock %}
+
+{% block title  %} {{ block.super }}| My Projects  {% endblock %}
+
+{% block content  %} 
+<p> 
+<a href="{% url 'home' %}">Index </a> | 
+<a href="{% url 'ProjectList' %}"> Project List </a> | 
+<a href="{% url 'ApprovedProjectsList' %}">Approved Project List</a> | 
+</p>
+
+<h1>My Projects Page</h1>
+
+
+<div id="tabs">
+<ul>
+<li><a href="#tabs-1">Bookmarks</a></li>
+<li><a href="#tabs-2">Notices</a></li>
+<li><a href="#tabs-3">Submitted</a></li>
+<li><a href="#tabs-4">Approved</a></li>
+<li><a href="#tabs-5">Completed</a></li>
+</ul>
+
+<div id="tabs-1">
+<h2>Bookmarks</h2>
+{% if bookmarks %}
+  <table id="myTable" class="tablesorter-blue">
+    <thead><tr><td>Project Code</td> <td>Project Type</td><td>Project
+    Name</td></tr></thead>
+  <tbody>
+  {% for bookmark in bookmarks %}
+   <tr class="{% cycle row1,row2 %}">
+     <td>
+       <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
+     </td>
+     <td> {{ bookmark.ProjectType }} </td>
+     <td>
+       {{ bookmark.name }} 
+     </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+{% else %}
+  <p><em>You do not have any bookmarked projects </em></p>
+{% endif%}
+</div>
+
+<div id="tabs-2">
+<h2>Notifications</h2>
+  <p><em>You do not have any notices (this feature hasn't been
+  implemented yet). </em></p>
+</div>
+
+<div id="tabs-3">
+<h2>Submitted Projects</h2>
+{% if submitted %}
+  <table id="myTable" class="tablesorter-blue">
+    <thead><tr><td>Project Code</td> <td>Project Type</td>
+    <td>Project Name</td></tr>
+    </thead>
+  <tbody>
+  {% for project in submitted %}
+    <tr class="{% cycle row1,row2 %}">
+     <td>
+       <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
+     </td>
+     <td> {{ project.ProjectType }} </td>
+     <td>
+       {{ project.PRJ_NM  }} 
+     </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+
+{% else %}
+  <p><em>You do not currently have any submitted projects </em></p>
+{% endif%}
+</div>
+
+<div id="tabs-4">
+<h2>Approved Projects</h2>
+{% if approved %}
+  <table id="myTable" class="tablesorter-blue">
+    <thead><tr><td>Project Code</td> <td>Project Type</td> 
+     <td>Project Name</td></tr>
+   </thead>
+  <tbody>
+  {% for project in approved %}
+    <tr class="{% cycle row1,row2 %}">
+     <td>
+       <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
+     </td>
+     <td> {{ project.ProjectType }} </td>
+     <td>
+       {{ project.PRJ_NM  }} 
+     </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+
+{% else %}
+  <p><em>You do not currently have any approved projects </em></p>
+{% endif%}
+</div>
+
+<div id="tabs-5">
+<h2>Completed Projects</h2>
+{% if complete %}
+  <table id="myTable" class="tablesorter-blue">
+    <thead><tr><td>Project Code</td> <td>Project Type</td> <td>Project
+    Name</td></tr></thead>
+  <tbody>
+  {% for project in complete %}
+    <tr class="{% cycle row1,row2 %}">
+     <td>
+       <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
+     </td>
+     <td> {{ project.ProjectType }} </td>
+     <td>
+       {{ project.PRJ_NM  }} 
+     </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+{% else %}
+  <p><em>You do not have any complete projects </em></p>
+{% endif%}
+
+</div>
+</div>
+
+{% endblock %}

@@ -32,12 +32,24 @@ class Milestone(models.Model):
 
 class TL_ProjType(models.Model):
     Project_Type = models.CharField(max_length=150)
-
+    #project_type_slug = SlugField(blank=True, editable=False)
+    
     class Meta:
         verbose_name = "Project Type"
     
     def __unicode__(self):
         return self.Project_Type
+
+    #def save(self, *args, **kwargs):
+    #    """
+    #    from:http://stackoverflow.com/questions/7971689/
+    #         generate-slug-field-in-existing-table
+    #    Slugify name if it doesn't exist.
+    #    """
+    #    if not self.project_type_slug:
+    #        self.project_type_slug = slugify(self.Project_Type)
+    #    super(Project_Type, self).save( *args, **kwargs)
+
 
 class TL_Database(models.Model):
     MasterDatabase = models.CharField(max_length=250)
@@ -237,6 +249,33 @@ class Report(models.Model):
     def __unicode__(self):
         return str(self.report_path)
 
+
+class Bookmark(models.Model):
+    '''a class to allow users to bookmark and unbookmark their
+    favourite projects.'''
+    project = models.ForeignKey(Project)
+    user = models.ForeignKey(User, related_name = "project_bookmark")
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __unicode__(self):
+        return "%s" % self.project
+
+    def get_project_url(self):
+        return self.project.get_absolute_url()
+
+    def name(self):
+        return self.project.PRJ_NM
+
+    def ProjectType(self):
+        return self.project.ProjectType
+
+        
+    def get_project_code(self):
+        return self.project.PRJ_CD
+        
         
 class AdminMilestone(admin.ModelAdmin):
     list_display = ('label', 'category',)

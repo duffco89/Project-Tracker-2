@@ -19,7 +19,7 @@ from django.conf import settings
 
 
 from pjtk2.models import Milestone, Project, Report, ProjectReports
-from pjtk2.models import TL_ProjType, TL_Database
+from pjtk2.models import TL_ProjType, TL_Database, Bookmark
 #from pjtk2.forms import MilestoneForm
 from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm, ReportsForm
 #from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
@@ -101,8 +101,21 @@ class ProjectList(ListView):
     def dispatch(self, *args, **kwargs):
         return super(ProjectList, self).dispatch(*args, **kwargs)
 
-
 project_list = ProjectList.as_view()
+
+
+# class ProjectByProjectType(ListView):
+#     projecttype = self.kwarg["projecttype"]
+#     queryset = Project.objects.filter(ProjectType=projecttype)
+#     template_name = "ProjectList.html"
+# 
+#     @method_decorator(login_required)
+#     def dispatch(self, *args, **kwargs):
+#         return super(ProjectList, self).dispatch(*args, **kwargs)
+# 
+# project_by_type = ProjectByProjectType.as_view()
+
+
 
 
 class ApprovedProjectsList(ListView):
@@ -121,6 +134,7 @@ class ApprovedProjectsList(ListView):
 
 
 approved_projects_list = ApprovedProjectsList.as_view()
+
 
 
 def logout_view(request):
@@ -217,6 +231,10 @@ def crud_project(request, slug, action='New'):
                               context_instance=RequestContext(request)
         )
 
+
+
+
+    
 @login_required
 #@permission_required('Project.can_change_Approved')
 def approveprojects(request):
@@ -361,6 +379,62 @@ def serve_file(request, filename):
     return response
 
 
+
+
+
+@login_required
+def my_projects(request):
+    bookmarks = Bookmark.objects.filter(user__pk=request.user.id)
+
+    myprojects = Project.objects.filter(Owner__username=request.user.username) 
+    
+    complete = myprojects.filter(SignOff=True)
+    approved = myprojects.filter(Approved=True).filter(SignOff=False)
+    submitted = myprojects.filter(Approved=False)
+    
+    template_name = "my_projects.html"
+
+    return render_to_response(template_name,
+                              { 'bookmarks':bookmarks,
+                                'complete':complete,
+                                'approved':approved,
+                                'submitted':submitted                                                                },
+                              context_instance=RequestContext(request))
+
+    
+
+#=====================
+#Bookmark views
+@login_required
+def bookmark_project(request, slug):
+    '''Modified from Practical Django Projects - pg 189.'''
+    project = get_object_or_404(Project, slug=slug)
+    try:
+        Bookmark.objects.get(user__pk=request.user.id,
+                             project__slug=project.slug)
+    except Bookmark.DoesNotExist:
+        bookmark = Bookmark.objects.create(user=request.user,
+                                           project=project)
+    return HttpResponseRedirect(project.get_absolute_url())
+
+
+@login_required    
+def unbookmark_project(request, slug):
+    project = get_object_or_404(Project, slug=slug)
+    if request.method == 'POST':
+        Bookmark.objects.filter(user__pk=request.user.id,
+                                project__pk=project.id).delete()
+        return HttpResponseRedirect(project.get_absolute_url())
+    else:
+        return render_to_response('confirm_bookmark_delete.html',
+                                  { 'project': project },
+                                  context_instance=RequestContext(request))
+
+
+
+
+
+    
 
 
 

@@ -12,9 +12,11 @@
 <p>  
 <a href="{% url 'home' %}">Index </a> | 
 <a href="{% url 'ProjectList' %}">Return to Index</a> | 
-<a href="#">View My Projects</a> 
+<a href="{% url 'MyProjects' %}">View My Projects</a> 
 </p>
 <hr />
+
+{% load projects %}
 
 <h1>Project Details</h1>
   <p><strong>Project Code:</strong>  {{ project.PRJ_CD }} </p>
@@ -57,15 +59,20 @@
 {% if edit %} 
 <a href="{% url 'EditProject' project.slug %}"
    onclick="javascript:window.location=this.href"> 
-  <button>Edit
-    Information</button> </a>
+  <button>Edit Information</button> </a>
+<a href="#" onclick="javascript:window.location=this.href">
+ <button>Sister Projects</button> </a>
 {% endif  %}
 <a href="{% url 'CopyProject' project.slug %}"
    onclick="javascript:window.location=this.href"> 
    <button>Copy Project</button> </a>
-<a href="#" onclick="javascript:window.location=this.href">
- <button>Bookmark Project</button> </a>
-
+{% if_bookmarked user project %}
+  <a href="{% url 'Unbookmark_Project' project.slug %}" onclick="javascript:window.location=this.href">
+   <button>Remove Bookmark</button> </a>
+{% else %}
+  <a href="{% url 'Bookmark_Project' project.slug %}" onclick="javascript:window.location=this.href">
+   <button>Bookmark Project</button> </a>
+{% endif_bookmarked %}
 
 <hr />
 

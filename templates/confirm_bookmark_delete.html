@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+
+{% block title  %} {{ block.super }}| Remove Bookmark  {% endblock %}
+
+
+
+{% block content  %} 
+
+
+
+ <h1> Are you sure you want to delete the bookmark for this project?</h1>
+
+{{ project }}
+
+<form method="post", action="">
+{% csrf_token %}
+  <p><input type="submit" value="Delete bookmark" /></p>
+</form>
+
+
+{% endblock %}

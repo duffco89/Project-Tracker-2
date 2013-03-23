@@ -11,7 +11,9 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^projects/approved$', 'approved_projects_list', name='ApprovedProjectsList'),
     #project formset:
     url(r'^approveprojects/$', 'approveprojects', name='ApproveProjects'),
-
+# url(r'^projectsbytype/(?P<projecttype>.+)$', 'projects_by_type', 
+#       name='ProjectsByType'),
+    
     url(r'^newproject/$', 'new_project', name='NewProject'),
 
     url(r'^copyproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
@@ -23,6 +25,8 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^projectdetail/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'ProjectDetail', name='ProjectDetail'),
 
+    url(r'^myprojects/$', 'my_projects', name='MyProjects'),
+        
 
 # Reports and milestones
     url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
@@ -45,6 +49,16 @@ urlpatterns = patterns('pjtk2.views',
     #this function is used to download reports and files from project pages
     url(r'^serve_file/(?P<filename>.+)/$', 'serve_file', name='serve_file'),    
 
+
+#bookmarking
+    url(r'^bookmarkproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+        'bookmark_project', name='Bookmark_Project'),
+
+    url(r'^unbookmarkproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+        'unbookmark_project', name='Unbookmark_Project'),
+
+
+    
     # some silly examples
     url(r'^crispy/$', 'crispy', name='CrispyForm'),
     url(r'^crispy2/$', 'crispy2', name='CrispyForm2'),

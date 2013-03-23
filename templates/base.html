@@ -3,11 +3,10 @@
 <html>
   <head>
     <title>  {% block title  %} UGMLU  {% endblock %}  </title>
-
     <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/worg.css" /> 
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/pepper-grinder/jquery-ui-1.10.1.custom.css"/>
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/cupertino/jquery-ui-1.10.2.custom.css"/>
     <script src="{{ STATIC_URL }}js/jquery-1.9.1.js"></script>
-    <script src="{{ STATIC_URL }}js/jquery-ui-1.10.1.custom.js"></script>
+    <script src="{{ STATIC_URL }}js/jquery-ui-1.10.2.custom.js"></script>
 
     {% block extrahead  %} {% endblock %}
   </head>
@@ -17,7 +16,7 @@
 {% if user.is_authenticated %}
 Welcome {{ user.username }} [<a href="{% url 'logout' %}">Logout</a>, My Profile]
 {% else %}
-[Login or Register]
+[<a href="{% url 'login' %}">Login</a> or Register]
 {% endif %} 
 
 {% block content  %} {% endblock %}

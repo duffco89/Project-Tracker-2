@@ -1,32 +1,60 @@
 {% extends "base.html" %}
 
-{% block title  %} {{ block.super }}| New Project  {% endblock %}
 
+{% block extrahead  %} 
+<link rel="stylesheet" type="text/css" 
+  href="{{ STATIC_URL }}css/themeblue.css" /> 
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/tablesorter.css" /> 
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script> 
+ <script>
+$(function() {
+$( "#tabs" ).tabs();
+});
+</script>
+<script>
+$(document).ready(function() 
+    { 
+        $("table.tablesorter-blue").tablesorter(); 
+    } 
+); 
+</script>
+{% endblock %}
 
+{% block title  %} {{ block.super }}| Approved Projects  {% endblock %}
 
 {% block content  %} 
 
 <p> 
 <a href="{% url 'home' %}">Index </a> | 
 <a href="{% url 'ProjectList' %}"> Project List </a> | 
-<a href="#">View My Projects</a> 
+<a href="{% url 'MyProjects' %}">View My Projects</a> 
 </p>
 
 
 <h1>Approved Projects</h1>
 
 {% if object_list %}
-  <ul id="object_list">
-    {% for project in object_list %}
-      <li><a href="{{ project.get_absolute_url }}">
-     {{ project.PRJ_CD }}</a> - {{ project.PRJ_NM  }} | 
-     <a href="{% url 'ProjectDetail' project.slug %}">Project Detail</a> </li> 
-    {% endfor %}
-  </ul>
+  <table id="myTable" class="tablesorter-blue">
+    <thead><tr><td>Project Code</td> <td>Project Type</td>
+    <td>Project Name</td></tr>
+    </thead>
+  <tbody>
+  {% for project in object_list %}
+    <tr class="{% cycle row1,row2 %}">
+     <td>
+       <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
+     </td>
+     <td> {{ project.ProjectType }} </td>
+     <td>
+       {{ project.PRJ_NM  }} 
+     </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
+
 {% else %}
-
-<p>Sorry no projects have been approved yet.</p>
-
+  <p>Sorry no projects have been approved yet.</p>
 {% endif %}
 
 <p>
