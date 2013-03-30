@@ -72,7 +72,7 @@ class ProjectReportsFactory(factory.Factory):
 class ReportFactory(factory.Factory):
     FACTORY_FOR = Report
     current = True
-    projectreport = factory.SubFactory(ProjectReportsFactory)
+    #projectreport = factory.SubFactory(ProjectReportsFactory)
     report_path = "some/fake/file.txt"
     uploaded_by = "Bob"
     report_hash = "1234"

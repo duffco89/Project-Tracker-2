@@ -98,15 +98,12 @@ class ApproveProjectsForm(forms.ModelForm):
         return self.instance.PRJ_LDR
         
 
-        
-
 class ReportsForm(forms.Form):
-    '''generalized from CoreReportsForms to be used for both core and
-    custom reports. Dynamically add checkbox widgets to a form
-    depending on reports identified as core.  This form is currently
-    used to update reporting requirements.'''
+    '''This form is used to update reporting requirements for a
+    particular project.  Checkbox widgets are dynamically added to the
+    form depending on reports identified as core plus any additional
+    custom reports requested by the manager.'''
     
-    #pass
     def __init__(self, *args, **kwargs):
         self.reports = kwargs.pop('reports')
         self.core = kwargs.pop('core', True)
@@ -170,7 +167,14 @@ class ReportUploadFormSet(BaseFormSet):
     '''modified from
     here:http://stackoverflow.com/questions/5426031/django-formset-set-current-user
     allows additional parameters to be passed to formset.  Project and
-    user are required to upload reports'''
+    user are required to upload reports.
+
+    This formset is used to upload the reports for a particular
+    project.  It will generate one reportUploadForm for each reporting
+    requirement (all core reports plus any additional reports that
+    have been requested).
+
+    '''
     def __init__(self, *args, **kwargs):
         self. project = kwargs.pop('project', None)
         self. user = kwargs.pop('user', None)
@@ -181,15 +185,14 @@ class ReportUploadFormSet(BaseFormSet):
         for i in xrange(self.total_form_count()):
             self.forms.append(self._construct_form(i, project=self.project,
                                                    user=self.user))
-
         
 
 class ReportUploadForm(forms.Form):
-    """this form is was used to first deevelop a report upload form.
-    It looks like itshould work, but didn't include entries for
-    outstanding reports""" 
+    """This form is used in ReportUploadFormset to upload files. Each
+    form includes a label for the report type, a read only checkbox
+    indicating whether or not this report is required, and a file
+    input widget.""" 
 
-    #TODO - make READONLY
     required = forms.BooleanField(
         label = "Required",
         required =False,
@@ -252,20 +255,28 @@ class ReportUploadForm(forms.Form):
             except Report.DoesNotExist:
                 oldReport = None
 
-            #if so set current to False so we can add another
+            #if so set the 'current' attribure of the old report to
+            #False so that it can be replaced by the new one (there
+            #can only ever be one 'current' report)
             if oldReport:
                 oldReport.current = False
                 oldReport.save()
-            
+
             newReport = Report.objects.create(
-                    projectreport = projectreport,
                     report_path = self.cleaned_data['filepath'],
                     uploaded_by = self.user.username,
                     report_hash = "Fake Hash"
                 )
+            #add the m2m record for this projectreport
+            newReport.projectreport.add(projectreport)
 
-
-
+            #TODO: 
+            #if this a presentation or summary report, see if
+            #this project has any sister projects.  If so, add an m2m
+            #for each one so this document is associated with them
+            #too.  we will have to figure out how to handle sister
+            #that are adopted or dis-owned - how do we synchronize
+            #existing files?
 
 class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including

@@ -238,8 +238,8 @@ class Report(models.Model):
     '''class for reports.  A single report can be linked to multiple
     entries in Project Reports'''
     current = models.BooleanField(default=True)
-    #projectreport = models.ManyToManyField('ProjectReports')
-    projectreport = models.ForeignKey('ProjectReports')
+    projectreport = models.ManyToManyField('ProjectReports')
+    #projectreport = models.ForeignKey('ProjectReports')
     #report_path = models.CharField(max_length = 300, default="")
     report_path = models.FileField(upload_to="reports/")
     uploaded_on = models.DateTimeField(auto_now_add=True)

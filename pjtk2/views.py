@@ -329,7 +329,12 @@ def ReportUpload(request, slug):
 
     project = Project.objects.get(slug=slug)
 
+    #get the core and custom reports associated with this project
     reports = get_assignments_with_paths(slug)
+    custom =  get_assignments_with_paths(slug, core=False)
+    if custom:
+        [reports.append(x) for x in custom]
+    
     ReportFormSet = formset_factory(ReportUploadForm, 
                                     formset=ReportUploadFormSet, extra=0)
     
@@ -341,6 +346,7 @@ def ReportUpload(request, slug):
         if formset.is_valid(): 
             for form in formset:
                 form.save()
+                #form.save_m2m()
             return HttpResponseRedirect(project.get_absolute_url())
     else:
         formset = ReportFormSet(initial = reports)

@@ -153,22 +153,25 @@ class TestModelReports(TestCase):
 
     def setUp(self):
 
-
         core1 = MilestoneFactory.create(label="core1",
                                         category = 'Core', order=1)
         self.project = ProjectFactory.create()
 
-        #retrieve the project report that would have been created for
+        #retrieve the projectreport that would have been created for
         #the new project
         self.projectreport = ProjectReports.objects.get(project=self.project,
                                                    report_type=core1)
-        
-        self.report = ReportFactory(projectreport=self.projectreport,
-                               report_path="path\to\fake\file.txt")
 
+        #create a fake report
+        report = ReportFactory(report_path="path\to\fake\file.txt")
+        #associate the report with the project reporting requirement
+        report.projectreport.add(self.projectreport) 
+        
     def test_get_reports(self):
-        self.assertEqual(self.report.report_path, "path\to\fake\file.txt")
-        self.fail("Finish this test.")
+        rep = self.project.get_reports()
+        self.assertEqual(len(rep),1)
+        self.assertEqual(rep[0].report_path, "path\to\fake\file.txt")
+        #self.fail("Finish this test.")
 
         
         
