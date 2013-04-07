@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from django.utils.safestring import mark_safe
 
 from pjtk2.models import Milestone, Project, ProjectReports, Report, TL_ProjType, TL_Database
+from pjtk2.models import ProjectSisters
 import pdb
 import re
 
@@ -358,14 +359,14 @@ class ProjectForm(forms.ModelForm):
         label = "Sign Off",
         required =False,
     )
-
-
-
     
     class Meta:
         model=Project
-        exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
-                   "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
+        #exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
+        #           "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
+        fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", 
+                   "Approved", "Conducted", "DataScrubbed", "DataMerged", "SignOff",
+                   "Keywords", 'ProjectType', "MasterDatabase", "COMMENT")
         
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -501,6 +502,91 @@ class ProjectForm(forms.ModelForm):
                 raise forms.ValidationError(errmsg)
         return cleaned_data
         
+
+
+
+
+
+        
+class SisterProjectsForm(forms.Form):
+    '''This project form is used to identify sister projects''' 
+
+    sister = forms.BooleanField(
+        label = "Sister:",
+        required =False,
+    )
+
+    PRJ_CD = forms.CharField(
+        widget = HyperlinkWidget,
+        label = "Project Code",
+        max_length = 13,
+        required = False,
+    )
+
+    
+    PRJ_NM = forms.CharField(
+        widget = ReadOnlyText,
+        label = "Project Name",
+        required =False,
+    )
+    
+
+    PRJ_LDR = forms.CharField(
+        widget = ReadOnlyText,
+        label = "Project Leader",
+        max_length = 80,
+        required = False,
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super(SisterProjectsForm, self).__init__(*args, **kwargs)
+
+        
+    def clean_PRJ_CD(self):
+        '''return the original value of PRJ_CD'''
+        return self.initial['PRJ_CD']
+        
+    def clean_PRJ_NM(self):
+        '''return the original value of PRJ_NM'''
+        return self.initial['PRJ_NM']
+        
+    def clean_PRJ_LDR(self):
+        '''return the original value of PRJ_LDR'''
+        return self.initial['PRJ_LDR']
+
+    def save(self, *args, **kwargs):
+        family = kwargs.pop('family', None)
+        
+        #1. if sister was true and is now false, remove that
+        # project from the family
+        if (self.cleaned_data['sister']==False and
+            self.initial['sister']==True):
+            prj_cd = self.cleaned_data['PRJ_CD']
+            proj = Project.objects.get(PRJ_CD=prj_cd)
+            ProjectSisters.objects.filter(project=proj).delete()
+
+        #2. if sister was false and is now true, add this project to the family.
+        elif (self.cleaned_data['sister']==True and
+            self.initial['sister']==False):
+            prj_cd = self.cleaned_data['PRJ_CD']
+            proj = Project.objects.get(PRJ_CD=prj_cd)
+            ProjectSisters.objects.create(project=proj,family=family)
+        #do nothing
+        else:
+            pass
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         
 class DocumentForm(forms.ModelForm):
