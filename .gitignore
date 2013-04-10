@@ -1,7 +1,8 @@
 venv/*
 pjtk2/static/admin/*
 pjtk2/static/js/*
-pjtk2/static/css/pepper*
+pjtk2/static/css/*
+pjtk2/static/img/*
 static/*
 admin2/*
 admin/*

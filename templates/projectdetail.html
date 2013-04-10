@@ -25,9 +25,14 @@
   <p><strong>Start and End Dates:</strong>  {{ project.PRJ_DATE0 }}  - 
   {{ project.PRJ_DATE1 }} </p>
   <p><strong>Project Description:</strong></p>
+  <div style="width:800px; padding:10px;
+	      border:1px solid #CCCCCC;bgcolor="#FFFFFF"">
     {% if project.COMMENT %}
-    <p>{{ project.COMMENT  }} </p>
+      <p>{{ project.COMMENT|linebreaks  }} </p>
+    {% else %}
+      <p><em>Sorry. No project description has been provided. </em>   </p>
     {% endif %}
+  </div>
   <p><strong>Project Type:</strong>  <a href="#">
   {{ project.ProjectType.Project_Type}}</a> 
  </p> 

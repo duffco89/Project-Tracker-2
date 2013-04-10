@@ -109,13 +109,33 @@ project_list = ProjectList.as_view()
 #     projecttype = self.kwarg["projecttype"]
 #     queryset = Project.objects.filter(ProjectType=projecttype)
 #     template_name = "ProjectList.html"
-# 
+#
 #     @method_decorator(login_required)
 #     def dispatch(self, *args, **kwargs):
 #         return super(ProjectList, self).dispatch(*args, **kwargs)
-# 
+#
 # project_by_type = ProjectByProjectType.as_view()
 
+
+class ProjectByYear(ListView):
+    '''Generic list of projects by year including project code,
+    project type and project name.
+
+    TODO - include year in extra content so that it can be displayed
+    at the top of the list.'''
+
+    template_name = "ProjectList.html"
+    #extra_context = {}
+
+    def get_queryset(self, *args, **kwargs):
+        year = self.kwargs["year"]
+        return Project.objects.filter(YEAR=year)
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super(ProjectByYear, self).dispatch(*args, **kwargs)
+
+project_by_year = ProjectByYear.as_view()
 
 
 
@@ -235,7 +255,7 @@ def crud_project(request, slug, action='New'):
 
 
 
-    
+
 @login_required
 #@permission_required('Project.can_change_Approved')
 def approveprojects(request):
@@ -335,16 +355,16 @@ def ReportUpload(request, slug):
     custom =  get_assignments_with_paths(slug, core=False)
     if custom:
         [reports.append(x) for x in custom]
-    
-    ReportFormSet = formset_factory(ReportUploadForm, 
+
+    ReportFormSet = formset_factory(ReportUploadForm,
                                     formset=ReportUploadFormSet, extra=0)
-    
-    if request.method == 'POST': 
-        formset = ReportFormSet(request.POST,  request.FILES, 
-                                initial = reports, 
+
+    if request.method == 'POST':
+        formset = ReportFormSet(request.POST,  request.FILES,
+                                initial = reports,
                                 project=project,
-                                user = request.user)    
-        if formset.is_valid(): 
+                                user = request.user)
+        if formset.is_valid():
             for form in formset:
                 form.save()
                 #form.save_m2m()
@@ -359,7 +379,7 @@ def ReportUpload(request, slug):
 
 
 
-    
+
 
 
 def serve_file(request, filename):
@@ -394,12 +414,12 @@ def my_projects(request):
     #TODO - write test to verify this works as expected.
     bookmarks = Bookmark.objects.filter(user__pk=request.user.id)
 
-    myprojects = Project.objects.filter(Owner__username=request.user.username) 
-    
+    myprojects = Project.objects.filter(Owner__username=request.user.username)
+
     complete = myprojects.filter(SignOff=True)
     approved = myprojects.filter(Approved=True).filter(SignOff=False)
     submitted = myprojects.filter(Approved=False)
-    
+
     template_name = "my_projects.html"
 
     return render_to_response(template_name,
@@ -409,7 +429,7 @@ def my_projects(request):
                                 'submitted':submitted                                                                },
                               context_instance=RequestContext(request))
 
-    
+
 
 #=====================
 #Bookmark views
@@ -427,7 +447,7 @@ def bookmark_project(request, slug):
     return HttpResponseRedirect(project.get_absolute_url())
 
 
-@login_required    
+@login_required
 def unbookmark_project(request, slug):
     #TODO - write test to verify this works as expected.
     project = get_object_or_404(Project, slug=slug)
@@ -447,15 +467,15 @@ def get_sisters_dict(slug):
     '''given a slug, return a list of dictionaries of projects that
     are (or could be) sisters to the given project.  Values returned
     by this function are used to populate the sister project formset'''
-    
+
     project = get_object_or_404(Project, slug=slug)
     initial=[]
-    
+
     try:
         family = Family.objects.get(projectsisters__project=project)
     except:
         family = None
-            
+
     try:
         sisters = ProjectSisters.objects.filter(family=family.id)
         #get query set of projects that are already sisters:
@@ -463,22 +483,22 @@ def get_sisters_dict(slug):
                                     slug=project.slug)
     except:
         sisters = None
-        
+
     if sisters:
         for proj in sisters:
-            initial.append(dict(sister=True, PRJ_CD = proj.PRJ_CD, 
+            initial.append(dict(sister=True, PRJ_CD = proj.PRJ_CD,
                                 PRJ_NM = proj.PRJ_NM, PRJ_LDR = proj.PRJ_LDR))
 
-            
-    candidates = Project.objects.filter(Approved=True, 
-                                        ProjectType=project.ProjectType, 
+
+    candidates = Project.objects.filter(Approved=True,
+                                        ProjectType=project.ProjectType,
                                         YEAR = project.YEAR,
                                         projectsisters__isnull=True).exclude(
                                         slug=project.slug)
 
     if candidates:
         for proj in candidates:
-            initial.append(dict(sister=False, PRJ_CD = proj.PRJ_CD, 
+            initial.append(dict(sister=False, PRJ_CD = proj.PRJ_CD,
                                 PRJ_NM = proj.PRJ_NM, PRJ_LDR = proj.PRJ_LDR))
 
     return initial
@@ -501,29 +521,29 @@ def sisterprojects(request, slug):
         family = Family.objects.get(projectsisters__project=project)
     except:
         family = None
-    
+
     #a boolean flag to pass to template if indicating whether or not
     #the formset is empty
     empty = True if len(initial)==0 else False
-        
+
     SisterFormSet = formset_factory(SisterProjectsForm, extra=0)
 
-    if request.method == 'POST': 
+    if request.method == 'POST':
         #pdb.set_trace()
         formset = SisterFormSet(request.POST, request.FILES, initial=initial)
         if formset.is_valid():
             #see if any checkboxes have changed
             cd = [x.cleaned_data['sister'] for x in formset]
             init = [x.initial['sister'] for x in formset]
-            
+
             #if cd==init, there is nothing to do
             if cd != init:
                 #if family is None, create one.
                 if family is None:
                     family = Family.objects.create()
-                    ProjectSisters.objects.create(project=project, 
+                    ProjectSisters.objects.create(project=project,
                                                   family=family)
-                    
+
                 #if all cd==False then remove this project from this family
                 if all(x==False for x in cd):
                     ProjectSisters.objects.filter(project=project).delete()
@@ -532,7 +552,7 @@ def sisterprojects(request, slug):
                         family=family.id).count()
                     if familysize==1:
                         ProjectSisters.objects.filter(family=family).delete()
-                        Family.objects.filter(id=family.id).delete()                    
+                        Family.objects.filter(id=family.id).delete()
                 else:
                     for form in formset:
                         form.save(family=family)
@@ -545,7 +565,7 @@ def sisterprojects(request, slug):
                 'empty':empty
                 },
                 context_instance=RequestContext(request))
-        
+
 
 def uploadlist(request):
     '''An example view that illustrates how to handle uploading files.
