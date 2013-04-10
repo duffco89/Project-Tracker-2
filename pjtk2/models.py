@@ -142,6 +142,23 @@ class Project(models.Model):
         return Report.objects.filter(projectreport__project=self)
 
 
+    def get_sisters(self):
+        try:
+            family = self.projectsisters_set.all().values('family') 
+        except:
+            family = None
+        if family:
+            try:
+                sisters = Project.objects.filter(projectsisters__family=family)
+            except:
+                pass
+        else:
+            sisters = None
+
+        return sisters
+            
+                
+
     def get_assignment_dicts(self):
         '''return a dictionary of dictionaries containing elements of
         all core and custom reports as well as vectors indicating
@@ -275,6 +292,33 @@ class Bookmark(models.Model):
         
     def get_project_code(self):
         return self.project.PRJ_CD
+
+class Family(models.Model):
+    '''Provides a mechanism to ensure that families are unique and
+    auto-created.  The relationship between projects and families is
+    essentailly an m2m, but currently djgano does not provide a
+    mechanism to ensure that each project is associated with just one
+    family.'''
+    id = models.AutoField(primary_key=True)
+
+    class Meta:
+        verbose_name_plural = "Families"
+
+    def __unicode__(self):
+        return str("Family %s" % self.id)
+        
+    
+class ProjectSisters(models.Model): 
+    
+    '''Sister projects have common presentations and summary reports.
+    They must be the same project type, and run in the same year.'''  
+
+    project = models.ForeignKey('Project') 
+    family = models.ForeignKey('Family') 
+
+    class Meta:
+        verbose_name_plural = "Project Sisters"
+
         
         
 class AdminMilestone(admin.ModelAdmin):
@@ -289,6 +333,15 @@ class AdminTL_Database(admin.ModelAdmin):
 
 class AdminProject(admin.ModelAdmin):
     pass
+
+
+class AdminFamily(admin.ModelAdmin):
+    pass
+
+
+class AdminProjectSisters(admin.ModelAdmin):
+    pass
+
 
 class AdminProjectReports(admin.ModelAdmin):
     list_display = ('project', 'report_type',)
@@ -307,3 +360,29 @@ admin.site.register(TL_Database, AdminTL_Database)
 admin.site.register(Project, AdminProject)
 admin.site.register(ProjectReports, AdminProjectReports)
 admin.site.register(Report, AdminReport)
+admin.site.register(ProjectSisters, AdminProjectSisters)
+admin.site.register(Family, AdminFamily)
+
+
+
+import django_filters
+
+class ProjectFilter(django_filters.FilterSet):
+    #ProjectType = django_filters.ModelChoiceFilter(
+    #              widget=django_filters.widgets.LinkWidget)  
+
+    class Meta:
+        model = Project
+        fields = ['YEAR', 'ProjectType']
+    
+    def __init__(self, *args, **kwargs):
+        super(ProjectFilter, self).__init__(*args, **kwargs)
+        filter_ = self.filters['ProjectType']
+
+        # this will grab all the fk ids that are in use
+        fk_counts = Project.objects.values_list('ProjectType').order_by(
+            'ProjectType').annotate(models.Count('ProjectType'))
+        ProjectType_ids = [fk for fk,cnt in fk_counts]
+        filter_.extra['queryset'] = TL_ProjType.objects.filter(
+            pk__in=ProjectType_ids)
+

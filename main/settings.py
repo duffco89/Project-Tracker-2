@@ -170,7 +170,8 @@ THIRDPARTY_APPS = (
     'south',
     'crispy_forms',
     'debug_toolbar',
-    'pjtk2',
+    'django_filters',
+    #'pjtk2',
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG

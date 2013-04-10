@@ -17,11 +17,12 @@ from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.conf import settings
 
-
+from pjtk2.models import ProjectFilter
 from pjtk2.models import Milestone, Project, Report, ProjectReports
-from pjtk2.models import TL_ProjType, TL_Database, Bookmark
+from pjtk2.models import TL_ProjType, TL_Database, Bookmark, ProjectSisters, Family
 #from pjtk2.forms import MilestoneForm
 from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm, ReportsForm
+from pjtk2.forms import SisterProjectsForm
 #from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
 
 from pjtk2.forms import  ReportUploadForm,  ReportUploadFormSet
@@ -93,7 +94,58 @@ class HomePageView(TemplateView):
 
 
 
-class ProjectList(ListView):
+from django.core.exceptions import ImproperlyConfigured
+from django.views.generic import ListView
+
+class ListFilteredMixin(object):
+    """ Mixin that adds support for django-filter
+    from: https://github.com/rasca/django-enhanced-cbv/blob/master/enhanced_cbv/views/list.py
+"""
+    filter_set = None
+ 
+    def get_filter_set(self):
+        if self.filter_set:
+            return self.filter_set
+        else:
+            raise ImproperlyConfigured(
+                "ListFilterMixin requires either a definition of "
+                "'filter_set' or an implementation of 'get_filter()'")
+
+    def get_filter_set_kwargs(self):
+        """ Returns the keyword arguments for instanciating the filterset."""
+        return {
+            'data': self.request.GET,
+            'queryset': self.get_base_queryset(),
+        }
+
+    def get_base_queryset(self):
+        """ We can decided to either alter the queryset before or
+        after applying the FilterSet """
+
+        return super(ListFilteredMixin, self).get_queryset()
+
+    def get_constructed_filter(self):
+        # We need to store the instantiated FilterSet cause we use it in
+        # get_queryset and in get_context_data
+        if getattr(self, 'constructed_filter', None):
+            return self.constructed_filter
+        else:
+            f = self.get_filter_set()(**self.get_filter_set_kwargs())
+            self.constructed_filter = f
+            return f
+
+    def get_queryset(self):
+        return self.get_constructed_filter().qs
+
+    def get_context_data(self, **kwargs):
+        kwargs.update({'filter': self.get_constructed_filter()})
+        return super(ListFilteredMixin, self).get_context_data(**kwargs)
+
+
+class ProjectList(ListFilteredMixin, ListView):
+    """ A list view that can be filtered by django-filter """
+    
+    filter_set = ProjectFilter
     queryset = Project.objects.all()
     template_name = "ProjectList.html"
 
@@ -102,6 +154,17 @@ class ProjectList(ListView):
         return super(ProjectList, self).dispatch(*args, **kwargs)
 
 project_list = ProjectList.as_view()
+
+
+#class ProjectList(ListView):
+#    queryset = Project.objects.all()
+#    template_name = "ProjectList.html"
+
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        return super(ProjectList, self).dispatch(*args, **kwargs)
+
+#project_list = ProjectList.as_view()
 
 
 # class ProjectByProjectType(ListView):
@@ -390,6 +453,7 @@ def serve_file(request, filename):
 
 @login_required
 def my_projects(request):
+    #TODO - write test to verify this works as expected.
     bookmarks = Bookmark.objects.filter(user__pk=request.user.id)
 
     myprojects = Project.objects.filter(Owner__username=request.user.username) 
@@ -414,6 +478,7 @@ def my_projects(request):
 @login_required
 def bookmark_project(request, slug):
     '''Modified from Practical Django Projects - pg 189.'''
+    #TODO - write test to verify this works as expected.
     project = get_object_or_404(Project, slug=slug)
     try:
         Bookmark.objects.get(user__pk=request.user.id,
@@ -426,6 +491,7 @@ def bookmark_project(request, slug):
 
 @login_required    
 def unbookmark_project(request, slug):
+    #TODO - write test to verify this works as expected.
     project = get_object_or_404(Project, slug=slug)
     if request.method == 'POST':
         Bookmark.objects.filter(user__pk=request.user.id,
@@ -437,12 +503,111 @@ def unbookmark_project(request, slug):
                                   context_instance=RequestContext(request))
 
 
+#=====================
 
-
-
+def get_sisters_dict(slug):
+    '''given a slug, return a list of dictionaries of projects that
+    are (or could be) sisters to the given project.  Values returned
+    by this function are used to populate the sister project formset'''
     
+    project = get_object_or_404(Project, slug=slug)
+    initial=[]
+    
+    try:
+        family = Family.objects.get(projectsisters__project=project)
+    except:
+        family = None
+            
+    try:
+        sisters = ProjectSisters.objects.filter(family=family.id)
+        #get query set of projects that are already sisters:
+        sisters = Project.objects.filter(projectsisters__in=sisters).exclude(
+                                    slug=project.slug)
+    except:
+        sisters = None
+        
+    if sisters:
+        for proj in sisters:
+            initial.append(dict(sister=True, PRJ_CD = proj.PRJ_CD, 
+                                PRJ_NM = proj.PRJ_NM, PRJ_LDR = proj.PRJ_LDR))
+
+            
+    candidates = Project.objects.filter(Approved=True, 
+                                        ProjectType=project.ProjectType, 
+                                        YEAR = project.YEAR,
+                                        projectsisters__isnull=True).exclude(
+                                        slug=project.slug)
+
+    if candidates:
+        for proj in candidates:
+            initial.append(dict(sister=False, PRJ_CD = proj.PRJ_CD, 
+                                PRJ_NM = proj.PRJ_NM, PRJ_LDR = proj.PRJ_LDR))
+
+    return initial
 
 
+def sisterprojects(request, slug):
+    '''render a form that can be used to create groupings of sister
+    projects.  Only approved projects in the same year, and of the
+    same project type will be presented.  existing sister projects
+    will be checked off.  When the form is submitted the sibling
+    relationships will be updated according to the values in the
+    sister of each returned form.'''
+
+    #TODO - write test to verify this works as expected.
+
+    project = get_object_or_404(Project, slug=slug)
+    initial = get_sisters_dict(slug)
+
+    try:
+        family = Family.objects.get(projectsisters__project=project)
+    except:
+        family = None
+    
+    #a boolean flag to pass to template if indicating whether or not
+    #the formset is empty
+    empty = True if len(initial)==0 else False
+        
+    SisterFormSet = formset_factory(SisterProjectsForm, extra=0)
+
+    if request.method == 'POST': 
+        #pdb.set_trace()
+        formset = SisterFormSet(request.POST, request.FILES, initial=initial)
+        if formset.is_valid():
+            #see if any checkboxes have changed
+            cd = [x.cleaned_data['sister'] for x in formset]
+            init = [x.initial['sister'] for x in formset]
+            
+            #if cd==init, there is nothing to do
+            if cd != init:
+                #if family is None, create one.
+                if family is None:
+                    family = Family.objects.create()
+                    ProjectSisters.objects.create(project=project, 
+                                                  family=family)
+                    
+                #if all cd==False then remove this project from this family
+                if all(x==False for x in cd):
+                    ProjectSisters.objects.filter(project=project).delete()
+                    #if this was the last sibling in the family get rid of it too.
+                    familysize = ProjectSisters.objects.filter(
+                        family=family.id).count()
+                    if familysize==1:
+                        ProjectSisters.objects.filter(family=family).delete()
+                        Family.objects.filter(id=family.id).delete()                    
+                else:
+                    for form in formset:
+                        form.save(family=family)
+            return HttpResponseRedirect(project.get_absolute_url())
+    else:
+        formset = SisterFormSet(initial=initial)
+    return render_to_response('SisterProjects.html', {
+                'formset': formset,
+                'project':project,
+                'empty':empty
+                },
+                context_instance=RequestContext(request))
+        
 
 def uploadlist(request):
     '''An example view that illustrates how to handle uploading files.

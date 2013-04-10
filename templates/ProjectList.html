@@ -17,6 +17,22 @@ $(document).ready(function()
     } 
 ); 
 </script>
+
+<script type="text/javascript">
+<!--
+ 
+function toggle_visibility(id) {
+var e = document.getElementById(id);
+if(e.style.display == 'block')
+e.style.display = 'none';
+else
+e.style.display = 'block';
+}
+ 
+//-->
+</script>
+
+
 {% endblock %}
 
 
@@ -31,6 +47,18 @@ $(document).ready(function()
 </p>
 
 <h1>Projects</h1>
+
+<a href="#" onclick="toggle_visibility('filter');">Filter List: </a>
+<div id="filter" style="display:none">
+<div style="border: 1px solid #CCCCCC; padding:10px; border-radius: 15px;">
+ <form action="" method="get">
+        {{ filter.form.as_p }}
+        <input value="Apply Filter" type="submit" />
+</form>
+
+</div>
+</div>
+
 
 {% if object_list %}
   <table id="myTable" class="tablesorter-blue">

@@ -60,7 +60,7 @@
 <a href="{% url 'EditProject' project.slug %}"
    onclick="javascript:window.location=this.href"> 
   <button>Edit Information</button> </a>
-<a href="#" onclick="javascript:window.location=this.href">
+<a href="{% url 'SisterProjects' project.slug %}" onclick="javascript:window.location=this.href">
  <button>Sister Projects</button> </a>
 {% endif  %}
 <a href="{% url 'CopyProject' project.slug %}"

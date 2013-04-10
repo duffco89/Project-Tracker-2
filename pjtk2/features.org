@@ -1,0 +1,10 @@
+
+** Sister Projects
+
+- for given project:
++ find projects in same family (if any)
++ find candiate projects not in family(same year and project type).
+  this query must exclude any projects that already belong to a
+  family.
+
+render in approve projects form.
