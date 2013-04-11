@@ -9,7 +9,8 @@
 git pull usb master
 
 # get a fresh copy of the database:
-cp -r /run/media/adam/AGM/pjtk2/db  /home/adam/Documents/djcode/pjtk2/db
+cp -r /media/adam/AGM/pjtk2/db  /home/adam/Documents/djcode/pjtk2/db
 
 # Copy the uploaded files:
-cp -r /run/media/adam/AGM/pjtk2/uploads  /home/adam/Documents/djcode/pjtk2/uploads
+cp -r /media/adam/AGM/pjtk2/uploads  /home/adam/Documents/djcode/pjtk2/uploads
+                                     

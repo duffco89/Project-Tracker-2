@@ -8,7 +8,7 @@
 # push to the repository
 git push usb --all
 
-cp -r /home/adam/Documents/djcode/pjtk2/db /run/media/adam/AGM/pjtk2/db
+cp -r /home/adam/Documents/djcode/pjtk2/db /media/adam/AGM/pjtk2/db
 
 # Copy the uploaded files:
-cp -r /home/adam/Documents/djcode/pjtk2/uploads  /run/media/adam/AGM/pjtk2/uploads
+cp -r /home/adam/Documents/djcode/pjtk2/uploads  /media/adam/AGM/pjtk2/uploads

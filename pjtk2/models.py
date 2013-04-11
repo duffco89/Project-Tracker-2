@@ -363,8 +363,6 @@ admin.site.register(Report, AdminReport)
 admin.site.register(ProjectSisters, AdminProjectSisters)
 admin.site.register(Family, AdminFamily)
 
-
-
 import django_filters
 
 class ProjectFilter(django_filters.FilterSet):

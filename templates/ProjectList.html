@@ -46,7 +46,7 @@ e.style.display = 'block';
 <a href="{% url 'MyProjects' %}">View My Projects</a> 
 </p>
 
-<h1>Projects</h1>
+<h1>Projects  {% if year %} {{ year }} {% endif %}</h1>
 
 <a href="#" onclick="toggle_visibility('filter');">Filter List: </a>
 <div id="filter" style="display:none">
@@ -62,12 +62,14 @@ e.style.display = 'block';
 
 {% if object_list %}
   <table id="myTable" class="tablesorter-blue">
-    <thead><tr><td>Project Code</td> <td>Project Type</td>
+    <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td>
     <td>Project Name</td></tr>
     </thead>
   <tbody>
   {% for project in object_list %}
     <tr class="{% cycle row1,row2 %}">
+     <td> <a href=" {% url 'ProjectsByYear' project.YEAR %} ">
+     {{ project.YEAR }}</a> </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>

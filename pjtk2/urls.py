@@ -31,6 +31,9 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^sisterprojects/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'sisterprojects', name='SisterProjects'),
 
+    url(r'^projects/(?P<year>\d{4})/$',
+        'project_by_year', name='ProjectsByYear'),
+
     
 # Reports and milestones
     url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',

@@ -35,12 +35,15 @@ $(document).ready(function()
 
 {% if object_list %}
   <table id="myTable" class="tablesorter-blue">
-    <thead><tr><td>Project Code</td> <td>Project Type</td>
+    <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td>
     <td>Project Name</td></tr>
     </thead>
   <tbody>
   {% for project in object_list %}
     <tr class="{% cycle row1,row2 %}">
+     <td>
+       {{ project.YEAR  }} 
+     </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>

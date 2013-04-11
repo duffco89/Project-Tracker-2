@@ -44,11 +44,14 @@ $(document).ready(function()
 <h2>Bookmarks</h2>
 {% if bookmarks %}
   <table id="myTable" class="tablesorter-blue">
-    <thead><tr><td>Project Code</td> <td>Project Type</td><td>Project
+    <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td><td>Project
     Name</td></tr></thead>
   <tbody>
   {% for bookmark in bookmarks %}
    <tr class="{% cycle row1,row2 %}">
+     <td>
+       {{ bookmark.YEAR }} 
+     </td>
      <td>
        <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
      </td>
@@ -75,12 +78,13 @@ $(document).ready(function()
 <h2>Submitted Projects</h2>
 {% if submitted %}
   <table id="myTable" class="tablesorter-blue">
-    <thead><tr><td>Project Code</td> <td>Project Type</td>
+    <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td>
     <td>Project Name</td></tr>
     </thead>
   <tbody>
   {% for project in submitted %}
     <tr class="{% cycle row1,row2 %}">
+     <td> {{ project.YEAR }} </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>
@@ -102,12 +106,13 @@ $(document).ready(function()
 <h2>Approved Projects</h2>
 {% if approved %}
   <table id="myTable" class="tablesorter-blue">
-    <thead><tr><td>Project Code</td> <td>Project Type</td> 
+    <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td> 
      <td>Project Name</td></tr>
    </thead>
   <tbody>
   {% for project in approved %}
     <tr class="{% cycle row1,row2 %}">
+     <td> {{ project.YEAR }} </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>
@@ -129,11 +134,12 @@ $(document).ready(function()
 <h2>Completed Projects</h2>
 {% if complete %}
   <table id="myTable" class="tablesorter-blue">
-    <thead><tr><td>Project Code</td> <td>Project Type</td> <td>Project
+    <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td> <td>Project
     Name</td></tr></thead>
   <tbody>
   {% for project in complete %}
     <tr class="{% cycle row1,row2 %}">
+     <td> {{ project.YEAR }} </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>
