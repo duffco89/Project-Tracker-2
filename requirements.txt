@@ -1,10 +1,14 @@
+CherryPy==3.2.4
 Django==1.5
 South==0.7.6
+argparse==1.2.1
 coverage==3.6
 django-coverage==1.2.2
 django-crispy-forms==1.2.3
 django-debug-toolbar==0.9.4
+django-filter==0.6
 django-nose==1.1
 factory-boy==1.2.0
 nose==1.2.1
+ws4py==0.3.0-beta
 wsgiref==0.1.2

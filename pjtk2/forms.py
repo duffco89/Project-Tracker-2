@@ -45,7 +45,7 @@ class HyperlinkWidget(forms.TextInput):
         output = []
         if value is None:
             value = ''
-        output.append('<a href="/test/projectdetail/%s">%s</a>' % (value.lower(), value))
+        output.append('<a href="/test/projectdetail/%s/">%s</a>' % (value.lower(), value))
         return mark_safe(u''.join(output))
 
 #==================================
@@ -503,10 +503,6 @@ class ProjectForm(forms.ModelForm):
         return cleaned_data
         
 
-
-
-
-
         
 class SisterProjectsForm(forms.Form):
     '''This project form is used to identify sister projects''' 
@@ -530,6 +526,11 @@ class SisterProjectsForm(forms.Form):
         required =False,
     )
     
+    slug = forms.CharField(
+        label = "slug",
+        required =False,
+    )
+    
 
     PRJ_LDR = forms.CharField(
         widget = ReadOnlyText,
@@ -540,8 +541,8 @@ class SisterProjectsForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         super(SisterProjectsForm, self).__init__(*args, **kwargs)
+        self.fields["slug"].widget = forms.HiddenInput()
 
-        
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
         return self.initial['PRJ_CD']

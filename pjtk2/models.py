@@ -62,7 +62,11 @@ class TL_Database(models.Model):
         return self.MasterDatabase
 
 class Project(models.Model):
-    '''Class to hold a record for each project'''
+    '''Class to hold a record for each project
+     TODO:
+     Add Lake, Active,
+     factor out milestone to seperate table(s)
+    '''
     YEAR = models.CharField(max_length=4, blank=True, editable=False)
     PRJ_DATE0 = models.DateField("Start Date", blank=False)
     PRJ_DATE1 = models.DateField("End Date", blank=False)
@@ -142,22 +146,75 @@ class Project(models.Model):
         return Report.objects.filter(projectreport__project=self)
 
 
-    def get_sisters(self):
-        try:
-            family = self.projectsisters_set.all().values('family') 
-        except:
-            family = None
+    def get_family(self):   
+       try:
+           family = Family.objects.get(projectsisters__project=self)
+       except:
+           family = None
+ 
+       return family
+
+    def add_sister(self, slug):
+        family = self.get_family()
+        if family is None:
+            family = Family.objects.create()
+            ProjectSisters.objects.create(project=self, family=family)
+
+        #now add the project associated with slug to family:
+        project = Project.objects.get(slug=slug)
+        ProjectSisters.objects.create(project=project, family=family)
+
+    def get_sisters(self, excludeself = True):
+        '''return a queryset of sister projects associated with this
+        project. - By default, the current project is not incuded in
+        the recordset'''
+        family = self.get_family()
         if family:
             try:
-                sisters = Project.objects.filter(projectsisters__family=family)
+                if excludeself:
+                    sisters = Project.objects.filter(
+                        projectsisters__family=family).exclude(slug=self.slug)
+                else:
+                    sisters = Project.objects.filter(
+                        projectsisters__family=family)
             except:
-                pass
+                sisters = []
         else:
-            sisters = None
-
+            sisters = []
         return sisters
+
+
+    def get_sister_candidates(self):
+        '''return a querset of projects that could be sisters to this
+        project.  To be a candidates for sisterhood, a project must be
+        approved, be the same project type, run in the same year and
+        not be a sister to another project. If the current project
+        isn't approved, no candidates will be returned regardless.'''
+        if self.Approved:
+            try:
+                candidates = Project.objects.filter(Approved=True, 
+                                            ProjectType=self.ProjectType, 
+                                            YEAR = self.YEAR,
+                                            projectsisters__isnull=True).exclude(
+                                            slug=self.slug)
+            except:
+                candidates = []
+        else:
+            candidates = []
+        return candidates
             
-                
+
+    def delete_sister(self, slug):
+        project = Project.objects.get(slug=slug)
+        ProjectSisters.objects.filter(project=project).delete()
+        family = self.get_family()
+        #if this was the last sibling in the family get rid of its
+        #record and the family record too.
+        familysize = ProjectSisters.objects.filter(family=family).count()
+        if familysize==1:
+            ProjectSisters.objects.filter(family=family).delete()
+            Family.objects.filter(id=family.id).delete()                    
+
 
     def get_assignment_dicts(self):
         '''return a dictionary of dictionaries containing elements of
@@ -289,6 +346,10 @@ class Bookmark(models.Model):
     def ProjectType(self):
         return self.project.ProjectType
 
+    def YEAR(self):
+        return self.project.YEAR
+
+
         
     def get_project_code(self):
         return self.project.PRJ_CD
@@ -362,25 +423,4 @@ admin.site.register(ProjectReports, AdminProjectReports)
 admin.site.register(Report, AdminReport)
 admin.site.register(ProjectSisters, AdminProjectSisters)
 admin.site.register(Family, AdminFamily)
-
-import django_filters
-
-class ProjectFilter(django_filters.FilterSet):
-    #ProjectType = django_filters.ModelChoiceFilter(
-    #              widget=django_filters.widgets.LinkWidget)  
-
-    class Meta:
-        model = Project
-        fields = ['YEAR', 'ProjectType']
-    
-    def __init__(self, *args, **kwargs):
-        super(ProjectFilter, self).__init__(*args, **kwargs)
-        filter_ = self.filters['ProjectType']
-
-        # this will grab all the fk ids that are in use
-        fk_counts = Project.objects.values_list('ProjectType').order_by(
-            'ProjectType').annotate(models.Count('ProjectType'))
-        ProjectType_ids = [fk for fk,cnt in fk_counts]
-        filter_.extra['queryset'] = TL_ProjType.objects.filter(
-            pk__in=ProjectType_ids)
 

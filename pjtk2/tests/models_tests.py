@@ -3,6 +3,12 @@ from django.test import TestCase
 from pjtk2.models import *
 from pjtk2.tests.factories import *
 
+import pdb
+import sys
+
+def print_err(*args):
+    sys.stderr.write(' '.join(map(str,args)) + '\n')
+
 class TestProjectModel(TestCase):
 
     def setUp(self):
@@ -17,7 +23,7 @@ class TestProjectModel(TestCase):
         projects by copying old ones.  we don't want to include the old
         milestones in the new project'''
         
-        project = ProjectFactory.create()
+        project = ProjectFactory.create(Approved=False)
         #project = Project.objects.get(pk=1)
 
         #pdb.set_trace()
@@ -173,7 +179,124 @@ class TestModelReports(TestCase):
         self.assertEqual(rep[0].report_path, "path\to\fake\file.txt")
         #self.fail("Finish this test.")
 
+
+
+class TestModelSisters(TestCase):        
+    '''make sure we can add and delete sisters to projects and that
+    families are created and cleaned when not needed.'''
+
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
         
+        self.ProjType = ProjTypeFactory()
+        self.ProjType2 = ProjTypeFactory(Project_Type = "Nearshore Index")
         
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", YEAR=2012, 
+                                              Owner=self.user, slug='lha_ia12_111',
+                                              ProjectType = self.ProjType)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", YEAR=2012, 
+                                              Owner=self.user, slug='lha_ia12_222',
+                                              ProjectType = self.ProjType)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", YEAR=2012, 
+                                              Owner=self.user, slug='lha_ia12_333',
+                                              ProjectType = self.ProjType)
+
+        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", YEAR=2012, 
+                                              Owner=self.user, slug='lha_ia12_444',
+                                              ProjectType = self.ProjType, Approved=False)
+
+        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", YEAR=2012, 
+                                              Owner=self.user, slug='lha_ia12_555',
+                                              ProjectType = self.ProjType2)
+
+        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", YEAR=2011, 
+                                              Owner=self.user, slug='lha_ia11_666',
+                                              ProjectType = self.ProjType)        
+
+    def test_sisters(self):
+
+        #make sure that the family table is empty
+        FamilyCnt = Family.objects.all().count()
+        self.assertEqual(FamilyCnt,0)
+
+        self.assertEqual(self.project1.get_sisters(), [])
+        self.assertEqual(self.project1.get_family(), None)
+
+        candidates = self.project1.get_sister_candidates()
+        self.assertEqual(candidates.count(), 2)
         
+        ## print_err("candidates for %s" % self.project1)
+        ## for candidate in candidates:
+        ##     print_err(candidate)
+
+
+        #make project 1 and 2 sisters:
+        self.project1.add_sister(self.project2.slug)
+
+        #verify that they are sisters and have the same family
+        sisters1 = self.project1.get_sisters()
+        sisters2 = self.project2.get_sisters()
+        #and there they each only have one candidate:
+        candidates = self.project1.get_sister_candidates()
+        self.assertEqual(candidates.count(), 1)
+        candidates = self.project2.get_sister_candidates()
+        self.assertEqual(candidates.count(), 1)
+
+        #each sister should return the other:
+        self.assertEqual(sisters1[0].PRJ_CD, "LHA_IA12_222")
+        self.assertEqual(sisters2[0].PRJ_CD, "LHA_IA12_111")
+
+        #and they should all be in the same family
+        self.assertEqual(self.project1.get_family(), self.project2.get_family())
+        #project3 should not have a family
+        self.assertEqual(self.project3.get_family(), None)
+
+        #make project3 a sistser of project2
+        self.project2.add_sister(self.project3.slug)
+        #automatically it should be a sister of project1
+        sisters1 = self.project1.get_sisters()
+        sisters2 = self.project2.get_sisters()
+        sisters3 = self.project3.get_sisters()
+
+        self.assertEqual(sisters1[0].PRJ_CD,"LHA_IA12_222")
+        self.assertEqual(sisters1[1].PRJ_CD,"LHA_IA12_333")
+        #self.assertEqual(sisters1[2].PRJ_CD,"LHA_IA12_333")
+
+        FamilyCnt = Family.objects.all().count()
+        self.assertEqual(FamilyCnt,1)
+
+        #there shouldn't be any candidates - there all sisters now
+        candidates = self.project1.get_sister_candidates()
+        self.assertEqual(list(candidates), [])
+        self.assertEqual(candidates.count(), 0)
+        
+        #remove project2 from the family
+        self.project1.delete_sister(self.project2.slug)
+        self.assertEqual(self.project2.get_sisters(), [])
+        self.assertEqual(self.project2.get_family(), None)
+        #self.assertEqual(self.project1.get_sisters(), self.project3.get_sisters())
+        self.assertEqual(self.project1.get_family(), self.project3.get_family())
+
+        #delete the last sister and verify that everything is empty
+        self.project1.delete_sister(self.project3.slug)        
+        self.assertEqual(self.project1.get_sisters(), [])
+        self.assertEqual(self.project1.get_family(), None)
+        self.assertEqual(self.project2.get_sisters(), [])
+        self.assertEqual(self.project2.get_family(), None)
+        self.assertEqual(self.project3.get_sisters(), [])
+        self.assertEqual(self.project3.get_family(), None)
+
+        #make sure that the family table is empty again
+        FamilyCnt = Family.objects.all().count()
+        self.assertEqual(FamilyCnt,0)
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()        
+        self.user.delete()
         

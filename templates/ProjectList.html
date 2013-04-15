@@ -35,7 +35,6 @@ e.style.display = 'block';
 
 {% endblock %}
 
-
 {% block title  %} {{ block.super }}| Projects  {% endblock %}
 
 {% block content  %} 
@@ -68,8 +67,7 @@ e.style.display = 'block';
   <tbody>
   {% for project in object_list %}
     <tr class="{% cycle row1,row2 %}">
-     <td> <a href=" {% url 'ProjectsByYear' project.YEAR %} ">
-     {{ project.YEAR }}</a> </td>
+     <td> {{ project.YEAR }} </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>

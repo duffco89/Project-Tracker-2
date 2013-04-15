@@ -42,9 +42,16 @@ class DatabaseFactory(factory.Factory):
     FACTORY_FOR = TL_Database
     MasterDatabase = "Offshore Master"
     Path = "C:/Path/to/somedb.mdb"    
+
+
+class FamilyFactory(factory.Factory):
+    FACTORY_FOR = Family
+    id = factory.Sequence(lambda n:n)
+
     
 class ProjectFactory(factory.Factory):
     FACTORY_FOR = Project
+    Approved = True
     PRJ_CD = "LHA_IA12_123"
     PRJ_NM = "Fake Project"
     PRJ_LDR = "Bob Sakamano"
@@ -55,6 +62,10 @@ class ProjectFactory(factory.Factory):
     MasterDatabase = factory.SubFactory(DatabaseFactory)
     Owner = factory.SubFactory(UserFactory)
 
+class ProjectSisters(factory.Factory):
+    FACTORY_FOR = ProjectSisters    
+    family = factory.SubFactory(FamilyFactory)
+    project = factory.SubFactory(ProjectFactory)
 
 class MilestoneFactory(factory.Factory):
     FACTORY_FOR = Milestone

@@ -315,13 +315,14 @@ class ApprovedProjectListUserTestCase(TestCase):
         #isn't.  Only the approved one should appear in the list.
         self.client = Client()        
         self.user = UserFactory()
-        self.project = ProjectFactory(Owner = self.user)
+        self.project = ProjectFactory(Owner = self.user,
+                                      Approved = False)
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
             PRJ_LDR = self.user,
             Owner = self.user)
-        self.project2.Approved = True
+        #self.project2.Approved = True
         self.project2.save()
             
     def test_with_Login(self):
@@ -372,13 +373,14 @@ class ApprovedProjectListManagerTestCase(TestCase):
         #isn't.  Only the approved one should appear in the list.
         self.client = Client()        
         self.owner = UserFactory()
-        self.project = ProjectFactory(Owner = self.owner)
+        self.project = ProjectFactory(Owner = self.owner,
+                                      Approved = False)
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
             PRJ_LDR = self.owner,
             Owner = self.owner)
-        self.project2.Approved = True
+        #self.project2.Approved = True
         self.project2.save()
 
         #create a differnt user that will be the manager
@@ -702,11 +704,62 @@ class ProjectBookmarkingTestCase(TestCase):
         
         bookmarks = Bookmark.objects.filter(user=self.user)
         self.assertEqual(bookmarks.count(),0)
-        
-        
+                
         
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
 
         self.user.delete()
+
+class SisterProjectsTestCase(TestCase):
+    '''Verify that the user can see and update sisters associated with projects'''
+
+
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+        
+
+        self.ProjType = ProjTypeFactory()
+        self.ProjType2 = ProjTypeFactory(Project_Type = "Nearshore Index")
+        
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", YEAR=2012, 
+                                              Owner=self.user, slug='lha_ia12_111',
+                                              ProjectType = self.ProjType)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", YEAR=2012, 
+                                              Owner=self.user, slug='lha_ia12_222',
+                                              ProjectType = self.ProjType)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", YEAR=2012, 
+                                              Owner=self.user, slug='lha_ia12_333',
+                                              ProjectType = self.ProjType)
+
+
+    def test_sisterbtn(self):
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+
+        url = reverse('SisterProjects', args =(self.project1.slug,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        
+        self.assertTemplateUsed(response, 'SisterProjects.html')
+
+        print "repsonse = %s" % response
+        linktext = '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                                            args =(self.project2.slug,)), 
+                                            self.project2.PRJ_CD)
+        print "linktext = %s" % linktext
+        self.assertContains(response, linktext)
+
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()        
+        self.user.delete()
+        

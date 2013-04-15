@@ -50,7 +50,7 @@ $(document).ready(function()
   {% for bookmark in bookmarks %}
    <tr class="{% cycle row1,row2 %}">
      <td>
-       {{ bookmark.YEAR }} 
+       {{ bookmark.YEAR }}
      </td>
      <td>
        <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
