@@ -134,17 +134,18 @@ class Project(models.Model):
     def get_complete(self):
         '''get the project reports that have uploaded reports
         associated with them.'''
-        return ProjectReports.objects.filter(project=self).filter(report__in=Report.objects.filter(projectreport__project=self))
+        return ProjectReports.objects.filter(project=self).filter(
+            report__in=Report.objects.filter(projectreport__project=self))
 
     def get_outstanding(self):
-        '''these are the required reports that have not been sumitted yet'''
-        return ProjectReports.objects.filter(project=self).exclude(report__in=Report.objects.filter(projectreport__project=self))
+        '''these are the required reports that have not been submitted yet'''
+        return ProjectReports.objects.filter(project=self).exclude(
+            report__in=Report.objects.filter(projectreport__project=self))
 
     def get_reports(self):
         '''get all of the reports that are currenly associated with
         this project'''
         return Report.objects.filter(projectreport__project=self)
-
 
     def get_family(self):   
        try:
@@ -216,15 +217,28 @@ class Project(models.Model):
             Family.objects.filter(id=family.id).delete()                    
 
 
+    def disown(self):
+        '''the special case when we want to remove this project from an
+        existing family, but keep the other sister relationships intact.'''
+
+        family = self.get_family()
+
+        self.delete_sister(self.slug)
+        #if this was the last sibling in the family get rid of it too.
+        familysize = ProjectSisters.objects.filter(family=family.id).count()
+        if familysize==1:
+            ProjectSisters.objects.filter(family=family).delete()
+            Family.objects.filter(id=family.id).delete()                    
+
+
     def get_assignment_dicts(self):
         '''return a dictionary of dictionaries containing elements of
         all core and custom reports as well as vectors indicating
         which ones have been assigned to this project.'''
+
         #get a queryset of all reports we consider 'core'
         corereports = Milestone.objects.filter(category='Core')
         customreports = Milestone.objects.filter(category='Custom')
-
-        #pdb.set_trace()
     
         #we need to convert the querset to a tuple of tuples
         corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
@@ -342,17 +356,15 @@ class Bookmark(models.Model):
 
     def name(self):
         return self.project.PRJ_NM
+        
+    def get_project_code(self):
+        return self.project.PRJ_CD
 
     def ProjectType(self):
         return self.project.ProjectType
 
     def YEAR(self):
         return self.project.YEAR
-
-
-        
-    def get_project_code(self):
-        return self.project.PRJ_CD
 
 class Family(models.Model):
     '''Provides a mechanism to ensure that families are unique and

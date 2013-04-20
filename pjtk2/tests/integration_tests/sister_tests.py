@@ -316,6 +316,60 @@ class SisterFormTestCase(WebTest):
 
 
 
+    def test_disown_sister(self):
+        '''.'''
+
+        self.project1.add_sister(self.project2.slug)
+        self.project1.add_sister(self.project3.slug)
+
+        proj = Project.objects.get(slug=self.project1.slug)
+        sisters = proj.get_sisters()
+        self.assertEqual(len(sisters),2)
+        self.assertEqual(sisters[0].PRJ_CD,self.project2.PRJ_CD)
+        self.assertEqual(sisters[1].PRJ_CD,self.project3.PRJ_CD)
+
+        #we will log into the lister list, click on a sister, 
+        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        response = self.app.get(url, user = self.user)
+
+        assert response.status_int == 200
+        self.assertTemplateUsed(response, 'SisterProjects.html')
+        form = response.form
+        #there should be two forms in the formset 
+        formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
+        #print "formcnt = %s" % formcnt
+        self.assertEquals(formcnt, 2)
+        
+        #the check boxes in both should == None
+        self.assertEquals(form.fields['form-0-sister'][0].value, 'on')
+        self.assertEquals(form.fields['form-1-sister'][0].value, 'on')
+        
+        #uncheck both of the boxes and submit the form, 
+        form.fields['form-0-sister'][0].value = None
+        form.fields['form-1-sister'][0].value = None
+        form.submit()        
+
+        #project 1 shouldn't have any sisters now
+        proj = Project.objects.get(slug=self.project1.slug)
+        sisters = proj.get_sisters()
+        self.assertEqual(len(sisters),0)
+
+        #project 2 should have just one sister - project 3
+        proj = Project.objects.get(slug=self.project2.slug)
+        sisters = proj.get_sisters()
+        self.assertEqual(len(sisters),1)
+        self.assertEqual(sisters[0].PRJ_CD,self.project3.PRJ_CD)
+
+        #Likewise project 3 should have just one sister - project 2
+        proj = Project.objects.get(slug=self.project3.slug)
+        sisters = proj.get_sisters()
+        self.assertEqual(len(sisters),1)
+        self.assertEqual(sisters[0].PRJ_CD,self.project2.PRJ_CD)
+
+
+
+
+
 
     def tearDown(self):
         self.project1.delete()

@@ -175,6 +175,8 @@ class ReportUploadFormSet(BaseFormSet):
     requirement (all core reports plus any additional reports that
     have been requested).
 
+    Additionally, the project and user id will associated with each
+    form so that they can be appended and uploaded properly.
     '''
     def __init__(self, *args, **kwargs):
         self. project = kwargs.pop('project', None)
@@ -205,7 +207,7 @@ class ReportUploadForm(forms.Form):
         required =False,
     )
 
-    filepath = forms.FileField(
+    report_path = forms.FileField(
         label = "File",
         required =False,        
         )    
@@ -215,9 +217,9 @@ class ReportUploadForm(forms.Form):
         self.user = kwargs.pop('user')
         super(ReportUploadForm, self).__init__(*args, **kwargs)
         self.fields["required"].widget.attrs['disabled'] = True
-        #self.fields["filepath"].widget.attrs['style'] = "text-align: right;"
-        self.fields["filepath"].widget.attrs['size'] = "40"        
-        self.fields["filepath"].widget.attrs['class'] = "fileinput"        
+        #self.fields["report_path"].widget.attrs['style'] = "text-align: right;"
+        self.fields["report_path"].widget.attrs['size'] = "40"        
+        self.fields["report_path"].widget.attrs['class'] = "fileinput"        
                          
     def clean_report_type(self):
         '''return the original value of required'''
@@ -226,6 +228,7 @@ class ReportUploadForm(forms.Form):
     def clean_required(self):
         '''return the original value of report_type'''
         return self.initial['required']
+
                 
     def save(self):
         '''see if a report already exists for this projectreport, if
@@ -238,16 +241,17 @@ class ReportUploadForm(forms.Form):
         - verify that it matches certain criteria (file
         types/extentions) depending on reporting milestone
         
-        - if this is a presentation or summary report, see if the
+        - TODO if this is a presentation or summary report, see if the
         project has any sister projects, if so, update projectreports
         for them too.
         
         '''
 
-        if 'filepath' in self.changed_data:        
+        #if 'report_path' in self.changed_data:        
+        if self.has_changed:        
             
             projectreport = ProjectReports.objects.get(
-                project=self.project, report_type=self.clean_report_type)
+                project=self.project, report_type=self.clean_report_type())
 
             #see if there is already is a report for this projectreport
             try:
@@ -264,7 +268,7 @@ class ReportUploadForm(forms.Form):
                 oldReport.save()
 
             newReport = Report.objects.create(
-                    report_path = self.cleaned_data['filepath'],
+                    report_path = str(self.cleaned_data['report_path']),
                     uploaded_by = self.user.username,
                     report_hash = "Fake Hash"
                 )
@@ -278,6 +282,36 @@ class ReportUploadForm(forms.Form):
             #too.  we will have to figure out how to handle sister
             #that are adopted or dis-owned - how do we synchronize
             #existing files?
+            
+            sisters = self.project.get_sisters()
+            #TODO: change model to add "Copy2Sisters" flag - then this
+            #list could be refactored to dynamic query
+            common = str(self.clean_report_type()) in ["Proposal Presentation",
+                                                "Completetion Presentation",
+                                                "Summary Report",] 
+            
+            print "sisters = %s" % sisters
+            print "common = %s" % common
+            print "str(self.clean_report_type()) = %s" % str(self.clean_report_type())
+
+
+            if sisters and common:
+                for sister in sisters:
+                    print sisters
+                    #to do - check for existing reports for each
+                    #ssister, if do change the existing one 'an
+                    #associated report'
+                    #projectreport = ProjectReports.objects.get(
+                    #    project=sister, 
+                    #    report_type=self.clean_report_type())
+                    #ProjectReports.objects.create(project=sister,
+                    #                            report_type=self.clean_report_type())
+                    projectreport, created = ProjectReports.objects.get_or_create(
+                        project=sister, report_type=self.clean_report_type())
+
+                    #add the m2m relationship
+                    ProjectReports.projectreport.add(projectreport)
+
 
 class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
@@ -556,22 +590,19 @@ class SisterProjectsForm(forms.Form):
         return self.initial['PRJ_LDR']
 
     def save(self, *args, **kwargs):
-        family = kwargs.pop('family', None)
-        
+        #family = kwargs.pop('family', None)
+        parentslug = kwargs.pop('parentslug')
+        parentProject = Project.objects.get(slug=parentslug)
+        slug = self.cleaned_data['slug']
         #1. if sister was true and is now false, remove that
         # project from the family
         if (self.cleaned_data['sister']==False and
             self.initial['sister']==True):
-            prj_cd = self.cleaned_data['PRJ_CD']
-            proj = Project.objects.get(PRJ_CD=prj_cd)
-            ProjectSisters.objects.filter(project=proj).delete()
-
+            parentProject.delete_sister(slug)
         #2. if sister was false and is now true, add this project to the family.
         elif (self.cleaned_data['sister']==True and
             self.initial['sister']==False):
-            prj_cd = self.cleaned_data['PRJ_CD']
-            proj = Project.objects.get(PRJ_CD=prj_cd)
-            ProjectSisters.objects.create(project=proj,family=family)
+            parentProject.add_sister(slug)
         #do nothing
         else:
             pass

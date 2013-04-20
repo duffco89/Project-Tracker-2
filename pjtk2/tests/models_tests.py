@@ -153,20 +153,31 @@ class TestMilestoneModel(TestCase):
         #we haven't uploaded any reports, so this should be 0
         self.assertEqual(self.project.get_complete().count(), 0)
 
-        
+    def test_get_assignments_dict(self):
+        #TODO
+        pass
+
+
         
 class TestModelReports(TestCase):        
+    '''functions to test the models and methods assoicated with reports'''
 
     def setUp(self):
 
-        core1 = MilestoneFactory.create(label="core1",
+        #here are a couple of reports we will use, one will have a
+        #report associated with it (complete), one will not (it will
+        #be outstanding)
+        self.core1 = MilestoneFactory.create(label="core1",
                                         category = 'Core', order=1)
+        self.core2 = MilestoneFactory.create(label="core2",
+                                        category = 'Core', order=2)
+
         self.project = ProjectFactory.create()
 
         #retrieve the projectreport that would have been created for
         #the new project
         self.projectreport = ProjectReports.objects.get(project=self.project,
-                                                   report_type=core1)
+                                                   report_type=self.core1)
 
         #create a fake report
         report = ReportFactory(report_path="path\to\fake\file.txt")
@@ -178,6 +189,42 @@ class TestModelReports(TestCase):
         self.assertEqual(len(rep),1)
         self.assertEqual(rep[0].report_path, "path\to\fake\file.txt")
         #self.fail("Finish this test.")
+
+    def test_get_completed(self):
+        '''a function to verify that the method to retrieve completed
+        reporting requirements works.'''
+        comp = self.project.get_complete()
+        self.assertEqual(len(comp),1)
+
+        #make sure that the project report objects match the attributes of core1 and self.project
+        self.assertEqual(comp.values()[0]['required'], self.projectreport.required)
+        self.assertEqual(comp.values()[0]['report_type_id'], 
+                         self.projectreport.report_type_id)
+        self.assertEqual(comp.values()[0]['project_id'], self.project.id) 
+
+        #verify that core2 isnt in the completed list - it isn't done yet:
+        projids = [x['report_type_id'] for x in comp.values()] 
+        self.assertNotIn(self.core2.id, projids)
+
+    def test_get_outstanding(self):
+        '''a test to verify that the method to retrieve unfinished
+        reporting requirements works.'''
+        missing = self.project.get_outstanding()
+        self.assertEqual(len(missing),1)
+
+        #make sure that the project report objects match the attributes of core2 and self.project
+        self.assertEqual(missing.values()[0]['required'], self.projectreport.required)
+        self.assertEqual(missing.values()[0]['report_type_id'], 
+                         self.core2.id)
+        self.assertEqual(missing.values()[0]['project_id'], self.project.id) 
+
+        #verify that core1 isnt in the missing list - it was completed during setup
+        projids = [x['report_type_id'] for x in missing.values()] 
+        self.assertNotIn(self.core1.id, projids)
+
+    def tearDown(self):
+        self.project.delete()
+        self.projectreport.delete()
 
 
 
@@ -300,3 +347,37 @@ class TestModelSisters(TestCase):
         self.project3.delete()        
         self.user.delete()
         
+
+
+class TestModelBookmarks(TestCase):        
+    '''Verify that the bookmark objects return the data in the expected format.'''
+
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
+
+        self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111", YEAR=2012, 
+                                              slug='lha_ia12_111',
+                                              ProjectType = self.ProjType)
+
+    def TestBookmarkAttributes(self):
+        '''Verify that bookmark methods retrun expected values'''
+        bookmark = Bookmark.objects.create(user=self.user,
+                                           project=self.project)
+
+        self.assertEqual(bookmark.get_project_code(), self.project.PRJ_CD)
+        self.assertEqual(bookmark.get_project_url(), self.project.get_absolute_url())
+        self.assertEqual(bookmark.YEAR(), self.project.YEAR)
+        self.assertEqual(str(bookmark), str(self.project))
+        self.assertEqual(bookmark.name(), self.project.PRJ_NM)
+        self.assertEqual(bookmark.ProjectType(), self.project.ProjectType)
+
+    def tearDown(self):
+        self.project.delete()
+        self.ProjType.delete()
+

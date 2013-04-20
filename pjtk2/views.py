@@ -512,25 +512,12 @@ def get_sisters_dict(slug):
     family = project.get_family()
     sisters = project.get_sisters()
     candidates = project.get_sister_candidates()
-##     try:
-##         sisters = ProjectSisters.objects.filter(family=family.id)
-##         #get query set of projects that are already sisters:
-##         sisters = Project.objects.filter(projectsisters__in=sisters).exclude(
-##                                     slug=project.slug)
-##     except:
-##         sisters = None
         
     if sisters:
         for proj in sisters:
             initial.append(dict(sister=True, PRJ_CD = proj.PRJ_CD, 
-                                slug=proj.slug, PRJ_NM = proj.PRJ_NM, PRJ_LDR = proj.PRJ_LDR))
-
-    #these are projects that aren't sisters but could be        
-    ## candidates = Project.objects.filter(Approved=True, 
-    ##                                     ProjectType=project.ProjectType, 
-    ##                                     YEAR = project.YEAR,
-    ##                                     projectsisters__isnull=True).exclude(
-    ##                                     slug=project.slug)
+                                slug=proj.slug, PRJ_NM = proj.PRJ_NM, 
+                                PRJ_LDR = proj.PRJ_LDR))
     if candidates:
         for proj in candidates:
             initial.append(dict(sister=False, PRJ_CD = proj.PRJ_CD, 
@@ -547,19 +534,8 @@ def sisterprojects(request, slug):
     relationships will be updated according to the values in the
     sister of each returned form.'''
 
-    #TODO - write test to verify this works as expected.
-
     project = get_object_or_404(Project, slug=slug)
     initial = get_sisters_dict(slug)
-
-    family = project.get_family()
-    #try:
-    #    family = Family.objects.get(projectsisters__project=project)
-    #except:
-    #    family = None
-    
-    #a boolean flag to pass to template if indicating whether or not
-    #the formset is empty
     empty = True if len(initial)==0 else False
         
     SisterFormSet = formset_factory(SisterProjectsForm, extra=0)
@@ -569,28 +545,15 @@ def sisterprojects(request, slug):
         if formset.is_valid():
             #see if any checkboxes have changed
             cleandata = [x.cleaned_data['sister'] for x in formset]
-            init = [x.initial['sister'] for x in formset]
-            
+            init = [x.initial['sister'] for x in formset]            
             #if cleandata==init, there is nothing to do
-            if cleandata != init:
-                #if family is None, create one.
-                if family is None:
-                    family = Family.objects.create()
-                    ProjectSisters.objects.create(project=project, 
-                                                  family=family)
-                    
+            if cleandata != init:                    
                 #if all cleandata==False then remove this project from this family
                 if all(x==False for x in cleandata):
-                    ProjectSisters.objects.filter(project=project).delete()
-                    #if this was the last sibling in the family get rid of it too.
-                    familysize = ProjectSisters.objects.filter(
-                        family=family.id).count()
-                    if familysize==1:
-                        ProjectSisters.objects.filter(family=family).delete()
-                        Family.objects.filter(id=family.id).delete()                    
+                    project.disown()
                 else:
                     for form in formset:
-                        form.save(family=family)
+                        form.save(parentslug=slug)
             return HttpResponseRedirect(project.get_absolute_url())
     else:
         formset = SisterFormSet(initial=initial)
