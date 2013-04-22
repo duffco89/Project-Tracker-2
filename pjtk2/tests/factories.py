@@ -1,6 +1,7 @@
 import factory
 from datetime import datetime
 from django.contrib.auth.models import User
+from django.template.defaultfilters import slugify
 
 from pjtk2.models import *
 
@@ -50,17 +51,33 @@ class FamilyFactory(factory.Factory):
 
     
 class ProjectFactory(factory.Factory):
+    '''year and slug are built by the project save method'''
     FACTORY_FOR = Project
     Approved = True
     PRJ_CD = "LHA_IA12_123"
+    #slug = "lha_ia12_123"
+    #slug = factory.LazyAttribute(lambda a:slugify(a.PRJ_CD))
     PRJ_NM = "Fake Project"
     PRJ_LDR = "Bob Sakamano"
-    PRJ_DATE0 = datetime.strptime("January 15, 2012", "%B %d, %Y")
-    PRJ_DATE1 = datetime.strptime("May 15, 2012", "%B %d, %Y")
+    #PRJ_DATE0 = datetime.strptime("January 15, 20%s" % PRJ_CD[6:8], "%B %d, %Y")
+    #PRJ_DATE1 = datetime.strptime("May 15, 20%s" % PRJ_CD[6:8], "%B %d, %Y")
+    #YEAR = factory.LazyAttribute(lambda a:a.PRJ_DATE1.year)
     COMMENT = "This is a fake project"
     ProjectType = factory.SubFactory(ProjTypeFactory)
     MasterDatabase = factory.SubFactory(DatabaseFactory)
     Owner = factory.SubFactory(UserFactory)
+
+    @factory.lazy_attribute
+    def PRJ_DATE0(a):
+        datestring = "January 15, 20%s" % a.PRJ_CD[6:8] 
+        PRJ_DATE0 = datetime.strptime(datestring, "%B %d, %Y")
+        return(PRJ_DATE0)
+
+    @factory.lazy_attribute
+    def PRJ_DATE1(a):
+        datestring = "January 15, 20%s" % a.PRJ_CD[6:8] 
+        PRJ_DATE1 = datetime.strptime(datestring, "%B %d, %Y")
+        return(PRJ_DATE1)
 
 class ProjectSisters(factory.Factory):
     FACTORY_FOR = ProjectSisters    
@@ -71,7 +88,7 @@ class MilestoneFactory(factory.Factory):
     FACTORY_FOR = Milestone
     '''Look-up table of reporting milestone'''
     label = "Completion Report"
-    category = "core"
+    category = "Core"
     order = 1
 
 class ProjectReportsFactory(factory.Factory):

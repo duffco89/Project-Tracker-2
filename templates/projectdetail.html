@@ -94,9 +94,9 @@
 
 <h3>Core Reporting Requirements:</h3>
 
-{% if core %}
+{% if Core %}
     <table>
-    {% for report in core  %}
+    {% for report in Core  %}
        <tr>
          <td> <input type="checkbox" disabled="disabled"
             {% if report.required %} checked="checked" {% endif %}>
@@ -125,9 +125,9 @@
 
 <h3>Additional Reporting Requirements:</h3>
 
-{% if custom %}
+{% if Custom %}
     <table>
-    {% for report in custom  %}
+    {% for report in Custom  %}
        <tr>
          <td> <input type="checkbox" disabled="disabled"
             {% if report.required %} checked="checked" {% endif %}>

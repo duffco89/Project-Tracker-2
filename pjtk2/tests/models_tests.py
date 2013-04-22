@@ -24,9 +24,7 @@ class TestProjectModel(TestCase):
         milestones in the new project'''
         
         project = ProjectFactory.create(Approved=False)
-        #project = Project.objects.get(pk=1)
 
-        #pdb.set_trace()
         #the default for all of these milestones should be False
         self.assertEqual(project.Approved, False)
         self.assertEqual(project.Conducted, False)
@@ -99,22 +97,30 @@ class TestMilestoneModel(TestCase):
 
     def setUp(self):
 
-        core1 = MilestoneFactory.create(label="core1",
+        self.core1 = MilestoneFactory.create(label="core1",
                                         category = 'Core', order=1)
-        core2 = MilestoneFactory.create(label="core2",
+        self.core2 = MilestoneFactory.create(label="core2",
                                         category = 'Core', order=2)
-        core3 = MilestoneFactory.create(label="core3",
+        self.core3 = MilestoneFactory.create(label="core3",
                                         category = 'Core', order=3)
+        self.custom = MilestoneFactory.create(label="custom",
+                                        category = 'Custom', order=50)
+
         self.project = ProjectFactory.create()
 
 
     def test_initial_reports_on_save_method(self):
+        '''A record should be made automatically for each core report
+        when a new project is created.'''
         # make some fake reports, the three core reports should be
         # automatically associated with a new project, and verify that
         # the custom report is not when the project is created.
                 
         myreports = ProjectReports.objects.filter(project=self.project)
         self.assertEqual(myreports.count(), 3)
+
+        outstanding = self.project.get_outstanding()
+        self.assertEqual(outstanding.count(), 3)
 
     def test_get_assigment_methods(self):
         
@@ -127,6 +133,26 @@ class TestMilestoneModel(TestCase):
         
         #we haven't uploaded any reports, so this should be 0
         self.assertEqual(self.project.get_complete().count(), 0)
+
+
+    def test_get_assigment_dicts(self):
+        
+        dict = self.project.get_assignment_dicts()
+        print "dict.core = %s" % dict['core']
+        print "dict.custom = %s" % dict['custom']
+
+        core = dict['core']
+        self.assertEqual(core['assigned'],[1,2,3])
+        reports = [str(x[1]) for x in core['reports']]
+        self.assertEqual(reports,[self.core1.label, 
+                                      self.core2.label, 
+                                      self.core3.label])
+
+
+        custom = dict['custom']
+        self.assertEqual(custom['assigned'],[])
+        reports = [str(x[1]) for x in custom['reports']]
+        self.assertEqual(reports,[self.custom.label])
 
     def test_get_assigment_methods_w_custom_report(self): 
 
@@ -152,11 +178,6 @@ class TestMilestoneModel(TestCase):
         
         #we haven't uploaded any reports, so this should be 0
         self.assertEqual(self.project.get_complete().count(), 0)
-
-    def test_get_assignments_dict(self):
-        #TODO
-        pass
-
 
         
 class TestModelReports(TestCase):        
@@ -227,7 +248,6 @@ class TestModelReports(TestCase):
         self.projectreport.delete()
 
 
-
 class TestModelSisters(TestCase):        
     '''make sure we can add and delete sisters to projects and that
     families are created and cleaned when not needed.'''
@@ -241,26 +261,17 @@ class TestModelSisters(TestCase):
         self.ProjType = ProjTypeFactory()
         self.ProjType2 = ProjTypeFactory(Project_Type = "Nearshore Index")
         
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_111',
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user,
                                               ProjectType = self.ProjType)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_222',
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", Owner=self.user, 
                                               ProjectType = self.ProjType)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_333',
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", Owner=self.user, 
                                               ProjectType = self.ProjType)
-
-        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_444',
+        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", Owner=self.user, 
                                               ProjectType = self.ProjType, Approved=False)
-
-        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_555',
+        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", Owner=self.user,
                                               ProjectType = self.ProjType2)
-
-        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", YEAR=2011, 
-                                              Owner=self.user, slug='lha_ia11_666',
+        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", Owner=self.user,
                                               ProjectType = self.ProjType)        
 
     def test_sisters(self):
@@ -275,11 +286,6 @@ class TestModelSisters(TestCase):
         candidates = self.project1.get_sister_candidates()
         self.assertEqual(candidates.count(), 2)
         
-        ## print_err("candidates for %s" % self.project1)
-        ## for candidate in candidates:
-        ##     print_err(candidate)
-
-
         #make project 1 and 2 sisters:
         self.project1.add_sister(self.project2.slug)
 
@@ -341,19 +347,50 @@ class TestModelSisters(TestCase):
         self.assertEqual(FamilyCnt,0)
 
 
+    def test_sisters_include_self(self):
+
+        #make sure that the family table is empty
+        FamilyCnt = Family.objects.all().count()
+        self.assertEqual(FamilyCnt,0)
+        
+        #make project 1 and 2 sisters:
+        self.project1.add_sister(self.project2.slug)
+
+        #verify that they are sisters and have the same family
+        sisters1 = self.project1.get_sisters(False)
+        sisters2 = self.project2.get_sisters(False)
+
+        self.assertQuerysetEqual(
+            sisters1,[self.project1.PRJ_CD, self.project2.PRJ_CD],
+            lambda a:a.PRJ_CD
+            )
+
+        self.assertQuerysetEqual(
+            sisters2,[self.project1.PRJ_CD, self.project2.PRJ_CD],
+            lambda a:a.PRJ_CD
+            )
+
+
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
         self.project3.delete()        
+        self.project4.delete()        
+        self.project5.delete()        
+        self.project6.delete()        
+        self.ProjType.delete()
+        self.ProjType2.delete()
         self.user.delete()
         
 
 
 class TestModelBookmarks(TestCase):        
-    '''Verify that the bookmark objects return the data in the expected format.'''
+    '''Verify that the bookmark objects return the data in the
+    expected format.'''
 
     def setUp(self):
-        '''we will need three projects with easy to rember project codes'''
+        '''we will need three projects with easy to rember project
+        codes'''
 
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
@@ -361,8 +398,7 @@ class TestModelBookmarks(TestCase):
 
         self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
 
-        self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111", YEAR=2012, 
-                                              slug='lha_ia12_111',
+        self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
                                               ProjectType = self.ProjType)
 
     def TestBookmarkAttributes(self):

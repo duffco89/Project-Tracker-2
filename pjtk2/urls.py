@@ -51,6 +51,7 @@ urlpatterns = patterns('pjtk2.views',
 
     url(r'^reportupload/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'ReportUpload', name='ReportUpload'),
+    
     url(r'^uploadlist/$', 'uploadlist', name='UploadList'),
 
     #this function is used to download reports and files from project pages

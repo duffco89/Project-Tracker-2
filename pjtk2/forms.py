@@ -9,6 +9,7 @@ from pjtk2.models import Milestone, Project, ProjectReports, Report, TL_ProjType
 from pjtk2.models import ProjectSisters
 import pdb
 import re
+import hashlib
 
 #==================================
 #  WIDGETS
@@ -112,9 +113,9 @@ class ReportsForm(forms.Form):
         
         super(ReportsForm, self).__init__(*args, **kwargs)
         if self.core:
-            what = 'core'
+            what = 'Core'
         else:
-            what = 'custom'
+            what = 'Custom'
 
         self.what = what
         
@@ -236,19 +237,18 @@ class ReportUploadForm(forms.Form):
         
         - populate uploaded by with user name
         
-        - calculate hash of file 
+        - TODO:calculate hash of file (currently calculated on hash of path)
         
-        - verify that it matches certain criteria (file
+        - TODO:verify that it matches certain criteria (file
         types/extentions) depending on reporting milestone
         
-        - TODO if this is a presentation or summary report, see if the
+        - if this is a presentation or summary report, see if the
         project has any sister projects, if so, update projectreports
         for them too.
-        
         '''
 
         #if 'report_path' in self.changed_data:        
-        if self.has_changed:        
+        if self.cleaned_data['report_path']:        
             
             projectreport = ProjectReports.objects.get(
                 project=self.project, report_type=self.clean_report_type())
@@ -267,50 +267,57 @@ class ReportUploadForm(forms.Form):
                 oldReport.current = False
                 oldReport.save()
 
-            newReport = Report.objects.create(
-                    report_path = str(self.cleaned_data['report_path']),
+            self.is_valid() #just to make sure
+
+            newReport = Report(
+                    report_path = self.cleaned_data['report_path'],
                     uploaded_by = self.user.username,
-                    report_hash = "Fake Hash"
+                    report_hash = hashlib.sha1(
+                        str(self.cleaned_data['report_path'])).hexdigest()
+
                 )
+            newReport.save()
             #add the m2m record for this projectreport
             newReport.projectreport.add(projectreport)
-
-            #TODO: 
+            
             #if this a presentation or summary report, see if
             #this project has any sister projects.  If so, add an m2m
             #for each one so this document is associated with them
-            #too.  we will have to figure out how to handle sister
+            #too.  
+            #TODO: figure out how to handle sisters
             #that are adopted or dis-owned - how do we synchronize
             #existing files?
             
             sisters = self.project.get_sisters()
-            #TODO: change model to add "Copy2Sisters" flag - then this
-            #list could be refactored to dynamic query
+            #TODO: change reporting milestone model to include
+            #"Copy2Sisters" flag - then this list could be refactored
+            #to dynamic query
             common = str(self.clean_report_type()) in ["Proposal Presentation",
                                                 "Completetion Presentation",
                                                 "Summary Report",] 
             
-            print "sisters = %s" % sisters
-            print "common = %s" % common
-            print "str(self.clean_report_type()) = %s" % str(self.clean_report_type())
-
-
             if sisters and common:
                 for sister in sisters:
-                    print sisters
-                    #to do - check for existing reports for each
-                    #ssister, if do change the existing one 'an
-                    #associated report'
                     #projectreport = ProjectReports.objects.get(
                     #    project=sister, 
                     #    report_type=self.clean_report_type())
-                    #ProjectReports.objects.create(project=sister,
-                    #                            report_type=self.clean_report_type())
                     projectreport, created = ProjectReports.objects.get_or_create(
                         project=sister, report_type=self.clean_report_type())
+                    try:
+                        oldReport = Report.objects.get(projectreport=projectreport, 
+                                                       current=True)
+                        oldReport.current = False
+                        oldReport.save()
 
-                    #add the m2m relationship
-                    ProjectReports.projectreport.add(projectreport)
+                    except Report.DoesNotExist:
+                        oldReport = None
+
+                    #if oldReport:
+                    #    oldReport.current = False
+                    #    oldReport.save()
+                    #add the m2m relationship for the sister
+                    newReport.projectreport.add(projectreport)
+
 
 
 class ProjectForm(forms.ModelForm):

@@ -55,7 +55,7 @@ def canEdit(user, project):
     return(canEdit)
 
 
-def get_assignments_with_paths(slug, core=True):
+def get_assignments_with_paths(slug, Core=True):
     '''function that will return a list of dictionaries for each of the
     reporting requirements.  each dictionary will indicate what the
     report is required, whether or not it has been requested for this
@@ -64,7 +64,7 @@ def get_assignments_with_paths(slug, core=True):
 
     project = Project.objects.get(slug=slug)
 
-    if core:
+    if Core:
         assignments = project.get_core_assignments()
     else:
         assignments = project.get_custom_assignments()
@@ -211,16 +211,16 @@ def ProjectDetail(request, slug):
     #reports = get_assignments(slug)
     #reports = project.get_assignment_dicts()
 
-    core = get_assignments_with_paths(slug)
-    custom = get_assignments_with_paths(slug, core=False)
+    Core = get_assignments_with_paths(slug)
+    Custom = get_assignments_with_paths(slug, Core=False)
 
     user = User.objects.get(username__exact=request.user)
     edit = canEdit(user, project)
     manager = is_manager(user)
 
     return render_to_response('projectdetail.html',
-                              {'core':core,
-                               'custom':custom,
+                              {'Core':Core,
+                               'Custom':Custom,
                                'project':project,
                                'edit':edit,
                                'manager':manager
@@ -356,30 +356,30 @@ def report_milestones(request, slug):
             return HttpResponseRedirect(reverse('Reports', args=(project.slug,)))
 
         else:
-            core =  ReportsForm(request.POST, project=project, reports=reports)
-            custom = ReportsForm(request.POST, project=project, reports = reports,
-                                 core=False)
+            Core =  ReportsForm(request.POST, project=project, reports=reports)
+            Custom = ReportsForm(request.POST, project=project, reports = reports,
+                                 Core=False)
 
-            if core.is_valid() and custom.is_valid():
-                core.save()
-                custom.save()
+            if Core.is_valid() and Custom.is_valid():
+                Core.save()
+                Custom.save()
 
                 return HttpResponseRedirect(project.get_absolute_url())
     else:
-        core =  ReportsForm(project=project, reports = reports)
-        custom =  ReportsForm(project=project, reports = reports, core=False)
+        Core =  ReportsForm(project=project, reports = reports)
+        Custom =  ReportsForm(project=project, reports = reports, Core=False)
 
 
     return render_to_response('reportform.html',
-                              {'core':core,
-                               'custom':custom,
+                              {'Core':Core,
+                               'Custom':Custom,
                                'project':project
                                },
                               context_instance=RequestContext(request)
         )
 
 
-
+@login_required
 def ReportUpload(request, slug):
     '''This view will render a formset with filefields for each of the
     reports associated with this project.  It used a custom formset
@@ -390,9 +390,9 @@ def ReportUpload(request, slug):
 
     #get the core and custom reports associated with this project
     reports = get_assignments_with_paths(slug)
-    custom =  get_assignments_with_paths(slug, core=False)
-    if custom:
-        [reports.append(x) for x in custom]
+    Custom =  get_assignments_with_paths(slug, Core=False)
+    if Custom:
+        [reports.append(x) for x in Custom]
     
     ReportFormSet = formset_factory(ReportUploadForm, 
                                     formset=ReportUploadFormSet, extra=0)
@@ -400,7 +400,7 @@ def ReportUpload(request, slug):
     if request.method == 'POST': 
         formset = ReportFormSet(request.POST,  request.FILES, 
                                 initial = reports, 
-                                project=project,
+                                project = project,
                                 user = request.user)    
         if formset.is_valid(): 
             for form in formset:

@@ -8,14 +8,17 @@ import pdb
 
 # Create your models here.
 
-MILESTONE_CHOICES = {
-    ('Core','core'),
-    ('Suggested','suggested'),    
-    ('Custom','custom'),
-}
 
 class Milestone(models.Model):
     '''Look-up table of reporting milestone'''
+
+    #(database, display)
+    MILESTONE_CHOICES = {
+        ('Core', 'core'),
+        ('Suggested', 'suggested'),    
+        ('Custom', 'custom'),
+    }
+
     label = models.CharField(max_length=30, unique=True)
     category = models.CharField(max_length=30, choices=MILESTONE_CHOICES,
                                 default='Custom')
@@ -114,8 +117,9 @@ class Project(models.Model):
         return ProjectReports.objects.filter(project=self)
 
     def get_core_assignments(self, all=True):
-        '''get all of the core reports have been assigned to 
-        this project'''
+        '''get all of the core reports have been assigned to this
+        project, if all is true, all assignements are returned, if all
+        is False, only required assignments are returned.'''
 
         if all==True:
             assignments = self.get_assignments().filter(
@@ -135,7 +139,8 @@ class Project(models.Model):
         '''get the project reports that have uploaded reports
         associated with them.'''
         return ProjectReports.objects.filter(project=self).filter(
-            report__in=Report.objects.filter(projectreport__project=self))
+            report__in=Report.objects.filter(current=True,
+                                             projectreport__project=self))
 
     def get_outstanding(self):
         '''these are the required reports that have not been submitted yet'''
@@ -143,9 +148,62 @@ class Project(models.Model):
             report__in=Report.objects.filter(projectreport__project=self))
 
     def get_reports(self):
-        '''get all of the reports that are currenly associated with
-        this project'''
-        return Report.objects.filter(projectreport__project=self)
+        '''get all of the CURRENT reports that are associated with
+        this project.  Non-current reports are not included in this recordset.'''
+        return Report.objects.filter(current=True, 
+                                     projectreport__project=self)
+
+
+    def get_assignment_dicts(self):
+        '''return a dictionary of dictionaries containing elements of
+        all core and custom reports as well as vectors indicating
+        which ones have been assigned to this project.'''
+
+        #get a queryset of all reports we consider 'core'
+        corereports = Milestone.objects.filter(category='Core')
+        customreports = Milestone.objects.filter(category='Custom')
+    
+        #we need to convert the querset to a tuple of tuples
+        corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
+        customreports = tuple([(x[0], x[1]) for x in customreports.values_list()])    
+        #see if there is a project associated with this slug, if so, get
+        #the reports currently assigned to the project, if not return a
+        #dictionary with all reports assigned
+        core_assigned = self.get_core_assignments()
+        core_assigned = [x.report_type_id for x in list(core_assigned)]
+
+        custom_assigned = self.get_custom_assignments()
+        custom_assigned = [x.report_type_id for x in list(custom_assigned)]
+ 
+        #put the reports and assigned reports in a dictionary    
+        core = dict(reports=corereports, assigned=core_assigned)
+        custom = dict(reports=customreports, assigned=custom_assigned)
+
+        reports = dict(core=core, custom=custom)
+    
+        return reports
+
+
+    def resetMilestones(self):
+        '''a function to make sure that all of the project milestones are
+        set to zero. Used when copying an existing project - we don t want
+        to copy its milestones too'''
+        self.Approved = False
+        self.Conducted = False
+        self.DataScrubbed = False
+        self.DataMerged = False                        
+        self.SignOff = False
+        return self
+
+    def initialReports(self):
+        '''A function that will add a record into "ProjectReports" for
+        each of the core report for newly created projects'''
+        #project = Project.objects.get(slug=slug)
+        corereports = Milestone.objects.filter(category='Core')
+
+        for report in corereports:
+            pr = ProjectReports(project=self, report_type = report)
+            pr.save()
 
     def get_family(self):   
        try:
@@ -231,60 +289,8 @@ class Project(models.Model):
             Family.objects.filter(id=family.id).delete()                    
 
 
-    def get_assignment_dicts(self):
-        '''return a dictionary of dictionaries containing elements of
-        all core and custom reports as well as vectors indicating
-        which ones have been assigned to this project.'''
-
-        #get a queryset of all reports we consider 'core'
-        corereports = Milestone.objects.filter(category='Core')
-        customreports = Milestone.objects.filter(category='Custom')
-    
-        #we need to convert the querset to a tuple of tuples
-        corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
-        customreports = tuple([(x[0], x[1]) for x in customreports.values_list()])    
-        #see if there is a project associated with this slug, if so, get
-        #the reports currently assigned to the project, if not return a
-        #dictionary with all reports assigned
-        core_assigned = self.get_core_assignments()
-        core_assigned = [x.report_type_id for x in list(core_assigned)]
-
-        custom_assigned = self.get_custom_assignments()
-        custom_assigned = [x.report_type_id for x in list(custom_assigned)]
- 
-        #put the reports and assigned reports in a dictionary    
-        core = dict(reports=corereports, assigned=core_assigned)
-        custom = dict(reports=customreports, assigned=custom_assigned)
-
-        reports = dict(core=core, custom=custom)
-    
-        return reports
-
-
-    def resetMilestones(self):
-        '''a function to make sure that all of the project milestones are
-        set to zero. Used when copying an existing project - we don t want
-        to copy its milestones too'''
-        self.Approved = False
-        self.Conducted = False
-        self.DataScrubbed = False
-        self.DataMerged = False                        
-        self.SignOff = False
-        return self
-
-    def initialReports(self):
-        '''A function that will add a record into "ProjectReports" for
-        each of the core report for newly created projects'''
-        #project = Project.objects.get(slug=slug)
-        corereports = Milestone.objects.filter(category='Core')
-
-        for report in corereports:
-            pr = ProjectReports(project=self, report_type = report)
-            pr.save()
-
     #@models.permalink
     def get_absolute_url(self):
-        #slug = str(self.slug)
         url = reverse('pjtk2.views.ProjectDetail', kwargs={'slug':self.slug})
         return url
 
@@ -296,16 +302,15 @@ class Project(models.Model):
         if slug is a dupicate!
         """
         new=False
-        if not self.slug:
+        if not self.slug or not self.YEAR:
             self.slug = slugify(self.PRJ_CD)
-            new = True
-        if not self.YEAR:            
             self.YEAR = self.PRJ_DATE0.year
+            new = True
+
         super(Project, self).save( *args, **kwargs)
         if new:
             self.initialReports()
     
-
             
 class ProjectReports(models.Model):
     '''list of reporting requirements for each project'''
@@ -320,7 +325,6 @@ class ProjectReports(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.project.PRJ_CD, self.report_type)
 
-        
         
 class Report(models.Model):
     '''class for reports.  A single report can be linked to multiple
@@ -382,7 +386,7 @@ class Family(models.Model):
         
     
 class ProjectSisters(models.Model): 
-    
+
     '''Sister projects have common presentations and summary reports.
     They must be the same project type, and run in the same year.'''  
 
@@ -391,6 +395,11 @@ class ProjectSisters(models.Model):
 
     class Meta:
         verbose_name_plural = "Project Sisters"
+        ordering = ['family', 'project']
+
+    def __unicode__(self):
+        return str("Project - %s - Family %s" % (self.project, self.family))
+
 
         
         
@@ -407,14 +416,11 @@ class AdminTL_Database(admin.ModelAdmin):
 class AdminProject(admin.ModelAdmin):
     pass
 
-
 class AdminFamily(admin.ModelAdmin):
     pass
 
-
 class AdminProjectSisters(admin.ModelAdmin):
     pass
-
 
 class AdminProjectReports(admin.ModelAdmin):
     list_display = ('project', 'report_type',)
@@ -433,6 +439,7 @@ admin.site.register(TL_Database, AdminTL_Database)
 admin.site.register(Project, AdminProject)
 admin.site.register(ProjectReports, AdminProjectReports)
 admin.site.register(Report, AdminReport)
-admin.site.register(ProjectSisters, AdminProjectSisters)
 admin.site.register(Family, AdminFamily)
+admin.site.register(ProjectSisters, AdminProjectSisters)
+
 

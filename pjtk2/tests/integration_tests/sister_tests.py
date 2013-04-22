@@ -26,32 +26,29 @@ class SisterFormTestCase(WebTest):
         self.ProjType = ProjTypeFactory()
         self.ProjType2 = ProjTypeFactory(Project_Type = "Nearshore Index")
         
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_111',
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+                                              Owner=self.user,
                                               ProjectType = self.ProjType)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_222',
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+                                              Owner=self.user,
                                               ProjectType = self.ProjType)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_333',
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+                                              Owner=self.user,
                                               ProjectType = self.ProjType)
 
         #same project type, but not approved
-        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_444',
+        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444",
+                                              Owner=self.user,
                                               ProjectType = self.ProjType, Approved=False)
 
         #approved, different project type
-        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_555',
+        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555",
+                                              Owner=self.user,
                                               ProjectType = self.ProjType2)
         #approved, same project type, different year
-        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", YEAR=2011, 
-                                              Owner=self.user, slug='lha_ia11_666',
+        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666",
+                                              Owner=self.user,
                                               ProjectType = self.ProjType)
-
-
- 
 
 
     def test_projectlist(self):
