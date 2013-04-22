@@ -1,15 +1,27 @@
+'''Tests in this file use both web test and the django test client to
+verify that the report upload formset is rendered properly and uploads
+files as expected.'''
+
+
 import os
 from StringIO import StringIO
 
 from django.core.urlresolvers import reverse
-from django_webtest import WebTest
+from django_webtest import WebTest 
 from django.conf import settings
-
+from django.test import TestCase
 #from testfixtures import compare
 from pjtk2.models import ProjectReports
 from pjtk2.tests.factories import *
 
+
+from webtest import Upload
+
 class BasicReportUploadTestCase(WebTest):
+    '''NOTE - actual file upload tests moved to the bottom of the is
+    file couldn't get webtest to include uploaded files in
+    request.FILEs.  These webtest tests verify that the report upload
+    form is rendered correctly.'''
 
     def setUp(self):
         #USER
@@ -112,114 +124,6 @@ class BasicReportUploadTestCase(WebTest):
         self.assertEquals(formcnt, 4)
 
 
-
-    def test_upload_report(self):
-        '''verify that we can actually upload a file'''
-
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
-        response = self.app.get(url, user = self.user)
-
-        assert response.status_int == 200
-        self.assertTemplateUsed(response, 'UploadReports.html')
-
-        #upload mock_file1 to "Proposal Presentation" file field
-        form = response.form
-        filedata = (self.mock_file.name, self.mock_file.read())
-        form.fields['form-0-report_path'][0] = filedata
-
-        #submit the report
-        form.submit()        
-
-        report_count = Report.objects.all().count()
-        #self.assertEqual(report_count,1)
-
-        #verify that the file name is on the project details page
-        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
-        response = self.app.get(url, user = self.user)
-
-        #verify that the file name is in queryset returned by  get_reports()
-        filepath = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file.name)[1])
-        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
-                             args = (filepath,)), filepath)
-        #print response
-        #self.assertIn(linkstring, response)
-
-
-    def test_upload_multiple_reports(self):
-        '''verify that we can upload more than 1 file'''
-
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
-        response = self.app.get(url, user = self.user)
-
-        assert response.status_int == 200
-        self.assertTemplateUsed(response, 'UploadReports.html')
-
-        #upload mock_file1 to "Project Proposal" file field
-        #upload mock_file2 to "Summary" file field
-        #upload mock_file3 to "Budget Report" file field
-
-        #submit the report 
-        #verify that the file names are on the project details page 
-        #verify that the file names are associated with the
-        #appropriate report type
-
-        #verify that the file names are in queryset returned by  get_reports()
-
-
-    def test_upload_report_sister_projects(self):
-        '''verify that we can upload more than 1 file'''
-
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
-        response = self.app.get(url, user = self.user)
-
-        assert response.status_int == 200
-        self.assertTemplateUsed(response, 'UploadReports.html')
-
-        #upload mock_file1 to "Project Proposal" file field
-        #submit the report
-
-        #verify that the file name is on the project details page for
-        #this project, its sister projecct, but not the third project
-
-        #verify that the file name is in queryset returned by
-        #get_reports() for both this project, its sister project but
-        #not the thrid project
-
-
-
-    def test_upload_multiple_reports_to_sister_projects(self):
-        '''verify that we can upload more than 1 file'''
-
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
-        response = self.app.get(url, user = self.user)
-
-        assert response.status_int == 200
-        self.assertTemplateUsed(response, 'UploadReports.html')
-
-        #upload mock_file1 to "Project Proposal" file field
-        #upload mock_file2 to "Summary" file field
-        #upload mock_file3 to "Budget Report" file field
-
-
-        #submit the report 
-
-        #verify that the file names are on the project details page
-        #for project1 and project2, but not project3
-
-        #verify that the file names are associated with the
-        #appropriate report types on the details page for this report
-        #and its sister
-
-        #verify that the file names are in queryset returned by
-        #get_reports() for both this report and its sister
-
-
-
-
-
-
-
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
@@ -253,3 +157,449 @@ class BasicReportUploadTestCase(WebTest):
             os.remove(filepath)          
         except:
             pass
+
+
+
+class TestActualFileUpload(TestCase):
+    ''' These tests use the django test client to upload reports
+    associated with different reporting requirements.'''
+
+    def setUp(self):        
+        #USER
+        self.user = UserFactory.create(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        #required reports
+        self.rep0 = MilestoneFactory.create(label = "Proposal Presentation",
+                                category = 'Core', order = 1)
+        self.rep1 = MilestoneFactory.create(label = "Completion Report",
+                                category = 'Core', order = 2)
+        self.rep2 = MilestoneFactory.create(label = "Summary Report",
+                                category = 'Core', order = 3)
+        self.rep3 = MilestoneFactory.create(label = "Budget Report",
+                                category = 'Custom', order = 99)
+
+        #PROJECTS
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", Owner=self.user)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", Owner=self.user)
+
+        #here is fake file that we will upload
+        self.mock_file0 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
+                     '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
+        self.mock_file0.name = "path/to/some/fake/file.txt"
+
+        self.mock_file1 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
+                     '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
+        self.mock_file1.name = "path/to/some/fake/file-1.txt"
+
+        self.mock_file2 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
+                     '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
+        self.mock_file2.name = "path/to/some/fake/file-2.txt"
+
+            
+    def test_upload_single_report(self):
+        '''verify that a user can upload a simple file, that the file
+        is associated with the correct project and has the correct
+        report-type.'''
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+
+        form_data = {
+            'form-TOTAL_FORMS': 1, 
+            'form-INITIAL_FORMS': 0,
+            'form-0-report_path': self.mock_file0, 
+            }
+
+        self.client.post(url, form_data)
+
+        #verify that the report was added to the Report table:
+        report_count = Report.objects.all().count()
+        self.assertEqual(report_count,1)
+
+        filepath = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file0.name)[1])
+        
+        reports = self.project1.get_reports()
+        self.assertEqual(reports.values()[0]['report_path'],filepath)
+
+        #make sure that the report_type is what we think it is:
+        pr = ProjectReports.objects.get(report=reports.select_related())
+        self.assertEqual(pr.report_type, self.rep0)
+        
+        #verify that a link to the file is on the project details page
+        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+      
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath,)), filepath)
+
+        self.assertContains(response, linkstring)        
+
+
+    def test_upload_multiple_reports(self):
+        '''verify that we can upload more than 1 file'''
+
+
+        #create a requirement for a budget report for this poject
+        ProjectReports.objects.create(project=self.project1, 
+                                      report_type = self.rep3)
+
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'UploadReports.html')
+
+        #upload mock_file1 to "Project Proposal" file field
+        #upload mock_file2 to "Summary" file field
+        #upload mock_file3 to "Budget Report" file field
+
+        form_data = {
+            'form-TOTAL_FORMS': 4, 
+            'form-INITIAL_FORMS': 4,
+            'form-0-report_path': self.mock_file0,
+            #form-1-report_path - leave empty should be Proj. Completion
+            'form-2-report_path': self.mock_file1, 
+            'form-3-report_path': self.mock_file2, 
+            }
+
+        #submit the report 
+        self.client.post(url, form_data)
+
+        #get the all of the reports and the proejct-reports assocaited
+        #with this project
+        reports = Report.objects.all()
+
+        #verify that three reports have been added to the Report table:
+        self.assertEqual(reports.count(),3)
+
+        #first file:
+        filepath1 = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file0.name)[1])
+        self.assertEqual(reports.values()[0]['report_path'],filepath1)
+        
+        #make sure that the report_type is what we think it is:
+        #there should only be one projectreport record associate with
+        #this report, and its report type should match that of rep1
+        pr = reports[0].projectreport.all()
+        self.assertEqual(pr.count(),1)
+        self.assertEqual(pr[0].report_type, self.rep0)        
+
+        #=============
+        #second file:
+        filepath2 = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file1.name)[1])
+        self.assertEqual(reports.values()[1]['report_path'],filepath2)
+        report_id = reports.values_list()[1][0]
+        
+        #make sure that the report_type is what we think it is:
+        #there should only be one projectreport record associate with
+        #this report, and its report type should match that of rep1
+        pr = ProjectReports.objects.filter(report__id=report_id)
+        self.assertEqual(pr.count(),1)
+        #we skipped a file on the form - this should be associated
+        #with the 3rd milestone
+        self.assertEqual(pr[0].report_type, self.rep2)        
+
+
+        #=============
+        #third file:
+        filepath3 = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file2.name)[1])
+        self.assertEqual(reports.values()[2]['report_path'],filepath3)
+        report_id = reports.values_list()[2][0]
+        #make sure that the report_type is what we think it is:
+        #there should only be one projectreport record associate with
+        #this report, and its report type should match that of rep1
+        pr = ProjectReports.objects.filter(report__id=report_id)
+        self.assertEqual(pr.count(),1)
+        self.assertEqual(pr[0].report_type, self.rep3)        
+
+        #=============
+        #verify that a link to the file is on the project details page
+        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+      
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath1,)), filepath1)
+        self.assertContains(response, linkstring)        
+
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath2,)), filepath2)
+        self.assertContains(response, linkstring)        
+
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath3,)), filepath3)
+        self.assertContains(response, linkstring)        
+
+
+        #verify that the file names are on the project details page 
+        #verify that the file names are associated with the
+        #appropriate report type
+
+        #verify that the file names are in queryset returned by  get_reports()
+
+    def test_upload_report_sister_projects(self):
+        '''verify that we can upload more than 1 file'''
+
+        #set up the sister relationship:
+        self.project1.add_sister(self.project2.slug)        
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'UploadReports.html')
+
+        form_data = {
+            'form-TOTAL_FORMS': 4, 
+            'form-INITIAL_FORMS': 0,
+            # form 0 and 1 are used for proposal and completion reports
+            'form-2-report_path': self.mock_file0, 
+            }
+
+        self.client.post(url, form_data)
+
+        #verify that the report was added to the Report table:
+        report_count = Report.objects.all().count()
+        self.assertEqual(report_count,1)
+
+        filepath = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file0.name)[1])
+        
+        reports = self.project1.get_reports()
+        self.assertEqual(reports.values()[0]['report_path'],filepath)
+
+        #make sure that the report_type is what we think it is:
+        pr = ProjectReports.objects.filter(report=reports.select_related())
+        self.assertEqual(pr[0].report_type, self.rep2)
+        self.assertEqual(pr[1].report_type, self.rep2)
+        
+        #verify that a link to the file is on the project details page
+        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+      
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath,)), filepath)
+
+        self.assertContains(response, linkstring)        
+
+        #============================
+        #verify all of the same details for the sister project
+        
+        reports = self.project2.get_reports()
+        self.assertEqual(reports.values()[0]['report_path'], filepath)
+        
+        #verify that a link to the file is on the project details page
+        url = reverse('ProjectDetail', args = (self.project2.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+      
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath,)), filepath)
+        self.assertContains(response, linkstring)        
+
+        #============================
+        #the information should not be associated with the thrid project
+        reports = self.project3.get_reports()
+        self.assertEqual(reports.count(),0)
+
+
+    def test_upload_multiple_reports_to_sister_projects(self):
+        '''verify that we can upload more than 1 file'''
+
+        #set up the sister relationship:
+        self.project1.add_sister(self.project2.slug)        
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'UploadReports.html')
+
+        form_data = {
+            'form-TOTAL_FORMS': 3, 
+            'form-INITIAL_FORMS': 3,
+            'form-0-report_path': self.mock_file0, #Prop. Pres.
+            'form-1-report_path':  self.mock_file1, #Proj. Completion
+            'form-2-report_path': self.mock_file2, #Summary Report
+            }
+
+        #submit the report 
+        self.client.post(url, form_data)
+
+        #get the all of the reports and the proejct-reports assocaited
+        #with this project
+        reports = Report.objects.all()
+
+        #verify that three reports have been added to the Report table:
+        self.assertEqual(reports.count(),3)
+
+        #first file:
+        filepath1 = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file0.name)[1])
+        self.assertEqual(reports.values()[0]['report_path'],filepath1)
+        
+        #make sure that the report_type is what we think it is:
+        #there should TWO projectreport records associate with
+        #this report - one for each sister project, and its report type should match that of rep1
+        pr = reports[0].projectreport.all()
+        self.assertEqual(pr.count(),2)
+
+        self.assertQuerysetEqual(
+            pr,[self.project1.PRJ_CD, self.project2.PRJ_CD],
+            lambda a:a.project.PRJ_CD
+            )
+        
+        self.assertEqual(pr[0].report_type, self.rep0)        
+
+        #=============
+        #second file:
+        filepath2 = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file1.name)[1])
+        self.assertEqual(reports.values()[1]['report_path'],filepath2)
+        report_id = reports.values_list()[1][0]
+        
+        #make sure that the report_type is what we think it is:
+        #there should only be one projectreport record associate with
+        #this report, and its report type should match that of rep1
+        pr = ProjectReports.objects.filter(report__id=report_id)
+        self.assertEqual(pr.count(),1)
+        #we skipped a file on the form - this should be associated
+        #with the 3rd milestone
+        self.assertEqual(pr[0].report_type, self.rep1)        
+
+
+        #=============
+        #third file:
+        filepath3 = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file2.name)[1])
+        self.assertEqual(reports.values()[2]['report_path'],filepath3)
+        report_id = reports.values_list()[2][0]
+
+        #make sure that the report_type is what we think it is:
+        #there should TWO projectreport record associate with
+        #this report, and its report type should be a completion report
+        pr = ProjectReports.objects.filter(report__id=report_id)
+        self.assertEqual(pr.count(),2)
+        self.assertQuerysetEqual(
+            pr,[self.project1.PRJ_CD, self.project2.PRJ_CD],
+            lambda a:a.project.PRJ_CD
+            )
+
+        self.assertEqual(pr[0].report_type, self.rep2)        
+
+        #============= 
+        #verify that a links to each of the file are on
+        #the details page for the first project
+        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+      
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath1,)), filepath1)
+        self.assertContains(response, linkstring)        
+
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath2,)), filepath2)
+        self.assertContains(response, linkstring)        
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath3,)), filepath3)
+        self.assertContains(response, linkstring)        
+
+        # the sister proejct should have the project proposal and
+        # summary report, but not the completion report
+        url = reverse('ProjectDetail', args = (self.project2.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+      
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath1,)), filepath1)
+        self.assertContains(response, linkstring)        
+
+        #DOES NOT CONTAIN
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath2,)), filepath2)
+        self.assertNotContains(response, linkstring)        
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath3,)), filepath3)
+        self.assertContains(response, linkstring)        
+
+
+        #============================
+        #the information should not be associated with the thrid project
+        reports = self.project3.get_reports()
+        self.assertEqual(reports.count(),0)
+
+        url = reverse('ProjectDetail', args = (self.project3.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+      
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath1,)), filepath1)
+        self.assertNotContains(response, linkstring)        
+
+        #DOES NOT CONTAIN
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath2,)), filepath2)
+        self.assertNotContains(response, linkstring)        
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('serve_file', 
+                             args = (filepath3,)), filepath3)
+        self.assertNotContains(response, linkstring)        
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()
+        self.user.delete()
+        self.rep0.delete()
+        self.rep1.delete()
+        self.rep2.delete()
+
+        #finally get rid of the temporary file if it was created in
+        #this test
+        #mock_file0
+        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+                                os.path.split(self.mock_file0.name)[1])
+        try:
+            os.remove(filepath)          
+        except:
+            pass
+
+        #mock_file1
+        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+                                os.path.split(self.mock_file1.name)[1])
+        try:
+            os.remove(filepath)          
+        except:
+            pass
+
+
+        #mock_file2
+        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+                                os.path.split(self.mock_file2.name)[1])
+        try:
+            os.remove(filepath)          
+        except:
+            pass
+

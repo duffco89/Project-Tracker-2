@@ -223,13 +223,12 @@ class ReportUploadForm(forms.Form):
         self.fields["report_path"].widget.attrs['class'] = "fileinput"        
                          
     def clean_report_type(self):
-        '''return the original value of required'''
+        '''return the original value of report_type'''
         return self.initial['report_type']
 
     def clean_required(self):
-        '''return the original value of report_type'''
+        '''return the original value of required'''
         return self.initial['required']
-
                 
     def save(self):
         '''see if a report already exists for this projectreport, if
@@ -247,9 +246,10 @@ class ReportUploadForm(forms.Form):
         for them too.
         '''
 
+
         #if 'report_path' in self.changed_data:        
-        if self.cleaned_data['report_path']:        
-            
+        if 'report_path' in self.changed_data and self.cleaned_data['report_path']:        
+           
             projectreport = ProjectReports.objects.get(
                 project=self.project, report_type=self.clean_report_type())
 
