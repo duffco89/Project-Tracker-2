@@ -17,9 +17,64 @@ from django.conf import settings
 #import unittest
 
 from pjtk2.models import *
-from pjtk2.forms import ProjectForm
-from pjtk2.forms import ReportUploadForm, ReportUploadFormSet
+from pjtk2.forms import (ProjectForm, ApproveProjectsForm, SisterProjectsForm,
+                         ReportUploadForm, ReportUploadFormSet)
 from pjtk2.tests.factories import *
+
+
+class TestApproveProjectForm(TestCase):
+
+    def setUp(self):
+        self.proj = ProjectFactory.create(PRJ_CD="LHA_IA12_123",
+                                          PRJ_LDR = "Homer Simpson",
+                                          PRJ_NM = "Homer's Odyssey")
+        
+    def test_ApproveProjectsForm(self):
+        '''verify that the same data comes out as went in'''
+        initial = dict(
+            Approved = self.proj.Approved,
+            PRJ_CD = self.proj.PRJ_CD,
+            PRJ_NM = self.proj.PRJ_NM,
+            PRJ_LDR = self.proj.PRJ_LDR,
+        )
+
+        form = ApproveProjectsForm(data=initial, instance=self.proj)
+        form.is_valid()
+
+        self.assertEqual(form.is_valid(), True)
+        self.assertEqual(form.cleaned_data['PRJ_CD'],self.proj.PRJ_CD)
+        self.assertEqual(form.cleaned_data['PRJ_NM'],self.proj.PRJ_NM)
+        self.assertEqual(form.cleaned_data['PRJ_LDR'],self.proj.PRJ_LDR)
+
+
+    def test_ApproveProjectsForm(self):
+        '''verify that the data matches the instance data, not the
+        original data'''
+
+        initial = dict(
+            Approved = False,
+            PRJ_CD = 'ZZZ_ZZ12_ZZZ',
+            PRJ_NM = 'The Wrong Project',
+            PRJ_LDR = 'George Costanza'
+        )
+
+        form = ApproveProjectsForm(data=initial, instance=self.proj)
+        form.is_valid()
+
+        self.assertEqual(form.is_valid(), True)
+        self.assertEqual(form.cleaned_data['PRJ_CD'],self.proj.PRJ_CD)
+        self.assertEqual(form.cleaned_data['PRJ_NM'],self.proj.PRJ_NM)
+        self.assertEqual(form.cleaned_data['PRJ_LDR'],self.proj.PRJ_LDR)
+
+        #everything but approved should be over-ridden by the instance
+        self.assertEqual(form.cleaned_data['Approved'],initial['Approved'])
+        self.assertNotEqual(form.cleaned_data['PRJ_CD'],initial['PRJ_CD'])
+        self.assertNotEqual(form.cleaned_data['PRJ_NM'],initial['PRJ_NM'])
+        self.assertNotEqual(form.cleaned_data['PRJ_LDR'],initial['PRJ_LDR'])
+
+
+    def tearDown(self):
+        self.proj.delete()
 
         
 class TestProjectForm(TestCase):
@@ -236,6 +291,59 @@ class TestProjectForm(TestCase):
             print "form.non_field_errors(): %s" % form.non_field_errors()
         self.assertEqual(form.is_valid(), True)
         
+
+
+class TestSelectSistersForm(TestCase):
+
+    def setUp(self):
+
+        #USER
+        self.user = UserFactory.create(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        #PROJECTS
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", Owner=self.user)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", Owner=self.user)
+
+
+
+    def test_initial_values(self):
+        '''this test will verify that the initial values for project
+        code, project name and project leader remain unchanged by the form.'''
+
+        initial = dict(
+            PRJ_CD = 'ZZZ_ZZ12_ZZZ',
+            PRJ_NM = 'The Wrong Project',
+            PRJ_LDR = 'George Costanza'
+        )
+
+        data = dict(
+            PRJ_CD = 'YYY_YY12_YYY',
+            PRJ_NM = 'The Second Project',
+            PRJ_LDR = 'Jerry Sienfield'
+        )
+
+        form = SisterProjectsForm(initial=initial, data=data)#, slug=self.project1.slug)
+        form.is_valid()
+
+        #these three fields should be over-ridden by the initial data
+        #(they are actually null in the real form - since we used read-only widgets).
+        self.assertEqual(form.cleaned_data['PRJ_CD'],initial['PRJ_CD'])
+        self.assertEqual(form.cleaned_data['PRJ_NM'],initial['PRJ_NM'])
+        self.assertEqual(form.cleaned_data['PRJ_LDR'],initial['PRJ_LDR'])
+
+
+
+        
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()
+        self.user.delete()
+
 
 class TestReportUploadForm(TestCase):
 

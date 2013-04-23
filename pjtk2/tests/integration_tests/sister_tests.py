@@ -130,7 +130,6 @@ class SisterFormTestCase(WebTest):
 
 
 
-
     def test_sisterlist_onesister(self):
         '''the sister project page for a project with one candidate,
         one sister already selected.'''
@@ -238,9 +237,8 @@ class SisterFormTestCase(WebTest):
         self.assertNotIn(self.project5.PRJ_CD, response)
 
 
-
     def test_add_remove_sisters(self):
-        '''this test will test the whold process.  We will log into
+        '''this test will test the whole process.  We will log into
         the lister list, click on a sister, submit the form, return to
         the sister page, verify that the sister is selected, unselect
         it and re-sumbit the form.  Finally retrun to the list of
@@ -313,8 +311,71 @@ class SisterFormTestCase(WebTest):
 
 
 
+    def test_sisterlist_deletesister(self):
+        '''this simply verifies that we can delete a single sister,
+        leaving the family and remaining sisters intact.'''
+
+        #start out with a family of three:
+        self.project1.add_sister(self.project2.slug)
+        self.project1.add_sister(self.project3.slug)
+
+        #verify that the project 1 has the sisters we think:
+        sisters1 = self.project1.get_sisters()
+        self.assertQuerysetEqual(
+            sisters1,[self.project2.PRJ_CD, self.project3.PRJ_CD],
+            lambda a:a.PRJ_CD
+            )
+
+        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        response = self.app.get(url, user = self.user)
+
+        assert response.status_int == 200
+        self.assertTemplateUsed(response, 'SisterProjects.html')
+
+        assert "Sister projects for:" in response
+        
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                             args = (self.project2.slug,)), self.project2.PRJ_CD)
+        self.assertContains(response, linkstring)
+        
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                             args = (self.project3.slug,)), self.project3.PRJ_CD)
+        self.assertContains(response, linkstring)
+
+        form = response.form
+        #there should be two forms in the formset (these form elements end with -sister)
+        formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
+        #print "formcnt = %s" % formcnt
+        self.assertEquals(formcnt, 2)
+        
+        #the check boxes in both should == None
+        self.assertEquals(form.fields['form-0-sister'][0].value, 'on')
+        self.assertEquals(form.fields['form-1-sister'][0].value, 'on')
+
+        #make sure that the projects that should be candidates or
+        #sisters aren't in the response
+        self.assertNotIn(self.project4.PRJ_CD, response)
+        self.assertNotIn(self.project5.PRJ_CD, response)
+        self.assertNotIn(self.project6.PRJ_CD, response)
+
+
+        #resubmit the form with one of the check boxes unchecked:
+        form.fields['form-1-sister'][0].value = None
+        form.submit()        
+
+        #project 1 shouldn't have any sisters now
+        sisters = self.project1.get_sisters()
+        self.assertEqual(len(sisters),1)
+        self.assertEqual(sisters[0].PRJ_CD,self.project2.PRJ_CD)
+        
+        self.assertEqual(len(self.project3.get_sisters()),0)
+
+
     def test_disown_sister(self):
-        '''.'''
+        '''This is case where we actuall want to remove the current
+        project from the family - rather than going to a sister page
+        an unselecting this project, we choose to unselect all of the
+        current sisters.'''
 
         self.project1.add_sister(self.project2.slug)
         self.project1.add_sister(self.project3.slug)
