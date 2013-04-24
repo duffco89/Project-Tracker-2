@@ -1,4 +1,7 @@
 
+
+
+
 ** Sister Projects
 
 - for given project:
@@ -8,3 +11,38 @@
   family.
 
 render in approve projects form.
+
+** tagging/keywords
+- modify project list to accept tag argument
+- update forms to parse tags and convert to Title Case
+- copy keywords on copy project 
+- write tests to verify functionality
+
+
+** User hierarchy
+- capture the relationships between director, managers, and employees, 
+- employees should be able to edit their projects and recieve notices
+  about their projects and projects they are watching
+- managers should be able to edit their projects and projects lead by
+  their direct reports.
+- manageer should also recieve notices about their projects, projects
+  they are watching, and projects run by their reports
+- allow managers to create new users below them.
+
+** notification
+- notification sent to uses informing them about project events
+- announcements sent to everyone about updates, new features and bug fixes
+- this will require fairly substantial changes to the esiting
+  milestone model and associated views and templates
+
+
+** Feature request and bug fixes
+- implement a simple ticket tracking system for bugs and feature requests
+- consider adding fucntionality to view, browse, comment and vote on
+  existing features and bug reports.
+
+
+** General admin and fucntionality
+- custom login/logout
+- change password form
+- password expiry

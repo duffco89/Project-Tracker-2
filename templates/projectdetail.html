@@ -38,10 +38,12 @@
  </p> 
   <p><strong>Master Database:</strong> <a href="#">
   {{ project.MasterDatabase.MasterDatabase }}</a>
-  <p><strong>keywords:</strong> <a href="#">lake trout</a>,
-  <a href="#">index netting</a>,
-  <a href="#">FLIN</a>,
-  <a href="#">fake keywords</a>
+  <p><strong>keywords:</strong> 
+
+        {% for tag in project.tags.all %}
+             <a href="{% url 'TaggedProjects' tag.name %}">{{ tag.name }}</a> , 
+        {% endfor %}
+
   </p>
 
 <form>

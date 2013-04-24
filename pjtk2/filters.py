@@ -10,7 +10,7 @@ class ProjectFilter(django_filters.FilterSet):
 
     class Meta:
         model = Project
-        fields = ['YEAR', 'ProjectType']
+        fields = ['YEAR', 'ProjectType', 'Lake', 'Funding']
     
     def __init__(self, *args, **kwargs):
         #from https://github.com/alex/django-filter/issues/29

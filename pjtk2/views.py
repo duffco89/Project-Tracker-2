@@ -141,15 +141,39 @@ class ListFilteredMixin(object):
 class ProjectList(ListFilteredMixin, ListView):
     """ A list view that can be filtered by django-filter """
     
+    #(maybe??) modified to accept tag argument 
+
     filter_set = ProjectFilter
-    queryset = Project.objects.all()
+
+    if self.tag:
+        queryset = Project.objects.filter(tags__name__int=tag)
+    else:    
+        queryset = Project.objects.all()
+
     template_name = "ProjectList.html"
+
+    def __init__(self, *args, **kwargs):
+        self.tag = kwargs.pop('tag', None) 
+        return super(ProjectList, self).__init__(*args, **kwargs)
+
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
+        #tag = kwargs.pop('tag', None)
         return super(ProjectList, self).dispatch(*args, **kwargs)
 
 project_list = ProjectList.as_view()
+
+#subset of projects tagged with tag:
+taggedprojects = ProjectList.as_view(tag=tag)
+
+
+
+
+
+
+
+
 
 
 #class ProjectList(ListView):

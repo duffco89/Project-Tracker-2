@@ -417,3 +417,78 @@ class TestModelBookmarks(TestCase):
         self.project.delete()
         self.ProjType.delete()
 
+class TestProjectTagging(TestCase):        
+    '''make sure we can add and delete tags, and retrieve all projects
+    associated with a given tag.'''
+
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+        
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')        
+        
+        
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              Owner=self.user)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+                                              Owner=self.user)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+                                              Owner=self.user)
+
+    def test_add_remove_tags(self):
+        '''verify that we can add and remove tags to a project'''
+        self.assertEqual(len(self.project1.tags.all()),0)
+        self.project1.tags.add("perch","walleye","whitefish")
+        self.assertEqual(len(self.project1.tags.all()),3)
+        
+        tags = self.project1.tags.all()
+        for tag in tags:
+            self.assertTrue(str(tag) in ["perch","walleye","whitefish"])
+        #assert 3==0
+
+        self.project1.tags.remove("perch") 
+        tags = self.project1.tags.all()
+        self.assertEqual(tags.count(),2)
+        for tag in tags:
+            self.assertTrue(str(tag) in ["walleye","whitefish"])
+        self.assertFalse("perch" in tags)
+
+        self.project1.tags.clear()
+        self.assertEqual(len(self.project1.tags.all()),0)
+
+    def test_filter_projects_by_tags(self):
+        '''verify that we can get projects with the same tag'''
+
+        self.assertEqual(len(self.project1.tags.all()),0)
+        self.project1.tags.add("project1","project12","allprojects")
+        self.project2.tags.add("project2","project12","allprojects")
+        self.project3.tags.add("project3","allprojects")
+
+        projects = Project.objects.filter(tags__name__in=["allprojects"])
+        self.assertEqual(projects.count(),3)
+        self.assertQuerysetEqual(projects,
+                                 [self.project1.PRJ_CD,
+                                  self.project2.PRJ_CD,
+                                  self.project3.PRJ_CD],
+                                 lambda a:a.PRJ_CD)
+
+        projects = Project.objects.filter(tags__name__in=["project12"])
+        self.assertEqual(projects.count(),2)
+        self.assertQuerysetEqual(projects,
+                                 [self.project1.PRJ_CD,
+                                  self.project2.PRJ_CD],
+                                 lambda a:a.PRJ_CD)
+
+
+        projects = Project.objects.filter(tags__name__in=["project1"])
+        self.assertEqual(projects.count(),1)
+        self.assertEqual(projects[0].PRJ_CD,self.project1.PRJ_CD)
+
+
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()

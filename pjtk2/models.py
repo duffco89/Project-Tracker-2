@@ -4,6 +4,8 @@ from django.contrib import admin
 from django.template.defaultfilters import slugify
 from django.core.urlresolvers import reverse
 
+from taggit.managers import TaggableManager
+
 import pdb
 
 # Create your models here.
@@ -70,7 +72,20 @@ class Project(models.Model):
      Add Lake, Active,
      factor out milestone to seperate table(s)
     '''
-    YEAR = models.CharField(max_length=4, blank=True, editable=False)
+
+    #(database, display)
+    FUNDING_CHOICES = {
+        ('spa', 'SPA'),
+        ('coa', 'COA'),    
+        ('other', 'other'),
+    }
+
+    LAKE_CHOICES = {
+        ('LH', 'Lake Huron'),
+        ('LS', 'Lake Superior'),    
+    }
+
+    YEAR = models.CharField("Year", max_length=4, blank=True, editable=False)
     PRJ_DATE0 = models.DateField("Start Date", blank=False)
     PRJ_DATE1 = models.DateField("End Date", blank=False)
     PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, blank=False)
@@ -97,8 +112,19 @@ class Project(models.Model):
     Min_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, 
                                      null=True, blank=True)
     Owner = models.ForeignKey(User, blank=True)
-    #Owner = models.CharField(max_length=40,blank=True)
+
+    Active  = models.BooleanField(default = True)
+    Funding = models.CharField("Funding Source", max_length=30, choices=FUNDING_CHOICES,
+                                default=1)
+    Lake =  models.CharField(max_length=30, choices=LAKE_CHOICES,
+                                default=1)
+
+    TotalCost =  models.DecimalField("Total Cost", max_digits=8, decimal_places=2, 
+                                     null=True, blank=True)
+
     slug = models.SlugField(blank=True, editable=False)
+
+    tags = TaggableManager()
 
     class Meta:
         verbose_name = "Project List"

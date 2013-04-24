@@ -34,6 +34,11 @@ urlpatterns = patterns('pjtk2.views',
 ##     url(r'^projects/(?P<year>\d{4})/$',
 ##         'project_by_year', name='ProjectsByYear'),
 ## 
+
+    #tagging/keywords                  
+    url(r'^taggedprojects/(?P<tag>.+)/$', 'taggedprojects', name='TaggedProjects'),
+
+
     
 # Reports and milestones
     url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',

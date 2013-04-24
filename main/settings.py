@@ -171,6 +171,7 @@ THIRDPARTY_APPS = (
     'crispy_forms',
     'debug_toolbar',
     'django_filters',
+    'taggit',
     #'pjtk2',
     )
 
