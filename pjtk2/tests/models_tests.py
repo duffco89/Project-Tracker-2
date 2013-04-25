@@ -138,10 +138,10 @@ class TestMilestoneModel(TestCase):
     def test_get_assigment_dicts(self):
         
         dict = self.project.get_assignment_dicts()
-        print "dict.core = %s" % dict['core']
-        print "dict.custom = %s" % dict['custom']
+        print "dict.core = %s" % dict['Core']
+        print "dict.custom = %s" % dict['Custom']
 
-        core = dict['core']
+        core = dict['Core']
         self.assertEqual(core['assigned'],[1,2,3])
         reports = [str(x[1]) for x in core['reports']]
         self.assertEqual(reports,[self.core1.label, 
@@ -149,7 +149,7 @@ class TestMilestoneModel(TestCase):
                                       self.core3.label])
 
 
-        custom = dict['custom']
+        custom = dict['Custom']
         self.assertEqual(custom['assigned'],[])
         reports = [str(x[1]) for x in custom['reports']]
         self.assertEqual(reports,[self.custom.label])

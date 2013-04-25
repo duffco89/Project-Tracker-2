@@ -45,7 +45,11 @@ e.style.display = 'block';
 <a href="{% url 'MyProjects' %}">View My Projects</a> 
 </p>
 
-<h1>Projects  {% if year %} {{ year }} {% endif %}</h1>
+<h1>Projects  
+{% if year %} {{ year }} {% endif %} 
+{% if tag %} tagged with '{{ tag }}' {% endif %}
+</h1>
+
 
 <a href="#" onclick="toggle_visibility('filter');">Filter List: </a>
 <div id="filter" style="display:none">

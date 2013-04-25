@@ -115,9 +115,9 @@ class Project(models.Model):
 
     Active  = models.BooleanField(default = True)
     Funding = models.CharField("Funding Source", max_length=30, choices=FUNDING_CHOICES,
-                                default=1)
+                                default="spa")
     Lake =  models.CharField(max_length=30, choices=LAKE_CHOICES,
-                                default=1)
+                                default="LH")
 
     TotalCost =  models.DecimalField("Total Cost", max_digits=8, decimal_places=2, 
                                      null=True, blank=True)
@@ -202,10 +202,10 @@ class Project(models.Model):
         custom_assigned = [x.report_type_id for x in list(custom_assigned)]
  
         #put the reports and assigned reports in a dictionary    
-        core = dict(reports=corereports, assigned=core_assigned)
-        custom = dict(reports=customreports, assigned=custom_assigned)
+        Core = dict(reports=corereports, assigned=core_assigned)
+        Custom = dict(reports=customreports, assigned=custom_assigned)
 
-        reports = dict(core=core, custom=custom)
+        reports = dict(Core=Core, Custom=Custom)
     
         return reports
 

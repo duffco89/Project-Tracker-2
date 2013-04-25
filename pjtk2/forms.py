@@ -5,6 +5,8 @@ from django.contrib.auth.models import User
 
 from django.utils.safestring import mark_safe
 
+
+from taggit.forms import *
 from pjtk2.models import Milestone, Project, ProjectReports, Report, TL_ProjType, TL_Database
 from pjtk2.models import ProjectSisters
 import pdb
@@ -108,7 +110,7 @@ class ReportsForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         self.reports = kwargs.pop('reports')
-        self.core = kwargs.pop('core', True)
+        self.core = kwargs.pop('Core', True)
         self.project = kwargs.pop('project', None)
         
         super(ReportsForm, self).__init__(*args, **kwargs)
@@ -370,11 +372,9 @@ class ProjectForm(forms.ModelForm):
         required = True,
     )
     
-    Keywords = forms.CharField(
-        label = "Keywords:",
-        max_length = 80,
-        required = False,
-    )
+    tags = TagField(
+        label="Keywords:",
+        required = False)
 
     Approved = forms.BooleanField(
         label = "Approved",
@@ -407,7 +407,7 @@ class ProjectForm(forms.ModelForm):
         #           "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
         fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", 
                    "Approved", "Conducted", "DataScrubbed", "DataMerged", "SignOff",
-                   "Keywords", 'ProjectType', "MasterDatabase", "COMMENT")
+                    'ProjectType', "MasterDatabase", "COMMENT", "tags")
         
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -429,8 +429,8 @@ class ProjectForm(forms.ModelForm):
                 Field('PRJ_DATE0', datadatepicker='datepicker'),                
                 Field('PRJ_DATE1', datadatepicker='datepicker'),
                 'ProjectType',
-                'MasterDatabase',                
-                'Keywords',
+                'MasterDatabase',
+                'tags',
                 HTML("""<p><em>(comma separated values)</em></p> """),
                 Fieldset(
                       "Milestones",
@@ -485,7 +485,9 @@ class ProjectForm(forms.ModelForm):
         else:
             return self.cleaned_data["DataMerged"]
         
-            
+    #def clean_Keywords(self):
+        
+        
             
     def clean_PRJ_CD(self):
         '''a clean method to ensure that the project code matches the
@@ -543,6 +545,8 @@ class ProjectForm(forms.ModelForm):
                 raise forms.ValidationError(errmsg)
         return cleaned_data
         
+
+    #def save(self):
 
         
 class SisterProjectsForm(forms.Form):

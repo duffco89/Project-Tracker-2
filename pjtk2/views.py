@@ -118,7 +118,15 @@ class ListFilteredMixin(object):
         """ We can decided to either alter the queryset before or
         after applying the FilterSet """
 
-        return super(ListFilteredMixin, self).get_queryset()
+        #==========
+        self.tag = self.kwargs.pop('tag', None) 
+        if self.tag:
+            queryset = Project.objects.filter(tags__name__in=[self.tag])
+        else:    
+            queryset = Project.objects.all()
+        return queryset
+        #==========
+        #return super(ListFilteredMixin, self).get_queryset()
 
     def get_constructed_filter(self):
         # We need to store the instantiated FilterSet cause we use it in
@@ -141,31 +149,35 @@ class ListFilteredMixin(object):
 class ProjectList(ListFilteredMixin, ListView):
     """ A list view that can be filtered by django-filter """
     
-    #(maybe??) modified to accept tag argument 
-
+    # modified to accept tag argument 
+    queryset = Project.objects.all()
     filter_set = ProjectFilter
-
-    if self.tag:
-        queryset = Project.objects.filter(tags__name__int=tag)
-    else:    
-        queryset = Project.objects.all()
-
     template_name = "ProjectList.html"
 
-    def __init__(self, *args, **kwargs):
-        self.tag = kwargs.pop('tag', None) 
-        return super(ProjectList, self).__init__(*args, **kwargs)
+
+    ##def get_queryset(self, *args, **kwargs):
+        ##self.tag = self.kwargs.pop('tag', None) 
+        ##if self.tag:
+        ##    queryset = Project.objects.filter(tags__name__in=[self.tag])
+        ##else:    
+        ##    queryset = Project.objects.all()
+        ##return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super(ProjectList, self).get_context_data(**kwargs)
+        context['tag'] = self.tag
+        return context
+
 
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
-        #tag = kwargs.pop('tag', None)
         return super(ProjectList, self).dispatch(*args, **kwargs)
 
 project_list = ProjectList.as_view()
 
 #subset of projects tagged with tag:
-taggedprojects = ProjectList.as_view(tag=tag)
+taggedprojects = ProjectList.as_view()
 
 
 
@@ -289,9 +301,13 @@ def crud_project(request, slug, action='New'):
             form = ProjectForm(request.POST, manager=manager)
 
         if form.is_valid():
+            tags = form.cleaned_data['tags']
+            for tag in tags:
+                print tag
             form = form.save(commit=False)
             form.Owner = request.user
             form.save()
+            form.tags.add(*tags)
             proj = Project.objects.get(slug=form.slug)
 
             return HttpResponseRedirect(proj.get_absolute_url())

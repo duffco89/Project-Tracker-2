@@ -17,6 +17,13 @@ class ProjectFilter(django_filters.FilterSet):
         super(ProjectFilter, self).__init__(*args, **kwargs)
         filter_ = self.filters['ProjectType']
 
+        #self.filters['Lake'].extra.update(
+        #    {'empty_label': 'All Lakes'})
+        #
+        #self.filters['Lake'].extra.update(
+        #    {'empty_label': 'All Sources'})
+
+
         # this will grab all the fk ids that are in use
         fk_counts = Project.objects.values_list('ProjectType').order_by(
             'ProjectType').annotate(models.Count('ProjectType'))
