@@ -336,11 +336,11 @@ class SisterFormTestCase(WebTest):
         
         linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
                              args = (self.project2.slug,)), self.project2.PRJ_CD)
-        self.assertContains(response, linkstring)
+        self.assertContains(response, linkstring, html=True)
         
         linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
                              args = (self.project3.slug,)), self.project3.PRJ_CD)
-        self.assertContains(response, linkstring)
+        self.assertContains(response, linkstring, html=True)
 
         form = response.form
         #there should be two forms in the formset (these form elements end with -sister)

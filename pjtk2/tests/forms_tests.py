@@ -93,6 +93,7 @@ class TestProjectForm(TestCase):
             COMMENT = "This is a fake project",
             ProjectType = 1,
             MasterDatabase = 1,
+            tags = "red, blue, green",
             Owner = "Bob Sakamano",
            )
 
@@ -291,6 +292,7 @@ class TestProjectForm(TestCase):
             print "form.non_field_errors(): %s" % form.non_field_errors()
         self.assertEqual(form.is_valid(), True)
         
+
 
 
 class TestSelectSistersForm(TestCase):

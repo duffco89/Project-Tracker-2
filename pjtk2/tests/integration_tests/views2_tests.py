@@ -55,3 +55,178 @@ class BookmarkTestCase(WebTest):
         self.assertEqual(response.status_int, 302)
         bookmarkcnt = Bookmark.objects.filter(user__pk=self.user.id).count()
         self.assertEqual(bookmarkcnt, 0)
+
+
+
+class ProjectTaggingTestCase(WebTest):
+
+    def setUp(self):
+        ''' '''
+        
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+       
+        self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
+        
+
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+                                              Owner=self.user,
+                                              ProjectType = self.ProjType)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+                                              Owner=self.user,
+                                              ProjectType = self.ProjType)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+                                              Owner=self.user,
+                                              ProjectType = self.ProjType)
+
+    def test_tags_in_project_details_view(self):
+        '''verify that the tags associated with a project appear on
+        its details (and not on others)'''
+
+        #assign some tags to project1
+        tags = ['red','blue','green','yellow']
+        tags.sort()
+        for tag in tags:
+            self.project1.tags.add(tag)
+            
+        #=======================
+        #verify that the tags are associated with that project
+        tags_back = self.project1.tags.all().order_by("name")
+        self.assertQuerysetEqual(tags_back, tags, lambda a:str(a.name))
+        self.assertEqual(tags_back.count(),len(tags))
+        #verify that the tag appears as a hyperlink on the details page for this project:
+        response = self.app.get(reverse('ProjectDetail', 
+                                args=(self.project1.slug,)), user=self.user)
+        self.assertEqual(response.status_int, 200)
+
+        for tag in tags:
+            linkstring= '<a href="%s">%s</a>' % (reverse('TaggedProjects', 
+                     args=(tag,)), tag)
+            self.assertContains(response, linkstring)
+
+        #=======================
+        #verify that the tags are NOT associated with project2
+        response = self.app.get(reverse('ProjectDetail', 
+                                args=(self.project2.slug,)), user=self.user)
+        self.assertEqual(response.status_int, 200)
+
+        for tag in tags:
+            linkstring= '<a href="%s">%s</a>' % (reverse('TaggedProjects', 
+                     args=(tag,)), tag)
+            self.assertNotContains(response, linkstring)
+
+
+    csrf_checks = False           
+    def test_tags_in_project_detail_form(self):
+        '''verify that the tags added in project detail form are
+        actually associated with the correct project and appear on its
+        details page (and not on others)'''
+
+        #call the edit project form for project 1
+        response = self.app.get(reverse('EditProject', 
+                                args=(self.project1.slug,)), user=self.user)
+        self.assertEqual(response.status_int, 200)
+        self.assertTemplateUsed(response, 'ProjectForm.html')
+
+        #get the form and submit it
+        form = response.form
+        form['tags'] = "blue, green, red, yellow"
+        form.submit()
+
+        #verify that the tags submitted on the form are actually 
+        #saved to the database and associated with this project.
+        tags_back = self.project1.tags.all().order_by('name')
+        self.assertEqual(tags_back.count(),4)
+        self.assertQuerysetEqual(tags_back, ["blue", "green", "red", "yellow"],
+                                 lambda a:str(a.name))
+
+
+    def test_tags_project_list_view(self):
+
+        tags = ['red','blue']
+        tags.sort()
+        for tag in tags:
+            self.project1.tags.add(tag)
+            self.project2.tags.add(tag)
+            
+        #=======================
+        #verify that the tags are associated with that project
+        tags_back = self.project1.tags.all().order_by("name")
+        self.assertQuerysetEqual(tags_back, tags, lambda a:str(a.name))
+        tags_back = self.project2.tags.all().order_by("name")
+        self.assertQuerysetEqual(tags_back, tags, lambda a:str(a.name))
+
+        #load the page associated with tag 1 and verify that it
+        #contains records for projectt 1 and 2 (as hyperlinks), but
+        #not project 3
+        response = self.app.get(reverse('TaggedProjects', 
+                                args=(tags[0],)), user=self.user)
+        self.assertEqual(response.status_int, 200)
+        self.assertTemplateUsed('ProjectList.html')
+
+        msg = "<h1>Projects tagged with '%s'</h1>" % tags[0]
+        self.assertContains(response, msg, html=True)
+
+        #Project 1
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                             args = (self.project1.slug,)), self.project1.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+        #Project 2
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                             args = (self.project2.slug,)), self.project2.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+        #Project 3
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                             args = (self.project3.slug,)), self.project3.PRJ_CD)
+        self.assertNotContains(response, linkstring, html=True)
+
+        #====================
+        #navigate to the whole project list and verify that it contain
+        #records for all three projects
+        response = self.app.get(reverse('ProjectList'), user=self.user)
+        self.assertEqual(response.status_int, 200)
+
+        #Project 1
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                             args = (self.project1.slug,)), self.project1.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+        #Project 2
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                             args = (self.project2.slug,)), self.project2.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+        #Project 3
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                             args = (self.project3.slug,)), self.project3.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+
+
+    def test_tags_project_list_view_tag_doesnot_exist(self):
+        '''Verify that the tagged project list will render properly if
+        we supply a tag that doesn't exist. A meaningful message
+        should be displayed '''
+
+        tags = ['red','blue']
+        tags.sort()
+        for tag in tags:
+            self.project1.tags.add(tag)
+            self.project2.tags.add(tag)
+
+        response = self.app.get(reverse('TaggedProjects', 
+                                args=("gold",)), user=self.user)
+        self.assertEqual(response.status_int, 200)
+
+        msg =  "Sorry no projects available."
+        self.assertContains(response, msg)
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()
+        self.ProjType.delete()
+        self.user.delete()
