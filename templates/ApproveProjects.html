@@ -1,14 +1,27 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<html>
-  <head>
-    <title>  {% block title  %} UGMLU  {% endblock %}  </title>
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/worg.css" />
-  </head>
+{% block extrahead  %} 
+<link rel="stylesheet" type="text/css" 
+  href="{{ STATIC_URL }}css/themeblue.css" /> 
+<link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/tablesorter.css" /> 
+<script type="text/javascript" src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script> 
+ <script>
+$(function() {
+$( "#tabs" ).tabs();
+});
+</script>
+<script>
+$(document).ready(function() 
+    { 
+        $("table.tablesorter-blue").tablesorter(); 
+    } 
+); 
+</script>
+{% endblock %}
 
+{% block title  %} {{ block.super }}| Approve Projects  {% endblock %}
 
-
-<body>  
+{% block content  %} 
 
 <p> <a href="{% url 'ProjectList' %}">Return to Index</a> | 
     <a href="{% url 'MyProjects' %}">View My Projects</a> 
@@ -22,7 +35,7 @@
   {% csrf_token %}
   {{ formset.management_form }}
   {{ formset.non_form_errors.as_ul }}
-  <table id="formset" class="form">
+  <table id="myTable" class="tablesorter-blue">
   {% for form in formset.forms %}
     {% if forloop.first %}
     <thead><tr>
@@ -56,7 +69,4 @@
 <em> There are currently no projects pending approval. </em>
 {% endif %}
 
-
-
-</body>
-</html>
+{% endblock %} 

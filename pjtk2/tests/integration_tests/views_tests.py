@@ -578,3 +578,72 @@ class ApproveProjectsUserTestCase(TestCase):
         self.user.delete()
         
 
+class ChangeReportingRequirementsTestCase(TestCase):
+    '''This class verifies that new reporting requirements can be
+    added through the report update form.  This report was originally
+    attempted using webtest in views2_test.py.  I was unable to get
+    webtest to submit the second "NewReport" form properly.'''
+
+    def setUp(self):        
+
+        #USER
+        ##  self.user1 = UserFactory.create(username = 'hsimpson',
+        ##                          first_name = 'Homer',
+        ##                          last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'mburns',
+                                first_name = 'Burns',
+                                last_name = 'Montgomery',
+                                       )
+        #make Mr. Burns the manager:
+        managerGrp, created = Group.objects.get_or_create(name='manager')         
+        self.user2.groups.add(managerGrp)
+
+        #required reports
+        ##  self.rep1 = MilestoneFactory.create(label = "Proposal Presentation",
+        ##                          category = 'Core', order = 1)
+        ##  self.rep2 = MilestoneFactory.create(label = "Completion Report",
+        ##                          category = 'Core', order = 2)
+        ##  self.rep3 = MilestoneFactory.create(label = "Summary Report",
+        ##                          category = 'Core', order = 3)
+        self.rep4 = MilestoneFactory.create(label = "Budget Report",
+                                category = 'Custom', order = 99)
+        self.rep5 = MilestoneFactory.create(label = "Creel Summary Statistics",
+                                category = 'Custom', order = 99)
+
+        #PROJECTS
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              Owner=self.user2)
+            
+    def test_Add_New_Report_Type(self):
+        '''verify that we can add new report reporting requirements
+        using the second from on the UpdateReporting form.'''
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('Reports', args=(self.project1.slug,))
+        response = self.client.get(url,follow=True) 
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("reportform.html")
+        self.assertContains(response, "Core Reporting Requirements")
+        self.assertContains(response, "Additional Reporting Requirements")
+
+        resp = self.client.post(url, {'NewReport': 'COA Summary'})
+        self.assertEqual(resp.status_code, 302)
+
+        reports = Milestone.objects.filter(category='Custom')
+        self.assertEqual(reports.count(),3)
+        self.assertEqual(reports.filter(label="Coa Summary").count(),1)
+
+    def tearDown(self):
+       
+        self.project1.delete()
+        self.rep5.delete()
+        self.rep4.delete()
+        #self.rep3.delete()
+        #self.rep2.delete()
+        #self.rep1.delete()
+        #self.user1.delete()
+        self.user2.delete()
+        

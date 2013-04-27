@@ -42,9 +42,11 @@
 <div id="AddReportDialog" title="Add New Report">
 <form method="POST" id="dialog" action="">
     {% csrf_token  %}
-    Report Name:<input type="text" name="NewReport"/> 
-    <input type="submit"  value="Submit" />  
+    Report Name:<input type="text"/> 
+    <input type="submit"  value="Submit" name="Submit"/>  
 </form>
+
+
 
 </div>
  <script>

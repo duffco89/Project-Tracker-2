@@ -243,6 +243,46 @@ class TestActualFileUpload(TestCase):
         self.assertContains(response, linkstring)        
 
 
+
+    def test_can_download_a_single_report(self):
+        '''verify that a user can actually download.'''
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        response = self.client.get(url) 
+        self.assertEqual(response.status_code, 200)
+
+        form_data = {
+            'form-TOTAL_FORMS': 1, 
+            'form-INITIAL_FORMS': 0,
+            'form-0-report_path': self.mock_file0, 
+            }
+
+        self.client.post(url, form_data)
+
+        #verify that the report was added to the Report table:
+        report_count = Report.objects.all().count()
+        self.assertEqual(report_count,1)
+
+        #verify that we can download the file we just uploaded:
+
+        filepath = os.path.join(settings.MEDIA_URL,
+                                os.path.split(self.mock_file0.name)[1])
+
+        url = reverse('serve_file', args=(filepath,))
+        response = self.client.get(url) 
+
+        filepath = os.path.split(filepath)[1]
+        self.assertEquals(
+            response.get('Content-Disposition'),
+            "attachment;filename=%s" % filepath
+            )
+
+
+
+
+
     def test_upload_multiple_reports(self):
         '''verify that we can upload more than 1 file'''
 
@@ -603,3 +643,42 @@ class TestActualFileUpload(TestCase):
         except:
             pass
 
+
+
+##  class FileDownloadTestCase(TestCase):
+##  
+##  
+##      def setUp(self):        
+##          #USER
+##          self.user = UserFactory.create(username = 'hsimpson',
+##                                  first_name = 'Homer',
+##                                  last_name = 'Simpson')
+##  
+##          #required reports
+##          self.rep0 = MilestoneFactory.create(label = "Proposal Presentation",
+##                                  category = 'Core', order = 1)
+##  
+##          #PROJECTS
+##          self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
+##  
+##          #here is fake file that we will upload
+##          self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
+##                       '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
+##          self.mock_file.name = "path/to/some/fake/file.txt"
+##  
+##  
+##  
+##      def tearDown(self):
+##          self.project.delete()
+##          self.user.delete()
+##          self.rep.delete()
+##  
+##          #finally get rid of the temporary file if it was created in
+##          #this test
+##          #mock_file0
+##          filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+##                                  os.path.split(self.mock_file.name)[1])
+##          try:
+##              os.remove(filepath)          
+##          except:
+##              pass

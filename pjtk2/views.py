@@ -4,7 +4,7 @@ from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.core.context_processors import csrf
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
@@ -30,6 +30,17 @@ from pjtk2.forms import  ReportUploadForm,  ReportUploadFormSet
 import os
 import pdb
 import mimetypes
+
+
+def group_required(*group_names):
+    """Requires user membership in at least one of the groups passed in."""
+    #from:http://djangosnippets.org/snippets/1703/
+    def in_groups(u):
+        if u.is_authenticated():
+            if bool(u.groups.filter(name__in=group_names)) | u.is_superuser:
+                return True
+        return False
+    return user_passes_test(in_groups)
 
 
 def is_manager(user):
@@ -373,6 +384,10 @@ def approveprojects(request):
                                context_instance=RequestContext(request))
 
 
+
+
+@login_required
+@group_required('manager')
 def report_milestones(request, slug):
     '''This function will render a form of requested reporting
     requirements for each project.  Used by managers to update

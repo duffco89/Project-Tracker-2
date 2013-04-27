@@ -6,9 +6,25 @@ from django.core.urlresolvers import reverse
 
 from taggit.managers import TaggableManager
 
+import datetime
 import pdb
 
 # Create your models here.
+
+
+class ProjectsThisYear(models.Manager):
+    def get_query_set(self):
+        '''get all of the project objects from the current year'''
+        yr = datetime.datetime.now().year
+        return super(ProjectsThisYear, self).get_query_set().filter(
+                     YEAR = yr, Active=True)
+
+class ProjectsLastYear(models.Manager):
+    def get_query_set(self):
+        '''get all of the project objects from last year'''
+        yr = datetime.datetime.now().year - 1
+        return super(ProjectsLastYear, self).get_query_set().filter(
+                    YEAR = yr, Active=True)
 
 
 class Milestone(models.Model):
@@ -123,8 +139,13 @@ class Project(models.Model):
                                      null=True, blank=True)
 
     slug = models.SlugField(blank=True, editable=False)
-
     tags = TaggableManager()
+
+    #managers
+    objects = models.Manager()
+    last_year = ProjectsLastYear()
+    this_year = ProjectsThisYear()
+
 
     class Meta:
         verbose_name = "Project List"

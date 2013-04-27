@@ -70,13 +70,13 @@ class ProjectFactory(factory.Factory):
     @factory.lazy_attribute
     def PRJ_DATE0(a):
         datestring = "January 15, 20%s" % a.PRJ_CD[6:8] 
-        PRJ_DATE0 = datetime.strptime(datestring, "%B %d, %Y")
+        PRJ_DATE0 = datetime.datetime.strptime(datestring, "%B %d, %Y")
         return(PRJ_DATE0)
 
     @factory.lazy_attribute
     def PRJ_DATE1(a):
         datestring = "January 15, 20%s" % a.PRJ_CD[6:8] 
-        PRJ_DATE1 = datetime.strptime(datestring, "%B %d, %Y")
+        PRJ_DATE1 = datetime.datetime.strptime(datestring, "%B %d, %Y")
         return(PRJ_DATE1)
 
 class ProjectSisters(factory.Factory):

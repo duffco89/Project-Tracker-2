@@ -14,7 +14,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
      url(r'^$', HomePageView.as_view(), name='home'),
-     url(r'^admin/', include(admin.site.urls), name='admin'),
+     url(r'^coregonusclupeaformis/admin/', include(admin.site.urls), name='admin'),
      url(r'^test/', include('pjtk2.urls')),
      )  #+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

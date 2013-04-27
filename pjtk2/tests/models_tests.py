@@ -3,6 +3,7 @@ from django.test import TestCase
 from pjtk2.models import *
 from pjtk2.tests.factories import *
 
+import datetime
 import pdb
 import sys
 
@@ -12,9 +13,26 @@ def print_err(*args):
 class TestProjectModel(TestCase):
 
     def setUp(self):
-        ProjTypeFactory.build()
-        DatabaseFactory.build()        
-        ProjectFactory.build()
+
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        #we need to create some models with different years - starting
+        #with the current year.
+        yr = datetime.datetime.now()
+
+        PRJ_CD = "LHA_IA%s_111" % str(yr.year)[-2:]
+        self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+                                              Owner=self.user)
+
+        PRJ_CD = "LHA_IA%s_222" % str(yr.year -1)[-2:]
+        self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+                                              Owner=self.user)
+
+        PRJ_CD = "LHA_IA%s_333" % str(yr.year-2)[-2:]
+        self.project3 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+                                              Owner=self.user)
 
 
     def test_resetMilestone(self):
@@ -60,24 +78,19 @@ class TestProjectModel(TestCase):
     def test_project_unicode(self):
         """make sure that the string representation of our project is
         what we expect (project name (project code))"""
-        prj_cd = "LHA_IA12_111"
-        prj_nm = "Fake Project"
-        project = ProjectFactory.create(PRJ_CD = prj_cd,
-                                        PRJ_NM = prj_nm)
-        should_be = "%s (%s)" % (prj_nm, prj_cd)
-        self.assertEqual(str(project), should_be)                
+
+        should_be = "%s (%s)" % (self.project1.PRJ_NM, 
+                                 self.project1.PRJ_CD)
+        self.assertEqual(str(self.project1), should_be)                
 
 
     def test_project_suffix(self):
         '''verify that project suffix is the last three elements of
         the project code'''
-        prj_cd = "LHA_IA12_111"
-        prj_nm = "Fake Project"
-        project = ProjectFactory.create(PRJ_CD = prj_cd,
-                                        PRJ_NM = prj_nm)
-        self.assertEqual(len(project.ProjectSuffix()), 3)                
-        should_be = prj_cd[-3:]
-        self.assertEqual(project.ProjectSuffix(), should_be)                
+
+        self.assertEqual(len(self.project1.ProjectSuffix()), 3)                
+        should_be = self.project1.PRJ_CD[-3:]
+        self.assertEqual(self.project1.ProjectSuffix(), should_be)                
 
 
     def test_project_save(self):
@@ -92,6 +105,27 @@ class TestProjectModel(TestCase):
         self.assertEqual(project.slug, should_be)
         should_be = "20" + prj_cd[6:8]                
         self.assertEqual(str(project.YEAR), should_be)                
+
+
+    def test_projects_this_year(self):
+        '''This one should return self.project1, but not project 2 or 3'''
+        projects = Project.this_year.all()
+        self.assertEqual(projects.count(),1)
+        self.assertEqual(projects[0].PRJ_CD, self.project1.PRJ_CD)
+
+    def test_projects_last_year(self):
+        '''This one should return self.project2, but not project 1 or 3'''
+        projects = Project.last_year.all()
+        self.assertEqual(projects.count(),1)
+        self.assertEqual(projects[0].PRJ_CD, self.project2.PRJ_CD)
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()
+        self.user.delete()
+
+
 
 class TestMilestoneModel(TestCase):        
 
