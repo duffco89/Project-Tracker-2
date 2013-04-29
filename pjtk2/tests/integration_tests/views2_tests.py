@@ -5,6 +5,7 @@ from django_webtest import WebTest
 from pjtk2.tests.factories import *
 from pjtk2.models import Bookmark
 
+import datetime
 
 
 class BookmarkTestCase(WebTest):
@@ -286,9 +287,6 @@ class UpdateReportsTestCase(WebTest):
         self.assertContains(response, "password")
 
 
-
-
-
     def test_report_form_renders(self):
         '''verify that the report form displays properly with the
         correct number of assignments.  By default all core reports
@@ -365,7 +363,7 @@ class UpdateReportsTestCase(WebTest):
 
 
     ##  NOTE - this test has been replaced with one in views_test.py
-    ##  using the django test clinent.  I was unable to get web test
+    ##  using the django test client.  I was unable to get web test
     ##  to associated data in the second form with 'NewReport' in the
     ##  posted data.
     ##
@@ -393,8 +391,8 @@ class UpdateReportsTestCase(WebTest):
         form = forms['dialog']
         form.fields['NewReport'] = "COA Summary"
         
-        form.submit(name='Submit', index=None, get="NewReport")
-        #form.submit('Submit',{'NewReport':'Submit'})
+        #form.submit(name='Submit', index=None, get="NewReport")
+        form.submit('Submit',{'NewReport':'Submit'})
 
         
         reports = Milestone.objects.all()
@@ -406,11 +404,6 @@ class UpdateReportsTestCase(WebTest):
         reports = Milestone.objects.filter(category='Custom')
         #self.assertEqual(reports.count(),3)
         #self.assertEqual(reports.filter(label="COA Summary").count(),1)
-        
-        
-
-
-
 
     def tearDown(self):
 
@@ -422,4 +415,3 @@ class UpdateReportsTestCase(WebTest):
         self.rep1.delete()
         self.user1.delete()
         self.user2.delete()
-        

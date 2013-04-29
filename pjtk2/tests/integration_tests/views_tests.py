@@ -436,67 +436,62 @@ class ApprovedProjectListManagerTestCase(TestCase):
 #================================
 #APPROVE PROJECTS
 
-class ApproveProjectsManagerTestCase(TestCase):
-    ''' Managers should  be able to see the list of approved
-    projects, and see the link to update the list'''
+class ApproveUnapproveProjectsTestCase(TestCase):
+    '''Verify that a manager can approve and unapprove projects'''
 
-    def setUp(self):        
-        #create two projects, one that will be approved, and one that
-        #isn't.  Only the approved one should appear in the list.
-        self.client = Client()        
-        self.owner = UserFactory()
-        self.project1 = ProjectFactory(Owner = self.owner)
-        self.project2 = ProjectFactory(
-            PRJ_CD = "LHA_IA12_111",
-            PRJ_NM = "An approved project",
-            PRJ_LDR = self.owner,
-            Owner = self.owner)
-        self.project2.Approved = True
-        self.project2.save()
+    def setUp(self):
+        ''' '''
+        #USER
+        self.user1 = UserFactory.create(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
 
-        self.project3 = ProjectFactory(
-            PRJ_CD = "LHA_IA12_999",
-            PRJ_NM = "An approved and completed project",
-            PRJ_LDR = self.owner,
-            Owner = self.owner)
-        self.project3.Approved = True
-        self.project3.SignOff = True        
-        self.project3.save()
-        
-        #create a differnt user that will be the manager
-        self.user = UserFactory(username = 'gconstansa',
-                                first_name = 'George',
-                                last_name = 'Costansa')
-        #make george the manager:
+        self.user2 = UserFactory.create(username = 'mburns',
+                                first_name = 'Burns',
+                                last_name = 'Montgomery',
+                                       )
+        #make Mr. Burns the manager:
         managerGrp, created = Group.objects.get_or_create(name='manager')         
-        self.user.groups.add(managerGrp)
+        self.user2.groups.add(managerGrp)
 
-            
-    def test_with_Login(self):
-        '''if we login with as a manager, we will be allowed to view
-        the page'''
-        login = self.client.login(username=self.user.username, password='abc')
-        self.assertTrue(login)
-        response = self.client.get(reverse('ApproveProjects')) 
-        self.assertEqual(response.status_code, 200)
-        
-        self.assertTemplateUsed(response, 'ApproveProjects.html')
-        self.assertContains(response, 'Submitted Projects')
+        #we need to create some models with different years - starting
+        #with the current year (the actual model objects use the real
+        #current year so the project codes must be dynamically built
+        #to ensure the tests pass in the future).
+        self.year = datetime.datetime.now().year
 
-        #projects one and two are still active and should be in the list
-        self.assertContains(response, self.project1.PRJ_CD)
-        self.assertContains(response, self.project1.PRJ_NM)
-        self.assertContains(response, self.project2.PRJ_CD)
-        self.assertContains(response, self.project2.PRJ_NM)
+        #Two projects from this year:
+        PRJ_CD = "LHA_IA%s_111" % str(self.year)[-2:]
+        self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+                                              Owner=self.user1)
 
-        #it should not contain the third project it has been completed 
-        # annd should not appear in this list
-        self.assertNotContains(response, self.project3.PRJ_CD)
-        self.assertNotContains(response, self.project3.PRJ_NM)
+        PRJ_CD = "LHA_IA%s_222" % str(self.year)[-2:]
+        self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+                                              Owner=self.user1)
+        #Two projects from last year:
+        PRJ_CD = "LHA_IA%s_333" % str(self.year-1)[-2:]
+        self.project3 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+                                              Owner=self.user1)
+
+        PRJ_CD = "LHA_IA%s_444" % str(self.year-1)[-2:]
+        self.project4 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+                                              Owner=self.user1)
+
+        #one project from 3 years ago
+        PRJ_CD = "LHA_IA%s_555" % str(self.year -3)[-2:]
+        self.project5 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+                                              Owner=self.user1)
+
+        #One project from next year (submitted by a keener):
+        PRJ_CD = "LHA_IA%s_666" % str(self.year+1)[-2:]
+        self.project6 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+                                              Owner=self.user1)
+
 
     def test_without_Login(self):
         '''if we try to view page without logging in, we should be
         re-directed to the login page'''
+
         response = self.client.get(reverse('ApproveProjects'),
                                    follow=True) 
         self.assertEqual(response.status_code,200)
@@ -504,30 +499,286 @@ class ApproveProjectsManagerTestCase(TestCase):
                                          reverse('ApproveProjects'))
         self.assertRedirects(response, redirectstring)
 
-    def tearDown(self):
-        self.project1.delete()
-        self.project2.delete()
-        self.project3.delete()        
-        self.user.delete()
+
+
+    def test_that_nonmanagers_are_redirected(self):
+        '''only managers can approve/unapprove projects.  Verify that
+        homer is redirected to the approved project list if he tries
+        to log in to the approved projects view.'''
+
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('ApproveProjects'), follow=True) 
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("ApprovedProjectList.html")
+        self.assertContains(response, 'Approved Projects')
+        self.assertNotContains(response, 'This Year')
+        self.assertNotContains(response, 'Last Year')
+
+
+    def test_that_only_managers_can_login(self):
+        '''verify that Mr Burns is able to successful view the form'''
         
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('ApproveProjects'), follow=True) 
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("ApproveProjects.html")
+        self.assertContains(response, 'This Year')
+        self.assertContains(response, 'Last Year')
+
+
+    def test_that_form_renders_properly(self):
+        '''Verify that when Mr. Burns view the form, it contains
+        appropriate entries for both this year and last year.  This
+        year should contain one entry for a future project year.
+        Projects more than one year old should not appear on the form.
+        the project codes should also appear as link to their
+        respective detail pages.'''
+
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('ApproveProjects'), follow=True) 
+
+        print response
+        #This year
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                         args = (self.project1.slug,)), self.project1.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                         args = (self.project2.slug,)), self.project2.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+        #last year
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                         args = (self.project3.slug,)), self.project3.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                         args = (self.project4.slug,)), self.project4.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+        #the old project should NOT be listed in any form in the response
+        self.assertNotContains(response, self.project5.PRJ_CD)
+        #the project from the future
+        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+                         args = (self.project6.slug,)), self.project6.PRJ_CD)
+        self.assertContains(response, linkstring, html=True)
+
+
+    def test_projects_for_thisyear_can_be_approved(self):
+        '''by default projects should not be approved.  Verify that
+        Mr. Burns can login and successfully approve two from the
+        current year.'''
+
+        #by default, the projects are all approved we need to
+        #unapproved them before we run this test
+        Project.objects.all().update(Approved=False)
+        #check that our update worked:
+        projects = Project.this_year.all()
+        self.assertQuerysetEqual(projects, [False, False, False], lambda a:a.Approved)
+
+        #now login and make the changes
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+
+        form_data = {
+            'thisyear-TOTAL_FORMS': 3, 
+            'thisyear-INITIAL_FORMS': 3,
+            'form-type':'thisyear',
+            'thisyear-0-id':'6',
+            'thisyear-0-Approved': True,
+            'thisyear-1-id':'1',
+            'thisyear-1-Approved': True,
+            'thisyear-2-id':'2',
+            'thisyear-2-Approved': True,
+            }
+
+        #submit the form
+        response = self.client.post(reverse('ApproveProjects'), form_data)
+
+        #they should all be false now:
+        thisyear = Project.this_year.all()
+        self.assertEqual(thisyear.count(),3)
+        self.assertQuerysetEqual(thisyear, [True, True, True], lambda a:a.Approved)
+
+    def test_projects_for_thisyear_can_be_unapproved(self):
+        '''Opps - funding was cut.  A project from this year that was
+        approved must be unapproved.'''
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+
+        #verify database settings before submitting form
+        thisyear = Project.this_year.all()
+        self.assertEqual(thisyear.count(),3)
+        self.assertQuerysetEqual(thisyear, [True, True, True], lambda a:a.Approved)
+
+        form_data = {
+            'thisyear-TOTAL_FORMS': 3, 
+            'thisyear-INITIAL_FORMS': 3,
+            'form-type':'thisyear',
+            'thisyear-0-id':'6',
+            'thisyear-0-Approved': False,
+            'thisyear-1-id':'1',
+            'thisyear-1-Approved': False,
+            'thisyear-2-id':'2',
+            'thisyear-2-Approved': False,
+            }
+
+        #submit the form
+        response = self.client.post(reverse('ApproveProjects'), form_data)
+
+        #they should all be false now:
+        thisyear = Project.this_year.all()
+        self.assertEqual(thisyear.count(),3)
+        self.assertQuerysetEqual(thisyear, [False, False, False], lambda a:a.Approved)
+
+        #lets make sure that we can submit with both true and false values:
+        form_data = {
+            'thisyear-TOTAL_FORMS': 3, 
+            'thisyear-INITIAL_FORMS': 3,
+            'form-type':'thisyear',
+            'thisyear-0-id':'6',
+            'thisyear-0-Approved': False,
+            'thisyear-1-id':'1',
+            'thisyear-1-Approved': True,
+            'thisyear-2-id':'2',
+            'thisyear-2-Approved': False,
+            }
+
+        #submit the form
+        response = self.client.post(reverse('ApproveProjects'), form_data)
+
+        #they should all be false now:
+        thisyear = Project.this_year.all()
+        self.assertEqual(thisyear.count(),3)
+        self.assertQuerysetEqual(thisyear, [False, True, False], lambda a:a.Approved)
+
+
+    def test_projects_for_lastyear_can_be_approved(self):
+        '''by default projects should not be approved.  Verify that
+        Mr. Burns can login and successfully approve a project from last year
+        that he forgot to approve then.'''
+
+        #by default, the projects are all approved we need to
+        #unapproved them before we run this test
+        Project.objects.all().update(Approved=False)
+        #check that our update worked:
+        projects = Project.last_year.all()
+        self.assertQuerysetEqual(projects, [False, False], lambda a:a.Approved)
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+
+        #verify database settings before submitting form
+        lastyear = Project.last_year.all()
+        self.assertEqual(lastyear.count(),2)
+        self.assertQuerysetEqual(lastyear, [False, False], lambda a:a.Approved)
+
+        form_data = {
+            'lastyear-TOTAL_FORMS': 2, 
+            'lastyear-INITIAL_FORMS': 2,
+            'form-type':'lastyear',
+            'lastyear-0-id':'3',
+            'lastyear-0-Approved': True,
+            'lastyear-1-id':'4',
+            'lastyear-1-Approved': True,
+            }
+
+        #submit the form
+        response = self.client.post(reverse('ApproveProjects'), form_data)
+
+        #they should all be false now:
+        lastyear = Project.last_year.all()
+        self.assertEqual(lastyear.count(),2)
+        self.assertQuerysetEqual(lastyear, [True, True], lambda a:a.Approved)
+
+
+
+    def test_projects_for_lastyear_can_be_unapproved(self):
+        '''Verify that Mr. Burns can login and successfully un-approve a
+        project from last year that was accidentally approved.'''
+
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+
+        #verify database settings before submitting form
+        lastyear = Project.last_year.all()
+        self.assertEqual(lastyear.count(),2)
+        self.assertQuerysetEqual(lastyear, [True, True], lambda a:a.Approved)
+
+        form_data = {
+            'lastyear-TOTAL_FORMS': 2, 
+            'lastyear-INITIAL_FORMS': 2,
+            'form-type':'lastyear',
+            'lastyear-0-id':'3',
+            'lastyear-0-Approved': False,
+            'lastyear-1-id':'4',
+            'lastyear-1-Approved': False,
+            }
+
+        #submit the form
+        response = self.client.post(reverse('ApproveProjects'), form_data)
+
+        #they should all be false now:
+        lastyear = Project.last_year.all()
+        self.assertEqual(lastyear.count(),2)
+        self.assertQuerysetEqual(lastyear, [False, False], lambda a:a.Approved)
+
+        #lets make sure that we can submit with both true and false values:
+        form_data = {
+            'lastyear-TOTAL_FORMS': 2, 
+            'lastyear-INITIAL_FORMS': 2,
+            'form-type':'lastyear',
+            'lastyear-0-id':'3',
+            'lastyear-0-Approved': False,
+            'lastyear-1-id':'4',
+            'lastyear-1-Approved': True,
+            }
+
+        #submit the form
+        response = self.client.post(reverse('ApproveProjects'), form_data)
+
+        #they should all be false now:
+        lastyear = Project.last_year.all()
+        self.assertEqual(lastyear.count(),2)
+        self.assertQuerysetEqual(lastyear, [False, True], lambda a:a.Approved)
+
+
+    def tearDown(self):
+
+        self.project6.delete()
+        self.project5.delete()
+        self.project4.delete()
+        self.project3.delete()
+        self.project2.delete()
+        self.project1.delete()
+        self.user1.delete()
+        self.user2.delete()
 
 class ApproveProjectsEmptyTestCase(TestCase):
     ''' Verify that a meaningful message is displayed if there aren't
     any projects waiting to be approved.'''
 
     def setUp(self):        
-        #create two projects, one that will be approved, and one that
-        #isn't.  Only the approved one should appear in the list.
-        self.client = Client()        
-        
-        #create a differnt user that will be the manager
-        self.user = UserFactory(username = 'gconstansa',
-                                first_name = 'George',
-                                last_name = 'Costansa')
-        #make george the manager:
+
+        self.user = UserFactory.create(username = 'mburns',
+                                first_name = 'Burns',
+                                last_name = 'Montgomery',
+                                       )
+        #make Mr. Burns the manager:
         managerGrp, created = Group.objects.get_or_create(name='manager')         
         self.user.groups.add(managerGrp)
-
+        self.year = datetime.datetime.now().year
             
     def test_with_Login(self):
         '''if we login with as a manager, we will be allowed to view
@@ -540,43 +791,17 @@ class ApproveProjectsEmptyTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         
         self.assertTemplateUsed(response, 'ApproveProjects.html')
-        self.assertContains(response, 'Submitted Projects')
-        self.assertContains(response, 'no projects pending approval')
+        self.assertContains(response, 'Approve Projects')
+        #this year
+        msg = 'There are currently no projects for %s' % self.year
+        self.assertContains(response, msg )
+        #last year
+        msg = 'There are currently no projects for %s' % str(self.year-1)
+        self.assertContains(response, msg )
 
     def tearDown(self):
         self.user.delete()
-        
 
-class ApproveProjectsUserTestCase(TestCase):
-    '''Users are not allowed to view the ApproveProjectsForm.  Verify
-    that they are redirected to the ApprovedProjectList if they try.'''
-
-    def setUp(self):        
-        self.client = Client()        
-        self.user = UserFactory()
-            
-    def test_with_Login(self):
-        '''if we login with as a user, we will not be allowed to view
-        the page, but instead will be redirect to the approved project list.'''
-        
-        login = self.client.login(username=self.user.username, password='abc')
-        self.assertTrue(login)
-        response = self.client.get(reverse('ApproveProjects'),follow=True) 
-        self.assertEqual(response.status_code, 200)
-
-        self.assertRedirects(response, reverse('ApprovedProjectsList'))
-        self.assertTemplateUsed(response, 'ApprovedProjectList.html')
-        self.assertContains(response, 'Projects')
-        
-        #since this user is not a manager, she should not be able to
-        #update the list
-        self.assertNotContains(response, "Update this list")
-        
-
-        
-    def tearDown(self):
-        self.user.delete()
-        
 
 class ChangeReportingRequirementsTestCase(TestCase):
     '''This class verifies that new reporting requirements can be
@@ -587,10 +812,6 @@ class ChangeReportingRequirementsTestCase(TestCase):
     def setUp(self):        
 
         #USER
-        ##  self.user1 = UserFactory.create(username = 'hsimpson',
-        ##                          first_name = 'Homer',
-        ##                          last_name = 'Simpson')
-
         self.user2 = UserFactory.create(username = 'mburns',
                                 first_name = 'Burns',
                                 last_name = 'Montgomery',
@@ -599,13 +820,6 @@ class ChangeReportingRequirementsTestCase(TestCase):
         managerGrp, created = Group.objects.get_or_create(name='manager')         
         self.user2.groups.add(managerGrp)
 
-        #required reports
-        ##  self.rep1 = MilestoneFactory.create(label = "Proposal Presentation",
-        ##                          category = 'Core', order = 1)
-        ##  self.rep2 = MilestoneFactory.create(label = "Completion Report",
-        ##                          category = 'Core', order = 2)
-        ##  self.rep3 = MilestoneFactory.create(label = "Summary Report",
-        ##                          category = 'Core', order = 3)
         self.rep4 = MilestoneFactory.create(label = "Budget Report",
                                 category = 'Custom', order = 99)
         self.rep5 = MilestoneFactory.create(label = "Creel Summary Statistics",
@@ -641,9 +855,7 @@ class ChangeReportingRequirementsTestCase(TestCase):
         self.project1.delete()
         self.rep5.delete()
         self.rep4.delete()
-        #self.rep3.delete()
-        #self.rep2.delete()
-        #self.rep1.delete()
-        #self.user1.delete()
         self.user2.delete()
         
+
+

@@ -4,7 +4,8 @@ from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
+from django.contrib.auth.decorators import (login_required, permission_required,
+                                            user_passes_test)
 from django.core.context_processors import csrf
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
@@ -16,20 +17,21 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
-
 from pjtk2.filters import ProjectFilter
-from pjtk2.models import Milestone, Project, Report, ProjectReports
-from pjtk2.models import TL_ProjType, TL_Database, Bookmark, ProjectSisters, Family
-#from pjtk2.forms import MilestoneForm
-from pjtk2.forms import ProjectForm, ApproveProjectsForm, DocumentForm, ReportsForm
-from pjtk2.forms import SisterProjectsForm
-#from pjtk2.forms import AdditionalReportsForm, CoreReportsForm, AssignmentForm
+from pjtk2.models import (Milestone, Project, Report, ProjectReports,
+                          TL_ProjType, TL_Database, Bookmark, ProjectSisters, 
+                          Family)
 
-from pjtk2.forms import  ReportUploadForm,  ReportUploadFormSet
+from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm, 
+                         ReportsForm, SisterProjectsForm,  ReportUploadForm,  
+                         ReportUploadFormSet)
 
+import datetime
+import mimetypes
 import os
 import pdb
-import mimetypes
+
+
 
 
 def group_required(*group_names):
@@ -341,9 +343,6 @@ def crud_project(request, slug, action='New'):
                               context_instance=RequestContext(request)
         )
 
-
-
-
     
 @login_required
 #@permission_required('Project.can_change_Approved')
@@ -354,33 +353,63 @@ def approveprojects(request):
     if is_manager(request.user)==False:
         return HttpResponseRedirect(reverse('ApprovedProjectsList'))
 
-
     ProjectFormSet = modelformset_factory(Project, ApproveProjectsForm, extra=0)
-    projects = Project.objects.all().filter(SignOff=False)
 
-    if projects.count()==0:
-        empty=True
+    #TODO - test that signed off and unactive projects are not included.
+    #TODO - test that projects in the future are included in this year
+    thisyears = Project.this_year.all().filter(SignOff=False)
+    lastyears = Project.last_year.all().filter(SignOff=False)
+    year = datetime.datetime.now().year
+
+    if thisyears.count()==0:
+        thisYearEmpty = True
     else:
-        empty=False
+        thisYearEmpty = False
+
+    if lastyears.count()==0:
+        lastYearEmpty = True
+    else:
+        lastYearEmpty = False
+
 
     if request.method == 'POST':
-        #pdb.set_trace()
-        formset = ProjectFormSet(request.POST, queryset = projects)
-
-        if formset.is_valid():
-            # do something with the formset.cleaned_data
-            formset.save()
+        if request.POST['form-type']==u"thisyear":
+            thisyearsformset = ProjectFormSet(request.POST, queryset = thisyears,
+                                      prefix = "thisyear")
+            lastyearsformset = ProjectFormSet(queryset = lastyears,
+                                      prefix = "lastyear")
+            
+        elif request.POST['form-type']==u"lastyear":
+            lastyearsformset = ProjectFormSet(request.POST, queryset = lastyears,
+                                      prefix = "lastyear")
+            thisyearsformset = ProjectFormSet(queryset = thisyears,
+                                      prefix = "thisyear")
+        if thisyearsformset.is_valid():  
+            thisyearsformset.save()
+            return HttpResponseRedirect(reverse('ApprovedProjectsList'))
+        elif lastyearsformset.is_valid():
+            lastyearsformset.save()
             return HttpResponseRedirect(reverse('ApprovedProjectsList'))
         else:
             return render_to_response('ApproveProjects.html',
-                              {'formset': formset,
-                               'empty':empty},
+                              {
+                               'year':year, 'thisYearEmpty':thisYearEmpty,
+                                'lastYearEmpty':lastYearEmpty,
+                               'thisyearsformset': thisyearsformset,
+                               'lastyearsformset': lastyearsformset},
                                context_instance=RequestContext(request))
     else:
-        formset = ProjectFormSet(queryset = projects)
+        thisyearsformset = ProjectFormSet(queryset = thisyears, 
+                                          prefix = "thisyear")
+        lastyearsformset = ProjectFormSet(queryset = lastyears,
+                                          prefix = "lastyear")
+
     return render_to_response('ApproveProjects.html',
-                              {'formset': formset,
-                               'empty':empty},
+                              {
+                               'year':year, 'thisYearEmpty':thisYearEmpty,
+                                'lastYearEmpty':lastYearEmpty,
+                               'thisyearsformset': thisyearsformset,
+                               'lastyearsformset': lastyearsformset},
                                context_instance=RequestContext(request))
 
 

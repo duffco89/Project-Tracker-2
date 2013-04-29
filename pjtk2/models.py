@@ -15,13 +15,15 @@ import pdb
 class ProjectsThisYear(models.Manager):
     def get_query_set(self):
         '''get all of the project objects from the current year'''
+        use_for_related_fields = True
         yr = datetime.datetime.now().year
         return super(ProjectsThisYear, self).get_query_set().filter(
-                     YEAR = yr, Active=True)
+                     YEAR__gte=yr, Active=True)
 
 class ProjectsLastYear(models.Manager):
     def get_query_set(self):
         '''get all of the project objects from last year'''
+        use_for_related_fields = True
         yr = datetime.datetime.now().year - 1
         return super(ProjectsLastYear, self).get_query_set().filter(
                     YEAR = yr, Active=True)
