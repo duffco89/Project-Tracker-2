@@ -181,8 +181,6 @@ class ProjectList(ListFilteredMixin, ListView):
         context['tag'] = self.tag
         return context
 
-
-
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ProjectList, self).dispatch(*args, **kwargs)
@@ -315,8 +313,8 @@ def crud_project(request, slug, action='New'):
 
         if form.is_valid():
             tags = form.cleaned_data['tags']
-            for tag in tags:
-                print tag
+            #for tag in tags:
+            #    print tag
             form = form.save(commit=False)
             form.Owner = request.user
             form.save()

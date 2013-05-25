@@ -526,3 +526,7 @@ class TestProjectTagging(TestCase):
         self.project1.delete()
         self.project2.delete()
         self.project3.delete()
+
+
+
+

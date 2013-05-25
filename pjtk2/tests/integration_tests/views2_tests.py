@@ -225,7 +225,7 @@ class ProjectTaggingTestCase(WebTest):
                                 args=("gold",)), user=self.user)
         self.assertEqual(response.status_int, 200)
 
-        msg =  "Sorry no projects available."
+        msg =  "Sorry no Projects available."
         self.assertContains(response, msg)
 
     def tearDown(self):
