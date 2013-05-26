@@ -186,12 +186,22 @@ MY_APPS =(
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
 
 
+##HAYSTACK_CONNECTIONS = {
+##    'default': {
+##        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
+##        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+##    },
+##}
+
+
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_index'),
+        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'URL': 'http://127.0.0.1:9200/',
+        'INDEX_NAME': 'haystack',
     },
 }
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
