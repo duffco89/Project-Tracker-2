@@ -6,6 +6,8 @@ from django.conf.urls import patterns, include, url
 
 urlpatterns = patterns('pjtk2.views',
 
+    (r'^search/', include('haystack.urls')),
+
     #CRUD Projects
     url(r'^projects/$', 'project_list', name='ProjectList'),
     url(r'^projects/approved$', 'approved_projects_list', name='ApprovedProjectsList'),

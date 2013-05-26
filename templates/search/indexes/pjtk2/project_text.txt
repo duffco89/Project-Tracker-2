@@ -1,0 +1,9 @@
+{{ object.name }}
+{{ object.code }}
+{{ object.description }}
+{{ object.Approved }}
+{{ object.SignOff }}
+{{ object.ProjectType }}
+{{ object.YEAR }}
+
+{% for tag in object.tags.all %} {{ tag.name }} {% endfor %}

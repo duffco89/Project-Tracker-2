@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<p> 
+<a href="{% url 'home' %}">Index </a> | 
+<a href="{% url 'ProjectList' %}"> Project List </a> | 
+<a href="{% url 'ApprovedProjectsList' %}">Approved Project List</a> | 
+<a href="{% url 'MyProjects' %}">My Projects</a> |
+</p>
+
+
+<div class="span12">
+<h1>Search</h1>
+
+<form class=".form-search" action="." method="get">
+    <input type="text" name="q">
+    <input type="submit" value="Search" />
+</form>
+
+</div>
+
+  {% if query %}
+  <hr />
+  <div class="span8">
+  <h3>Results</h3>
+  <div id="accordion2" class="accordion">
+  {% for result in page.object_list %}
+    <p>
+      <a href="{{ result.object.get_absolute_url }}"> {{ result.object.PRJ_CD }} - {{ result.object.PRJ_NM }} </a>
+    </p>
+   {% empty %}
+ 
+   No results found.
+ 
+   {% endfor %}</div>
+ 
+   {% if page.has_previous or page.has_next %}
+<div>{% if page.has_previous %}<a href="?q={{ query }}&page={{ page.previous_page_number }}">{% endif %}« Previous{% if page.has_previous %}</a>{% endif %}
+ |
+ {% if page.has_next %}<a href="?q={{ query }}&page={{ page.next_page_number }}">{% endif %}Next »{% if page.has_next %}</a>{% endif %}</div>
+ {% endif %}</div>
+
+{% else %}
+ 
+{% endif %}
+
+{% endblock %}

@@ -42,7 +42,8 @@ e.style.display = 'block';
 <p> 
 <a href="{% url 'home' %}">Index </a> | 
 <a href="{% url 'ApprovedProjectsList' %}">Approved Project List</a> | 
-<a href="{% url 'MyProjects' %}">View My Projects</a> 
+<a href="{% url 'MyProjects' %}">View My Projects</a> |
+<a href="{% url 'haystack_search' %}">Search Projects</a> 
 </p>
 
 <h1>Projects {% if year %}{{ year }}{% endif %}{% if tag %}tagged with '{{ tag }}'{% endif %}</h1>

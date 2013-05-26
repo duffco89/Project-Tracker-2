@@ -9,6 +9,7 @@ admin2/*
 admin/*
 uploads/*
 static_root/*
+main/whoosh*
 *.pyc
 db/*
 coverage/*

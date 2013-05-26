@@ -156,6 +156,16 @@ class Project(models.Model):
     def ProjectSuffix(self):
         return self.PRJ_CD[-3:]
 
+    def name(self):
+        '''alias for PRJ_NM - maintains fishnetII name in model but works
+         with django convention of obj.name.'''
+        return self.PRJ_NM
+
+    def description(self):
+        '''alias for comment - maintains fishnetII name in model but works
+         with django convention of obj.description.'''
+        return self.COMMENT
+
     def __unicode__(self):
         ret = "%s (%s)" % (self.PRJ_NM, self.PRJ_CD)
         return ret
