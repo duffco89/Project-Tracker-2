@@ -1,12 +1,23 @@
 from django.contrib.auth.decorators import login_required
 from django.conf.urls import patterns, include, url
 
-#import pjtk2.views
+
+from haystack.forms import FacetedSearchForm
+from haystack.query import SearchQuerySet
+from haystack.views import FacetedSearchView
+
+sqs = SearchQuerySet().facet('ProjectType').facet('Approved').facet(
+    'Completed').facet('Lake').facet('Funding')
 
 
 urlpatterns = patterns('pjtk2.views',
 
-    (r'^search/', include('haystack.urls')),
+    url(r'^search/$', FacetedSearchView(
+       form_class=FacetedSearchForm, 
+       searchqueryset=sqs), 
+       name='haystack_search'),
+
+    #(r'^search/', include('haystack.urls')),
 
     #CRUD Projects
     url(r'^projects/$', 'project_list', name='ProjectList'),
@@ -78,3 +89,5 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^crispy/$', 'crispy', name='CrispyForm'),
     url(r'^crispy2/$', 'crispy2', name='CrispyForm2'),
 )
+
+

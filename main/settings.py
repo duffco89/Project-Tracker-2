@@ -134,10 +134,10 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
 #'main.middleware.LoginRequiredMiddleware',
-#'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
-#INTERNAL_IPS = ('127.0.0.1', )   #added for debug toolbar
+INTERNAL_IPS = ('127.0.0.1', )   #added for debug toolbar
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
 }
@@ -242,3 +242,8 @@ LOGGING = {
 #print "STATIC_URL: %s" % STATIC_URL
 #print "STATIC_ROOT: %s" % STATIC_ROOT
 #print "ADMIN_MEDIA_PREFIX : %s" % ADMIN_MEDIA_PREFIX
+
+
+def show_toolbar(request):
+    return True
+SHOW_TOOLBAR_CALLBACK = show_toolbar

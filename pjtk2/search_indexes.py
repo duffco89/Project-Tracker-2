@@ -14,13 +14,13 @@ class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
     description = indexes.CharField(model_attr='COMMENT')
 
     ##Database = indexes.CharField(model_attr='MasterDatabase')
-    ProjectType = indexes.CharField(model_attr='ProjectType')
+    ProjectType = indexes.CharField(model_attr='ProjectType', faceted=True)
     ##
-    Approved = indexes.BooleanField(model_attr='Approved')
-    Completed = indexes.BooleanField(model_attr='SignOff')
+    Approved = indexes.BooleanField(model_attr='Approved', faceted=True)
+    Completed = indexes.BooleanField(model_attr='SignOff', faceted=True)
     ##
-    ##Lake = indexes.CharField(model_attr='Lake')
-    ##Funding = indexes.CharField(model_attr='Funding')
+    Lake = indexes.CharField(model_attr='Lake', faceted=True)
+    Funding = indexes.CharField(model_attr='Funding', faceted=True)
 
     tags = indexes.MultiValueField()
 
