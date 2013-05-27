@@ -55,6 +55,10 @@ class TestUrls(DemoTestCase):
             (reverse('ReportUpload', args=(self.project.slug,)),
              {'status_code':302}),
 
+            (reverse('haystack_search'),
+             {'status_code':200}),
+
+
             #this doesn't work right now.
             #(reverse('serve_file', kwargs={'filename':""}),
             # {'status_code':302}),
