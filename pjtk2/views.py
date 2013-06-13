@@ -432,6 +432,9 @@ def report_milestones(request, slug):
             # then add it to the reporting requirements
             try:
                 Milestone.objects.get_or_create(label=NewReport)
+                #TODO - send message to project lead, supervisor and
+                # request.user that a new reporting requirement
+                # "NewReport" as been associated with a project.
             except Exception:
                 pass
             #now redirect back to the update reports form for this project
