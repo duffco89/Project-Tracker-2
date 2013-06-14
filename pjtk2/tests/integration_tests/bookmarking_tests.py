@@ -18,11 +18,15 @@ class ProjectBookmarkingTestCase(TestCase):
         self.user = UserFactory(username = 'gconstansa',
                                 first_name = 'George',
                                 last_name = 'Costansa')
+
+        self.employee = EmployeeFactory(user=self.user)
+
+
         
         #create two projects, one that will be bookmarked, and one that
         #isn't.  
         self.client = Client()        
-        self.user = UserFactory()
+        #self.user = UserFactory()
         self.project1 = ProjectFactory(
             PRJ_CD="LHA_IA12_222",
             Owner = self.user)

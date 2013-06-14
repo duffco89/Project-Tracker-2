@@ -84,6 +84,19 @@ class TL_Database(models.Model):
     def __unicode__(self):
         return self.MasterDatabase
 
+
+class TL_Lake(models.Model):
+
+    lake = models.CharField(max_length=50)
+    
+    def __unicode__(self):
+        return self.lake
+
+    class Meta:
+        verbose_name = "Lake"
+
+
+
 class Project(models.Model):
     '''Class to hold a record for each project
      TODO:
@@ -98,10 +111,10 @@ class Project(models.Model):
         ('other', 'other'),
     }
 
-    LAKE_CHOICES = {
-        ('LH', 'Lake Huron'),
-        ('LS', 'Lake Superior'),    
-    }
+    #LAKE_CHOICES = {
+    #    ('LH', 'Lake Huron'),
+    #    ('LS', 'Lake Superior'),    
+    #}
 
     YEAR = models.CharField("Year", max_length=4, blank=True, editable=False)
     PRJ_DATE0 = models.DateField("Start Date", blank=False)
@@ -109,9 +122,11 @@ class Project(models.Model):
     PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, blank=False)
     PRJ_NM = models.CharField("Proejct Name", max_length=50, blank=False)
     PRJ_LDR = models.CharField("Project Lead", max_length=40, blank=False)
-    COMMENT = models.TextField(blank=False)
-    MasterDatabase = models.ForeignKey("TL_Database")
-    ProjectType = models.ForeignKey("TL_ProjType")
+    COMMENT = models.TextField(blank=False, help_text="General project description.")
+    RISK = models.TextField("Risk",null=True, blank=True, 
+                            help_text="Potential risks associated with not running project.")
+    MasterDatabase = models.ForeignKey("TL_Database", null=True, blank=True)
+    ProjectType = models.ForeignKey("TL_ProjType", null=True, blank=True)
 
     Approved = models.BooleanField(default = False)
     Conducted  = models.BooleanField(default = False)
@@ -120,7 +135,8 @@ class Project(models.Model):
     DataScrubbed  = models.BooleanField(default = False)
     DataMerged  = models.BooleanField(default = False)
     SignOff  = models.BooleanField(default = False)
-    
+
+    #TODO - replace with mulit-polygon or multi-point fields    
     Max_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
                                      null=True, blank=True)
     Min_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
@@ -134,8 +150,9 @@ class Project(models.Model):
     Active  = models.BooleanField(default = True)
     Funding = models.CharField("Funding Source", max_length=30, choices=FUNDING_CHOICES,
                                 default="spa")
-    Lake =  models.CharField(max_length=30, choices=LAKE_CHOICES,
-                                default="LH")
+    #Lake =  models.CharField(max_length=30, choices=LAKE_CHOICES,
+    #                            default="LH")
+    Lake = models.ForeignKey(TL_Lake)
 
     TotalCost =  models.DecimalField("Total Cost", max_digits=8, decimal_places=2, 
                                      null=True, blank=True)
@@ -426,6 +443,9 @@ class Bookmark(models.Model):
     def ProjectType(self):
         return self.project.ProjectType
 
+    def PRJ_LDR(self):
+        return self.project.PRJ_LDR
+
     def YEAR(self):
         return self.project.YEAR
 
@@ -460,6 +480,25 @@ class ProjectSisters(models.Model):
         return str("Project - %s - Family %s" % (self.project, self.family))
 
 
+class employee(models.Model):
+
+    ROLL_CHOICES = {
+        ('manager', 'Manager'),
+        ('dba', 'DBA'),    
+        ('employee', 'Employee'),
+    }
+
+    user = models.ForeignKey(User, unique=True, related_name='employee')
+    position = models.CharField(max_length=60)
+    role = models.CharField(max_length=30, choices=ROLL_CHOICES,
+                                default='Employee')
+    lake = models.ManyToManyField('TL_Lake')
+    supervisor = models.ForeignKey('self',
+                                   blank=True,
+                                   null=True)
+
+    def __unicode__(self):
+        return self.user.username
         
         
 class AdminMilestone(admin.ModelAdmin):
@@ -470,6 +509,9 @@ class AdminTL_ProjType(admin.ModelAdmin):
     pass
 
 class AdminTL_Database(admin.ModelAdmin):
+    pass
+
+class AdminTL_Lake(admin.ModelAdmin):
     pass
 
 class AdminProject(admin.ModelAdmin):
@@ -490,15 +532,19 @@ class AdminReport(admin.ModelAdmin):
     list_display = ('current', 'report_path','uploaded_on', 'uploaded_by')
     #    list_filter = ('ProjectReports__project',)
 
+class AdminEmployee(admin.ModelAdmin):
+    pass
 
 
 admin.site.register(Milestone, AdminMilestone)
 admin.site.register(TL_ProjType, AdminTL_ProjType)
 admin.site.register(TL_Database, AdminTL_Database)
+admin.site.register(TL_Lake, AdminTL_Lake)
 admin.site.register(Project, AdminProject)
 admin.site.register(ProjectReports, AdminProjectReports)
 admin.site.register(Report, AdminReport)
 admin.site.register(Family, AdminFamily)
 admin.site.register(ProjectSisters, AdminProjectSisters)
+admin.site.register(employee, AdminEmployee)
 
 

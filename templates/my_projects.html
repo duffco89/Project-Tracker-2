@@ -46,7 +46,7 @@ $(document).ready(function()
 {% if bookmarks %}
   <table id="myTable" class="tablesorter-blue">
     <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td><td>Project
-    Name</td></tr></thead>
+    Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
   <tbody>
   {% for bookmark in bookmarks %}
    <tr class="{% cycle row1,row2 %}">
@@ -60,6 +60,10 @@ $(document).ready(function()
      <td>
        {{ bookmark.name }} 
      </td>
+     {% if boss %}
+       <td>       {{ bookmark.PRJ_LDR }} </td>
+     {% endif %}
+
     </tr>
   {% endfor %}
   </tbody>
@@ -80,7 +84,7 @@ $(document).ready(function()
 {% if submitted %}
   <table id="myTable" class="tablesorter-blue">
     <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td>
-    <td>Project Name</td></tr>
+    <td>Project Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr>
     </thead>
   <tbody>
   {% for project in submitted %}
@@ -93,6 +97,9 @@ $(document).ready(function()
      <td>
        {{ project.PRJ_NM  }} 
      </td>
+     {% if boss %}
+       <td>       {{ project.PRJ_LDR }} </td>
+     {% endif %}
     </tr>
   {% endfor %}
   </tbody>
@@ -108,7 +115,7 @@ $(document).ready(function()
 {% if approved %}
   <table id="myTable" class="tablesorter-blue">
     <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td> 
-     <td>Project Name</td></tr>
+     <td>Project Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr>
    </thead>
   <tbody>
   {% for project in approved %}
@@ -121,6 +128,9 @@ $(document).ready(function()
      <td>
        {{ project.PRJ_NM  }} 
      </td>
+     {% if boss %}
+       <td>       {{ project.PRJ_LDR }} </td>
+     {% endif %}
     </tr>
   {% endfor %}
   </tbody>
@@ -136,7 +146,7 @@ $(document).ready(function()
 {% if complete %}
   <table id="myTable" class="tablesorter-blue">
     <thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td> <td>Project
-    Name</td></tr></thead>
+    Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
   <tbody>
   {% for project in complete %}
     <tr class="{% cycle row1,row2 %}">
@@ -148,6 +158,9 @@ $(document).ready(function()
      <td>
        {{ project.PRJ_NM  }} 
      </td>
+     {% if boss %}
+       <td>       {{ project.PRJ_LDR }} </td>
+     {% endif %}
     </tr>
   {% endfor %}
   </tbody>

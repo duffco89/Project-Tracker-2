@@ -415,3 +415,97 @@ class UpdateReportsTestCase(WebTest):
         self.rep1.delete()
         self.user1.delete()
         self.user2.delete()
+
+
+
+
+class MyProjectViewTestCase(WebTest):
+    '''Verify that the managers see projecs of their reports in the list
+    of 'MyProjects'.  Eemplyees will be able to see their projects but
+    not their supervisors.  When the supervisors view MyProjects, they
+    will have a column 'Project Leader'and will be able to see
+    projects of people they supervise.
+
+    '''
+
+    def setUp(self):
+        '''create two employees, one supervises the other. Additionally,
+        create 3 projects, one run by the supervisor, 2 by the employee.'''
+        
+        #self.client = Client()        
+
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'mburns',
+                                first_name = 'Burns',
+                                last_name = 'Montgomery',
+                                       )
+
+        #mr. burns is an employee without a boss
+        self.employee2 = EmployeeFactory(user=self.user2)
+        #make mr. burns homer's boss 
+        self.employee = EmployeeFactory(user=self.user,
+                                        supervisor=self.employee2)
+       
+        self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
+        
+
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+                                              PRJ_LDR=self.user,
+                                              Owner=self.user,
+                                              ProjectType = self.ProjType)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+                                              PRJ_LDR=self.user,
+                                              Owner=self.user,
+                                              ProjectType = self.ProjType)
+        #this one is run by mr. burns
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+                                              PRJ_LDR=self.user2,
+                                              Owner=self.user2,
+                                              ProjectType = self.ProjType)
+
+    def test_employee_version_myprojects(self):
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('MyProjects'),follow=True) 
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertContains(response, self.project1.PRJ_CD)        
+        self.assertContains(response, self.project2.PRJ_CD)                
+        #these values should NOT be in the response:
+        self.assertNotContains(response, self.project3.PRJ_CD)                
+        self.assertNotContains(response, self.user2.username)                
+        self.assertNotContains(response, "Project Lead")                
+
+
+    def test_supervisor_version_myprojects(self):
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('MyProjects'),follow=True) 
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertContains(response, self.project1.PRJ_CD)        
+        self.assertContains(response, self.project2.PRJ_CD)                
+
+        print "self.project1.PRJ_LDR = %s" % self.project1.PRJ_LDR
+
+        #these values should be in the response:
+        self.assertContains(response, self.project3.PRJ_CD)                
+        self.assertContains(response, self.user.username)                
+        self.assertContains(response, self.user2.username)                
+        self.assertContains(response, "Project Lead")                
+
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()
+        self.ProjType.delete()
+        self.user.delete()
+        self.user2.delete()
+        

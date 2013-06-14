@@ -20,7 +20,7 @@ from django.utils.decorators import method_decorator
 from pjtk2.filters import ProjectFilter
 from pjtk2.models import (Milestone, Project, Report, ProjectReports,
                           TL_ProjType, TL_Database, Bookmark, ProjectSisters, 
-                          Family)
+                          Family, employee)
 
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm, 
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,  
@@ -31,6 +31,26 @@ import mimetypes
 import os
 import pdb
 
+
+
+def get_supervisors(employee):
+    '''Given an employee object, return a list of supervisors.  the first
+    element of list will be the intial employee.'''
+    if employee.supervisor:
+        return [employee] + get_supervisors(employee.supervisor)
+    else:
+        return [employee]
+
+def get_minions(employee):
+    '''Given an employee objects, return a list of employees under his/her
+    supervision.  The first element of list will be the intial
+    employee.
+    '''
+    ret=[employee]
+    for minion in employee.employee_set.all():
+        #ret.append(get_minions(minion))        
+        ret.extend(get_minions(minion))
+    return ret
 
 
 
@@ -534,10 +554,21 @@ def serve_file(request, filename):
 
 @login_required
 def my_projects(request):
-    #TODO - write test to verify this works as expected.
+    '''gather all of the things a user needs and render them on a single page.'''
+    #TODO - write more tests to verify this works as expected.
     bookmarks = Bookmark.objects.filter(user__pk=request.user.id)
 
-    myprojects = Project.objects.filter(Owner__username=request.user.username) 
+    user = User.objects.get(username__exact=request.user)
+
+    me = employee.objects.get(user=user)
+    employees = get_minions(me)
+    employees = [x.user.username for x in employees]
+
+    boss=False
+    if len(employees)>1:
+        boss = True
+
+    myprojects = Project.objects.filter(Owner__username__in=employees)
     
     complete = myprojects.filter(SignOff=True)
     approved = myprojects.filter(Approved=True).filter(SignOff=False)
@@ -549,7 +580,8 @@ def my_projects(request):
                               { 'bookmarks':bookmarks,
                                 'complete':complete,
                                 'approved':approved,
-                                'submitted':submitted                                                                },
+                                'submitted':submitted,
+                                'boss':boss,},
                               context_instance=RequestContext(request))
 
     

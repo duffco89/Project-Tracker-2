@@ -34,7 +34,18 @@ class ManagerFactory(factory.Factory):
     email = 'bosshogg@hotmail.com'    
     manager = True
 
-    
+class LakeFactory(factory.Factory):
+    FACTORY_FOR = TL_Lake
+    lake = "Lake Huron"
+
+class EmployeeFactory(factory.Factory):
+    FACTORY_FOR = employee
+    user = factory.SubFactory(UserFactory)
+    position = 'worker bee'
+    role = 'employee'
+    #lake = factory.SubFactory(LakeFactory)
+    supervisor = None
+
 class ProjTypeFactory(factory.Factory):
     FACTORY_FOR = TL_ProjType
     Project_Type = "Offshore Index"
@@ -43,6 +54,7 @@ class DatabaseFactory(factory.Factory):
     FACTORY_FOR = TL_Database
     MasterDatabase = "Offshore Master"
     Path = "C:/Path/to/somedb.mdb"    
+
 
 
 class FamilyFactory(factory.Factory):
@@ -66,6 +78,9 @@ class ProjectFactory(factory.Factory):
     ProjectType = factory.SubFactory(ProjTypeFactory)
     MasterDatabase = factory.SubFactory(DatabaseFactory)
     Owner = factory.SubFactory(UserFactory)
+
+    Lake = factory.SubFactory(LakeFactory)
+
 
     @factory.lazy_attribute
     def PRJ_DATE0(a):
