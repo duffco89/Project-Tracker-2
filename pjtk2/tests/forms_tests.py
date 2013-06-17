@@ -81,7 +81,9 @@ class TestProjectForm(TestCase):
 
     def setUp(self):
         ProjectFactory.create()
-        
+        self.dba = DBA_Factory.create()
+                 
+
     def test_good_data(self):
         """All fields contain valid data """        
         proj = dict(
@@ -95,6 +97,8 @@ class TestProjectForm(TestCase):
             MasterDatabase = 1,
             tags = "red, blue, green",
             Owner = "Bob Sakamano",
+            DBA = self.dba.id,
+            TL_Lake=1,
            )
 
         form = ProjectForm(data=proj)
@@ -124,6 +128,8 @@ class TestProjectForm(TestCase):
             ProjectType = 1,
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
+            DBA = self.dba.id,
+            TL_Lake=1
            )
 
         for code in goodcodes:
@@ -144,6 +150,8 @@ class TestProjectForm(TestCase):
             ProjectType = 1,
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
+            DBA = self.dba.id,
+            TL_Lake=1
            )
 
         form = ProjectForm(data=proj)
@@ -169,6 +177,8 @@ class TestProjectForm(TestCase):
             ProjectType = 1,
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
+            DBA = self.dba.id,
+            TL_Lake=1
            )
 
         errmsg = "Ensure this value has at most 12 characters"
@@ -202,6 +212,8 @@ class TestProjectForm(TestCase):
             ProjectType = 1,
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
+            DBA = self.dba.id,
+            TL_Lake=1,
            )
 
         errmsg = "Malformed Project Code."
@@ -226,6 +238,8 @@ class TestProjectForm(TestCase):
             ProjectType = 1,
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
+            DBA = self.dba.id,
+            TL_Lake=1
            )
 
         form = ProjectForm(data=proj)
@@ -245,6 +259,8 @@ class TestProjectForm(TestCase):
             ProjectType = 1,
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
+            DBA = self.dba.id,
+            TL_Lake=1,
            )
 
         form = ProjectForm(data=proj)
@@ -283,6 +299,8 @@ class TestProjectForm(TestCase):
             ProjectType = 1,
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
+            DBA = self.dba.id,
+            TL_Lake=1,
            )
 
         form = ProjectForm(data=proj)
@@ -387,10 +405,10 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(len(comp),0)
         self.assertEqual(len(outstanding),2)
 
-        initial = dict(required=True, report_type = self.rep1, report_path = "")
+        initial = dict(required=True, milestone = self.rep1, report_path = "")
 
         #this is the data that is returned from the form:
-        data = dict(required=True, report_type = self.rep1)
+        data = dict(required=True, milestone = self.rep1)
 
         file_data = {'report_path': SimpleUploadedFile(self.mock_file.name, 
                                                        self.mock_file.read())}
@@ -420,11 +438,11 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(str(reports[0].report_path), filepath)
 
         #verify that self.rep2 isnt in the completed list - it isn't done yet:
-        projids = [x['report_type_id'] for x in comp.values()] 
+        projids = [x['milestone_id'] for x in comp.values()] 
         self.assertNotIn(self.rep2.id, projids)
 
         #and that self.rep1 isnt in the outstanding list - we just did it.
-        projids = [x['report_type_id'] for x in outstanding.values()] 
+        projids = [x['milestone_id'] for x in outstanding.values()] 
         self.assertNotIn(self.rep1.id, projids)
 
         #we have uploaded just one report, make sure that's how many
@@ -436,8 +454,8 @@ class TestReportUploadForm(TestCase):
     def test_upload_with_existing_report(self):
 
         #upload report1 to this project (same code as above)
-        initial = dict(required=True, report_type = self.rep1, report_path = "")
-        data = dict(required=True, report_type = self.rep1)
+        initial = dict(required=True, milestone = self.rep1, report_path = "")
+        data = dict(required=True, milestone = self.rep1)
         file_data = {'report_path': SimpleUploadedFile(self.mock_file.name, 
                                                        self.mock_file.read())}
         form = ReportUploadForm(initial=initial, data=data, project = self.project1,
@@ -493,10 +511,10 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(len(comp),0)
         self.assertEqual(len(outstanding),2)
 
-        initial = dict(required=True, report_type = self.rep1, report_path = "")
+        initial = dict(required=True, milestone = self.rep1, report_path = "")
 
         #this is the data that is returned from the form:
-        data = dict(required=True, report_type = self.rep1)
+        data = dict(required=True, milestone = self.rep1)
 
         file_data = {'report_path': SimpleUploadedFile(self.mock_file.name, 
                                                        self.mock_file.read())}
@@ -523,12 +541,12 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(str(reports[0].report_path), filepath)
         
         #verify that self.rep2 isnt in the completed list - it isn't done yet:
-        projids = [x['report_type_id'] for x in comp.values()] 
+        projids = [x['milestone_id'] for x in comp.values()] 
         self.assertNotIn(self.rep2.id, projids)
 
 
         #and that self.rep1 isnt in the outstanding list - we just did it.
-        projids = [x['report_type_id'] for x in outstanding.values()] 
+        projids = [x['milestone_id'] for x in outstanding.values()] 
         self.assertNotIn(self.rep1.id, projids)
 
         #Project 2
@@ -550,11 +568,11 @@ class TestReportUploadForm(TestCase):
 
         
         #verify that self.rep2 is not in the completed list - it isn't done yet:
-        projids = [x['report_type_id'] for x in comp.values()] 
+        projids = [x['milestone_id'] for x in comp.values()] 
         self.assertNotIn(self.rep2.id, projids)
 
         #and that self.rep1 is not in the outstanding list - we just did it.
-        projids = [x['report_type_id'] for x in outstanding.values()] 
+        projids = [x['milestone_id'] for x in outstanding.values()] 
         self.assertNotIn(self.rep1.id, projids)
 
         #we have uploaded just one report, make sure that's how many

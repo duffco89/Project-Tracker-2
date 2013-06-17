@@ -10,7 +10,8 @@ class UserFactory(factory.Factory):
     FACTORY_FOR = User
     first_name = 'John'
     last_name = 'Doe'
-    username = 'johndoe'
+    #username = 'johndoe'
+    username = factory.Sequence(lambda n: 'User ' + n)
     email = 'johndoe@hotmail.com'    
     #admin = False
     password = 'abc'
@@ -25,6 +26,17 @@ class UserFactory(factory.Factory):
             if create:
                 user.save()
         return user
+
+
+class DBA_Factory(factory.Factory):
+    FACTORY_FOR = User
+    first_name = 'Bill'
+    last_name = 'Gates'
+    #username = 'billgates'
+    username = factory.Sequence(lambda n: 'DBA' + n)
+    email = 'microsoft@sucks.com'    
+    is_superuser = True
+
 
 class ManagerFactory(factory.Factory):
     FACTORY_FOR = User
@@ -56,7 +68,6 @@ class DatabaseFactory(factory.Factory):
     Path = "C:/Path/to/somedb.mdb"    
 
 
-
 class FamilyFactory(factory.Factory):
     FACTORY_FOR = Family
     id = factory.Sequence(lambda n:n)
@@ -78,6 +89,7 @@ class ProjectFactory(factory.Factory):
     ProjectType = factory.SubFactory(ProjTypeFactory)
     MasterDatabase = factory.SubFactory(DatabaseFactory)
     Owner = factory.SubFactory(UserFactory)
+    DBA = factory.SubFactory(DBA_Factory)
 
     Lake = factory.SubFactory(LakeFactory)
 
@@ -106,16 +118,16 @@ class MilestoneFactory(factory.Factory):
     category = "Core"
     order = 1
 
-class ProjectReportsFactory(factory.Factory):
-    FACTORY_FOR = ProjectReports
+class ProjectMilestonesFactory(factory.Factory):
+    FACTORY_FOR = ProjectMilestones
     '''list of reporting requirements for each project'''
     project = factory.SubFactory(ProjectFactory)
-    report_type = factory.SubFactory(MilestoneFactory)
+    milestone = factory.SubFactory(MilestoneFactory)
 
 class ReportFactory(factory.Factory):
     FACTORY_FOR = Report
     current = True
-    #projectreport = factory.SubFactory(ProjectReportsFactory)
+    #projectreport = factory.SubFactory(ProjectMilestonesFactory)
     report_path = "some/fake/file.txt"
     uploaded_by = "Bob"
     report_hash = "1234"

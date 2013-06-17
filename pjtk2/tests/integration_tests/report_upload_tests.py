@@ -11,7 +11,7 @@ from django_webtest import WebTest
 from django.conf import settings
 from django.test import TestCase
 #from testfixtures import compare
-from pjtk2.models import ProjectReports
+from pjtk2.models import ProjectMilestones
 from pjtk2.tests.factories import *
 
 
@@ -93,8 +93,8 @@ class BasicReportUploadTestCase(WebTest):
         for a custom report'''
         
         self.assertEqual(self.project1.get_assignments().count(),3)
-        ProjectReports.objects.create(project=self.project1, 
-                                      report_type = self.rep4)
+        ProjectMilestones.objects.create(project=self.project1, 
+                                      milestone = self.rep4)
         #verify that this project has 4 reporting requirements now
         self.assertEqual(self.project1.get_assignments().count(),4)
 
@@ -228,9 +228,9 @@ class TestActualFileUpload(TestCase):
         reports = self.project1.get_reports()
         self.assertEqual(reports.values()[0]['report_path'],filepath)
 
-        #make sure that the report_type is what we think it is:
-        pr = ProjectReports.objects.get(report=reports.select_related())
-        self.assertEqual(pr.report_type, self.rep0)
+        #make sure that the milestone is what we think it is:
+        pr = ProjectMilestones.objects.get(report=reports.select_related())
+        self.assertEqual(pr.milestone, self.rep0)
         
         #verify that a link to the file is on the project details page
         url = reverse('ProjectDetail', args = (self.project1.slug,))                     
@@ -288,8 +288,8 @@ class TestActualFileUpload(TestCase):
 
 
         #create a requirement for a budget report for this poject
-        ProjectReports.objects.create(project=self.project1, 
-                                      report_type = self.rep3)
+        ProjectMilestones.objects.create(project=self.project1, 
+                                      milestone = self.rep3)
 
 
         login = self.client.login(username=self.user.username, password='abc')
@@ -327,12 +327,12 @@ class TestActualFileUpload(TestCase):
                                 os.path.split(self.mock_file0.name)[1])
         self.assertEqual(reports.values()[0]['report_path'],filepath1)
         
-        #make sure that the report_type is what we think it is:
+        #make sure that the milestone is what we think it is:
         #there should only be one projectreport record associate with
         #this report, and its report type should match that of rep1
         pr = reports[0].projectreport.all()
         self.assertEqual(pr.count(),1)
-        self.assertEqual(pr[0].report_type, self.rep0)        
+        self.assertEqual(pr[0].milestone, self.rep0)        
 
         #=============
         #second file:
@@ -341,14 +341,14 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(reports.values()[1]['report_path'],filepath2)
         report_id = reports.values_list()[1][0]
         
-        #make sure that the report_type is what we think it is:
+        #make sure that the milestone is what we think it is:
         #there should only be one projectreport record associate with
         #this report, and its report type should match that of rep1
-        pr = ProjectReports.objects.filter(report__id=report_id)
+        pr = ProjectMilestones.objects.filter(report__id=report_id)
         self.assertEqual(pr.count(),1)
         #we skipped a file on the form - this should be associated
         #with the 3rd milestone
-        self.assertEqual(pr[0].report_type, self.rep2)        
+        self.assertEqual(pr[0].milestone, self.rep2)        
 
 
         #=============
@@ -357,12 +357,12 @@ class TestActualFileUpload(TestCase):
                                 os.path.split(self.mock_file2.name)[1])
         self.assertEqual(reports.values()[2]['report_path'],filepath3)
         report_id = reports.values_list()[2][0]
-        #make sure that the report_type is what we think it is:
+        #make sure that the milestone is what we think it is:
         #there should only be one projectreport record associate with
         #this report, and its report type should match that of rep1
-        pr = ProjectReports.objects.filter(report__id=report_id)
+        pr = ProjectMilestones.objects.filter(report__id=report_id)
         self.assertEqual(pr.count(),1)
-        self.assertEqual(pr[0].report_type, self.rep3)        
+        self.assertEqual(pr[0].milestone, self.rep3)        
 
         #=============
         #verify that a link to the file is on the project details page
@@ -423,10 +423,10 @@ class TestActualFileUpload(TestCase):
         reports = self.project1.get_reports()
         self.assertEqual(reports.values()[0]['report_path'],filepath)
 
-        #make sure that the report_type is what we think it is:
-        pr = ProjectReports.objects.filter(report=reports.select_related())
-        self.assertEqual(pr[0].report_type, self.rep2)
-        self.assertEqual(pr[1].report_type, self.rep2)
+        #make sure that the milestone is what we think it is:
+        pr = ProjectMilestones.objects.filter(report=reports.select_related())
+        self.assertEqual(pr[0].milestone, self.rep2)
+        self.assertEqual(pr[1].milestone, self.rep2)
         
         #verify that a link to the file is on the project details page
         url = reverse('ProjectDetail', args = (self.project1.slug,))                     
@@ -495,7 +495,7 @@ class TestActualFileUpload(TestCase):
                                 os.path.split(self.mock_file0.name)[1])
         self.assertEqual(reports.values()[0]['report_path'],filepath1)
         
-        #make sure that the report_type is what we think it is:
+        #make sure that the milestone is what we think it is:
         #there should TWO projectreport records associate with
         #this report - one for each sister project, and its report type should match that of rep1
         pr = reports[0].projectreport.all()
@@ -506,7 +506,7 @@ class TestActualFileUpload(TestCase):
             lambda a:a.project.PRJ_CD
             )
         
-        self.assertEqual(pr[0].report_type, self.rep0)        
+        self.assertEqual(pr[0].milestone, self.rep0)        
 
         #=============
         #second file:
@@ -515,14 +515,14 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(reports.values()[1]['report_path'],filepath2)
         report_id = reports.values_list()[1][0]
         
-        #make sure that the report_type is what we think it is:
+        #make sure that the milestone is what we think it is:
         #there should only be one projectreport record associate with
         #this report, and its report type should match that of rep1
-        pr = ProjectReports.objects.filter(report__id=report_id)
+        pr = ProjectMilestones.objects.filter(report__id=report_id)
         self.assertEqual(pr.count(),1)
         #we skipped a file on the form - this should be associated
         #with the 3rd milestone
-        self.assertEqual(pr[0].report_type, self.rep1)        
+        self.assertEqual(pr[0].milestone, self.rep1)        
 
 
         #=============
@@ -532,17 +532,17 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(reports.values()[2]['report_path'],filepath3)
         report_id = reports.values_list()[2][0]
 
-        #make sure that the report_type is what we think it is:
+        #make sure that the milestone is what we think it is:
         #there should TWO projectreport record associate with
         #this report, and its report type should be a completion report
-        pr = ProjectReports.objects.filter(report__id=report_id)
+        pr = ProjectMilestones.objects.filter(report__id=report_id)
         self.assertEqual(pr.count(),2)
         self.assertQuerysetEqual(
             pr,[self.project1.PRJ_CD, self.project2.PRJ_CD],
             lambda a:a.project.PRJ_CD
             )
 
-        self.assertEqual(pr[0].report_type, self.rep2)        
+        self.assertEqual(pr[0].milestone, self.rep2)        
 
         #============= 
         #verify that a links to each of the file are on

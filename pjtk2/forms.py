@@ -7,11 +7,14 @@ from django.utils.safestring import mark_safe
 
 
 from taggit.forms import *
-from pjtk2.models import Milestone, Project, ProjectReports, Report, TL_ProjType, TL_Database
+from pjtk2.models import (Milestone, Project, ProjectMilestones, Report, 
+                          TL_ProjType, TL_Database, TL_Lake)
 from pjtk2.models import ProjectSisters
 import pdb
 import re
 import hashlib
+
+#from functions import *
 
 #==================================
 #  WIDGETS
@@ -143,33 +146,33 @@ class ReportsForm(forms.Form):
         project = self.project
         what = self.what
 
-        #turn OFF any ProjectReports that are not in cleaned data
-        ProjectReports.objects.filter(project = project).exclude(report_type__in=
-                  cleaned_data[what]).filter(report_type__category=
+        #turn OFF any ProjectMilestones that are not in cleaned data
+        ProjectMilestones.objects.filter(project = project).exclude(milestone__in=
+                  cleaned_data[what]).filter(milestone__category=
                   what.title()).update(required=False)
 
-        #turn ON any ProjectReports that are in cleaned data
-        ProjectReports.objects.filter(project = 
-                  project).filter(report_type__category=
-                  what.title()).filter(report_type__in=cleaned_data[what]).update(required=True)
+        #turn ON any ProjectMilestones that are in cleaned data
+        ProjectMilestones.objects.filter(project = 
+                  project).filter(milestone__category=
+                  what.title()).filter(milestone__in=cleaned_data[what]).update(required=True)
 
         #now we need to see if there are any new reports for this project
         #queryset of all 'what' (custom or core) reports assocaited with project
-        jj=ProjectReports.objects.filter(project=project).filter(report_type__category=what.title())
+        jj=ProjectMilestones.objects.filter(project=project).filter(milestone__category=what.title())
         #id numbers for milestone objects already associated with this project
-        in_ProjectReports = str([x['report_type_id'] for x in jj.values()])
+        in_ProjectMilestones = str([x['milestone_id'] for x in jj.values()])
 
         # these are the new custom reports types id's that need to associated with
-        # this project (ones in cleaned_data but not in ProjectReports)
-        newreports = list(set(cleaned_data.values()[0])-set(in_ProjectReports))
+        # this project (ones in cleaned_data but not in ProjectMilestones)
+        newreports = list(set(cleaned_data.values()[0])-set(in_ProjectMilestones))
 
         #Then loop over new reports adding a new record for each one with
         #required=True
         if newreports:
             for report in newreports:
-                ProjectReports.objects.create(project=project,
+                ProjectMilestones.objects.create(project=project,
                                               required=True, 
-                                              report_type_id=report)
+                                              milestone_id=report)
 
 
 class ReportUploadFormSet(BaseFormSet):
@@ -209,7 +212,7 @@ class ReportUploadForm(forms.Form):
         required =False,
     )
     
-    report_type = forms.CharField(
+    milestone = forms.CharField(
         widget = ReadOnlyText,
         label = "Report Name",
         required =False,
@@ -229,9 +232,9 @@ class ReportUploadForm(forms.Form):
         self.fields["report_path"].widget.attrs['size'] = "40"        
         self.fields["report_path"].widget.attrs['class'] = "fileinput"        
                          
-    def clean_report_type(self):
-        '''return the original value of report_type'''
-        return self.initial['report_type']
+    def clean_milestone(self):
+        '''return the original value of milestone'''
+        return self.initial['milestone']
 
     def clean_required(self):
         '''return the original value of required'''
@@ -257,8 +260,8 @@ class ReportUploadForm(forms.Form):
         #if 'report_path' in self.changed_data:        
         if 'report_path' in self.changed_data and self.cleaned_data['report_path']:        
            
-            projectreport = ProjectReports.objects.get(
-                project=self.project, report_type=self.clean_report_type())
+            projectreport = ProjectMilestones.objects.get(
+                project=self.project, milestone=self.clean_milestone())
 
             #see if there is already is a report for this projectreport
             try:
@@ -299,17 +302,17 @@ class ReportUploadForm(forms.Form):
             #TODO: change reporting milestone model to include
             #"Copy2Sisters" flag - then this list could be refactored
             #to dynamic query
-            common = str(self.clean_report_type()) in ["Proposal Presentation",
+            common = str(self.clean_milestone()) in ["Proposal Presentation",
                                                 "Completetion Presentation",
                                                 "Summary Report",] 
             
             if sisters and common:
                 for sister in sisters:
-                    #projectreport = ProjectReports.objects.get(
+                    #projectreport = ProjectMilestones.objects.get(
                     #    project=sister, 
-                    #    report_type=self.clean_report_type())
-                    projectreport, created = ProjectReports.objects.get_or_create(
-                        project=sister, report_type=self.clean_report_type())
+                    #    milestone=self.clean_milestone())
+                    projectreport, created = ProjectMilestones.objects.get_or_create(
+                        project=sister, milestone=self.clean_milestone())
                     try:
                         oldReport = Report.objects.get(projectreport=projectreport, 
                                                        current=True)
@@ -354,6 +357,13 @@ class ProjectForm(forms.ModelForm):
         label = "Brief Project Description:",
         required=True,
         )
+
+    RISK = forms.CharField(
+        widget = forms.Textarea(),
+        label = "Risks associated with not running project:",
+        required=False,
+        )
+
     
     PRJ_DATE0 = forms.DateField(
         label = "Start Date:",
@@ -376,6 +386,20 @@ class ProjectForm(forms.ModelForm):
         queryset = TL_Database.objects.all(),
         required = True,
     )
+
+    TL_Lake = forms.ModelChoiceField(
+        label = "Lake:",
+        queryset = TL_Lake.objects.all(),
+        required = True,
+    )
+
+    DBA = forms.ModelChoiceField(
+        label = "Data Custodian:",
+        #TODO - change this from superuser to groups__contain='dba'
+        queryset = User.objects.filter(is_superuser=True),
+        required = True,
+    )
+
     
     tags = TagField(
         label="Keywords:",
@@ -410,9 +434,9 @@ class ProjectForm(forms.ModelForm):
         model=Project
         #exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
         #           "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
-        fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", 
+        fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", "RISK",
                    "Approved", "Conducted", "DataScrubbed", "DataMerged", "SignOff",
-                    'ProjectType', "MasterDatabase", "COMMENT", "tags")
+                    'ProjectType', "MasterDatabase", "TL_Lake", "COMMENT", "DBA", "tags")
         
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -430,11 +454,14 @@ class ProjectForm(forms.ModelForm):
                 'PRJ_NM',                
                 'PRJ_CD',
                 'PRJ_LDR',                
-                'COMMENT',                
+                'COMMENT',
+                'RISK',
                 Field('PRJ_DATE0', datadatepicker='datepicker'),                
                 Field('PRJ_DATE1', datadatepicker='datepicker'),
                 'ProjectType',
                 'MasterDatabase',
+                'TL_Lake',
+                'DBA',
                 'tags',
                 HTML("""<p><em>(comma separated values)</em></p> """),
                 Fieldset(
@@ -822,16 +849,16 @@ class ExampleForm(forms.Form):
 ##      )
 ## 
 ##     class Meta:
-##         model=ProjectReports
-##         fields = ('required', 'report_type')
+##         model=ProjectMilestones
+##         fields = ('required', 'milestone')
 ##         widgets = {
 ##         #'required':forms.BooleanField(label=""),
-##           'report_type':forms.HiddenInput(),        
+##           'milestone':forms.HiddenInput(),        
 ##         }
 ##     
-##     def clean_report_type(self):
-##         '''return the original value of report_type'''
-##         return self.instance.report_type
+##     def clean_milestone(self):
+##         '''return the original value of milestone'''
+##         return self.instance.milestone
 ## 
 ## 
 ## 

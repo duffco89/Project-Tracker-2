@@ -18,6 +18,7 @@ class TestProjectModel(TestCase):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
+
         #we need to create some models with different years - starting
         #with the current year.
         yr = datetime.datetime.now()
@@ -150,7 +151,7 @@ class TestMilestoneModel(TestCase):
         # automatically associated with a new project, and verify that
         # the custom report is not when the project is created.
                 
-        myreports = ProjectReports.objects.filter(project=self.project)
+        myreports = ProjectMilestones.objects.filter(project=self.project)
         self.assertEqual(myreports.count(), 3)
 
         outstanding = self.project.get_outstanding()
@@ -196,8 +197,8 @@ class TestMilestoneModel(TestCase):
         custom1 = MilestoneFactory.create(label="custom1", 
                                           category = 'Custom', order=99)
 
-        projectreport = ProjectReportsFactory(project=self.project,
-                                             report_type=custom1)
+        projectreport = ProjectMilestonesFactory(project=self.project,
+                                             milestone=custom1)
         
         self.assertEqual(self.project.get_assignments().count(), 4)
         self.assertNotEqual(self.project.get_assignments().count(), 3)
@@ -208,7 +209,7 @@ class TestMilestoneModel(TestCase):
 
         report = self.project.get_custom_assignments()[0]
         self.assertEqual(report.required, True)
-        self.assertEqual(str(report.report_type), 'custom1')
+        self.assertEqual(str(report.milestone), 'custom1')
         
         #we haven't uploaded any reports, so this should be 0
         self.assertEqual(self.project.get_complete().count(), 0)
@@ -231,8 +232,8 @@ class TestModelReports(TestCase):
 
         #retrieve the projectreport that would have been created for
         #the new project
-        self.projectreport = ProjectReports.objects.get(project=self.project,
-                                                   report_type=self.core1)
+        self.projectreport = ProjectMilestones.objects.get(project=self.project,
+                                                   milestone=self.core1)
 
         #create a fake report
         report = ReportFactory(report_path="path\to\fake\file.txt")
@@ -253,12 +254,12 @@ class TestModelReports(TestCase):
 
         #make sure that the project report objects match the attributes of core1 and self.project
         self.assertEqual(comp.values()[0]['required'], self.projectreport.required)
-        self.assertEqual(comp.values()[0]['report_type_id'], 
-                         self.projectreport.report_type_id)
+        self.assertEqual(comp.values()[0]['milestone_id'], 
+                         self.projectreport.milestone_id)
         self.assertEqual(comp.values()[0]['project_id'], self.project.id) 
 
         #verify that core2 isnt in the completed list - it isn't done yet:
-        projids = [x['report_type_id'] for x in comp.values()] 
+        projids = [x['milestone_id'] for x in comp.values()] 
         self.assertNotIn(self.core2.id, projids)
 
     def test_get_outstanding(self):
@@ -269,12 +270,12 @@ class TestModelReports(TestCase):
 
         #make sure that the project report objects match the attributes of core2 and self.project
         self.assertEqual(missing.values()[0]['required'], self.projectreport.required)
-        self.assertEqual(missing.values()[0]['report_type_id'], 
+        self.assertEqual(missing.values()[0]['milestone_id'], 
                          self.core2.id)
         self.assertEqual(missing.values()[0]['project_id'], self.project.id) 
 
         #verify that core1 isnt in the missing list - it was completed during setup
-        projids = [x['report_type_id'] for x in missing.values()] 
+        projids = [x['milestone_id'] for x in missing.values()] 
         self.assertNotIn(self.core1.id, projids)
 
     def tearDown(self):

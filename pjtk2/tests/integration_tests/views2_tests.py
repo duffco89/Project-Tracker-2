@@ -76,7 +76,8 @@ class ProjectTaggingTestCase(WebTest):
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType)
+                                              ProjectType = self.ProjType,
+                                              )
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
                                               Owner=self.user,
                                               ProjectType = self.ProjType)
@@ -136,7 +137,10 @@ class ProjectTaggingTestCase(WebTest):
         #get the form and submit it
         form = response.form
         form['tags'] = "blue, green, red, yellow"
-        form.submit()
+        form['TL_Lake'] = 1  #this should not be necessary.
+        response = form.submit()
+
+
 
         #verify that the tags submitted on the form are actually 
         #saved to the database and associated with this project.

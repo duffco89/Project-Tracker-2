@@ -18,7 +18,7 @@ from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
 from pjtk2.filters import ProjectFilter
-from pjtk2.models import (Milestone, Project, Report, ProjectReports,
+from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
                           TL_ProjType, TL_Database, Bookmark, ProjectSisters, 
                           Family, employee)
 
@@ -31,7 +31,7 @@ import mimetypes
 import os
 import pdb
 
-
+#from functions import *
 
 def get_supervisors(employee):
     '''Given an employee object, return a list of supervisors.  the first
@@ -109,12 +109,12 @@ def get_assignments_with_paths(slug, Core=True):
         except Report.DoesNotExist:
             filepath = None
         required = assignment.required
-        report_type = assignment.report_type
-        category = assignment.report_type.category
+        milestone = assignment.milestone
+        category = assignment.milestone.category
         assign_dicts.append(dict(
             required = required,
             category = category,
-            report_type = report_type,
+            milestone = milestone,
             filepath = filepath
         ))
     return assign_dicts

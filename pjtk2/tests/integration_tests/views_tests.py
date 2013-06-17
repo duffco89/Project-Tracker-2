@@ -829,7 +829,7 @@ class ChangeReportingRequirementsTestCase(TestCase):
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
                                               Owner=self.user2)
             
-    def test_Add_New_Report_Type(self):
+    def test_Add_New_Milestone(self):
         '''verify that we can add new report reporting requirements
         using the second from on the UpdateReporting form.'''
 
