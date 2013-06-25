@@ -261,15 +261,26 @@ class UpdateReportsTestCase(WebTest):
 
         #required reports
         self.rep1 = MilestoneFactory.create(label = "Proposal Presentation",
-                                category = 'Core', order = 1)
+                                            category = 'Core', order = 1,
+                                            report=True)
         self.rep2 = MilestoneFactory.create(label = "Completion Report",
-                                category = 'Core', order = 2)
+                                            category = 'Core', order = 2,
+                                            report=True)
         self.rep3 = MilestoneFactory.create(label = "Summary Report",
-                                category = 'Core', order = 3)
+                                            category = 'Core', order = 3,
+                                            report=True)
         self.rep4 = MilestoneFactory.create(label = "Budget Report",
-                                category = 'Custom', order = 99)
+                                            category = 'Custom', order = 99,
+                                            report=True)
         self.rep5 = MilestoneFactory.create(label = "Creel Summary Statistics",
-                                category = 'Custom', order = 99)
+                                            category = 'Custom', order = 99,
+                                            report=True)
+
+        self.rep6 = MilestoneFactory.create(label = "Data Scrubbed",
+                                            category = 'Core', order = 1)
+        self.rep7 = MilestoneFactory.create(label = "Data Merged",
+                                            category = 'Core', order = 1)
+
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
@@ -365,19 +376,13 @@ class UpdateReportsTestCase(WebTest):
         self.assertEqual(custom.count(),1)
 
 
-
-    ##  NOTE - this test has been replaced with one in views_test.py
-    ##  using the django test client.  I was unable to get web test
-    ##  to associated data in the second form with 'NewReport' in the
-    ##  posted data.
-    ##
     csrf_checks = False
     def test_add_new_report_form(self):
         '''verify that Mr Burns can add a new custom report that is
         not on the original list.'''
     
-        reports = Milestone.objects.filter(category='Custom')
-        self.assertEqual(reports.count(),2)
+        before = Milestone.objects.filter(category='Custom').count()
+        self.assertEqual(before, 2)
     
         #Mr Burns navigates to the report update page
         #verify that he can load it
@@ -393,21 +398,44 @@ class UpdateReportsTestCase(WebTest):
         #get the sub-report that has the check boxes for reports
         forms = response.forms
         form = forms['dialog']
-        form.fields['NewReport'] = "COA Summary"
-        
-        #form.submit(name='Submit', index=None, get="NewReport")
-        form.submit('Submit',{'NewReport':'Submit'})
+        form['NewReport'] = "COA Summary"
+        form.submit()
 
-        
-        reports = Milestone.objects.all()
-        for rep in reports:
-            print rep
+        #requery the database and verify that the new report has been added:
+        after = Milestone.objects.filter(category='Custom')        
+        self.assertEqual(after.count(), 3)
+        self.assertEqual(after.filter(label="Coa Summary").count(), 1)
+
+
+    csrf_checks = False
+    def test_add_new_milestone_form(self):
+        '''verify that Mr Burns can add a new milestone that is
+        not on the original list.'''
     
-        #NOTE - these tests currently fail.  I can't figure out how to
-        #get webtest to submit second form.
-        reports = Milestone.objects.filter(category='Custom')
-        #self.assertEqual(reports.count(),3)
-        #self.assertEqual(reports.filter(label="COA Summary").count(),1)
+
+        before = Milestone.objects.filter(report=False).count()
+        self.assertEqual(before, 2)
+    
+        #Mr Burns navigates to the report update page
+        #verify that he can load it
+        response = self.app.get(reverse('Reports', 
+                                args=(self.project1.slug,)), 
+                                user=self.user2)
+    
+        self.assertEqual(response.status_int, 200)
+        self.assertTemplateUsed("reportform.html")
+        self.assertContains(response, "Core Reporting Requirements")
+        self.assertContains(response, "Additional Reporting Requirements")
+    
+        #get the sub-report that has the check boxes for reports
+        forms = response.forms
+        form = forms['dialog2']
+        form['NewMilestone'] = "Fieldwork Complete"        
+        response = form.submit()
+
+        after = Milestone.objects.filter(report=False)    
+        self.assertEqual(after.count(), before + 1)
+        self.assertEqual(after.filter(label="Fieldwork Complete").count(),1)
 
     def tearDown(self):
 

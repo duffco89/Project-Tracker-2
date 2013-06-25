@@ -48,16 +48,16 @@ class Milestone(models.Model):
         ('Custom', 'custom'),
     }
 
-    label = models.CharField(max_length=30, unique=True)
+    label = models.CharField(max_length=50, unique=True)
     category = models.CharField(max_length=30, choices=MILESTONE_CHOICES,
                                 default='Custom')
     report  = models.BooleanField(default = False)
-    order = models.IntegerField(default=99)
+    order = models.FloatField(default=99)
 
     class Meta:
-        verbose_name = "Reporting Milestones"
-        verbose_name_plural = "Reporting Milestones"
-        ordering = ['order']
+        verbose_name = "Milestones List"
+        verbose_name_plural = "Milestones List"
+        ordering = ['-report', 'order']
 
     def __unicode__(self):
         return self.label
@@ -138,6 +138,7 @@ class Project(models.Model):
     MasterDatabase = models.ForeignKey("TL_Database", null=True, blank=True)
     ProjectType = models.ForeignKey("TL_ProjType", null=True, blank=True)
 
+    FieldProject = models.BooleanField(default = True)
     Approved = models.BooleanField(default = False)
     Conducted  = models.BooleanField(default = False)
     FieldWorkComplete  = models.BooleanField(default = False)
@@ -202,7 +203,20 @@ class Project(models.Model):
         '''get all of the reports have been assigned to 
         this project - no distinction between core or custom reports'''
         #TODO Filter for report=True
-        return ProjectMilestones.objects.filter(project=self)
+        return ProjectMilestones.objects.filter(project=self,milestone__report=True)
+
+    def get_milestones(self, required=True):
+        '''get all of the milestone events have been assigned to 
+        this project - (these are just milestone events where report==False)'''
+        #TODO Filter for report=True
+        if required==True:
+            return ProjectMilestones.objects.filter(project=self,
+                                                    required=True, 
+                                                    milestone__report=False)
+        else:
+            return ProjectMilestones.objects.filter(project=self,
+                                                    milestone__report=False)
+
 
     def get_core_assignments(self, all=True):
         '''get all of the core reports have been assigned to this
@@ -211,16 +225,16 @@ class Project(models.Model):
 
         if all==True:
             assignments = self.get_assignments().filter(
-                milestone__category='Core')
+                milestone__category='Core', milestone__report=True)
         else:
             assignments = self.get_assignments().filter(
-                milestone__category='Core').filter(required=True) 
+                milestone__category='Core', milestone__report=True).filter(required=True) 
         return assignments
 
     def get_custom_assignments(self):
         '''get a list of any custom reports that have been assigned to
         this project'''
-        return self.get_assignments().filter(required=True).exclude(
+        return self.get_assignments().filter(required=True, milestone__report=True).exclude(
             milestone__category='Core')
 
     def get_complete(self):
@@ -234,7 +248,7 @@ class Project(models.Model):
     def get_outstanding(self):
         '''these are the required reports that have not been submitted yet'''
         #TODO Filter for report=True
-        return ProjectMilestones.objects.filter(project=self).exclude(
+        return ProjectMilestones.objects.filter(project=self, milestone__report=True).exclude(
             report__in=Report.objects.filter(projectreport__project=self))
 
     def get_reports(self):
@@ -245,23 +259,30 @@ class Project(models.Model):
                                      projectreport__project=self)
 
 
-    def get_assignment_dicts(self):
+    def get_milestone_dicts(self):
         '''return a dictionary of dictionaries containing elements of
-        all core and custom reports as well as vectors indicating
+        all milestones, core and custom reports as well as vectors indicating
         which ones have been assigned to this project.'''
 
         #TODO Filter for report=True
 
         #get a queryset of all reports we consider 'core'
-        corereports = Milestone.objects.filter(category='Core')
-        customreports = Milestone.objects.filter(category='Custom')
+        milestones = Milestone.objects.filter(report=False)
+        corereports = Milestone.objects.filter(category='Core', report=True)
+        customreports = Milestone.objects.filter(category='Custom', report=True)
     
+
+
         #we need to convert the querset to a tuple of tuples
+        milestones = tuple([(x[0], x[1]) for x in milestones.values_list()])
         corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
         customreports = tuple([(x[0], x[1]) for x in customreports.values_list()])    
-        #see if there is a project associated with this slug, if so, get
-        #the reports currently assigned to the project, if not return a
+        
+        #get the milestones currently assigned to this project, if not return a
         #dictionary with all reports assigned
+        milestones_assigned = self.get_milestones()
+        milestones_assigned = [x.milestone_id for x in list(milestones_assigned)]
+
         core_assigned = self.get_core_assignments()
         core_assigned = [x.milestone_id for x in list(core_assigned)]
 
@@ -269,12 +290,13 @@ class Project(models.Model):
         custom_assigned = [x.milestone_id for x in list(custom_assigned)]
  
         #put the reports and assigned reports in a dictionary    
-        Core = dict(reports=corereports, assigned=core_assigned)
-        Custom = dict(reports=customreports, assigned=custom_assigned)
+        Milestones = dict(milestones=milestones, assigned=milestones_assigned)
+        Core = dict(milestones=corereports, assigned=core_assigned)
+        Custom = dict(milestones=customreports, assigned=custom_assigned)
 
-        reports = dict(Core=Core, Custom=Custom)
+        milestones_dict = dict(Milestones=Milestones, Core=Core, Custom=Custom)
     
-        return reports
+        return milestones_dict
 
 
     def resetMilestones(self):
@@ -446,8 +468,29 @@ class ProjectMilestones(models.Model):
         
     def __unicode__(self):
         return "%s - %s" % (self.project.PRJ_CD, self.milestone)
-#TODO - add pre_save signal to ProjectMilestones - send message to appropriate people when ever
+
+# TODO Complete the pre_save signal to ProjectMilestones - send message to appropriate people when ever
 # a recore in this table is added or updated.
+@receiver(pre_save, sender=ProjectMilestones)
+def send_notices_if_projmilestones_changed(sender, instance, **kwargs):
+    try:
+        obj = ProjectMilestones.objects.get(pk=instance.pk)
+    except ProjectMilestones.DoesNotExist:
+        print "Project %s -  %s." % (instance.project.PRJ_CD, instance.milestone.label)
+        #pass # sendmessage(Project.PRJ_CD) has been submitted
+    else:
+        print "%s -  %s was Updated." % (instance.project.PRJ_CD, instance.milestone.label)
+
+##    Conducted
+##    FieldWorkComplete
+##    AgeStructures
+##    DataScrubbed
+##    DataMerged
+##    SignOff
+
+
+
+
 
 
         
@@ -588,7 +631,7 @@ class employee(models.Model):
         
         
 class AdminMilestone(admin.ModelAdmin):
-    list_display = ('label', 'category',)
+    list_display = ('label', 'report', 'category',)
 
 class AdminTL_ProjType(admin.ModelAdmin):
     pass

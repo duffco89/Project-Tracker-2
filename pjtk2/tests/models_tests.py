@@ -133,14 +133,18 @@ class TestMilestoneModel(TestCase):
     def setUp(self):
 
         self.core1 = MilestoneFactory.create(label="core1",
-                                        category = 'Core', order=1)
+                                             category = 'Core', order=1, 
+                                             report=True)
         self.core2 = MilestoneFactory.create(label="core2",
-                                        category = 'Core', order=2)
+                                        category = 'Core', order=2, 
+                                             report=True)
         self.core3 = MilestoneFactory.create(label="core3",
-                                        category = 'Core', order=3)
+                                        category = 'Core', order=3, 
+                                             report=True)
         self.custom = MilestoneFactory.create(label="custom",
-                                        category = 'Custom', order=50)
-
+                                        category = 'Custom', order=50, 
+                                              report=True)
+                                            
         self.project = ProjectFactory.create()
 
 
@@ -172,21 +176,21 @@ class TestMilestoneModel(TestCase):
 
     def test_get_assigment_dicts(self):
         
-        dict = self.project.get_assignment_dicts()
+        #dict = self.project.get_assignment_dicts()
+        dict = self.project.get_milestone_dicts()
         print "dict.core = %s" % dict['Core']
         print "dict.custom = %s" % dict['Custom']
 
         core = dict['Core']
         self.assertEqual(core['assigned'],[1,2,3])
-        reports = [str(x[1]) for x in core['reports']]
+        reports = [str(x[1]) for x in core['milestones']]
         self.assertEqual(reports,[self.core1.label, 
                                       self.core2.label, 
                                       self.core3.label])
 
-
         custom = dict['Custom']
         self.assertEqual(custom['assigned'],[])
-        reports = [str(x[1]) for x in custom['reports']]
+        reports = [str(x[1]) for x in custom['milestones']]
         self.assertEqual(reports,[self.custom.label])
 
     def test_get_assigment_methods_w_custom_report(self): 
@@ -194,7 +198,7 @@ class TestMilestoneModel(TestCase):
         '''verify that custom reports are can be added and retrieved
         as expected.'''
 
-        custom1 = MilestoneFactory.create(label="custom1", 
+        custom1 = MilestoneFactory.create(label="custom1", report=True, 
                                           category = 'Custom', order=99)
 
         projectreport = ProjectMilestonesFactory(project=self.project,
@@ -223,9 +227,9 @@ class TestModelReports(TestCase):
         #here are a couple of reports we will use, one will have a
         #report associated with it (complete), one will not (it will
         #be outstanding)
-        self.core1 = MilestoneFactory.create(label="core1",
+        self.core1 = MilestoneFactory.create(label="core1", report=True,
                                         category = 'Core', order=1)
-        self.core2 = MilestoneFactory.create(label="core2",
+        self.core2 = MilestoneFactory.create(label="core2", report = True,
                                         category = 'Core', order=2)
 
         self.project = ProjectFactory.create()

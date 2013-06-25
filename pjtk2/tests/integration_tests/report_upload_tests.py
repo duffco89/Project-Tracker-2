@@ -31,13 +31,17 @@ class BasicReportUploadTestCase(WebTest):
 
         #required reports
         self.rep1 = MilestoneFactory.create(label = "Proposal Presentation",
-                                category = 'Core', order = 1)
+                                            category = 'Core', order = 1,
+                                            report = True)
         self.rep2 = MilestoneFactory.create(label = "Completion Report",
-                                category = 'Core', order = 2)
+                                            category = 'Core', order = 2,
+                                            report = True)
         self.rep3 = MilestoneFactory.create(label = "Summary Report",
-                                category = 'Core', order = 3)
+                                            category = 'Core', order = 3,
+                                            report = True)
         self.rep4 = MilestoneFactory.create(label = "Budget Report",
-                                category = 'Custom', order = 99)
+                                            category = 'Custom', order = 99,
+                                            report = True)
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
@@ -172,13 +176,17 @@ class TestActualFileUpload(TestCase):
 
         #required reports
         self.rep0 = MilestoneFactory.create(label = "Proposal Presentation",
-                                category = 'Core', order = 1)
+                                            category = 'Core', order = 1, 
+                                            report = True)
         self.rep1 = MilestoneFactory.create(label = "Completion Report",
-                                category = 'Core', order = 2)
+                                            category = 'Core', order = 2,
+                                            report = True)
         self.rep2 = MilestoneFactory.create(label = "Summary Report",
-                                category = 'Core', order = 3)
+                                            category = 'Core', order = 3,
+                                            report = True)
         self.rep3 = MilestoneFactory.create(label = "Budget Report",
-                                category = 'Custom', order = 99)
+                                            category = 'Custom', order = 99,
+                                            report = True)
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
@@ -253,6 +261,9 @@ class TestActualFileUpload(TestCase):
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
 
+        #print "response = %s" % response
+
+
         form_data = {
             'form-TOTAL_FORMS': 1, 
             'form-INITIAL_FORMS': 0,
@@ -281,8 +292,8 @@ class TestActualFileUpload(TestCase):
 
 
 
-
-
+ 
+ 
     def test_upload_multiple_reports(self):
         '''verify that we can upload more than 1 file'''
 
@@ -290,7 +301,6 @@ class TestActualFileUpload(TestCase):
         #create a requirement for a budget report for this poject
         ProjectMilestones.objects.create(project=self.project1, 
                                       milestone = self.rep3)
-
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)

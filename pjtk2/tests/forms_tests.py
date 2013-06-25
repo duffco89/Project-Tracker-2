@@ -376,9 +376,11 @@ class TestReportUploadForm(TestCase):
 
         #required reports
         self.rep1 = MilestoneFactory.create(label = "Summary Report",
-                                category = 'Core', order = 1)
+                                            category = 'Core', order = 1,
+                                            report = True)
         self.rep2 = MilestoneFactory.create(label = "Proposal Presentation",
-                                category = 'Core', order = 2)
+                                            category = 'Core', order = 2,
+                                            report = True)
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)

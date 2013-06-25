@@ -22,8 +22,20 @@
 
 <h2> {{ project.PRJ_NM }} </h2>
 
+
+
+
+
+
+
 <form method="POST" id="reports" action="">
 {% csrf_token %}
+
+<h3>Project Milestones:</h3>
+    
+      {{Milestones.as_p}}
+
+
 <h3>Core Reporting Requirements:</h3>
     
       {{Core.as_p}}
@@ -36,25 +48,45 @@
 <input type="submit" name="Save" value="Save Changes" />
 </form>
 
-<button id="opener">New Report Type</button>
+<button id="openerMS">New Milestone</button>
+<button id="openerRep">New Report Type</button>
+
+
 
 
 <div id="AddReportDialog" title="Add New Report">
 <form method="POST" id="dialog" action="">
     {% csrf_token  %}
-    Report Name:<input type="text"/> 
+    Report Name:<input type="text" name="NewReport"/> 
     <input type="submit"  value="Submit" name="Submit"/>  
 </form>
-
-
-
 </div>
+
  <script>
     $( "#AddReportDialog" ).dialog({ autoOpen: false });
-    $( "#opener" ).click(function() {
+    $( "#openerRep" ).click(function() {
         $( "#AddReportDialog" ).dialog( "open" );
     });
 </script>
+
+
+
+
+<div id="NewMilestoneDialog" title="Add New Milestone">
+<form method="POST" id="dialog2" name="dialog2" action="">
+    {% csrf_token  %}
+    Milestone Name:<input type="text" name="NewMilestone"/> 
+    <input type="submit"  value="Submit" name="Submit"/>  
+</form>
+</div>
+
+ <script>
+    $( "#NewMilestoneDialog" ).dialog({ autoOpen: false });
+    $( "#openerMS" ).click(function() {
+        $( "#NewMilestoneDialog" ).dialog( "open" );
+    });
+</script>
+
 
 
 

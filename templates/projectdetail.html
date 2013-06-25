@@ -47,21 +47,19 @@
 
   </p>
 
+
 <form>
 <fieldset>
 <legend> Milestones:</legend>
+
+{% for milestone in milestones %}
   <input type="checkbox" disabled="disabled" 
-    {% if project.Approved  %} checked="checked" {% endif %}> Approved
-  <input type="checkbox" disabled="disabled"  
-    {% if project.Conducted  %} checked="checked" {% endif %}> Conducted
-  <input type="checkbox" disabled="disabled"
-    {% if project.DataScrubbed  %} checked="checked" {% endif %}> Data Scrubbed
-  <input type="checkbox" disabled="disabled"
-    {% if project.DataMerged  %} checked="checked" {% endif %}> Data Merged
-  <input type="checkbox" disabled="disabled"
-    {% if project.SignOff  %} checked="checked" {% endif %}> Signed Off
+    {% if milestone.completed  %} checked="checked" {% endif %}> {{ milestone.milestone.label }}
+{% endfor %}
+
 </fieldset>
 </form>
+
 
 <br />
 {% if edit %} 
@@ -103,7 +101,7 @@
        <tr>
          <td> <input type="checkbox" disabled="disabled"
             {% if report.required %} checked="checked" {% endif %}>
-        {{ report.report_type }}
+        {{ report.milestone }}
 	   </td>
         
         {% if report.filepath %}
@@ -134,7 +132,7 @@
        <tr>
          <td> <input type="checkbox" disabled="disabled"
             {% if report.required %} checked="checked" {% endif %}>
-        {{ report.report_type }}
+        {{ report.milestone }}
 	   </td>
         
         {% if report.filepath %}

@@ -115,24 +115,24 @@ class ReportsForm(forms.Form):
     particular project.  Checkbox widgets are dynamically added to the
     form depending on reports identified as core plus any additional
     custom reports requested by the manager.'''
-    
+                                                
     def __init__(self, *args, **kwargs):
-        self.reports = kwargs.pop('reports')
-        self.core = kwargs.pop('Core', True)
+        self.milestones = kwargs.pop('reports')
+        #self.core = kwargs.pop('Core', True)
+        self.what = kwargs.pop('what', 'Core')
         self.project = kwargs.pop('project', None)
         
         super(ReportsForm, self).__init__(*args, **kwargs)
-        if self.core:
-            what = 'Core'
-        else:
-            what = 'Custom'
-
-        self.what = what
+        #if self.core:
+        #    what = 'Core'
+        #else:
+        #    what = 'Custom'
+        #self.what = what
         
-        reports = self.reports[what]["reports"]
-        assigned = self.reports[what]["assigned"]
+        reports = self.milestones[self.what]["milestones"]
+        assigned = self.milestones[self.what]["assigned"]
         
-        self.fields[what] = forms.MultipleChoiceField(
+        self.fields[self.what] = forms.MultipleChoiceField(
             choices = reports,
             initial = assigned,
             label = "",
@@ -142,37 +142,94 @@ class ReportsForm(forms.Form):
         
 
     def save(self):
+        '''in order for a milestone to be associated with a project, it must
+        have a record in ProjectMilestones with required=True.  There
+        are three logic paths we have to cover:\n
+        - records in ProjectMilestones that need to have required set to True
+        - records in ProjectMilestones that need to have required set to False
+        - records tht need to be added to ProjectMilestones 
+        '''
+
         cleaned_data = self.cleaned_data
         project = self.project
         what = self.what
 
+
+        #pdb.set_trace()
+
+        #if what=Milestones, we need to filter Project milestones that do not require a report
+        #if what=="Milestones":
+        #    #reportfilter = False
+        #    existing = project.get_milestones()
+        #else:
+        #    #reportfilter = True
+        #    if what=='Core':
+        #        existing = project.get_core_assignments()
+        #    else:
+        #        existing = project.get_custom_assignments()
+        #existing = [x['milestone_id'] for x in existing.values()]
+
+        existing = project.get_milestone_dicts()[what]['assigned']
+        cleaned_list = [int(x) for x in cleaned_data.values()[0]]
+
+        #these are the milestones that are existing but not in cleaned_data
+        turn_off = list(set(existing) - set(cleaned_list))
+        #these are the milestones that were not assigned but they are
+        #now in cleaned data.
+        turn_on = list(set(cleaned_list) - set(existing))
+
+        #print "what = %s" % what
+        #print "turn_on = %s" % turn_on
+        #print "turn_off = %s" % turn_off
+
         #turn OFF any ProjectMilestones that are not in cleaned data
-        ProjectMilestones.objects.filter(project = project).exclude(milestone__in=
-                  cleaned_data[what]).filter(milestone__category=
-                  what.title()).update(required=False)
+        ProjectMilestones.objects.filter(project = project, 
+                  milestone__id__in=turn_off).update(required=False)
+
+        #turn on any ProjectMilestones that are in cleaned data
+        ProjectMilestones.objects.filter(project = project, 
+                  milestone__id__in=turn_on).update(required=True)
+
+        #new records can be identified as milestone id's in cleaned
+        #data that are not in ProjectMilestone
+        projmst = ProjectMilestones.objects.filter(
+            project=project).values('milestone__id')
+        projmst = [x['milestone_id'] for x in projmst.values()]
+
+        new = list(set(cleaned_list) - set(projmst))
+        #print "new = %s" % new
+        #now loop over new milestones adding a new record to ProjectReports for 
+        #each one with required=True
+        if new:
+            for milestone in new:
+                ProjectMilestones.objects.create(project=project,
+                                              required=True, 
+                                              milestone_id=milestone)
+
+
+       # #turn OFF any ProjectMilestones that are not in cleaned data
+       # ProjectMilestones.objects.filter(project = project).exclude(milestone__in=
+       #           cleaned_data[what]).filter(milestone__category=
+       #           what.title(), milestone__report=reportfilter).update(required=False)
 
         #turn ON any ProjectMilestones that are in cleaned data
-        ProjectMilestones.objects.filter(project = 
-                  project).filter(milestone__category=
-                  what.title()).filter(milestone__in=cleaned_data[what]).update(required=True)
+        #ProjectMilestones.objects.filter(project = 
+        #          project).filter(milestone__category=
+        #          what.title(), milestone__report=reportfilter).filter(
+        #          milestone__in=cleaned_data[what]).update(required=True)
 
         #now we need to see if there are any new reports for this project
         #queryset of all 'what' (custom or core) reports assocaited with project
-        jj=ProjectMilestones.objects.filter(project=project).filter(milestone__category=what.title())
+        ##pdb.set_trace()
+        #jj=ProjectMilestones.objects.filter(project=project).filter(
+        #    milestone__category=what.title(), milestone__report=reportfilter)
         #id numbers for milestone objects already associated with this project
-        in_ProjectMilestones = str([x['milestone_id'] for x in jj.values()])
+        #in_ProjectMilestones = str([x['milestone_id'] for x in jj.values()])
 
-        # these are the new custom reports types id's that need to associated with
+        # these are the new  milestone id's that need to associated with
         # this project (ones in cleaned_data but not in ProjectMilestones)
-        newreports = list(set(cleaned_data.values()[0])-set(in_ProjectMilestones))
-
-        #Then loop over new reports adding a new record for each one with
-        #required=True
-        if newreports:
-            for report in newreports:
-                ProjectMilestones.objects.create(project=project,
-                                              required=True, 
-                                              milestone_id=report)
+        #new = list(set(cleaned_data.values()[0]) - set(in_ProjectMilestones))
+        ##new = list(set([int(x) for x in cleaned_data.values()[0]]) - set(existing))
 
 
 class ReportUploadFormSet(BaseFormSet):

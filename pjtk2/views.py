@@ -91,7 +91,7 @@ def canEdit(user, project):
 def get_assignments_with_paths(slug, Core=True):
     '''function that will return a list of dictionaries for each of the
     reporting requirements.  each dictionary will indicate what the
-    report is required, whether or not it has been requested for this
+    report is, whether or not it has been requested for this
     project, and if it is available, a path to the associated
     report.'''
 
@@ -276,8 +276,9 @@ def ProjectDetail(request, slug):
 
     project = get_object_or_404(Project, slug=slug)
     #reports = get_assignments(slug)
-    #reports = project.get_assignment_dicts()
+    #reports = project.get_milestone_dicts()
 
+    milestones = project.get_milestones()
     Core = get_assignments_with_paths(slug)
     Custom = get_assignments_with_paths(slug, Core=False)
 
@@ -286,7 +287,8 @@ def ProjectDetail(request, slug):
     manager = is_manager(user)
 
     return render_to_response('projectdetail.html',
-                              {'Core':Core,
+                              {'milestones':milestones,
+                               'Core':Core,
                                'Custom':Custom,
                                'project':project,
                                'edit':edit,
@@ -442,41 +444,55 @@ def report_milestones(request, slug):
 
     project = Project.objects.get(slug = slug)
     #reports = get_assignments(slug)
-    reports = project.get_assignment_dicts()
+    reports = project.get_milestone_dicts()
 
     if request.method=="POST":
         NewReport = request.POST.get('NewReport')
-        if NewReport:
-            NewReport = NewReport.title()
-            #verify that this reporting requirement doesn't already exist
-            # then add it to the reporting requirements
-            try:
-                Milestone.objects.get_or_create(label=NewReport)
-                #TODO - send message to project lead, supervisor and
-                # request.user that a new reporting requirement
-                # "NewReport" as been associated with a project.
-            except Exception:
-                pass
-            #now redirect back to the update reports form for this project
+        NewMilestone = request.POST.get('NewMilestone')
+        if NewReport or NewMilestone:
+            if NewReport:
+                NewReport = NewReport.title()
+                #verify that this reporting requirement doesn't already exist
+                # then add it to the reporting requirements
+                try:
+                    Milestone.objects.get_or_create(label=NewReport, report=True)
+                except Exception:
+                    pass
+            else:
+                NewMilestone = NewMilestone.title()
+                #verify that this reporting requirement doesn't already exist
+                # then add it to the reporting requirements
+                try:
+                    Milestone.objects.get_or_create(label=NewMilestone, report=False)
+                except Exception:
+                    pass
+
+                #now redirect back to the update reports form for this project
             return HttpResponseRedirect(reverse('Reports', args=(project.slug,)))
 
         else:
+            Milestones =  ReportsForm(request.POST, project=project, reports=reports,
+                                      what = 'Milestones')
             Core =  ReportsForm(request.POST, project=project, reports=reports)
             Custom = ReportsForm(request.POST, project=project, reports = reports,
-                                 Core=False)
+                                 what='Custom')
 
-            if Core.is_valid() and Custom.is_valid():
+            if Core.is_valid() and Custom.is_valid() and Milestones.is_valid():
                 Core.save()
                 Custom.save()
+                Milestones.save()
 
                 return HttpResponseRedirect(project.get_absolute_url())
     else:
+        Milestones = ReportsForm(project=project, reports = reports, what='Milestones')
         Core =  ReportsForm(project=project, reports = reports)
-        Custom =  ReportsForm(project=project, reports = reports, Core=False)
+        #Custom =  ReportsForm(project=project, reports = reports, Core=False)
+        Custom =  ReportsForm(project=project, reports = reports, what='Custom')
 
 
     return render_to_response('reportform.html',
-                              {'Core':Core,
+                              {'Milestones':Milestones,
+                               'Core':Core,
                                'Custom':Custom,
                                'project':project
                                },
@@ -499,6 +515,9 @@ def ReportUpload(request, slug):
     if Custom:
         [reports.append(x) for x in Custom]
     
+    print "reports = %s" % reports
+
+
     ReportFormSet = formset_factory(ReportUploadForm, 
                                     formset=ReportUploadFormSet, extra=0)
     
@@ -516,7 +535,7 @@ def ReportUpload(request, slug):
         formset = ReportFormSet(initial = reports)
     return render_to_response('UploadReports.html', {
                 'formset': formset,
-                'project':project,
+                'project': project,
                 },
                 context_instance=RequestContext(request))
 

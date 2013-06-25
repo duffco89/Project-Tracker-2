@@ -803,7 +803,7 @@ class ApproveProjectsEmptyTestCase(TestCase):
         self.user.delete()
 
 
-class ChangeReportingRequirementsTestCase(TestCase):
+class ChangeReportingRequirementsTestCase2(TestCase):
     '''This class verifies that new reporting requirements can be
     added through the report update form.  This report was originally
     attempted using webtest in views2_test.py.  I was unable to get
@@ -821,15 +821,17 @@ class ChangeReportingRequirementsTestCase(TestCase):
         self.user2.groups.add(managerGrp)
 
         self.rep4 = MilestoneFactory.create(label = "Budget Report",
-                                category = 'Custom', order = 99)
+                                            category = 'Custom', order = 99, 
+                                            report=True)
         self.rep5 = MilestoneFactory.create(label = "Creel Summary Statistics",
-                                category = 'Custom', order = 99)
+                                            category = 'Custom', order = 99,
+                                            report=True)
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
                                               Owner=self.user2)
             
-    def test_Add_New_Milestone(self):
+    def test_Add_New_Milestone2(self):
         '''verify that we can add new report reporting requirements
         using the second from on the UpdateReporting form.'''
 
@@ -849,6 +851,7 @@ class ChangeReportingRequirementsTestCase(TestCase):
         reports = Milestone.objects.filter(category='Custom')
         self.assertEqual(reports.count(),3)
         self.assertEqual(reports.filter(label="Coa Summary").count(),1)
+
 
     def tearDown(self):
        
