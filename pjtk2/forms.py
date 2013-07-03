@@ -1,25 +1,28 @@
-from django.contrib.auth.models import User
+import pdb
+import re
+import hashlib
+
 from django import forms
+from django.contrib.auth.models import User
 from django.forms import ModelForm
 from django.forms.formsets import BaseFormSet
 from django.forms.models import BaseInlineFormSet
-
-from django.utils.safestring import mark_safe
-
-
-from itertools import chain
-from django.forms.widgets import Select, CheckboxSelectMultiple, CheckboxInput, mark_safe
+from django.forms.widgets import (Select, CheckboxSelectMultiple, CheckboxInput, 
+                                  mark_safe)
 from django.utils.encoding import force_unicode
 from django.utils.html import escape, conditional_escape
+from django.utils.safestring import mark_safe
 
+from itertools import chain
+
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Submit, Layout, Fieldset, Field, ButtonHolder
 
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report, 
                           TL_ProjType, TL_Database, TL_Lake)
 from pjtk2.models import ProjectSisters
-import pdb
-import re
-import hashlib
+
 
 #from functions import *
 
@@ -68,29 +71,6 @@ class HyperlinkWidget(forms.TextInput):
         output.append('<a href="/test/projectdetail/%s/">%s</a>' % (value.lower(), value))
         #output.append('<a href="%s">%s</a>' % (url, value))
         return mark_safe(u''.join(output))
-
-
-
-class HyperlinkWidget2(forms.TextInput):
-    """This is a widget that will insert a hyperlink to a project
-    detail page in a form set.  Currently, the url is hardwired and
-    should be updated using get_absolute_url"""
-    
-    def __init__(self, *args, **kwargs):
-        super(HyperlinkWidget2, self).__init__(*args, **kwargs)
-
-    def render(self, name, value, url=None, attrs=None):
-        output = []
-        if value is None:
-            value = ''
-        if url is None:
-            value = ''
-        output.append('<a href="%s">%s</a>' % (url, value))
-        return mark_safe(u''.join(output))
-
-
-
-
 
 
         
@@ -166,12 +146,7 @@ class ApproveProjectsForm(forms.ModelForm):
 
 
     def __init__(self, *args, **kwargs):
-        
-        #self.project = kwargs.pop('instance', None)
-        #self.url = self.instance.get_absolute_url()
         super(ApproveProjectsForm, self).__init__(*args, **kwargs)
-        #pdb.set_trace()
-        #self.feilds['PRJ_CD'].widget.url = self.url
 
     class Meta:
         model=Project
@@ -203,16 +178,10 @@ class ReportsForm(forms.Form):
                                                 
     def __init__(self, *args, **kwargs):
         self.milestones = kwargs.pop('reports')
-        #self.core = kwargs.pop('Core', True)
         self.what = kwargs.pop('what', 'Core')
         self.project = kwargs.pop('project', None)
        
         super(ReportsForm, self).__init__(*args, **kwargs)
-        #if self.core:
-        #    what = 'Core'
-        #else:
-        #    what = 'Custom'
-        #self.what = what
         
         reports = self.milestones[self.what]["milestones"]
         assigned = self.milestones[self.what]["assigned"]
@@ -239,21 +208,6 @@ class ReportsForm(forms.Form):
         project = self.project
         what = self.what
 
-
-        #pdb.set_trace()
-
-        #if what=Milestones, we need to filter Project milestones that do not require a report
-        #if what=="Milestones":
-        #    #reportfilter = False
-        #    existing = project.get_milestones()
-        #else:
-        #    #reportfilter = True
-        #    if what=='Core':
-        #        existing = project.get_core_assignments()
-        #    else:
-        #        existing = project.get_custom_assignments()
-        #existing = [x['milestone_id'] for x in existing.values()]
-
         existing = project.get_milestone_dicts()[what]['assigned']
         cleaned_list = [int(x) for x in cleaned_data.values()[0]]
 
@@ -262,10 +216,6 @@ class ReportsForm(forms.Form):
         #these are the milestones that were not assigned but they are
         #now in cleaned data.
         turn_on = list(set(cleaned_list) - set(existing))
-
-        #print "what = %s" % what
-        #print "turn_on = %s" % turn_on
-        #print "turn_off = %s" % turn_off
 
         #turn OFF any ProjectMilestones that are not in cleaned data
         ProjectMilestones.objects.filter(project = project, 
@@ -282,7 +232,7 @@ class ReportsForm(forms.Form):
         projmst = [x['milestone_id'] for x in projmst.values()]
 
         new = list(set(cleaned_list) - set(projmst))
-        #print "new = %s" % new
+
         #now loop over new milestones adding a new record to ProjectReports for 
         #each one with required=True
         if new:
@@ -290,31 +240,6 @@ class ReportsForm(forms.Form):
                 ProjectMilestones.objects.create(project=project,
                                               required=True, 
                                               milestone_id=milestone)
-
-
-       # #turn OFF any ProjectMilestones that are not in cleaned data
-       # ProjectMilestones.objects.filter(project = project).exclude(milestone__in=
-       #           cleaned_data[what]).filter(milestone__category=
-       #           what.title(), milestone__report=reportfilter).update(required=False)
-
-        #turn ON any ProjectMilestones that are in cleaned data
-        #ProjectMilestones.objects.filter(project = 
-        #          project).filter(milestone__category=
-        #          what.title(), milestone__report=reportfilter).filter(
-        #          milestone__in=cleaned_data[what]).update(required=True)
-
-        #now we need to see if there are any new reports for this project
-        #queryset of all 'what' (custom or core) reports assocaited with project
-        ##pdb.set_trace()
-        #jj=ProjectMilestones.objects.filter(project=project).filter(
-        #    milestone__category=what.title(), milestone__report=reportfilter)
-        #id numbers for milestone objects already associated with this project
-        #in_ProjectMilestones = str([x['milestone_id'] for x in jj.values()])
-
-        # these are the new  milestone id's that need to associated with
-        # this project (ones in cleaned_data but not in ProjectMilestones)
-        #new = list(set(cleaned_data.values()[0]) - set(in_ProjectMilestones))
-        ##new = list(set([int(x) for x in cleaned_data.values()[0]]) - set(existing))
 
 
 class ReportUploadFormSet(BaseFormSet):
@@ -398,8 +323,6 @@ class ReportUploadForm(forms.Form):
         for them too.
         '''
 
-
-        #if 'report_path' in self.changed_data:        
         if 'report_path' in self.changed_data and self.cleaned_data['report_path']:        
            
             projectreport = ProjectMilestones.objects.get(
@@ -450,9 +373,6 @@ class ReportUploadForm(forms.Form):
             
             if sisters and common:
                 for sister in sisters:
-                    #projectreport = ProjectMilestones.objects.get(
-                    #    project=sister, 
-                    #    milestone=self.clean_milestone())
                     projectreport, created = ProjectMilestones.objects.get_or_create(
                         project=sister, milestone=self.clean_milestone())
                     try:
@@ -460,93 +380,10 @@ class ReportUploadForm(forms.Form):
                                                        current=True)
                         oldReport.current = False
                         oldReport.save()
-
                     except Report.DoesNotExist:
                         oldReport = None
-
-                    #if oldReport:
-                    #    oldReport.current = False
-                    #    oldReport.save()
                     #add the m2m relationship for the sister
                     newReport.projectreport.add(projectreport)
-
-
-
-class MilestoneFormSet(BaseInlineFormSet):
-    def __init__(self, *args, **kwargs):
-        super(MilestoneFormSet, self).__init__(*args, **kwargs)
-        #self.queryset = Milestone.objects.filter(report=False)
-        self.queryset = ProjectMilestones.objects.filter(milestone__report=False)
-        #pdb.set_trace()
-        
-
-    ##def get_queryset(self):
-    ##    if not hasattr(self, '_queryset'):
-    ##        qs = super(MilestoneFormSet, self).get_queryset().filter(report=False)
-    ##        self._queryset = qs
-    ##    return self._queryset
-
-
-class MilestonesForm(forms.ModelForm):
-    '''This form is used as a inline formset inside of the project form.
-    It shows the current status of milestones and provides a checkbox
-    widget to indicate if the milestone has been satisfied or not.
-
-    '''
-
-    completed = forms.BooleanField(
-        label = "",
-        required =False,
-    )
-  
-    #required = forms.BooleanField(
-    #    label = "Required",
-    #    required =False,
-    #)
-    
-    milestone = forms.CharField(
-        widget = ReadOnlyText,
-        label = "",
-        required =False,
-    )
-  
-
-    def __init__(self, *args, **kwargs):
-        self.helper = FormHelper()
-        self.helper.form_tag = False
-        self.helper.layout = Layout(
-            'milestone',
-            'completed',
-        )
-        super(MilestonesForm, self).__init__(*args, **kwargs)
-        #self.fields["milestone"].queryset = Milestone.objects.filter(
-        #   report=False)
-        self.fields["milestone"].queryset = ProjectMilestones.objects.filter(
-           milestone__report=False)
-
-
-    class Meta:
-        model=ProjectMilestones
-        #fields = ('milestone', 'completed')
-        #widgets = {
-        #    'milestone':Textarea()}
-
-
-    #def __init__(self, *args, **kwargs):
-    #    super(MilestonesForm, self).__init__(*args, **kwargs)
-    #    self.fields["milestone"].queryset = Milestone.objects.filter(
-    #                                    report=False)
-
-
-    #def clean_milestone(self):
-    #    '''return the original value of milestone'''
-    #    #return self.instance.milestone.label
-    #    pass
-
-    #def clean_required(self):
-    #    '''return the original value of required'''
-    #    #return self.instance.required
-    #    pass
 
 
 class ProjectForm(forms.ModelForm):
@@ -582,23 +419,6 @@ class ProjectForm(forms.ModelForm):
         label = "Risks associated with not running project:",
         required=False,
         )
-
-    #SOME_CHOICE = (
-    #    ('one', 'One'),
-    #    ('two', 'two'),    
-    #    ('three', 'three'),
-    #    ('four', 'four'),
-    #)
-
-    #milestones = forms.MultipleChoiceField(
-    #    widget = forms.CheckboxSelectMultiple(),
-    #    #choices=SOME_CHOICE,
-    #    #choices = self.choices,
-    #    label = "",
-    #    #initial = ["one","three"],
-    #    #intiial = self.completed,
-    #    required=False,
-    #    )
     
     PRJ_DATE0 = forms.DateField(
         label = "Start Date:",
@@ -640,37 +460,10 @@ class ProjectForm(forms.ModelForm):
         required = False,
         help_text="<em>(comma separated values)</em>")
 
-##     Approved = forms.BooleanField(
-##         label = "Approved",
-##         required =False,
-##     )
-## 
-##     Conducted = forms.BooleanField(
-##         label = "Conducted",
-##         required =False,
-##     )
-## 
-##     DataScrubbed = forms.BooleanField(
-##         label = "DataScrubbed",
-##         required =False,
-##     )
-## 
-##     DataMerged = forms.BooleanField(
-##         label = "Data Merged",
-##         required =False,
-##     )
-## 
-##     SignOff = forms.BooleanField(
-##         label = "Sign Off",
-##         required =False,
-##     )
     
     class Meta:
         model=Project
-        #exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
-        #           "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
         fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", "RISK",
-                   #"Approved", "Conducted", "DataScrubbed", "DataMerged", "SignOff",
                     'ProjectType', "MasterDatabase", "TL_Lake", "COMMENT", "DBA", "tags")
         
 
@@ -701,17 +494,8 @@ class ProjectForm(forms.ModelForm):
                 'TL_Lake',
                 'DBA',
                 'tags',
-                #HTML("""<p><em>(comma separated values)</em></p> """),
                 Fieldset("Milestones",
                          'milestones'),
-                ## Fieldset(
-                ##       "Milestones",
-                ##       'Approved',
-                ##       'Conducted',
-                ##       'DataScrubbed',
-                ##       'DataMerged',
-                ##       'SignOff'
-                ##     ),
               ),
             ButtonHolder(
                 Submit('submit', 'Submit')
@@ -722,16 +506,11 @@ class ProjectForm(forms.ModelForm):
         super(ProjectForm, self).__init__(*args, **kwargs)
         self.readonly = readonly
         self.manager = manager
-
-        #if not manager:
-        #    self.fields["Approved"].widget.attrs['disabled'] = True 
-        #    self.fields["SignOff"].widget.attrs['disabled'] = True             
-        #    self.fields["DataMerged"].widget.attrs['disabled'] = True                                 
+              
         if readonly:
             self.fields["PRJ_CD"].widget.attrs['readonly'] = True 
 
         if milestones:
-            #choices = [(x.id, x.milestone.label) for x in milestones]
             if self.manager == True:
                 choices = [(x.id,{'label':x.milestone.label, 'disabled':False}) 
                        for x in milestones]
@@ -742,7 +521,6 @@ class ProjectForm(forms.ModelForm):
 
             completed = [False if x.completed==None else True for x in milestones]
             self.fields.update({"milestones":forms.MultipleChoiceField(
-                #widget = forms.CheckboxSelectMultiple(),
                 widget = CheckboxSelectMultipleWithDisabled(),
                 choices=choices,
                 label="",
@@ -776,9 +554,6 @@ class ProjectForm(forms.ModelForm):
             return self.instance.DataMerged
         else:
             return self.cleaned_data["DataMerged"]
-        
-    #def clean_Keywords(self):
-        
         
             
     def clean_PRJ_CD(self):
@@ -838,8 +613,6 @@ class ProjectForm(forms.ModelForm):
         return cleaned_data
         
 
-    #def save(self):
-
         
 class SisterProjectsForm(forms.Form):
     '''This project form is used to identify sister projects''' 
@@ -877,13 +650,8 @@ class SisterProjectsForm(forms.Form):
     )
     
     def __init__(self, *args, **kwargs):
-        #self.PRJ_CD  = kwargs.pop('PRJ_CD', None)
-        #self.project = Project.objects.get(PRJ_CD=self.PRJ_CD)
         super(SisterProjectsForm, self).__init__(*args, **kwargs)
         self.fields["slug"].widget = forms.HiddenInput()
-        #self.feilds['PRJ_CD'].widget.url = self.project.get_absolute_url()
-
-
 
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
@@ -916,258 +684,8 @@ class SisterProjectsForm(forms.Form):
             pass
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-        
 class DocumentForm(forms.ModelForm):
     '''A simple little demo form for testing file uploads'''
     class Meta:
         model = Report
 
-
-##   class DocumentForm(forms.Form):
-##       reportfile = forms.FileField(
-##           label='Select a file',
-##           help_text='max. 42 megabytes'
-##       )
-##       #current = forms.BooleanField()
-    #projectreport = forms.??
-    #upload_date = forms.DateField(default = datetime.datetime.today)
-    #uploaded_by = forms.CharField(default = "me")
-    #hash = forms.CharField(default = "fakehash")
-
-
-
-## ===========================================================
-##   CRISPY FORM EXAMPLE
-
-
-# -*- coding: utf-8 -*-
-from django import forms
- 
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Div, Submit, HTML, Button, Row, Field
-from crispy_forms.bootstrap import AppendedText, PrependedText, FormActions
- 
-class CrispyForm(forms.Form):
-    
-    text_input = forms.CharField()
-
-    textarea = forms.CharField(
-        widget = forms.Textarea(),
-        )
-
-    radio_buttons = forms.ChoiceField(
-        choices = (
-            ('option_one', "Option one is this and that be sure to include why it's great"),
-            ('option_two', "Option two can is something else and selecting it will deselect option one")),
-            widget = forms.RadioSelect,
-            initial = 'option_two',
-    )
-
-    checkboxes = forms.MultipleChoiceField(
-        choices = (
-            ('option_one', "Option one is this and that be sure to include why it's great"),
-            ('option_two', 'Option two can also be checked and included in form results'),
-            ('option_three', 'Option three can yes, you guessed it also be checked and included in form results')),
-            initial = 'option_one',
-            widget = forms.CheckboxSelectMultiple,
-            help_text = "<strong>Note:</strong> Labels surround all the options for much larger click areas and a more usable form.",
-    )
-
-    appended_text = forms.CharField(
-        help_text = "Here's more help text"
-        )
-
-    prepended_text = forms.CharField()
-
-    prepended_text_two = forms.CharField()
-
-    multicolon_select = forms.MultipleChoiceField(
-    choices = (('1', '1'), ('2', '2'), ('3', '3'), ('4', '4'), ('5', '5')),
-    )
-
-    # Uni-form
-    helper = FormHelper()
-    helper.form_class = 'form-horizontal'
-    helper.layout = Layout(
-        Field('text_input', css_class='input-xlarge'),
-        Field('textarea', rows="3", css_class='input-xlarge'),
-        'radio_buttons',
-        Field('checkboxes', style="background: #FAFAFA; padding: 10px;"),
-        AppendedText('appended_text', '.00'),
-        PrependedText('prepended_text', '<input type="checkbox" checked="checked" value="" id="" name="">', active=True),
-        PrependedText('prepended_text_two', '@'),
-        'multicolon_select',
-    FormActions(
-        Submit('save_changes', 'Save changes', css_class="btn-primary"),
-        Submit('cancel', 'Cancel'),
-    )
-    )
-
-    # from http://django-crispy-forms.readthedocs.org/en/1.2.1/tags.html
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit, MultiField
-
-    
-class ExampleForm(forms.Form):
-    like_website = forms.TypedChoiceField(
-        label = "Do you like this website?",
-        choices = ((1, "Yes"), (0, "No")),
-        coerce = lambda x: bool(int(x)),
-        widget = forms.RadioSelect,
-        initial = '1',
-        required = True,
-    )
-
-    favorite_food = forms.CharField(
-        label = "What is your favorite food?",
-        max_length = 80,
-        required = True,
-    )
-
-    favorite_color = forms.CharField(
-        label = "What is your favorite color?",
-        max_length = 80,
-        required = True,
-    )
-
-    favorite_number = forms.IntegerField(
-        label = "Favorite number",
-        required = False,
-    )
-
-    birth_date = forms.DateField(
-        label = "BirthDate",
-        required = False,
-    )
-
-    
-    notes = forms.CharField(
-        label = "Additional notes or feedback",
-        required = False,
-    )    
-
-
-
-    
-    def __init__(self, *args, **kwargs):
-        self.helper = FormHelper()
-        self.helper.form_id = 'id-exampleForm'
-        self.helper.form_class = 'blueForms'
-        self.helper.form_method = 'post'
-        self.helper.form_action = 'submit_survey'
-        #self.helper.add_input(Submit('submit', 'Submit'))
-
-        self.helper.layout = Layout(
-
-##          MultiField(
-##              'Tell us your favorite stuff {{ username }}',
-##              Div(
-##                  'like_website',
-##                  'favorite_number',
-##                  css_id = 'special-fields'
-##              ),
-##              'favorite_color',
-##              'favorite_food',
-##              'notes'
-##              )
-##           
-            Fieldset(
-                'first arg is the legend of the fieldset',
-                'like_website',
-                'favorite_number',
-                'favorite_color',
-                'favorite_food',
-                Field('birth_date', datadatepicker='datepicker'),
-                HTML("""<p>We use notes to get better, <strong>please help us {{ username }}</strong></p> """),                
-                'notes'
-            ),
-            ButtonHolder(
-                Submit('submit', 'Submit', css_class='button white')
-            )
-        )
-
-        
-        super(ExampleForm, self).__init__(*args, **kwargs)
-
-
-
-
-## 
-## class AssignmentForm(forms.ModelForm):
-##     '''A basic form for reporting requirements associated with a project'''
-## 
-##     required = forms.BooleanField(
-##          label = "",
-##          required =False,
-##      )
-## 
-##     class Meta:
-##         model=ProjectMilestones
-##         fields = ('required', 'milestone')
-##         widgets = {
-##         #'required':forms.BooleanField(label=""),
-##           'milestone':forms.HiddenInput(),        
-##         }
-##     
-##     def clean_milestone(self):
-##         '''return the original value of milestone'''
-##         return self.instance.milestone
-## 
-## 
-## 
-##                 
-## class CoreReportsForm(forms.Form):
-##     '''Dynamically add checkbox widgets to a form depending on reports
-##     identified as core.  This form is currently used to update
-##     reporting requirements.  '''
-##     
-##     #pass
-##     def __init__(self, *args, **kwargs):
-##         self.reports = kwargs.pop('reports')
-##         #self.project = kwargs.pop('project', None)
-##         
-##         super(CoreReportsForm, self).__init__(*args, **kwargs)
-##         corereports = self.reports["core"]["reports"]
-##         assigned = self.reports["core"]["assigned"]
-##     
-##         
-##         self.fields['core'] = forms.MultipleChoiceField(
-##             choices = corereports,
-##             initial = assigned,
-##             label = "",
-##             required = True,
-##             widget = forms.widgets.CheckboxSelectMultiple(),
-##             )
-## 
-## 
-## 
-## class AdditionalReportsForm(forms.Form):
-##     reports = Milestone.objects.filter(category='Custom')
-##     #we need to convert the querset to a tuple of tuples
-##     reports = tuple([(x[0], x[1]) for x in reports.values_list()])
-##     ckboxes = forms.MultipleChoiceField(
-##         choices = reports,
-##         label = "",
-##         required = True,
-##         )
-                
-## 
-## 
-## ##  class NewProjectForm(forms.ModelForm):
-## ##      formfield_callback = make_custom_datefield
-## ##      class Meta:
-## ##          model = Project
-## ##          exclude = ("slug", "YEAR", "Owner",)
-## 

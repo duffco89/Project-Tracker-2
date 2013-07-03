@@ -24,7 +24,7 @@ from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
 
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm, 
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,  
-                         ReportUploadFormSet, MilestonesForm) #, MilestoneFormSet)
+                         ReportUploadFormSet)
 
 import datetime
 import mimetypes
@@ -188,14 +188,6 @@ class ProjectList(ListFilteredMixin, ListView):
     template_name = "ProjectList.html"
 
 
-    ##def get_queryset(self, *args, **kwargs):
-        ##self.tag = self.kwargs.pop('tag', None) 
-        ##if self.tag:
-        ##    queryset = Project.objects.filter(tags__name__in=[self.tag])
-        ##else:    
-        ##    queryset = Project.objects.all()
-        ##return queryset
-
     def get_context_data(self, **kwargs):
         context = super(ProjectList, self).get_context_data(**kwargs)
         context['tag'] = self.tag
@@ -209,39 +201,6 @@ project_list = ProjectList.as_view()
 
 #subset of projects tagged with tag:
 taggedprojects = ProjectList.as_view()
-
-
-
-
-
-
-
-
-
-
-#class ProjectList(ListView):
-#    queryset = Project.objects.all()
-#    template_name = "ProjectList.html"
-
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        return super(ProjectList, self).dispatch(*args, **kwargs)
-
-#project_list = ProjectList.as_view()
-
-
-# class ProjectByProjectType(ListView):
-#     projecttype = self.kwarg["projecttype"]
-#     queryset = Project.objects.filter(ProjectType=projecttype)
-#     template_name = "ProjectList.html"
-# 
-#     @method_decorator(login_required)
-#     def dispatch(self, *args, **kwargs):
-#         return super(ProjectList, self).dispatch(*args, **kwargs)
-# 
-# project_by_type = ProjectByProjectType.as_view()
-
-
 
 
 class ApprovedProjectsList(ListView):
@@ -370,11 +329,6 @@ def crud_project(request, slug, action='New'):
     else:
         instance = Project()
 
-    ## InlineFormSet = inlineformset_factory(Project, ProjectMilestones,
-    ##                                          form=MilestonesForm,
-    ##                                          formset=MilestoneFormSet,
-    ##                                          extra=0, can_delete=False)
-
     #find out if the user is a manager or superuser, if so set manager
     #to true so that he or she can edit all fields.
     user = User.objects.get(username__exact=request.user)
@@ -385,65 +339,29 @@ def crud_project(request, slug, action='New'):
     else:
         readonly = False
 
-    #pdb.set_trace()
-
     if request.method == 'POST': # If the form has been submitted...
         form = ProjectForm(request.POST, instance=instance,milestones=milestones,
                                    readonly=readonly, manager=manager)
-        ##if action == 'Edit':
-        ##    form = ProjectForm(request.POST, instance=instance,
-        ##                           readonly=True, manager=manager)
-        ##else:
-        ##    form = ProjectForm(request.POST, manager=manager)
-        
-        #formset = InlineFormSet(request.POST, request.FILES, 
-        #                               instance=instance)
 
         if form.is_valid():
-            #pdb.set_trace()
             if action=='Copy':
                 #reset fields that we don't want to copy
+
+                #TODO - test that when user copies someone else's project,
+                #they are the owner of the new project (and other
+                #project is still owned by the previous owner)
                 form.cleaned_data['Owner'] = request.user
                 form.cleaned_data['Year'] = None
                 form.cleaned_data['slug'] = None
             tags = form.cleaned_data['tags']
             form_ms = form.cleaned_data.get('milestones')
             form = form.save(commit=False)
-            #if not form.Owner:
-            #    form.Owner = equest.user
             form.save()
-            #formset_set.save()
-            #form.tags.add(*tags)
             form.tags.set(*tags)
-            #TODO - remove tags that used to be associated with project, but aren't now
-
-            ##form_ms = set([int(x) for x in form_ms])
-            ###we need to get values that have been added to milestones
-            ### and update required with current date, if any milestones
-            ### have been removed, we need to clear required for those
-            ### proejct milestones.
-            ##previous_completed = milestones.filter(complete__isnull=False)
-            ##previous_outstanding = milestones.filter(complete__isnull=False)
-            ##
-            ##previous_compete = set([x.id for x in previous_complete])
-            ##previous_outstanding = set([x.id for x in previous_outstanding])
-            ##
-            ##
-            ###these ones are now complete:
-            ##added_ms =  previous_outstanding.intersection(form_ms)
-            ###these ones were done, but now they aren't
-            ##removed_ms =previous_complete.difference(form_ms)
-            ##
-            ##now = datetime.datetime.now()
-            ##ProjectMilestones.objects.filter(id__in=add_ms).update(completed=now)
-            ##ProjectMilestones.objects.filter(id__in=add_ms).update(completed=None)
-
             if form_ms:
                 update_milestones(form_ms=form_ms, milestones=milestones)
 
             proj = Project.objects.get(slug=form.slug)
-
-
 
             return HttpResponseRedirect(proj.get_absolute_url())
         else:
@@ -458,31 +376,8 @@ def crud_project(request, slug, action='New'):
 
         if action == "Copy":
             #make sure that project milestones are reset to false for new projects
-            #instance = resetMilestones(instance)
             instance.resetMilestones()
-            #instance.slug = None
-            #instance.YEAR = None
-            #instance.Owner = ""
 
-        ##if action == "Edit":
-        ##    form = ProjectForm(instance=instance, readonly=True, 
-        ##                       manager=manager, milestones=milestones)
-        ##    #formset = InlineFormSet(instance=instance)
-        ##    #formset.queryset = instance.get_milestones()
-        ##
-        ##elif action == "Copy":
-        ##    #make sure that project milestones are reset to false for new projects
-        ##    #instance = resetMilestones(instance)
-        ##    instance.resetMilestones()
-        ##    instance.slug = None
-        ##    instance.YEAR = None
-        ##    instance.Owner = None
-        ##
-        ##    form = ProjectForm(instance=instance, manager=manager)
-        ##    #formset = InlineFormSet(instance=instance)
-        #else:
-        #    form = ProjectForm(instance=instance, manager=manager)
-        #    #formset = InlineFormSet(instance=instance)
     return render_to_response('ProjectForm.html',
                               {'form':form, 
                                #'formset':formset,
@@ -856,18 +751,3 @@ def uploadlist(request):
 
 
 
-
-
-
-#=============================================
-#=============================================
-from django.shortcuts import render
-from forms import CrispyForm, ExampleForm
-
-def crispy(request):
-# This view is missing all form handling logic for simplicity of the example
-    return render(request, 'crispyform.html', {'form': CrispyForm()})
-
-def crispy2(request):
-# This view is missing all form handling logic for simplicity of the example
-    return render(request, 'crispyform2.html', {'form': ExampleForm()})

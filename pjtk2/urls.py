@@ -51,7 +51,6 @@ urlpatterns = patterns('pjtk2.views',
     #tagging/keywords                  
     url(r'^taggedprojects/(?P<tag>.+)/$', 'taggedprojects', name='TaggedProjects'),
 
-
     
 # Reports and milestones
     url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
@@ -83,11 +82,6 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^unbookmarkproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'unbookmark_project', name='Unbookmark_Project'),
 
-
-    
-    # some silly examples
-    url(r'^crispy/$', 'crispy', name='CrispyForm'),
-    url(r'^crispy2/$', 'crispy2', name='CrispyForm2'),
 )
 
 
