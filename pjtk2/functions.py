@@ -1,12 +1,12 @@
 '''This file contains a number of helper functions.  Most of the
 functions are used in views.py,but they are not views themselves.'''
 
-#from pjtk2.models import *
 
-from pjtk2.models import (Milestone, Project, Report, ProjectReports,
-                          TL_ProjType, TL_Database, Bookmark, ProjectSisters, 
-                          Family, employee)
 
+## from pjtk2.models import (Milestone, Project, Report, ProjectReports,
+##                           TL_ProjType, TL_Database, Bookmark, ProjectSisters, 
+##                           Family, employee)
+## 
 
 
 def get_supervisors(employee):
@@ -18,9 +18,11 @@ def get_supervisors(employee):
         return [employee]
 
 def get_minions(employee):
-    '''Given an employee objects, return a list of employees under his/her
-    supervision.  The first element of list will be the intial
-    employee.
+    '''Given an employee objects, return a list of employees under
+    his/her## from pjtk2.models import (Milestone, Project, Report,
+    ProjectReports, supervision.  The first element of list will be
+    the intial employee.
+
     '''
     ret=[employee]
     for minion in employee.employee_set.all():
@@ -85,33 +87,34 @@ def get_assignments_with_paths(slug, Core=True):
 
 
 
-##def sendMessage(msgtxt, users, project, milestone):
-##    '''Create a record in the message database and send it to each user in
-##    users by appending a record to Messages2Users for each one.'''
-##
-##    #if the Project Milestone doesn't exist for this project and milestone create it
-##    prjms, created = ProjectMilestones.objects.get_or_create(project=project, 
-##                                                             milestone=milestone)
-##
-##    #create a message object using the message text and the project-milestone
-##    message = Message.objects.create(msg=msgtxt, ProjectMilestone=prjms)
-##    #then loop through the list of users and add one record to 
-##    #Messages2Users for each one:
-##    try:
-##        for user in users:-i
-##            Messages2Users.objects.create(user=user, msg=message)
-##    except TypeError:
-##        Messages2Users.objects.create(user=users, msg=message)
-##
-##
-##def myMessages(user, OnlyUnread=True):
-##    '''Return a queryset of messages for the user, sorted in reverse
-##    chronilogical order (newest first).  By default, only unread messages
-##    are returned, but all messages can be retrieved.'''
-##
-##    if OnlyUnread:
-##         MyMsgs = Messages2Users.objects.filter(user=user, 
-##                                                read__isnull=True).order_by('-created')
-##    else:
-##         MyMsgs = Messages2Users.objects.filter(user=user).order_by('-created')
-##    return(MyMsgs)
+## def sendMessage(msgtxt, users, project, milestone):
+## 
+##     '''Create a record in the message database and send it to each user in
+##     users by appending a record to Messages2Users for each one.'''
+## 
+##     #if the Project Milestone doesn't exist for this project and milestone create it
+##     prjms, created = ProjectMilestones.objects.get_or_create(project=project, 
+##                                                              milestone=milestone)
+## 
+##     #create a message object using the message text and the project-milestone
+##     message = Message.objects.create(msg=msgtxt, ProjectMilestone=prjms)
+##     #then loop through the list of users and add one record to 
+##     #Messages2Users for each one:
+##     try:
+##         for user in users:
+##             Messages2Users.objects.create(user=user, msg=message)
+##     except TypeError:
+##         Messages2Users.objects.create(user=users, msg=message)
+## 
+## 
+## def myMessages(user, OnlyUnread=True):
+##     '''Return a queryset of messages for the user, sorted in reverse
+##     chronilogical order (newest first).  By default, only unread messages
+##     are returned, but all messages can be retrieved.'''
+## 
+##     if OnlyUnread:
+##          MyMsgs = Messages2Users.objects.filter(user=user, 
+##                                                 read__isnull=True).order_by('-created')
+##     else:
+##          MyMsgs = Messages2Users.objects.filter(user=user).order_by('-created')
+##     return(MyMsgs)

@@ -8,7 +8,7 @@ PROJECT_ROOT =  os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
 here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -88,12 +88,12 @@ STATICFILES_DIRS = (
 
 )
 
-# print "MEDIA_ROOT %s" % MEDIA_ROOT
-# print "MEDIA_URL %s" % MEDIA_URL
-# print "ADMIN_MEDIA_PREFIX %s" % ADMIN_MEDIA_PREFIX
-# print "STATIC_URL %s" % STATIC_URL
-# print "STATIC_ROOT %s" % STATIC_ROOT
-# print "STATICFILES_DIRS %s" % STATICFILES_DIRS
+## print "MEDIA_ROOT %s" % MEDIA_ROOT
+## print "MEDIA_URL %s" % MEDIA_URL
+## print "ADMIN_MEDIA_PREFIX %s" % ADMIN_MEDIA_PREFIX
+## print "STATIC_URL %s" % STATIC_URL
+## print "STATIC_ROOT %s" % STATIC_ROOT
+## print "STATICFILES_DIRS %s" % STATICFILES_DIRS
 
 
 # List of finder classes that know how to find static files in
@@ -137,10 +137,6 @@ MIDDLEWARE_CLASSES = (
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
-INTERNAL_IPS = ('127.0.0.1', )   #added for debug toolbar
-DEBUG_TOOLBAR_CONFIG = {
-    'INTERCEPT_REDIRECTS': False,
-}
 
 
 ROOT_URLCONF = 'main.urls'
@@ -167,6 +163,8 @@ DJANGO_APPS = (
 )
 
 THIRDPARTY_APPS = (
+    'django_extensions',
+    'werkzeug_debugger_runserver',
     'south',
     'crispy_forms',
     'debug_toolbar',

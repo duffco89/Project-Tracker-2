@@ -18,6 +18,8 @@ class TestProjectModel(TestCase):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
+        #self.employee = EmployeeFactory(user=self.user)
+        
 
         #we need to create some models with different years - starting
         #with the current year.
@@ -125,8 +127,6 @@ class TestProjectModel(TestCase):
         self.project2.delete()
         self.project3.delete()
         self.user.delete()
-
-
 
 class TestMilestoneModel(TestCase):        
 

@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.signals import pre_save
+from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
@@ -11,7 +11,7 @@ from taggit.managers import TaggableManager
 import datetime
 import pdb
 
-#from functions import *
+from functions import *
 
 
 # Create your models here.
@@ -39,6 +39,7 @@ class Milestone(models.Model):
     milesstones in a separate tamles allows us to dynamically add and
     remove milesstones associated with individual projects or project
     types (field projects vs synthesis projects).
+    protected is used to limit who can update various milestones.
     '''
 
     #(database, display)
@@ -52,6 +53,7 @@ class Milestone(models.Model):
     category = models.CharField(max_length=30, choices=MILESTONE_CHOICES,
                                 default='Custom')
     report  = models.BooleanField(default = False)
+    protected  = models.BooleanField(default = False)
     order = models.FloatField(default=99)
 
     class Meta:
@@ -212,10 +214,12 @@ class Project(models.Model):
         if required==True:
             return ProjectMilestones.objects.filter(project=self,
                                                     required=True, 
-                                                    milestone__report=False)
+                                                    milestone__report=False).order_by(
+                                                        'milestone__order')
         else:
             return ProjectMilestones.objects.filter(project=self,
-                                                    milestone__report=False)
+                                                    milestone__report=False).order_by(
+                                                        'milestone__order')
 
 
     def get_core_assignments(self, all=True):
@@ -321,8 +325,14 @@ class Project(models.Model):
         corereports = Milestone.objects.filter(category='Core')
 
         for report in corereports:
-            pr = ProjectMilestones(project=self, milestone = report)
-            pr.save()
+            #'Submitted' milestone is already added by post_save send_message()
+            #if report.label != "Submitted":
+            #    pr = ProjectMilestones(project=self, milestone = report)
+            #    pr.save()
+            pr, created = ProjectMilestones.objects.get_or_create(project=self, 
+                                                        milestone = report)
+            
+
 
     def get_family(self):   
        try:
@@ -431,26 +441,34 @@ class Project(models.Model):
             self.initialReports()
 
 
-@receiver(pre_save, sender=Project)
-def send_notices_if_changed(sender, instance, **kwargs):
-    try:
-        obj = Project.objects.get(pk=instance.pk)
-    except Project.DoesNotExist:
-        print "Project %s was just submitted." % instance.PRJ_CD
-        #pass # sendmessage(Project.PRJ_CD) has been submitted
-    else:
-        if not obj.Approved == instance.Approved: # Field has changed
-            print "Project %s was just approved." % obj.PRJ_CD
-            pass
-            # do something
-##    Approved
-##    Conducted
-##    FieldWorkComplete
-##    AgeStructures
-##    DataScrubbed
-##    DataMerged
-##    SignOff
-
+##  @receiver(post_save, sender=Project)
+##  def send_notices_if_changed(sender, instance, created, **kwargs):
+##      '''If this project was just created, we will need to send a
+##      notification to the project lead and his/her supervisors, and the
+##      data custodian that it was submitted.
+##      '''
+##  
+##      if created:
+##          proj = Project.objects.get(pk=instance.pk)
+##          msgtxt =  "Project %s was just submitted." % proj.PRJ_CD
+##          #we want to send this message up the chain of command to all supervisors
+##          try:
+##              #try and send messages starting at project lead - ideal
+##              prjLead = proj.PRJ_LDR
+##              prjLead = employee.objects.get(user__username=prjLead)
+##              users = get_supervisors(prjLead)
+##          except:
+##              #should be the same person, but could be someone else
+##              prjLead = proj.Owner
+##              prjLead = employee.objects.get(user__username=prjLead)
+##              users = get_supervisors(prjLead)
+##          #send notice to dba too
+##          users.append(employee.objects.get(user__username=proj.dba))
+##          #remove any duplicates
+##          users = list(set(users))
+##          ms = Milestone.objects.get(label="Submitted")
+##          sendMessage(msgtxt, users, project=proj, milestone=ms)
+##  
             
 class ProjectMilestones(models.Model):
     '''list of reporting requirements for each project'''
@@ -469,17 +487,30 @@ class ProjectMilestones(models.Model):
     def __unicode__(self):
         return "%s - %s" % (self.project.PRJ_CD, self.milestone)
 
-# TODO Complete the pre_save signal to ProjectMilestones - send message to appropriate people when ever
-# a recore in this table is added or updated.
-@receiver(pre_save, sender=ProjectMilestones)
-def send_notices_if_projmilestones_changed(sender, instance, **kwargs):
-    try:
-        obj = ProjectMilestones.objects.get(pk=instance.pk)
-    except ProjectMilestones.DoesNotExist:
-        print "Project %s -  %s." % (instance.project.PRJ_CD, instance.milestone.label)
-        #pass # sendmessage(Project.PRJ_CD) has been submitted
-    else:
-        print "%s -  %s was Updated." % (instance.project.PRJ_CD, instance.milestone.label)
+    def __str__(self):
+        return self.milestone.label
+
+
+# TODO Complete the pre_save signal to ProjectMilestones - send message to appropriate people whenever
+# a record in this table is added or updated.
+##  @receiver(pre_save, sender=ProjectMilestones)
+##  def send_notices_if_projmilestones_changed(sender, instance, **kwargs):
+##      '''If the status of a milestone has changed, send a message to the project lead, their supervisor,
+##      the data custodian (and perhaps someday, the operations team).'''
+##      try:
+##          original = ProjectMilestones.objects.get(pk=instance.pk)
+##      except ProjectMilestones.DoesNotExist:
+##          #in this case, there was no original - nothing to do
+##          pass
+##      else:
+##          print "%s was Updated. %s is not %s.\n" % (instance.project.PRJ_CD, 
+##                                                     instance.milestone.label,instance.milestone.completed)
+##          pass
+##  
+##      #see if there is a difference between original and the new
+##      #instance.  If they are different send an appropriate message to
+##      #the appropriate people.
+##  
 
 ##    Conducted
 ##    FieldWorkComplete
@@ -487,11 +518,6 @@ def send_notices_if_projmilestones_changed(sender, instance, **kwargs):
 ##    DataScrubbed
 ##    DataMerged
 ##    SignOff
-
-
-
-
-
 
         
 class Report(models.Model):
@@ -594,44 +620,83 @@ class employee(models.Model):
         return self.user.username
 
 
-##  class Message(models.Model):
-##      '''A table to hold all of our messages and which project and milestone
-##      they were associated with.'''
-##      #(database, display)
-##      LEVEL_CHOICES = {
-##          ('info', 'Info'),
-##          ('actionrequired', 'Action Required'),    
-##      }
-##  
-##  
-##      msg = models.CharField(max_length=100)
-##      ProjectMilestone = models.ForeignKey(ProjectMilestones)
-##      #these two fields will allow us to keep track of why messages were sent:
-##  
-##      #we will need a project 'admin' to send announcements
-##      #"Notification system is now working."
-##      #"Feature Request/Bug Reporting has been implemented."
-##      level = models.CharField(max_length=30, choices=LEVEL_CHOICES,
-##                                  default='info')
-##  
-##      def __unicode__(self):
-##          return self.msg
-##  
-##      
-##  class Messages2Users(models.Model):
-##      '''a table to associated messages with users and keep track of when
-##      they were create and whven they were read.'''
-##      user = models.ForeignKey(User)
-##      msg = models.ForeignKey(Message)
-##      created = models.DateTimeField(auto_now_add=True)
-##      read = models.DateTimeField(blank=True, null=True)
+class Message(models.Model):
+    '''A table to hold all of our messages and which project and milestone
+    they were associated with.'''
+    #(database, display)
+    LEVEL_CHOICES = {
+        ('info', 'Info'),
+        ('actionrequired', 'Action Required'),    
+    }
+
+    msg = models.CharField(max_length=100)
+    ProjectMilestone = models.ForeignKey(ProjectMilestones)
+    #these two fields will allow us to keep track of why messages were sent:
+
+    #we will need a project 'admin' to send announcements
+    #"Notification system is now working."
+    #"Feature Request/Bug Reporting has been implemented."
+    level = models.CharField(max_length=30, choices=LEVEL_CHOICES,
+                                default='info')
+
+    def __unicode__(self):
+        return self.msg
+
+    
+class Messages2Users(models.Model):
+    '''a table to associated messages with users and keep track of when
+    they were create and when they were read.'''
+    user = models.ForeignKey(User)
+    msg = models.ForeignKey(Message)
+    created = models.DateTimeField(auto_now_add=True)
+    read = models.DateTimeField(blank=True, null=True)
+
+
+def sendMessage(msgtxt, users, project, milestone):
+
+    '''Create a record in the message database and send it to each user in
+    users by appending a record to Messages2Users for each one.'''
+
+    #if the Project Milestone doesn't exist for this project and milestone create it
+    pdb.set_trace()
+    prjms, created = ProjectMilestones.objects.get_or_create(project=project, 
+                                                             milestone=milestone)
+
+    #prjms = ProjectMilestones.objects.get(project=project, milestone=milestone)
+    
+    #create a message object using the message text and the project-milestone
+    message = Message.objects.create(msg=msgtxt, ProjectMilestone=prjms)
+    #then loop through the list of users and add one record to 
+    #Messages2Users for each one:
+    try:
+        for employee in users:
+            user = User.objects.get(employee=employee)
+            Messages2Users.objects.create(user=user, msg=message)
+    except TypeError:
+        Messages2Users.objects.create(user=users, msg=message)
+
+
+def myMessages(user, OnlyUnread=True):
+    '''Return a queryset of messages for the user, sorted in reverse
+    chronilogical order (newest first).  By default, only unread messages
+    are returned, but all messages can be retrieved.'''
+
+    if OnlyUnread:
+         MyMsgs = Messages2Users.objects.filter(user=user, 
+                                                read__isnull=True).order_by('-created')
+    else:
+         MyMsgs = Messages2Users.objects.filter(user=user).order_by('-created')
+    return(MyMsgs)
+
+
+
 
 
 
         
         
 class AdminMilestone(admin.ModelAdmin):
-    list_display = ('label', 'report', 'category',)
+    list_display = ('label', 'report', 'category', 'protected',)
 
 class AdminTL_ProjType(admin.ModelAdmin):
     pass

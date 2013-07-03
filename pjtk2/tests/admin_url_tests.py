@@ -1,5 +1,5 @@
 '''Some simple tests to quickly verify that all of the urls work and
-that the admin contains interfaces to the models taht we need.'''
+that the admin contains interfaces to the models that we need.'''
 
 from pjtk2.tests import DemoTestCase
 from django.core.urlresolvers import reverse

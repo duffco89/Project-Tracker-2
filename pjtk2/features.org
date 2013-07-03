@@ -46,3 +46,11 @@ render in approve projects form.
 - custom login/logout
 - change password form
 - password expiry
+
+
+** CustomCheckBoxSelectMultiple
+
+I have been trying to override the standard CheckBoxSelectMultiple
+widget to accept and additional argument that contains a boolean
+vector as long as choices() indicating whether or not the checkbox
+should be enabled.  

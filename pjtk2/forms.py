@@ -1,9 +1,16 @@
+from django.contrib.auth.models import User
+from django import forms
 from django.forms import ModelForm
 from django.forms.formsets import BaseFormSet
-from django import forms
-from django.contrib.auth.models import User
+from django.forms.models import BaseInlineFormSet
 
 from django.utils.safestring import mark_safe
+
+
+from itertools import chain
+from django.forms.widgets import Select, CheckboxSelectMultiple, CheckboxInput, mark_safe
+from django.utils.encoding import force_unicode
+from django.utils.html import escape, conditional_escape
 
 
 from taggit.forms import *
@@ -31,28 +38,98 @@ def make_custom_datefield(f, **kwargs):
 
 class ReadOnlyText(forms.TextInput):
   '''from:
-  http://stackoverflow.com/questions/1134085/rendering-a-value-as-text-instead-of-field-inside-a-django-form'''
+  http://stackoverflow.com/questions/1134085/rendering-a-value-as-text-instead-of-field-inside-a-django-form
+  modified to get milestone labels if name starts with 'projectmilestone'
+  '''
 
   input_type = 'text'
   def render(self, name, value, attrs=None):
-     if value is None: 
+     if name.startswith('projectmilestone'):
+         value = Milestone.objects.get(id=value).label
+     elif value is None: 
          value = ''
-     return value
+     return str(value)
 
 class HyperlinkWidget(forms.TextInput):
     """This is a widget that will insert a hyperlink to a project
     detail page in a form set.  Currently, the url is hardwired and
     should be updated using get_absolute_url"""
     
+    #def __init__(self, *args, **kwargs):
     def __init__(self, attrs={}):
-        super(HyperlinkWidget, self).__init__(attrs)
 
-    def render(self, name, value, attrs=None):
+        super(HyperlinkWidget, self).__init__(attrs)
+        #super(HyperlinkWidget, self).__init__(*args, **kwargs)
+
+    def render(self, name, value, url=None, attrs=None):
         output = []
         if value is None:
             value = ''
         output.append('<a href="/test/projectdetail/%s/">%s</a>' % (value.lower(), value))
+        #output.append('<a href="%s">%s</a>' % (url, value))
         return mark_safe(u''.join(output))
+
+
+
+class HyperlinkWidget2(forms.TextInput):
+    """This is a widget that will insert a hyperlink to a project
+    detail page in a form set.  Currently, the url is hardwired and
+    should be updated using get_absolute_url"""
+    
+    def __init__(self, *args, **kwargs):
+        super(HyperlinkWidget2, self).__init__(*args, **kwargs)
+
+    def render(self, name, value, url=None, attrs=None):
+        output = []
+        if value is None:
+            value = ''
+        if url is None:
+            value = ''
+        output.append('<a href="%s">%s</a>' % (url, value))
+        return mark_safe(u''.join(output))
+
+
+
+
+
+
+        
+class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
+    """
+    Subclass of Django's checkbox select multiple widget that allows disabling checkbox-options.
+    To disable an option, pass a dict instead of a string for its label,
+    of the form: {'label': 'option label', 'disabled': True}
+    """
+    #from http://djangosnippets.org/snippets/2786/
+    def render(self, name, value, attrs=None, choices=()):
+        if value is None: value = []
+        has_id = attrs and 'id' in attrs
+        final_attrs = self.build_attrs(attrs, name=name)
+        #output = [u'<ul>']
+        output = [u'']
+        # Normalize to strings
+        str_values = set([force_unicode(v) for v in value])
+        for i, (option_value, option_label) in enumerate(chain(self.choices, choices)):
+            if final_attrs.has_key('disabled'):
+                del final_attrs['disabled']
+            if isinstance(option_label, dict):
+                if dict.get(option_label, 'disabled'):
+                    final_attrs = dict(final_attrs, disabled = 'disabled' )
+                option_label = option_label['label']
+            # If an ID attribute was given, add a numeric index as a suffix,
+            # so that the checkboxes don't all have the same ID attribute.
+            if has_id:
+                final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], i))
+                label_for = u' for="%s"' % final_attrs['id']
+            else:
+                label_for = ''            
+            cb = CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
+            option_value = force_unicode(option_value)
+            rendered_cb = cb.render(name, option_value)
+            option_label = conditional_escape(force_unicode(option_label))
+            output.append(u'<label%s>%s %s</label>' % (label_for, rendered_cb, option_label))
+        #output.append(u'</ul>')
+        return mark_safe(u'\n'.join(output))
 
 #==================================
 #  FORMS
@@ -88,10 +165,18 @@ class ApproveProjectsForm(forms.ModelForm):
     )
 
 
-    
+    def __init__(self, *args, **kwargs):
+        
+        #self.project = kwargs.pop('instance', None)
+        #self.url = self.instance.get_absolute_url()
+        super(ApproveProjectsForm, self).__init__(*args, **kwargs)
+        #pdb.set_trace()
+        #self.feilds['PRJ_CD'].widget.url = self.url
+
     class Meta:
         model=Project
         fields = ('Approved', 'PRJ_CD', 'PRJ_NM', 'PRJ_LDR') 
+
 
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
@@ -121,7 +206,7 @@ class ReportsForm(forms.Form):
         #self.core = kwargs.pop('Core', True)
         self.what = kwargs.pop('what', 'Core')
         self.project = kwargs.pop('project', None)
-        
+       
         super(ReportsForm, self).__init__(*args, **kwargs)
         #if self.core:
         #    what = 'Core'
@@ -387,6 +472,83 @@ class ReportUploadForm(forms.Form):
 
 
 
+class MilestoneFormSet(BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        super(MilestoneFormSet, self).__init__(*args, **kwargs)
+        #self.queryset = Milestone.objects.filter(report=False)
+        self.queryset = ProjectMilestones.objects.filter(milestone__report=False)
+        #pdb.set_trace()
+        
+
+    ##def get_queryset(self):
+    ##    if not hasattr(self, '_queryset'):
+    ##        qs = super(MilestoneFormSet, self).get_queryset().filter(report=False)
+    ##        self._queryset = qs
+    ##    return self._queryset
+
+
+class MilestonesForm(forms.ModelForm):
+    '''This form is used as a inline formset inside of the project form.
+    It shows the current status of milestones and provides a checkbox
+    widget to indicate if the milestone has been satisfied or not.
+
+    '''
+
+    completed = forms.BooleanField(
+        label = "",
+        required =False,
+    )
+  
+    #required = forms.BooleanField(
+    #    label = "Required",
+    #    required =False,
+    #)
+    
+    milestone = forms.CharField(
+        widget = ReadOnlyText,
+        label = "",
+        required =False,
+    )
+  
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.form_tag = False
+        self.helper.layout = Layout(
+            'milestone',
+            'completed',
+        )
+        super(MilestonesForm, self).__init__(*args, **kwargs)
+        #self.fields["milestone"].queryset = Milestone.objects.filter(
+        #   report=False)
+        self.fields["milestone"].queryset = ProjectMilestones.objects.filter(
+           milestone__report=False)
+
+
+    class Meta:
+        model=ProjectMilestones
+        #fields = ('milestone', 'completed')
+        #widgets = {
+        #    'milestone':Textarea()}
+
+
+    #def __init__(self, *args, **kwargs):
+    #    super(MilestonesForm, self).__init__(*args, **kwargs)
+    #    self.fields["milestone"].queryset = Milestone.objects.filter(
+    #                                    report=False)
+
+
+    #def clean_milestone(self):
+    #    '''return the original value of milestone'''
+    #    #return self.instance.milestone.label
+    #    pass
+
+    #def clean_required(self):
+    #    '''return the original value of required'''
+    #    #return self.instance.required
+    #    pass
+
+
 class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
     cleaning methods to ensure that project code is valid, dates agree
@@ -421,6 +583,22 @@ class ProjectForm(forms.ModelForm):
         required=False,
         )
 
+    #SOME_CHOICE = (
+    #    ('one', 'One'),
+    #    ('two', 'two'),    
+    #    ('three', 'three'),
+    #    ('four', 'four'),
+    #)
+
+    #milestones = forms.MultipleChoiceField(
+    #    widget = forms.CheckboxSelectMultiple(),
+    #    #choices=SOME_CHOICE,
+    #    #choices = self.choices,
+    #    label = "",
+    #    #initial = ["one","three"],
+    #    #intiial = self.completed,
+    #    required=False,
+    #    )
     
     PRJ_DATE0 = forms.DateField(
         label = "Start Date:",
@@ -457,48 +635,51 @@ class ProjectForm(forms.ModelForm):
         required = True,
     )
 
-    
     tags = TagField(
         label="Keywords:",
-        required = False)
+        required = False,
+        help_text="<em>(comma separated values)</em>")
 
-    Approved = forms.BooleanField(
-        label = "Approved",
-        required =False,
-    )
-
-    Conducted = forms.BooleanField(
-        label = "Conducted",
-        required =False,
-    )
-
-    DataScrubbed = forms.BooleanField(
-        label = "DataScrubbed",
-        required =False,
-    )
-
-    DataMerged = forms.BooleanField(
-        label = "Data Merged",
-        required =False,
-    )
-
-    SignOff = forms.BooleanField(
-        label = "Sign Off",
-        required =False,
-    )
+##     Approved = forms.BooleanField(
+##         label = "Approved",
+##         required =False,
+##     )
+## 
+##     Conducted = forms.BooleanField(
+##         label = "Conducted",
+##         required =False,
+##     )
+## 
+##     DataScrubbed = forms.BooleanField(
+##         label = "DataScrubbed",
+##         required =False,
+##     )
+## 
+##     DataMerged = forms.BooleanField(
+##         label = "Data Merged",
+##         required =False,
+##     )
+## 
+##     SignOff = forms.BooleanField(
+##         label = "Sign Off",
+##         required =False,
+##     )
     
     class Meta:
         model=Project
         #exclude = ("slug", "YEAR", "Owner", "Max_DD_LAT", 
         #           "Max_DD_LON", "Min_DD_LAT", "Min_DD_LON")
         fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", "RISK",
-                   "Approved", "Conducted", "DataScrubbed", "DataMerged", "SignOff",
+                   #"Approved", "Conducted", "DataScrubbed", "DataMerged", "SignOff",
                     'ProjectType', "MasterDatabase", "TL_Lake", "COMMENT", "DBA", "tags")
         
+
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
         manager = kwargs.pop('manager', False)        
-        
+
+        milestones = kwargs.pop('milestones', None)        
+
         self.helper = FormHelper()
         self.helper.form_id = 'ProjectForm'
         self.helper.form_class = 'blueForms'
@@ -520,15 +701,17 @@ class ProjectForm(forms.ModelForm):
                 'TL_Lake',
                 'DBA',
                 'tags',
-                HTML("""<p><em>(comma separated values)</em></p> """),
-                Fieldset(
-                      "Milestones",
-                      'Approved',
-                      'Conducted',
-                      'DataScrubbed',
-                      'DataMerged',
-                      'SignOff'
-                    ),
+                #HTML("""<p><em>(comma separated values)</em></p> """),
+                Fieldset("Milestones",
+                         'milestones'),
+                ## Fieldset(
+                ##       "Milestones",
+                ##       'Approved',
+                ##       'Conducted',
+                ##       'DataScrubbed',
+                ##       'DataMerged',
+                ##       'SignOff'
+                ##     ),
               ),
             ButtonHolder(
                 Submit('submit', 'Submit')
@@ -540,13 +723,33 @@ class ProjectForm(forms.ModelForm):
         self.readonly = readonly
         self.manager = manager
 
-        if not manager:
-            self.fields["Approved"].widget.attrs['disabled'] = True 
-            self.fields["SignOff"].widget.attrs['disabled'] = True             
-            self.fields["DataMerged"].widget.attrs['disabled'] = True                         
-        
+        #if not manager:
+        #    self.fields["Approved"].widget.attrs['disabled'] = True 
+        #    self.fields["SignOff"].widget.attrs['disabled'] = True             
+        #    self.fields["DataMerged"].widget.attrs['disabled'] = True                                 
         if readonly:
             self.fields["PRJ_CD"].widget.attrs['readonly'] = True 
+
+        if milestones:
+            #choices = [(x.id, x.milestone.label) for x in milestones]
+            if self.manager == True:
+                choices = [(x.id,{'label':x.milestone.label, 'disabled':False}) 
+                       for x in milestones]
+            else:
+                choices = [(x.id,{'label':x.milestone.label, 
+                                  'disabled':x.milestone.protected}) 
+                       for x in milestones]
+
+            completed = [False if x.completed==None else True for x in milestones]
+            self.fields.update({"milestones":forms.MultipleChoiceField(
+                #widget = forms.CheckboxSelectMultiple(),
+                widget = CheckboxSelectMultipleWithDisabled(),
+                choices=choices,
+                label="",
+                initial = completed,
+                required=False,
+            ),})
+
 
 
     def clean_Approved(self):
@@ -674,8 +877,13 @@ class SisterProjectsForm(forms.Form):
     )
     
     def __init__(self, *args, **kwargs):
+        #self.PRJ_CD  = kwargs.pop('PRJ_CD', None)
+        #self.project = Project.objects.get(PRJ_CD=self.PRJ_CD)
         super(SisterProjectsForm, self).__init__(*args, **kwargs)
         self.fields["slug"].widget = forms.HiddenInput()
+        #self.feilds['PRJ_CD'].widget.url = self.project.get_absolute_url()
+
+
 
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
