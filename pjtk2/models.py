@@ -210,7 +210,6 @@ class Project(models.Model):
     def get_milestones(self, required=True):
         '''get all of the milestone events have been assigned to 
         this project - (these are just milestone events where report==False)'''
-        #TODO Filter for report=True
         if required==True:
             return ProjectMilestones.objects.filter(project=self,
                                                     required=True, 

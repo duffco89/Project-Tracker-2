@@ -137,10 +137,7 @@ class ProjectTaggingTestCase(WebTest):
         #get the form and submit it
         form = response.form
         form['tags'] = "blue, green, red, yellow"
-        form['TL_Lake'] = 1  #this should not be necessary.
         response = form.submit()
-
-
 
         #verify that the tags submitted on the form are actually 
         #saved to the database and associated with this project.
@@ -276,10 +273,16 @@ class UpdateReportsTestCase(WebTest):
                                             category = 'Custom', order = 99,
                                             report=True)
 
-        self.rep6 = MilestoneFactory.create(label = "Data Scrubbed",
-                                            category = 'Core', order = 1)
-        self.rep7 = MilestoneFactory.create(label = "Data Merged",
-                                            category = 'Core', order = 1)
+        #milestones
+        self.ms1 = MilestoneFactory.create(label = "Approved", protected=True,
+                                            category = 'Core', order = 1, report=False)
+        self.ms2 = MilestoneFactory.create(label = "Signoff", protected=True,
+                                            category = 'Core', order = 999, report=False)
+        self.ms3 = MilestoneFactory.create(label = "Aging", report=False,
+                                             category = 'Custom', order = 4)
+
+
+
 
 
         #PROJECTS
@@ -381,7 +384,7 @@ class UpdateReportsTestCase(WebTest):
         '''verify that Mr Burns can add a new custom report that is
         not on the original list.'''
     
-        before = Milestone.objects.filter(category='Custom').count()
+        before = Milestone.objects.filter(category='Custom', report=True).count()
         self.assertEqual(before, 2)
     
         #Mr Burns navigates to the report update page
@@ -402,7 +405,7 @@ class UpdateReportsTestCase(WebTest):
         form.submit()
 
         #requery the database and verify that the new report has been added:
-        after = Milestone.objects.filter(category='Custom')        
+        after = Milestone.objects.filter(category='Custom', report=True)        
         self.assertEqual(after.count(), 3)
         self.assertEqual(after.filter(label="Coa Summary").count(), 1)
 
@@ -412,9 +415,9 @@ class UpdateReportsTestCase(WebTest):
         '''verify that Mr Burns can add a new milestone that is
         not on the original list.'''
     
-
         before = Milestone.objects.filter(report=False).count()
-        self.assertEqual(before, 2)
+        #before = self.project1.get_milestones().count()
+        self.assertEqual(before, 3)
     
         #Mr Burns navigates to the report update page
         #verify that he can load it
@@ -434,12 +437,56 @@ class UpdateReportsTestCase(WebTest):
         response = form.submit()
 
         after = Milestone.objects.filter(report=False)    
+        #after = self.project1.get_milestones()
         self.assertEqual(after.count(), before + 1)
         self.assertEqual(after.filter(label="Fieldwork Complete").count(),1)
+
+
+    def test_milestones_can_be_changed_from_form(self):
+        '''verify that Mr Burns can change the milestone requirements for the
+        project - Field work complete isn't needed but Aging Complete
+        is
+        '''
+
+        #before we submit the report, we want to verify that 'Aging' milestone is not
+        # associated with this project
+        milestones = self.project1.get_milestones()
+        self.assertQuerysetEqual(milestones, ['Approved', 'Signoff'],
+                                 lambda a:str(a.milestone.label))
+
+        #Mr Burns navigates to the report update page
+        #verify that he can load it
+        response = self.app.get(reverse('Reports', 
+                                args=(self.project1.slug,)), 
+                                user=self.user2)
+        
+        self.assertEqual(response.status_int, 200)
+        self.assertTemplateUsed("reportform.html")
+        self.assertContains(response, "Project Milestones")
+
+        #get the sub-report that has the check boxes for reports
+        forms = response.forms
+        #print "forms = %s" % forms
+
+        form = forms['reports']
+
+        form.fields['Milestones'][1].value = 'on'
+        
+        form.submit()
+
+        #there should now be three milestones associated with this project
+        milestones = self.project1.get_milestones()
+        self.assertQuerysetEqual(milestones, ['Approved','Aging','Signoff'],
+                                 lambda a:str(a.milestone.label))
+        
+
 
     def tearDown(self):
 
         self.project1.delete()
+        self.ms3.delete()
+        self.ms2.delete()
+        self.ms1.delete()
         self.rep5.delete()
         self.rep4.delete()
         self.rep3.delete()
@@ -448,12 +495,9 @@ class UpdateReportsTestCase(WebTest):
         self.user1.delete()
         self.user2.delete()
 
-
-
-
 class MyProjectViewTestCase(WebTest):
     '''Verify that the managers see projecs of their reports in the list
-    of 'MyProjects'.  Eemplyees will be able to see their projects but
+    of 'MyProjects'.  Emplyees will be able to see their projects but
     not their supervisors.  When the supervisors view MyProjects, they
     will have a column 'Project Leader'and will be able to see
     projects of people they supervise.
@@ -540,4 +584,340 @@ class MyProjectViewTestCase(WebTest):
         self.ProjType.delete()
         self.user.delete()
         self.user2.delete()
+        
+
+
+class TestProjectDetailForm(WebTest):
+    
+    def setUp(self):
+
+        #USER
+        self.user1 = UserFactory.create(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'mburns',
+                                first_name = 'Burns',
+                                last_name = 'Montgomery',
+                                       )
+
+        self.user3 = UserFactory.create(username = 'bgumble',
+                                first_name = 'Barney',
+                                last_name = 'Gumble',
+                                       )
+
+
+        #make Mr. Burns the manager:
+        managerGrp, created = Group.objects.get_or_create(name='manager')         
+        self.user2.groups.add(managerGrp)
+
+        ##required reports
+        #self.rep1 = MilestoneFactory.create(label = "Proposal Presentation",
+        #                                    category = 'Core', order = 1,
+        #                                    report=True)
+        #self.rep2 = MilestoneFactory.create(label = "Completion Report",
+        #                                    category = 'Core', order = 2,
+        #                                    report=True)
+        #self.rep3 = MilestoneFactory.create(label = "Summary Report",
+        #                                    category = 'Core', order = 3,
+        #                                    report=True)
+        #self.rep4 = MilestoneFactory.create(label = "Budget Report",
+        #                                    category = 'Custom', order = 99,
+        #                                    report=True)
+        #self.rep5 = MilestoneFactory.create(label = "Creel Summary Statistics",
+        #                                    category = 'Custom', order = 99,
+        #                                    report=True)
+
+        #milestones
+        self.ms1 = MilestoneFactory.create(label = "Approved", protected=True,
+                                            category = 'Core', order = 1, report=False)
+        self.ms2 = MilestoneFactory.create(label = "Fieldwork Complete", report=False,
+                                             category = 'Core', order = 2)
+        self.ms3 = MilestoneFactory.create(label = "Data Scrubbed", report=False,
+                                             category = 'Core', order = 3)
+        self.ms4 = MilestoneFactory.create(label = "Data Merged", report=False,
+                                             category = 'Core', order = 4)
+        self.ms5 = MilestoneFactory.create(label = "Signoff", protected=True,
+                                            category = 'Core', order = 999, report=False)
+
+        #PROJECTS
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              Owner=self.user1)
+
+
+
+    def test_milestones_render_properly_in_form(self):
+        '''verify that the status of the check boxes reflects the status of completed
+        field in Project Milestones'''
+
+        #first update the 'completed' field for a number of milestones:
+        now = datetime.datetime.now()
+        ms = [self.ms1.label, self.ms2.label, self.ms3.label]
+        ProjectMilestones.objects.filter(project=self.project1,
+                                         milestone__report=False,
+                                         milestone__label__in=ms).update(
+                                             completed=now)
+
+        milestones = self.project1.get_milestones()
+        #a vector of boolean values that indicate status of each milestone
+        completed = [x.completed!=None for x in milestones]
+
+        #now homer views the page form:
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+
+        form = response.form
+        # grab the values of the check boxes and convert them to another boolean vector
+        checked =[x.checked for x in form.fields['milestones']]
+        #the status of the check boxes should match the status of the completed field
+        self.assertListEqual(completed, checked)
+
+
+    def test_all_milestones_checked_renders_properly_in_form(self):
+        '''Verify that if all milestones are complete, all of the check boxes
+        are checked'''
+
+        #first update the 'completed' field for a number of milestones:
+        now = datetime.datetime.now()
+        ProjectMilestones.objects.filter(project=self.project1,
+                                         milestone__report=False
+                                      ).update(completed=now)
+
+        milestones = self.project1.get_milestones()
+        #a vector of boolean values that indicate status of each milestone
+        completed = [x.completed!=None for x in milestones]
+
+        #now homer views the page form:
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+
+        form = response.form
+        # grab the values of the check boxes and convert them to another boolean vector
+        checked =[x.checked for x in form.fields['milestones']]
+        #the status of the check boxes should match the status of the completed field
+        self.assertListEqual(completed, checked)
+        #just for giggles:
+        check2 = [True] * milestones.count()
+        self.assertListEqual(check2, checked)
+
+    def test_status_of_milestones_can_be_updated_by_employee_from_form(self):
+        '''verify that Homer can change the milestone requirements for his
+        project project - 'Fieldwork complete'.  'Approve' and
+        'Signoff' should not be editable for Homer
+        '''
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "ProjectForm.html")
+        self.assertContains(response, self.project1.PRJ_CD)        
+
+        form = response.form
+        #none of the milestones have been completed yet so none of the check boxes 
+        # should be checked:
+        checked =[x.checked for x in form.fields['milestones']]
+        shouldbe = [False] * 5
+        self.assertListEqual(checked, shouldbe)
+
+        # Homer says that both field work has been completed and the data scrubbed.
+        form.fields['milestones'][1].value = 'on'
+        form.fields['milestones'][2].value = 'on'
+        
+        response = form.submit().follow()
+        #we should be re-directed to to the project detail page
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "projectdetail.html")
+        milestones = self.project1.get_milestones()
+
+        #verify that the milestones homer checked off now have values in
+        #completed field:
+        shouldbe = [False, True, True, False, False]
+        #the lamba function will return True if it has been completed, 
+        #otherwise false
+        self.assertQuerysetEqual(milestones, shouldbe, lambda a:a.completed!=None)
+
+
+    def test_status_of_milestones_can_be_updated_by_manager_from_form(self):
+        '''verify that Mr Burns can change the update the status of the
+        milestone requirements for the project - 'Approved',
+        'Fieldwork Complete', and 'Sign Off'
+        '''
+        
+        #now Mr Burns edits the form
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user2)
+
+        form = response.form
+        #none of the milestones have been completed yet so none of the check boxes 
+        # should be checked:
+        checked =[x.checked for x in form.fields['milestones']]
+        shouldbe = [False] * 5
+        self.assertListEqual(checked, shouldbe)
+
+        # Mr Burns says that the project has been approved and that
+        # the field work has been completed
+        form.fields['milestones'][0].value = 'on'
+        form.fields['milestones'][1].value = 'on'
+        
+        response = form.submit().follow()
+        #we should be re-directed to to the project detail page
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "projectdetail.html")
+        milestones = self.project1.get_milestones()
+
+        #verify that the milestones homer checked off now have values in
+        #completed field:
+        shouldbe = [True, True, False, False, False]
+        #the lamba function will return True if it has been completed, 
+        #otherwise false
+        self.assertQuerysetEqual(milestones, shouldbe, lambda a:a.completed!=None)
+
+
+    def test_status_of_milestones_can_be_reversed_from_form(self):
+        '''verify that Mr Burns can reverse the status of milestones
+        - i.e. milestones that were complete, aren't
+        '''
+        #first update the 'completed' field for a number of milestones:
+        now = datetime.datetime.now()
+        ms = [self.ms1.label, self.ms2.label, self.ms3.label]
+        ProjectMilestones.objects.filter(project=self.project1,
+                                         milestone__report=False,
+                                         milestone__label__in=ms).update(
+                                             completed=now)
+
+        milestones = self.project1.get_milestones()
+
+        #verify that the first three milestones are completed
+        shouldbe = [True, True, True, False, False]
+        #the lamba function will return True if it has been completed, 
+        #otherwise false
+        self.assertQuerysetEqual(milestones, shouldbe, lambda a:a.completed!=None)
+
+        #now Mr Burns edits the form
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user2)
+        form = response.form
+        #Oops - the field wasn't completed for this project, and the data isn't scrubbed
+        form.fields['milestones'][1].value = None
+        form.fields['milestones'][2].value = None
+        
+        response = form.submit().follow()
+        #we should be re-directed to to the project detail page
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "projectdetail.html")
+        milestones = self.project1.get_milestones()
+
+        #verify that the only milestone completed is now the first one
+        shouldbe = [True, False, False, False, False]
+        #the lamba function will return True if it has been completed, 
+        #otherwise false
+        self.assertQuerysetEqual(milestones, shouldbe, lambda a:a.completed!=None)
+
+
+
+
+
+
+    def test_protected_milestones_are_disabled_for_users(self):
+        '''Homer is a project lead, not a manager, and should not be able to
+        update protected milestones. Verify that the check boxes
+        render with a 'disabled' attribute
+        '''
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "ProjectForm.html")
+        self.assertContains(response, self.project1.PRJ_CD)        
+
+        form = response.form
+
+        Enabled = [cb.attrs.get('disabled','enabled') for cb in form.fields['milestones']]
+        #verify that the protected milestones are disabled
+        shouldbe = ['disabled', 'enabled', 'enabled', 'enabled', 'disabled']
+
+        #the lamba function will return True if it has been completed, 
+        #otherwise false
+        self.assertListEqual(Enabled, shouldbe)
+
+
+
+    def test_protected_milestones_are_enabled_for_managers(self):
+        '''Mr Burns is a manager, and should be able to
+        update protected milestones. Verify that the check boxes
+        do NOT render with a 'disabled' attribute
+        '''
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user2)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "ProjectForm.html")
+        self.assertContains(response, self.project1.PRJ_CD)        
+
+        form = response.form
+
+        Enabled = [cb.attrs.get('disabled','enabled') for cb in form.fields['milestones']]
+
+        #verify that the protected milestones are disabled
+        shouldbe = ['enabled', 'enabled', 'enabled', 'enabled', 'enabled']
+
+        #the lamba function will return True if it has been completed, 
+        #otherwise false
+        self.assertListEqual(Enabled, shouldbe)
+
+
+    def test_joeuser_redirected_away_from_project_detail_form(self):
+        '''If a user who is not the project owner or a manager tries to access
+        the edit form for a project, they should be re-directed to the
+        project detail page
+        '''
+
+        login = self.client.login(username=self.user3.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user3).follow()
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "projectdetail.html")        
+
+
+
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.ms5.delete()
+        self.ms4.delete()
+        self.ms3.delete()
+        self.ms2.delete()
+        self.ms1.delete()
+        ##self.rep5.delete()
+        ##self.rep4.delete()
+        ##self.rep3.delete()
+        ##self.rep2.delete()
+        ##self.rep1.delete()
+        self.user1.delete()
+        self.user2.delete()
+
+
+        
         

@@ -95,10 +95,10 @@ class TestProjectForm(TestCase):
             COMMENT = "This is a fake project",
             ProjectType = 1,
             MasterDatabase = 1,
+            Lake =1,
             tags = "red, blue, green",
             Owner = "Bob Sakamano",
             DBA = self.dba.id,
-            TL_Lake=1,
            )
 
         form = ProjectForm(data=proj)
@@ -129,7 +129,7 @@ class TestProjectForm(TestCase):
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
             DBA = self.dba.id,
-            TL_Lake=1
+            Lake=1
            )
 
         for code in goodcodes:
@@ -151,7 +151,7 @@ class TestProjectForm(TestCase):
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
             DBA = self.dba.id,
-            TL_Lake=1
+            Lake=1
            )
 
         form = ProjectForm(data=proj)
@@ -178,7 +178,7 @@ class TestProjectForm(TestCase):
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
             DBA = self.dba.id,
-            TL_Lake=1
+            Lake=1
            )
 
         errmsg = "Ensure this value has at most 12 characters"
@@ -213,7 +213,7 @@ class TestProjectForm(TestCase):
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
             DBA = self.dba.id,
-            TL_Lake=1,
+            Lake=1,
            )
 
         errmsg = "Malformed Project Code."
@@ -239,7 +239,7 @@ class TestProjectForm(TestCase):
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
             DBA = self.dba.id,
-            TL_Lake=1
+            Lake=1
            )
 
         form = ProjectForm(data=proj)
@@ -260,7 +260,7 @@ class TestProjectForm(TestCase):
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
             DBA = self.dba.id,
-            TL_Lake=1,
+            Lake=1,
            )
 
         form = ProjectForm(data=proj)
@@ -300,7 +300,7 @@ class TestProjectForm(TestCase):
             MasterDatabase = 1,
             Owner = "Bob Sakamano",
             DBA = self.dba.id,
-            TL_Lake=1,
+            Lake=1,
            )
 
         form = ProjectForm(data=proj)

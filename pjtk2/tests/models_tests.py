@@ -1,7 +1,10 @@
 from django.test import TestCase
 
+
 from pjtk2.models import *
 from pjtk2.tests.factories import *
+
+from pjtk2.views import get_minions, get_supervisors
 
 import datetime
 import pdb
@@ -21,13 +24,17 @@ class TestProjectModel(TestCase):
         #self.employee = EmployeeFactory(user=self.user)
         
 
+        self.commentStr = "This is a fake comment."
+        self.ProjectName = "Homer's Odyssey"
+        
         #we need to create some models with different years - starting
         #with the current year.
         yr = datetime.datetime.now()
-
         PRJ_CD = "LHA_IA%s_111" % str(yr.year)[-2:]
         self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user)
+                                              Owner=self.user,
+                                              COMMENT=self.commentStr,
+                                              PRJ_NM = self.ProjectName)
 
         PRJ_CD = "LHA_IA%s_222" % str(yr.year -1)[-2:]
         self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD,
@@ -42,7 +49,10 @@ class TestProjectModel(TestCase):
         '''reset milestones is a method that is used to clear all of the
         milestones associated with a project.  used when we create new
         projects by copying old ones.  we don't want to include the old
-        milestones in the new project'''
+        milestones in the new project
+
+        THIS IS OBSOLETE!!
+        '''
         
         project = ProjectFactory.create(Approved=False)
 
@@ -85,6 +95,21 @@ class TestProjectModel(TestCase):
         should_be = "%s (%s)" % (self.project1.PRJ_NM, 
                                  self.project1.PRJ_CD)
         self.assertEqual(str(self.project1), should_be)                
+
+
+    def test_project_description(self):
+        '''verify that project description is return properly.'''
+
+        self.assertEqual(self.project1.description(), 
+                         self.commentStr)                
+
+
+    def test_project_name(self):
+        '''verify that project name is return properly.'''
+
+        self.assertEqual(self.project1.name(), 
+                         self.ProjectName)                
+
 
 
     def test_project_suffix(self):
@@ -144,6 +169,20 @@ class TestMilestoneModel(TestCase):
         self.custom = MilestoneFactory.create(label="custom",
                                         category = 'Custom', order=50, 
                                               report=True)
+
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Completed",
+                                        category = 'Core', order=2, 
+                                             report=False)
+        self.milestone3 = MilestoneFactory.create(label="Signoff",
+                                        category = 'Core', order=999, 
+                                             report=False)
+        self.customMS = MilestoneFactory.create(label="Aging",
+                                        category = 'Custom', order=50, 
+                                              report=False)
+
                                             
         self.project = ProjectFactory.create()
 
@@ -155,23 +194,67 @@ class TestMilestoneModel(TestCase):
         # automatically associated with a new project, and verify that
         # the custom report is not when the project is created.
                 
-        myreports = ProjectMilestones.objects.filter(project=self.project)
+        myreports = ProjectMilestones.objects.filter(project=self.project,milestone__report=True)
         self.assertEqual(myreports.count(), 3)
 
         outstanding = self.project.get_outstanding()
         self.assertEqual(outstanding.count(), 3)
 
     def test_get_assigment_methods(self):
-        
-        self.assertEqual(self.project.get_assignments().count(), 3)
-        self.assertNotEqual(self.project.get_assignments().count(), 2)
-        self.assertNotEqual(self.project.get_assignments().count(), 4)
+
+        assignments = self.project.get_assignments()
+        cnt = assignments.count()
+        self.assertEqual(cnt, 3)
         
         self.assertEqual(self.project.get_core_assignments().count(), 3)
         self.assertEqual(self.project.get_custom_assignments().count(), 0)
         
         #we haven't uploaded any reports, so this should be 0
         self.assertEqual(self.project.get_complete().count(), 0)
+
+
+    def test_get_milestones(self):
+        '''by default, all core milestones are associated with project'''
+
+        milestones = self.project.get_milestones()
+        cnt = milestones.count()
+        self.assertEqual(cnt, 3)
+        self.assertNotEqual(cnt, 2)
+        self.assertNotEqual(cnt, 4)
+        
+        #verify that the labels of my milestones appear in the correct order
+        shouldbe = ['Approved','Completed','Signoff']
+
+        self.assertQuerysetEqual(
+            milestones,['Approved','Completed','Signoff'],
+            lambda a:a.milestone.label
+            )
+
+        #add the custom milestone to this project
+        ProjectMilestones.objects.create(project=self.project, milestone=self.customMS)
+        #verify that it appears in the milestone list for this project
+        milestones = self.project.get_milestones()
+        cnt = milestones.count()
+
+        self.assertEqual(cnt, 4)
+        self.assertQuerysetEqual(
+            milestones,['Approved','Completed', 'Aging','Signoff'],
+            lambda a:a.milestone.label
+            )
+
+        #we changed our mind an aging is no longer required:
+        ProjectMilestones.objects.filter(project=self.project, 
+                                         milestone=self.customMS).update(
+                                             required=False)
+
+        milestones = self.project.get_milestones()
+        cnt = milestones.count()
+
+        self.assertEqual(cnt, 3)
+        self.assertQuerysetEqual(
+            milestones,['Approved','Completed','Signoff'],
+            lambda a:a.milestone.label
+            )
 
 
     def test_get_assigment_dicts(self):
@@ -218,7 +301,22 @@ class TestMilestoneModel(TestCase):
         #we haven't uploaded any reports, so this should be 0
         self.assertEqual(self.project.get_complete().count(), 0)
 
-        
+     
+    def tearDown(self):
+
+        self.core1.delete()
+        self.core2.delete()
+        self.core3.delete()
+        self.custom.delete()
+
+        self.milestone1.delete()
+        self.milestone2.delete()
+        self.milestone3.delete()
+        self.customMS.delete()
+
+        self.project.delete()
+
+   
 class TestModelReports(TestCase):        
     '''functions to test the models and methods assoicated with reports'''
 
@@ -534,4 +632,128 @@ class TestProjectTagging(TestCase):
 
 
 
+class TestEmployeeFunctions(TestCase):
+    
+    def setUp(self):
+        self.user1 = UserFactory(first_name = "Jerry", last_name="Seinfield",
+                                username='jseinfield')
 
+        self.user2 = UserFactory(first_name = "George", last_name="Costanza",
+                                username='gcostanza')
+
+        self.user3 = UserFactory(first_name = "Cosmo", last_name="Kramer",
+                                username='ckramer')
+        self.user4 = UserFactory(first_name = "Elaine", last_name="Benis",
+                                username='ebenis')
+        self.user5 = UserFactory(first_name = "Kenny", last_name="Banya",
+                                username='kbanya')
+
+        self.user6 = UserFactory(first_name = "Ruteger", last_name="Newman",
+                                username='rnewman')
+
+
+        #now setup employee relationships
+
+        self.employee1 = EmployeeFactory(user=self.user1)
+        self.employee2 = EmployeeFactory(user=self.user2, supervisor=self.employee1)
+        self.employee3 = EmployeeFactory(user=self.user3, supervisor=self.employee1)
+        self.employee4 = EmployeeFactory(user=self.user4, supervisor=self.employee3)
+        self.employee5 = EmployeeFactory(user=self.user5, supervisor=self.employee3)
+        self.employee6 = EmployeeFactory(user=self.user6, supervisor=self.employee5)
+        
+        #Jerry is everyone's boss
+        #Jerry's direct reports are George and Kramer
+        #Elaine reports to Kramer
+        #Banya reports to Kramer
+        #Newman reports to Banya
+
+    def test_get_supervisors(self):
+        
+        #for Jerry, get supervisors will return just him
+        bosses = get_supervisors(self.employee1)
+        shouldbe = [self.employee1]
+        bosses = [unicode(x) for x in bosses]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertListEqual(bosses, shouldbe)
+
+        #for George get_supervisor will return he and Jerry
+        bosses = get_supervisors(self.employee2)
+        shouldbe = [self.employee2, self.employee1]
+        bosses = [unicode(x) for x in bosses]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertListEqual(bosses, shouldbe)
+
+        #for Kramer get_supervisor will return he and Jerry        
+        bosses = get_supervisors(self.employee3)
+        shouldbe = [self.employee3, self.employee1]
+        bosses = [unicode(x) for x in bosses]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertListEqual(bosses, shouldbe)
+
+        #for Elaine get_supervisor will return her, Kramer and Jerry
+        bosses = get_supervisors(self.employee4)
+        shouldbe = [self.employee4, self.employee3, self.employee1]
+        bosses = [unicode(x) for x in bosses]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertListEqual(bosses, shouldbe)
+
+        #for Banya get_supervisor will return he, Kramer and Jerry
+        bosses = get_supervisors(self.employee5)
+        shouldbe = [self.employee5, self.employee3, self.employee1]
+        bosses = [unicode(x) for x in bosses]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertEquals(bosses, shouldbe)
+
+        #for Newman get_supervisor will return he, Banya, Kramer and Jerry
+        bosses = get_supervisors(self.employee6)
+        shouldbe = [self.employee6, self.employee5, self.employee3, self.employee1]
+        bosses = [unicode(x) for x in bosses]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertEquals(bosses, shouldbe)
+
+    def test_get_minions(self):
+        
+        # George, Elaine and Newman don't have anyone working for them, so get_minions
+        # shouldn't return anyone but them
+        #for George, get_minions will return just him
+        minions = get_minions(self.employee2)
+        shouldbe = [self.employee2]
+        minions = [unicode(x) for x in minions]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertListEqual(minions, shouldbe)
+
+        # Banya is Newman's boss.  get_minions for Banya should return
+        # both Banya and Newman
+        minions = get_minions(self.employee5)
+        shouldbe = [self.employee5, self.employee6]
+        minions = [unicode(x) for x in minions]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertListEqual(minions, shouldbe)
+
+        # Kramer supervises Elaine and Banya directly, Banya supervises Newman 
+        # get_minions(Kramer) should return all four employees.
+        minions = get_minions(self.employee3)
+        shouldbe = [self.employee3, self.employee4, self.employee5, self.employee6]
+        minions = [unicode(x) for x in minions]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertListEqual(minions, shouldbe)
+
+        # Jerry supervises everyone either directly or indirectly
+        # get_minions(Jerry) should return all employees.
+        minions = get_minions(self.employee1)
+        shouldbe = [self.employee1, self.employee2, self.employee3, 
+                    self.employee4, self.employee5, self.employee6]
+        minions = [unicode(x) for x in minions]
+        shouldbe = [unicode(x) for x in shouldbe]
+        self.assertListEqual(minions, shouldbe)
+
+            
+    def tearDown(self):
+        self.user1.delete()
+        self.user2.delete()
+        self.user3.delete()
+        self.user4.delete()
+        self.user5.delete()
+
+        
+        

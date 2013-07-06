@@ -308,6 +308,12 @@ def update_tags(form_tags, tags):
 
 
 def edit_project(request, slug):
+
+    project = get_object_or_404(Project, slug=slug)
+
+    if canEdit(request.user, project)==False:
+        return HttpResponseRedirect(project.get_absolute_url())
+
     return crud_project(request, slug, action='Edit')
 
 
@@ -342,7 +348,6 @@ def crud_project(request, slug, action='New'):
     if request.method == 'POST': # If the form has been submitted...
         form = ProjectForm(request.POST, instance=instance,milestones=milestones,
                                    readonly=readonly, manager=manager)
-
         if form.is_valid():
             if action=='Copy':
                 #reset fields that we don't want to copy
@@ -360,9 +365,7 @@ def crud_project(request, slug, action='New'):
             form.tags.set(*tags)
             if form_ms:
                 update_milestones(form_ms=form_ms, milestones=milestones)
-
             proj = Project.objects.get(slug=form.slug)
-
             return HttpResponseRedirect(proj.get_absolute_url())
         else:
             return render_to_response('ProjectForm.html',
@@ -374,14 +377,13 @@ def crud_project(request, slug, action='New'):
         form = ProjectForm(instance=instance, readonly=readonly, 
                                manager=manager, milestones=milestones)
 
-        if action == "Copy":
+        #if action == "Copy":
             #make sure that project milestones are reset to false for new projects
-            instance.resetMilestones()
+        #    instance.resetMilestones()
 
     return render_to_response('ProjectForm.html',
                               {'form':form, 
-                               #'formset':formset,
-                               'milestones':instance.get_milestones(),
+                               'milestones':milestones,
                                'action':action, 'project':instance},
                               context_instance=RequestContext(request)
         )
@@ -470,8 +472,8 @@ def report_milestones(request, slug):
     reports = project.get_milestone_dicts()
 
     if request.method=="POST":
-        NewReport = request.POST.get('NewReport')
-        NewMilestone = request.POST.get('NewMilestone')
+        NewReport = request.POST.get('NewReport', None)
+        NewMilestone = request.POST.get('NewMilestone', None)
         if NewReport or NewMilestone:
             if NewReport:
                 NewReport = NewReport.title()

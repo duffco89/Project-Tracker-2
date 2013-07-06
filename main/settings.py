@@ -8,7 +8,7 @@ PROJECT_ROOT =  os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
 here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
 root = lambda * x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (

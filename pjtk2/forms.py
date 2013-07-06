@@ -442,7 +442,7 @@ class ProjectForm(forms.ModelForm):
         required = True,
     )
 
-    TL_Lake = forms.ModelChoiceField(
+    Lake = forms.ModelChoiceField(
         label = "Lake:",
         queryset = TL_Lake.objects.all(),
         required = True,
@@ -464,14 +464,14 @@ class ProjectForm(forms.ModelForm):
     class Meta:
         model=Project
         fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", "RISK",
-                    'ProjectType', "MasterDatabase", "TL_Lake", "COMMENT", "DBA", "tags")
+                    'ProjectType', "MasterDatabase", "Lake", "COMMENT", "DBA", "tags")
         
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
         manager = kwargs.pop('manager', False)        
 
-        milestones = kwargs.pop('milestones', None)        
+        milestones = kwargs.pop('milestones',None)        
 
         self.helper = FormHelper()
         self.helper.form_id = 'ProjectForm'
@@ -491,11 +491,11 @@ class ProjectForm(forms.ModelForm):
                 Field('PRJ_DATE1', datadatepicker='datepicker'),
                 'ProjectType',
                 'MasterDatabase',
-                'TL_Lake',
+                'Lake',
                 'DBA',
                 'tags',
-                Fieldset("Milestones",
-                         'milestones'),
+                #Fieldset("Milestones",
+                #         'milestones'),
               ),
             ButtonHolder(
                 Submit('submit', 'Submit')
@@ -510,6 +510,7 @@ class ProjectForm(forms.ModelForm):
         if readonly:
             self.fields["PRJ_CD"].widget.attrs['readonly'] = True 
 
+        #pdb.set_trace()
         if milestones:
             if self.manager == True:
                 choices = [(x.id,{'label':x.milestone.label, 'disabled':False}) 
@@ -519,15 +520,18 @@ class ProjectForm(forms.ModelForm):
                                   'disabled':x.milestone.protected}) 
                        for x in milestones]
 
-            completed = [False if x.completed==None else True for x in milestones]
+            # *** NOTE *** 
+            #completed must be a list of values that match the choices (above)
+            completed = [x.id for x in milestones if x.completed!=None]
             self.fields.update({"milestones":forms.MultipleChoiceField(
                 widget = CheckboxSelectMultipleWithDisabled(),
+                #widget = CheckboxSelectMultiple(),
                 choices=choices,
                 label="",
                 initial = completed,
                 required=False,
             ),})
-
+            self.helper.layout[0].extend([Fieldset('Milestones','milestones')])
 
 
     def clean_Approved(self):
