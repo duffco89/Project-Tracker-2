@@ -5,6 +5,8 @@ from django_webtest import WebTest
 from pjtk2.tests.factories import *
 from pjtk2.models import Bookmark
 
+from django.template.defaultfilters import slugify
+
 import datetime
 
 
@@ -783,7 +785,6 @@ class TestProjectDetailForm(WebTest):
         #otherwise false
         self.assertQuerysetEqual(milestones, shouldbe, lambda a:a.completed!=None)
 
-
     def test_status_of_milestones_can_be_reversed_from_form(self):
         '''verify that Mr Burns can reverse the status of milestones
         - i.e. milestones that were complete, aren't
@@ -910,14 +911,98 @@ class TestProjectDetailForm(WebTest):
         self.ms3.delete()
         self.ms2.delete()
         self.ms1.delete()
-        ##self.rep5.delete()
-        ##self.rep4.delete()
-        ##self.rep3.delete()
-        ##self.rep2.delete()
-        ##self.rep1.delete()
         self.user1.delete()
         self.user2.delete()
 
 
         
+        
+class TestCanCopyProject(WebTest):    
+    '''verify that the project owner, slug and year are correctly
+    populated when an existing project is copied using the project crud
+    form.'''
+
+    def setUp(self):
+        #USER
+        self.user1 = UserFactory.create(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'bgumble',
+                                first_name = 'Barney',
+                                last_name = 'Gumble',
+                                       )
+
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              PRJ_LDR=self.user1.first_name,
+                                              Owner=self.user1)
+
+
+    def test_can_copy_project(self):
+        '''verify that we can copy a project with the crud form, that the
+        autopopulated fields get filled in appropriately and that the original
+        project remains unchanged.'''
+
+        #we want to make sure that none of the attributes of proejct1
+        #are changed by making a copy of it
+        old_PRJ_CD = self.project1.PRJ_CD
+        old_PRJ_LDR = self.project1.PRJ_LDR
+        old_PRJ_NM = self.project1.PRJ_NM
+        old_Owner = self.project1.Owner
+        old_slug = self.project1.slug
+        old_year = self.project1.YEAR
+
+        #barney logs and chooses to copy the existing project 
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('CopyProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user2)
+        form = response.form        
+        
+        new_PRJ_CD = "LHA_IA13_ZZZ"
+        new_PRJ_NM = "Barney's First Project"
+
+        #He needs to fill in a number of the important fields:
+        form['PRJ_CD'] = new_PRJ_CD
+        form['PRJ_LDR'] = self.user2.first_name
+        form['PRJ_NM'] = new_PRJ_NM
+        #make sure that the project dates match the project code and
+        #that date0 happens before date1
+        form['PRJ_DATE0'] = "2013-6-6"
+        form['PRJ_DATE1'] = "2013-8-8"
+
+        #if the form is submitted successfully, we should be
+        #re-directed to it's details page
+        response = form.submit().follow()
+
+        projects = Project.objects.all()
+        self.assertEqual(projects.count(),2)
+        
+        #check that all of the attributes of the new project have been
+        #updated accordingly
+        project = Project.objects.get(PRJ_CD=new_PRJ_CD)
+        #self.assertEqual(project.PRJ_CD, new_PRJ_CD)
+        self.assertEqual(project.slug, slugify(new_PRJ_CD))
+        self.assertEqual(project.PRJ_NM, new_PRJ_NM)
+        self.assertEqual(project.PRJ_LDR, self.user2.first_name)
+        self.assertEqual(project.Owner, self.user2)
+        self.assertEqual(project.YEAR,'2013')
+
+        #now just make sure that the orginial project is unchanged
+        #I don't know why it would be.
+        project = Project.objects.get(PRJ_CD=old_PRJ_CD)
+        self.assertEqual(project.slug, slugify(old_PRJ_CD))
+        self.assertEqual(project.PRJ_NM, old_PRJ_NM)
+        self.assertEqual(project.PRJ_LDR,old_PRJ_LDR)
+        self.assertEqual(project.Owner, old_Owner)
+        self.assertEqual(project.YEAR, str(old_year))
+        
+
+                    
+    def tearDown(self):
+        self.project1.delete()
+        self.user2.delete()
+        self.user1.delete()
+
         

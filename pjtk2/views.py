@@ -340,31 +340,30 @@ def crud_project(request, slug, action='New'):
     user = User.objects.get(username__exact=request.user)
     manager = is_manager(user)
 
+    if action=='Copy':
+        milestones = None
+
     if action=='Edit':
         readonly = True
     else:
         readonly = False
 
     if request.method == 'POST': # If the form has been submitted...
-        form = ProjectForm(request.POST, instance=instance,milestones=milestones,
-                                   readonly=readonly, manager=manager)
+        if action=='Copy':
+            instance = None
+        form = ProjectForm(request.POST, instance=instance, 
+                               milestones=milestones,
+                               readonly=readonly, manager=manager)
         if form.is_valid():
-            if action=='Copy':
-                #reset fields that we don't want to copy
-
-                #TODO - test that when user copies someone else's project,
-                #they are the owner of the new project (and other
-                #project is still owned by the previous owner)
-                form.cleaned_data['Owner'] = request.user
-                form.cleaned_data['Year'] = None
-                form.cleaned_data['slug'] = None
             tags = form.cleaned_data['tags']
-            form_ms = form.cleaned_data.get('milestones')
+            form_ms = form.cleaned_data.get('milestones',None)
             form = form.save(commit=False)
+            if action=='Copy':
+                form.Owner = request.user
             form.save()
             form.tags.set(*tags)
             if form_ms:
-                update_milestones(form_ms=form_ms, milestones=milestones)
+                update_milestones(form_ms=form_ms, milestones=milestones)                
             proj = Project.objects.get(slug=form.slug)
             return HttpResponseRedirect(proj.get_absolute_url())
         else:
