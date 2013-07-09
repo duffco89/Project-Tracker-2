@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 from django.forms import ModelForm
 from django.forms.formsets import BaseFormSet
 from django.forms.models import BaseInlineFormSet
-from django.forms.widgets import (Select, CheckboxSelectMultiple, CheckboxInput, 
-                                  mark_safe)
+from django.forms.widgets import (Select, CheckboxSelectMultiple, 
+                                  CheckboxInput, mark_safe)
 from django.utils.encoding import force_unicode
 from django.utils.html import escape, conditional_escape
 from django.utils.safestring import mark_safe
@@ -20,7 +20,7 @@ from crispy_forms.layout import Submit, Layout, Fieldset, Field, ButtonHolder
 
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report, 
-                          TL_ProjType, TL_Database, TL_Lake)
+                          ProjectType, Database, Lake)
 from pjtk2.models import ProjectSisters
 
 
@@ -30,7 +30,8 @@ from pjtk2.models import ProjectSisters
 #  WIDGETS
 
 def make_custom_datefield(f, **kwargs):
-    '''from: http://strattonbrazil.blogspot.ca/2011/03/using-jquery-uis-date-picker-on-all.html'''
+    '''from: http://strattonbrazil.blogspot.ca/2011/03/
+                 using-jquery-uis-date-picker-on-all.html'''
     from django.db import models
     formfield = f.formfield(**kwargs)
     if isinstance(f, models.DateField):
@@ -432,19 +433,19 @@ class ProjectForm(forms.ModelForm):
     
     ProjectType = forms.ModelChoiceField(
         label = "Project Type:",
-        queryset = TL_ProjType.objects.all(),
+        queryset = ProjectType.objects.all(),
         required = True,
     )
     
-    MasterDatabase = forms.ModelChoiceField(
+    master_database = forms.ModelChoiceField(
         label = "Master Database:",
-        queryset = TL_Database.objects.all(),
+        queryset = Database.objects.all(),
         required = True,
     )
 
     Lake = forms.ModelChoiceField(
         label = "Lake:",
-        queryset = TL_Lake.objects.all(),
+        queryset = Lake.objects.all(),
         required = True,
     )
 
@@ -463,8 +464,9 @@ class ProjectForm(forms.ModelForm):
     
     class Meta:
         model=Project
-        fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", "RISK",
-                    'ProjectType', "MasterDatabase", "Lake", "COMMENT", "DBA", "tags")
+        fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", 
+                  "RISK", 'ProjectType', "master_database", "Lake", "COMMENT", 
+                  "DBA", "tags")
         
 
     def __init__(self, *args, **kwargs):
@@ -490,7 +492,7 @@ class ProjectForm(forms.ModelForm):
                 Field('PRJ_DATE0', datadatepicker='datepicker'),                
                 Field('PRJ_DATE1', datadatepicker='datepicker'),
                 'ProjectType',
-                'MasterDatabase',
+                'master_database',
                 'Lake',
                 'DBA',
                 'tags',

@@ -24,7 +24,7 @@ class SisterFormTestCase(WebTest):
                                 last_name = 'Simpson')
        
         self.ProjType = ProjTypeFactory()
-        self.ProjType2 = ProjTypeFactory(Project_Type = "Nearshore Index")
+        self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
         
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
                                               Owner=self.user,
@@ -39,7 +39,8 @@ class SisterFormTestCase(WebTest):
         #same project type, but not approved
         self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType, Approved=False)
+                                              ProjectType = self.ProjType, 
+                                              Approved=False)
 
         #approved, different project type
         self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555",

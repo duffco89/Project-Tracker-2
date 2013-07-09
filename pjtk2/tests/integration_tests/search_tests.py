@@ -61,14 +61,16 @@ class CanUseSearchForm(WebTest):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
-        self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
+        self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
                                               PRJ_NM='Parry Sound Index',
                                               Owner=self.user)
+
+        comment = "Test of UGLMU Project Tracker - Salvelinus"
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
                                               Owner=self.user,
-                                              COMMENT="test of UGLMU Project Tracker - Salvelinus")
+                                              COMMENT=comment)
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
                                               Owner=self.user,
                                               ProjectType = self.ProjType)

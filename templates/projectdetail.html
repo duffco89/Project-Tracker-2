@@ -35,10 +35,10 @@
     {% endif %}
   </div>
   <p><strong>Project Type:</strong>  <a href="#">
-  {{ project.ProjectType.Project_Type}}</a> 
+  {{ project.ProjectType.project_type}}</a> 
  </p> 
   <p><strong>Master Database:</strong> <a href="#">
-  {{ project.MasterDatabase.MasterDatabase }}</a>
+  {{ project.master_database.master_database }}</a>
   <p><strong>keywords:</strong> 
 
         {% for tag in project.tags.all %}

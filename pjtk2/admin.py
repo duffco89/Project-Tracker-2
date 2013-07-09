@@ -1,11 +1,13 @@
-#from django.contrib import admin
-#from pjtk2.models import Milestone, TL_ProjType, TL_DataLocations, Project, ProjectReports, Report
-#from pjtk2.models import Project
+#from django.contrib 
+#import admin from pjtk2.models 
+
+#import (Milestone, ProjectType, TL_DataLocations, Project,
+#       ProjectReports, Report) from pjtk2.models import Project
 
 ## class AdminMilestone(admin.ModelAdmin):
 ##     pass
 ## 
-## class AdminTL_ProjType(admin.ModelAdmin):
+## class AdminProjectType(admin.ModelAdmin):
 ##     pass
 ## 
 ## class AdminTL_DataLocations(admin.ModelAdmin):
@@ -22,7 +24,7 @@
 ##
 ##
 ##admin.site.register(Milestone, AdminMilestone)
-##admin.site.register(TL_ProjType, AdminTL_ProjType)
+##admin.site.register(ProjectType, AdminProjectType)
 ##admin.site.register(TL_DataLocations, AdminTL_DataLocations)
 #admin.site.register(Project, AdminProject)
 ##admin.site.register(ProejctReports, AdminProjectReports)

@@ -1,6 +1,6 @@
 from django.db import models
 import django_filters
-from pjtk2.models import Project, TL_ProjType
+from pjtk2.models import Project, ProjectType
 
 
 class ProjectFilter(django_filters.FilterSet):
@@ -28,6 +28,6 @@ class ProjectFilter(django_filters.FilterSet):
         fk_counts = Project.objects.values_list('ProjectType').order_by(
             'ProjectType').annotate(models.Count('ProjectType'))
         ProjectType_ids = [fk for fk,cnt in fk_counts]
-        filter_.extra['queryset'] = TL_ProjType.objects.filter(
+        filter_.extra['queryset'] = ProjectType.objects.filter(
             pk__in=ProjectType_ids)
 

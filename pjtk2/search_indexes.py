@@ -13,7 +13,7 @@ class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
     name = indexes.CharField(model_attr='PRJ_NM')
     description = indexes.CharField(model_attr='COMMENT')
 
-    ##Database = indexes.CharField(model_attr='MasterDatabase')
+    ##Database = indexes.CharField(model_attr='master_database')
     ProjectType = indexes.CharField(model_attr='ProjectType', faceted=True)
     ##
     #Approved = indexes.BooleanField(model_attr='Approved', faceted=True)

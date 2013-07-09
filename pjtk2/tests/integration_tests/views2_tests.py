@@ -19,7 +19,7 @@ class BookmarkTestCase(WebTest):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
        
-        self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
+        self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
         
         self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111", YEAR=2012, 
                                               Owner=self.user, slug='lha_ia12_111',
@@ -73,7 +73,7 @@ class ProjectTaggingTestCase(WebTest):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
        
-        self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
+        self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
         
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
@@ -527,7 +527,7 @@ class MyProjectViewTestCase(WebTest):
         self.employee = EmployeeFactory(user=self.user,
                                         supervisor=self.employee2)
        
-        self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
+        self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
         
         #we need approved and sign off milestones
         self.milestone1 = MilestoneFactory.create(label="Approved",

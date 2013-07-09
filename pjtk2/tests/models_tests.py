@@ -497,7 +497,7 @@ class TestModelSisters(TestCase):
                                 last_name = 'Simpson')
         
         self.ProjType = ProjTypeFactory()
-        self.ProjType2 = ProjTypeFactory(Project_Type = "Nearshore Index")
+        self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
         
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user,
                                               ProjectType = self.ProjType)
@@ -634,7 +634,7 @@ class TestModelBookmarks(TestCase):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
-        self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
+        self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
         self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
                                               ProjectType = self.ProjType)

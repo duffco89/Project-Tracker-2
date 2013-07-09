@@ -16,7 +16,8 @@ class UserFactory(factory.Factory):
     #admin = False
     password = 'abc'
 
-    #from: http://www.rkblog.rk.edu.pl/w/p/using-factory-boy-django-application-tests/
+    #from: http://www.rkblog.rk.edu.pl/w/p/
+    #               using-factory-boy-django-application-tests/
     @classmethod
     def _prepare(cls, create, **kwargs):
         password = kwargs.pop('password', None)
@@ -47,7 +48,7 @@ class ManagerFactory(factory.Factory):
     manager = True
 
 class LakeFactory(factory.Factory):
-    FACTORY_FOR = TL_Lake
+    FACTORY_FOR = Lake
     lake = "Lake Huron"
 
 class EmployeeFactory(factory.Factory):
@@ -59,12 +60,12 @@ class EmployeeFactory(factory.Factory):
     supervisor = None
 
 class ProjTypeFactory(factory.Factory):
-    FACTORY_FOR = TL_ProjType
-    Project_Type = "Offshore Index"
+    FACTORY_FOR = ProjectType
+    project_type = "Offshore Index"
 
 class DatabaseFactory(factory.Factory):
-    FACTORY_FOR = TL_Database
-    MasterDatabase = "Offshore Master"
+    FACTORY_FOR = Database
+    master_database = "Offshore Master"
     Path = "C:/Path/to/somedb.mdb"    
 
 
@@ -82,12 +83,13 @@ class ProjectFactory(factory.Factory):
     #slug = factory.LazyAttribute(lambda a:slugify(a.PRJ_CD))
     PRJ_NM = "Fake Project"
     PRJ_LDR = "Bob Sakamano"
-    #PRJ_DATE0 = datetime.strptime("January 15, 20%s" % PRJ_CD[6:8], "%B %d, %Y")
+    #PRJ_DATE0 = datetime.strptime("January 15, 20%s" 
+    #                                % PRJ_CD[6:8], "%B %d, %Y")
     #PRJ_DATE1 = datetime.strptime("May 15, 20%s" % PRJ_CD[6:8], "%B %d, %Y")
     #YEAR = factory.LazyAttribute(lambda a:a.PRJ_DATE1.year)
     COMMENT = "This is a fake project"
     ProjectType = factory.SubFactory(ProjTypeFactory)
-    MasterDatabase = factory.SubFactory(DatabaseFactory)
+    master_database = factory.SubFactory(DatabaseFactory)
     Owner = factory.SubFactory(UserFactory)
     DBA = factory.SubFactory(DBA_Factory)
 

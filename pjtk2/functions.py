@@ -4,7 +4,7 @@ functions are used in views.py,but they are not views themselves.'''
 
 
 ## from pjtk2.models import (Milestone, Project, Report, ProjectReports,
-##                           TL_ProjType, TL_Database, Bookmark, ProjectSisters, 
+##                           ProjectType, Database, Bookmark, ProjectSisters, 
 ##                           Family, employee)
 ## 
 

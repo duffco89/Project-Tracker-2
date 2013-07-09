@@ -77,5 +77,5 @@ class TestAdmin(DemoTestCase):
         self.create_user('super', super=True)
         self.login('super')
         #NOTE ProjectSisters is not included due to "no _meta" error??
-        self._test_admin((Project, Report, Milestone, TL_ProjType, TL_Database,
+        self._test_admin((Project, Report, Milestone, ProjectType, Database,
                           ProjectMilestones, Family))

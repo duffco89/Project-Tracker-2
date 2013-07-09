@@ -149,7 +149,8 @@ class ProjectBookmarkingTestCase(TestCase):
         self.user.delete()
 
 class SisterProjectsTestCase(TestCase):
-    '''Verify that the user can see and update sisters associated with projects'''
+    '''Verify that the user can see and update sisters associated with
+    projects'''
 
 
     def setUp(self):
@@ -160,16 +161,19 @@ class SisterProjectsTestCase(TestCase):
         
 
         self.ProjType = ProjTypeFactory()
-        self.ProjType2 = ProjTypeFactory(Project_Type = "Nearshore Index")
+        self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
         
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_111',
+                                              Owner=self.user, 
+                                              slug='lha_ia12_111',
                                               ProjectType = self.ProjType)
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_222',
+                                              Owner=self.user, 
+                                              slug='lha_ia12_222',
                                               ProjectType = self.ProjType)
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", YEAR=2012, 
-                                              Owner=self.user, slug='lha_ia12_333',
+                                              Owner=self.user, 
+                                              slug='lha_ia12_333',
                                               ProjectType = self.ProjType)
 
 

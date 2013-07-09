@@ -72,30 +72,6 @@ class ProjectsLastYear(models.Manager):
         return super(ProjectsLastYear, self).get_query_set().filter(
                     YEAR = year, Active=True)
 
-##class ProjectsApproved(models.Manager):
-##    '''These project have approved populated in ProjectMilestones'''
-##    def get_query_set(self):
-##        return super(ApprovedProjects, self).get_query_set().filter(
-##                     ProjectMilstone, Active=True)
-#these are approved but not complete
-## projects.filter(projectmilestones__milestone__label='Approved',
-##                projectmilestones__completed__isnull=False).filter(
-##                projectmilestones__milestone__label='SignOff',
-##                    projectmilestones__completed__isnull=True)
-
-##class ProjectsCompleted(models.Manager):
-##    '''this will be all of the projects that have both approved and 
-##    completed records in ProjectMilestones
-##    def get_query_set(self):
-##        return super(ApprovedProjects, self).get_query_set().filter(
-##                     ProjectMilstone, Active=True)
-#these are approved but and have been signed off(i.e complete)
-##projects.filter(projectmilestones__milestone__label='Approved',
-##                projectmilestones__completed__isnull=False).filter(
-##                projectmilestones__milestone__label='SignOff',
-##                    projectmilestones__completed__isnull=False)
-
-
 class Milestone(models.Model):
     '''Look-up table of reporting milestone and their attributes.  Not all
     milestones will have a report associated with them.  Keeping
@@ -128,21 +104,21 @@ class Milestone(models.Model):
         return self.label
 
 
-class TL_ProjType(models.Model):
+class ProjectType(models.Model):
     '''A look-up table to hold project types'''
-    Project_Type = models.CharField(max_length=150)
+    project_type = models.CharField(max_length=150)
     
     class Meta:
         verbose_name = "Project Type"
     
     def __unicode__(self):
         '''return the project type  as its string representation'''
-        return self.Project_Type
+        return self.project_type
 
 
-class TL_Database(models.Model):
+class Database(models.Model):
     '''A lookup table to hole list of master databases.'''
-    MasterDatabase = models.CharField(max_length=250)
+    master_database = models.CharField(max_length=250)
     Path = models.CharField(max_length=250)
 
     class Meta:
@@ -150,10 +126,10 @@ class TL_Database(models.Model):
     
     def __unicode__(self):
         '''return the database name as its string representation'''
-        return self.MasterDatabase
+        return self.master_database
 
 
-class TL_Lake(models.Model):
+class Lake(models.Model):
     '''A lookup table to hold the names of the different lakes'''
     lake = models.CharField(max_length=50)
 
@@ -187,8 +163,8 @@ class Project(models.Model):
     help_str = "Potential risks associated with not running project."
     RISK = models.TextField("Risk", null=True, blank=True, 
                             help_text=help_str)
-    MasterDatabase = models.ForeignKey("TL_Database", null=True, blank=True)
-    ProjectType = models.ForeignKey("TL_ProjType", null=True, blank=True)
+    master_database = models.ForeignKey("Database", null=True, blank=True)
+    ProjectType = models.ForeignKey("ProjectType", null=True, blank=True)
 
     FieldProject = models.BooleanField(default = True)
     Approved = models.BooleanField(default = False)
@@ -215,7 +191,7 @@ class Project(models.Model):
     Funding = models.CharField("Funding Source", max_length=30, 
                                choices=FUNDING_CHOICES, default="spa")
 
-    Lake = models.ForeignKey(TL_Lake, default=1)
+    Lake = models.ForeignKey(Lake, default=1)
 
     TotalCost =  models.DecimalField("Total Cost", max_digits=8, 
                                      decimal_places=2, null=True, blank=True)
@@ -740,7 +716,7 @@ class employee(models.Model):
     position = models.CharField(max_length=60)
     role = models.CharField(max_length=30, choices=ROLL_CHOICES,
                                 default='Employee')
-    lake = models.ManyToManyField('TL_Lake')
+    lake = models.ManyToManyField('Lake')
     supervisor = models.ForeignKey('self',
                                    blank=True,
                                    null=True)
@@ -821,58 +797,57 @@ def my_messages(user, only_unread=True):
         my_msgs = Messages2Users.objects.filter(user=user).order_by('-created')
     return(my_msgs)
 
-
         
-class AdminMilestone(admin.ModelAdmin):
+class Admin_Milestone(admin.ModelAdmin):
     '''Admin class for milestones'''
     list_display = ('label', 'report', 'category', 'protected',)
 
-class Admin_TL_ProjType(admin.ModelAdmin):
+class Admin_Project_Type(admin.ModelAdmin):
     '''Admin class for Project Types'''
     pass
 
-class Admin_TL_Database(admin.ModelAdmin):
+class Admin_Database(admin.ModelAdmin):
     '''Admin class for databases'''
     pass
 
-class Admin_TL_Lake(admin.ModelAdmin):
+class Admin_Lake(admin.ModelAdmin):
     '''Admin class for lakes'''
     pass
 
-class AdminProject(admin.ModelAdmin):
+class Admin_Project(admin.ModelAdmin):
     '''Admin class for Projects'''
     pass
 
-class AdminFamily(admin.ModelAdmin):
+class Admin_Family(admin.ModelAdmin):
     '''Admin class for familiy table'''
     pass
 
-class AdminProjectSisters(admin.ModelAdmin):
+class Admin_ProjectSisters(admin.ModelAdmin):
     '''Admin class for project-sisters table'''
     pass
 
-class AdminProjectMilestones(admin.ModelAdmin):
+class Admin_ProjectMilestones(admin.ModelAdmin):
     '''Admin class for project - milestones'''
     list_display = ('project', 'milestone',)
     list_filter = ('project', 'milestone')
 
-class AdminReport(admin.ModelAdmin):
+class Admin_Report(admin.ModelAdmin):
     '''Admin class for reprorts'''
     list_display = ('current', 'report_path', 'uploaded_on', 'uploaded_by')
 
-class AdminEmployee(admin.ModelAdmin):
+class Admin_Employee(admin.ModelAdmin):
     '''Admin class for employees'''
     pass
 
-admin.site.register(Milestone, AdminMilestone)
-admin.site.register(TL_ProjType, Admin_TL_ProjType)
-admin.site.register(TL_Database, Admin_TL_Database)
-admin.site.register(TL_Lake, Admin_TL_Lake)
-admin.site.register(Project, AdminProject)
-admin.site.register(ProjectMilestones, AdminProjectMilestones)
-admin.site.register(Report, AdminReport)
-admin.site.register(Family, AdminFamily)
-admin.site.register(ProjectSisters, AdminProjectSisters)
-admin.site.register(employee, AdminEmployee)
+admin.site.register(Milestone, Admin_Milestone)
+admin.site.register(ProjectType, Admin_Project_Type)
+admin.site.register(Database, Admin_Database)
+admin.site.register(Lake, Admin_Lake)
+admin.site.register(Project, Admin_Project)
+admin.site.register(ProjectMilestones, Admin_ProjectMilestones)
+admin.site.register(Report, Admin_Report)
+admin.site.register(Family, Admin_Family)
+admin.site.register(ProjectSisters, Admin_ProjectSisters)
+admin.site.register(employee, Admin_Employee)
 
 
