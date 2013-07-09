@@ -51,17 +51,17 @@ $(document).ready(function()
   {% for bookmark in bookmarks %}
    <tr class="{% cycle row1,row2 %}">
      <td>
-       {{ bookmark.YEAR }}
+       {{ bookmark.year }}
      </td>
      <td>
        <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
      </td>
-     <td> {{ bookmark.ProjectType }} </td>
+     <td> {{ bookmark.project_type }} </td>
      <td>
        {{ bookmark.name }} 
      </td>
      {% if boss %}
-       <td>       {{ bookmark.PRJ_LDR }} </td>
+       <td>       {{ bookmark.prj_ldr }} </td>
      {% endif %}
 
     </tr>

@@ -241,7 +241,7 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(pr.milestone, self.rep0)
         
         #verify that a link to the file is on the project details page
-        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))                     
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -376,7 +376,7 @@ class TestActualFileUpload(TestCase):
 
         #=============
         #verify that a link to the file is on the project details page
-        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))                     
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -439,7 +439,7 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(pr[1].milestone, self.rep2)
         
         #verify that a link to the file is on the project details page
-        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))                     
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -455,7 +455,7 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(reports.values()[0]['report_path'], filepath)
         
         #verify that a link to the file is on the project details page
-        url = reverse('ProjectDetail', args = (self.project2.slug,))                     
+        url = reverse('project_detail', args = (self.project2.slug,))                     
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -557,7 +557,7 @@ class TestActualFileUpload(TestCase):
         #============= 
         #verify that a links to each of the file are on
         #the details page for the first project
-        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))                     
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -576,7 +576,7 @@ class TestActualFileUpload(TestCase):
 
         # the sister proejct should have the project proposal and
         # summary report, but not the completion report
-        url = reverse('ProjectDetail', args = (self.project2.slug,))                     
+        url = reverse('project_detail', args = (self.project2.slug,))                     
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -599,7 +599,7 @@ class TestActualFileUpload(TestCase):
         reports = self.project3.get_reports()
         self.assertEqual(reports.count(),0)
 
-        url = reverse('ProjectDetail', args = (self.project3.slug,))                     
+        url = reverse('project_detail', args = (self.project3.slug,))                     
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       

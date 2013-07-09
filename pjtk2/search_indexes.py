@@ -16,8 +16,8 @@ class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
     ##Database = indexes.CharField(model_attr='MasterDatabase')
     ProjectType = indexes.CharField(model_attr='ProjectType', faceted=True)
     ##
-    Approved = indexes.BooleanField(model_attr='Approved', faceted=True)
-    Completed = indexes.BooleanField(model_attr='SignOff', faceted=True)
+    #Approved = indexes.BooleanField(model_attr='Approved', faceted=True)
+    #Completed = indexes.BooleanField(model_attr='SignOff', faceted=True)
     ##
     Lake = indexes.CharField(model_attr='Lake', faceted=True)
     Funding = indexes.CharField(model_attr='Funding', faceted=True)

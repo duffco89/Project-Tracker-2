@@ -36,7 +36,7 @@ urlpatterns = patterns('pjtk2.views',
         'edit_project', name='EditProject'),
 
     url(r'^projectdetail/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
-        'ProjectDetail', name='ProjectDetail'),
+        'project_detail', name='project_detail'),
 
     url(r'^myprojects/$', 'my_projects', name='MyProjects'),
         
@@ -67,7 +67,7 @@ urlpatterns = patterns('pjtk2.views',
 
 
     url(r'^reportupload/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
-        'ReportUpload', name='ReportUpload'),
+        'report_upload', name='ReportUpload'),
     
     url(r'^uploadlist/$', 'uploadlist', name='UploadList'),
 

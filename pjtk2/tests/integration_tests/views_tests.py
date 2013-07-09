@@ -9,6 +9,63 @@ from django.test import TestCase
 from django.conf import settings
 
 from pjtk2.tests.factories import *
+from pjtk2.views import can_edit
+
+
+
+class TestCanEditFunction(TestCase):
+    '''a simple test to verify that the function can_edit() returns a
+    boolean value indicating whether or not a user is allowed to edit a
+    particular project.  Currently only managers and project owners can
+    edit a project, other users are not.'''
+
+    def setUp(self):
+        '''Create three users, one project owner, one manager, and one regular
+        user.'''
+        self.user1 = UserFactory.create(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'mburns',
+                                first_name = 'Burns',
+                                last_name = 'Montgomery',
+                                       )
+
+        self.user3 = UserFactory.create(username = 'bgumble',
+                                first_name = 'Barney',
+                                last_name = 'Gumble',
+                                       )
+
+        #make Mr. Burns the manager:
+        managerGrp, created = Group.objects.get_or_create(name='manager')         
+        self.user2.groups.add(managerGrp)
+
+        #PROJECTS
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              Owner=self.user1)
+
+
+    def test_can_edit_function(self):
+        '''Verify that canEdit returns the expected value given our project
+        and each of the three users.'''
+
+        #as project owner, Homer can edit the project
+        self.assertEqual(can_edit(self.user1, self.project1),True)
+        #as a manageer, Mr Burns can edit the project too 
+        self.assertEqual(can_edit(self.user2, self.project1),True)
+        #Barney can't edit project
+        self.assertEqual(can_edit(self.user3, self.project1),False)
+            
+    def tearDown(self):
+        '''Clean up'''
+        self.project1.delete()
+        self.user3.delete()
+        self.user2.delete()
+        self.user1.delete()
+
+
+
+
 
 
 #Views
@@ -144,7 +201,6 @@ class FactoryBoyLoginTestCase(unittest.TestCase):
         
 #================================
 #PROJECT DETAIL VIEWS
-
 class ProjectDetailOwnerTestCase(TestCase):
     '''verify that a project owner can see the project and make
     appropriated changes, but not those available only to managers'''
@@ -159,8 +215,8 @@ class ProjectDetailOwnerTestCase(TestCase):
         the page'''
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        response = self.client.get(reverse('ProjectDetail', 
-                                        args=(self.project.slug,))) 
+        response = self.client.get(reverse('project_detail', 
+                                        kwargs={'slug':self.project.slug})) 
         self.assertEqual(response.status_code, 200)
         
         self.assertTemplateUsed(response, 'projectdetail.html')
@@ -179,12 +235,12 @@ class ProjectDetailOwnerTestCase(TestCase):
     def test_without_Login(self):
         '''if we try to view page without logging in, we should be
         re-directed to the login page'''
-        response = self.client.get(reverse('ProjectDetail', 
-                                        args=(self.project.slug,)), follow=True)
+        response = self.client.get(reverse('project_detail', 
+                                        kwargs={'slug':self.project.slug}), follow=True)
         self.assertEqual(response.status_code,200)
         redirectstring = "%s?next=%s" % (reverse('login'),
-                                         reverse('ProjectDetail', 
-                                        args=(self.project.slug,))) 
+                                         reverse('project_detail', 
+                                        kwargs={'slug':self.project.slug})) 
         self.assertRedirects(response, redirectstring)
 
     def tearDown(self):
@@ -211,8 +267,8 @@ class ProjectDetailJoeUserTestCase(TestCase):
         the page'''
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        response = self.client.get(reverse('ProjectDetail', 
-                                        args=(self.project.slug,))) 
+        response = self.client.get(reverse('project_detail', 
+                                           kwargs={'slug':self.project.slug})) 
         self.assertEqual(response.status_code, 200)
         
         self.assertTemplateUsed(response, 'projectdetail.html')
@@ -232,12 +288,12 @@ class ProjectDetailJoeUserTestCase(TestCase):
     def test_without_Login(self):
         '''if we try to view page without logging in, we should be
         re-directed to the login page'''
-        response = self.client.get(reverse('ProjectDetail', 
-                                        args=(self.project.slug,)), follow=True)
+        response = self.client.get(reverse('project_detail', 
+                                           kwargs={'slug':self.project.slug}), follow=True)
         self.assertEqual(response.status_code,200)
         redirectstring = "%s?next=%s" % (reverse('login'),
-                                         reverse('ProjectDetail', 
-                                        args=(self.project.slug,))) 
+                                         reverse('project_detail', 
+                                        kwargs={'slug':self.project.slug})) 
         self.assertRedirects(response, redirectstring)
 
     def tearDown(self):
@@ -269,8 +325,8 @@ class ProjectDetailManagerTestCase(TestCase):
         the page'''
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        response = self.client.get(reverse('ProjectDetail', 
-                                        args=(self.project.slug,))) 
+        response = self.client.get(reverse('project_detail', 
+                                        kwargs={'slug':self.project.slug})) 
         self.assertEqual(response.status_code, 200)
         
         self.assertTemplateUsed(response, 'projectdetail.html')
@@ -289,12 +345,12 @@ class ProjectDetailManagerTestCase(TestCase):
     def test_without_Login(self):
         '''if we try to view page without logging in, we should be
         re-directed to the login page'''
-        response = self.client.get(reverse('ProjectDetail', 
-                                        args=(self.project.slug,)), follow=True)
+        response = self.client.get(reverse('project_detail', 
+                                        kwargs={'slug':self.project.slug}), follow=True)
         self.assertEqual(response.status_code,200)
         redirectstring = "%s?next=%s" % (reverse('login'),
-                                         reverse('ProjectDetail', 
-                                        args=(self.project.slug,))) 
+                                         reverse('project_detail', 
+                                        kwargs={'slug':self.project.slug})) 
         self.assertRedirects(response, redirectstring)
 
     def tearDown(self):
@@ -546,29 +602,29 @@ class ApproveUnapproveProjectsTestCase(TestCase):
 
         print response
         #This year
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                          args = (self.project1.slug,)), self.project1.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
 
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                          args = (self.project2.slug,)), self.project2.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
         #last year
 
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                          args = (self.project3.slug,)), self.project3.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                          args = (self.project4.slug,)), self.project4.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
         #the old project should NOT be listed in any form in the response
         self.assertNotContains(response, self.project5.PRJ_CD)
         #the project from the future
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                          args = (self.project6.slug,)), self.project6.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
@@ -831,9 +887,9 @@ class ChangeReportingRequirementsTestCase2(TestCase):
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
                                               Owner=self.user2)
             
-    def test_Add_New_Milestone2(self):
+    def test_Add_New_Report2(self):
         '''verify that we can add new report reporting requirements
-        using the second from on the UpdateReporting form.'''
+        using the second form on the UpdateReporting form.'''
 
         login = self.client.login(username=self.user2.username, password='abc')
         self.assertTrue(login)
@@ -845,7 +901,7 @@ class ChangeReportingRequirementsTestCase2(TestCase):
         self.assertContains(response, "Core Reporting Requirements")
         self.assertContains(response, "Additional Reporting Requirements")
 
-        resp = self.client.post(url, {'NewReport': 'COA Summary'})
+        resp = self.client.post(url, {'new_report': 'COA Summary'})
         self.assertEqual(resp.status_code, 302)
 
         reports = Milestone.objects.filter(category='Custom')

@@ -57,7 +57,7 @@
 <div id="AddReportDialog" title="Add New Report">
 <form method="POST" id="dialog" action="">
     {% csrf_token  %}
-    Report Name:<input type="text" name="NewReport"/> 
+    Report Name:<input type="text" name="new_report"/> 
     <input type="submit"  value="Submit" name="Submit"/>  
 </form>
 </div>
@@ -75,7 +75,7 @@
 <div id="NewMilestoneDialog" title="Add New Milestone">
 <form method="POST" id="dialog2" name="dialog2" action="">
     {% csrf_token  %}
-    Milestone Name:<input type="text" name="NewMilestone"/> 
+    Milestone Name:<input type="text" name="new_milestone"/> 
     <input type="submit"  value="Submit" name="Submit"/>  
 </form>
 </div>

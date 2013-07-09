@@ -37,7 +37,7 @@ class TestUrls(DemoTestCase):
             (reverse('EditProject', args=(self.project.slug,)),
              {'status_code': 302}),
             
-            (reverse('ProjectDetail', args=(self.project.slug,)),
+            (reverse('project_detail', args=(self.project.slug,)),
              {'status_code': 302}),
             
             (reverse('ApproveProjects'),

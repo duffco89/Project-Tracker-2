@@ -58,7 +58,7 @@ class SisterFormTestCase(WebTest):
         self.assertTemplateUsed(response, 'ProjectList.html')
 
         
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                      args=(self.project3.slug,)), self.project3.PRJ_CD)
         linkstring in response
 
@@ -67,7 +67,7 @@ class SisterFormTestCase(WebTest):
         works and takes us to the sister project page for this
         project.'''
 
-        url = reverse('ProjectDetail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))                     
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -103,12 +103,12 @@ class SisterFormTestCase(WebTest):
 
         assert "Sister projects for:" in response
         
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), self.project2.PRJ_CD)
         #print response
         print "linkstring = %s" % linkstring
         assert linkstring in response
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args=(self.project3.slug,)), self.project3.PRJ_CD)
         assert linkstring in response
 
@@ -144,11 +144,11 @@ class SisterFormTestCase(WebTest):
 
         assert "Sister projects for:" in response
         
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), self.project2.PRJ_CD)
 
         assert linkstring in response
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args=(self.project3.slug,)), self.project3.PRJ_CD)
         assert linkstring in response
 
@@ -334,11 +334,11 @@ class SisterFormTestCase(WebTest):
 
         assert "Sister projects for:" in response
         
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), self.project2.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
         
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project3.slug,)), self.project3.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 

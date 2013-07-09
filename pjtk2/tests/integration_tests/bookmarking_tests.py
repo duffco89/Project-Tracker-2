@@ -185,7 +185,7 @@ class SisterProjectsTestCase(TestCase):
         self.assertTemplateUsed(response, 'SisterProjects.html')
 
         print "repsonse = %s" % response
-        linktext = '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linktext = '<a href="%s">%s</a>' % (reverse('project_detail', 
                                             args =(self.project2.slug,)), 
                                             self.project2.PRJ_CD)
         print "linktext = %s" % linktext

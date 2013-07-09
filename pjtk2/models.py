@@ -1,37 +1,100 @@
+
+# E1101 - Class 'whatever' has no 'something' member
+# E1120 - No value passed for parameter 'cls' in function call
+#pylint: disable=E1101, E1120
+
 from django.contrib.auth.models import User
 from django.contrib import admin
 from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models.signals import pre_save, post_save
-from django.dispatch import receiver
+#from django.db.models.signals import pre_save, post_save
+#from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
 from taggit.managers import TaggableManager
 
 import datetime
+import pytz
 import pdb
 
-from functions import *
+
+class ProjectsManager(models.Manager):
+    '''two custom extensions to the base manager for project objects to
+    return approved and completed projects.'''
 
 
-# Create your models here.
+    def submitted(self):
+        '''return a queryset containing only those projects that have been
+        submitted, but have not yet been approved or completed.
+        '''
+        return self.filter(Active=True,
+                           projectmilestones__milestone__label='Approved',
+                           projectmilestones__completed__isnull=True).filter(
+                           projectmilestones__milestone__label='Sign off',
+                           projectmilestones__completed__isnull=True)
+
+
+
+    def approved(self):
+        '''return a queryset containing only those projects that have been
+        approved, but have not been completed.
+        '''
+        return self.filter(Active=True,
+                           projectmilestones__milestone__label='Approved',
+                           projectmilestones__completed__isnull=False).filter(
+                           projectmilestones__milestone__label='Sign off',
+                   projectmilestones__completed__isnull=True)
+
+    def completed(self):
+        '''return a queryset containing only those projects that have been
+        both approved and completed.
+        '''
+        return self.filter(Active=True,
+                           projectmilestones__milestone__label='Approved',
+                           projectmilestones__completed__isnull=False).filter(
+                           projectmilestones__milestone__label='Sign off',
+                           projectmilestones__completed__isnull=False)
 
 
 class ProjectsThisYear(models.Manager):
+    '''get all of the project objects from the current year'''
     def get_query_set(self):
-        '''get all of the project objects from the current year'''
-        use_for_related_fields = True
-        yr = datetime.datetime.now().year
+        #use_for_related_fields = True
+        year = datetime.datetime.now().year
         return super(ProjectsThisYear, self).get_query_set().filter(
-                     YEAR__gte=yr, Active=True)
+                     YEAR__gte=year, Active=True)
 
 class ProjectsLastYear(models.Manager):
+    '''get all of the project objects from last year'''
     def get_query_set(self):
-        '''get all of the project objects from last year'''
-        use_for_related_fields = True
-        yr = datetime.datetime.now().year - 1
+        #use_for_related_fields = True
+        year = datetime.datetime.now().year - 1
         return super(ProjectsLastYear, self).get_query_set().filter(
-                    YEAR = yr, Active=True)
+                    YEAR = year, Active=True)
+
+##class ProjectsApproved(models.Manager):
+##    '''These project have approved populated in ProjectMilestones'''
+##    def get_query_set(self):
+##        return super(ApprovedProjects, self).get_query_set().filter(
+##                     ProjectMilstone, Active=True)
+#these are approved but not complete
+## projects.filter(projectmilestones__milestone__label='Approved',
+##                projectmilestones__completed__isnull=False).filter(
+##                projectmilestones__milestone__label='SignOff',
+##                    projectmilestones__completed__isnull=True)
+
+##class ProjectsCompleted(models.Manager):
+##    '''this will be all of the projects that have both approved and 
+##    completed records in ProjectMilestones
+##    def get_query_set(self):
+##        return super(ApprovedProjects, self).get_query_set().filter(
+##                     ProjectMilstone, Active=True)
+#these are approved but and have been signed off(i.e complete)
+##projects.filter(projectmilestones__milestone__label='Approved',
+##                projectmilestones__completed__isnull=False).filter(
+##                projectmilestones__milestone__label='SignOff',
+##                    projectmilestones__completed__isnull=False)
+
 
 class Milestone(models.Model):
     '''Look-up table of reporting milestone and their attributes.  Not all
@@ -66,27 +129,19 @@ class Milestone(models.Model):
 
 
 class TL_ProjType(models.Model):
+    '''A look-up table to hold project types'''
     Project_Type = models.CharField(max_length=150)
-    #project_type_slug = SlugField(blank=True, editable=False)
     
     class Meta:
         verbose_name = "Project Type"
     
     def __unicode__(self):
+        '''return the project type  as its string representation'''
         return self.Project_Type
-
-    #def save(self, *args, **kwargs):
-    #    """
-    #    from:http://stackoverflow.com/questions/7971689/
-    #         generate-slug-field-in-existing-table
-    #    Slugify name if it doesn't exist.
-    #    """
-    #    if not self.project_type_slug:
-    #        self.project_type_slug = slugify(self.Project_Type)
-    #    super(Project_Type, self).save( *args, **kwargs)
 
 
 class TL_Database(models.Model):
+    '''A lookup table to hole list of master databases.'''
     MasterDatabase = models.CharField(max_length=250)
     Path = models.CharField(max_length=250)
 
@@ -94,26 +149,23 @@ class TL_Database(models.Model):
         verbose_name = "Master Database"
     
     def __unicode__(self):
+        '''return the database name as its string representation'''
         return self.MasterDatabase
 
 
 class TL_Lake(models.Model):
-
+    '''A lookup table to hold the names of the different lakes'''
     lake = models.CharField(max_length=50)
-    
-    def __unicode__(self):
-        return self.lake
 
     class Meta:
         verbose_name = "Lake"
-
-
+    
+    def __unicode__(self):
+        '''return the lake name as its string representation'''
+        return self.lake
 
 class Project(models.Model):
     '''Class to hold a record for each project
-     TODO:
-     Add Lake, Active,
-     factor out milestone to seperate table(s)
     '''
 
     #(database, display)
@@ -123,31 +175,29 @@ class Project(models.Model):
         ('other', 'other'),
     }
 
-    #LAKE_CHOICES = {
-    #    ('LH', 'Lake Huron'),
-    #    ('LS', 'Lake Superior'),    
-    #}
-
     YEAR = models.CharField("Year", max_length=4, blank=True, editable=False)
     PRJ_DATE0 = models.DateField("Start Date", blank=False)
     PRJ_DATE1 = models.DateField("End Date", blank=False)
-    PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, blank=False)
+    PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, 
+                              blank=False)
     PRJ_NM = models.CharField("Proejct Name", max_length=50, blank=False)
     PRJ_LDR = models.CharField("Project Lead", max_length=40, blank=False)
-    COMMENT = models.TextField(blank=False, help_text="General project description.")
-    RISK = models.TextField("Risk",null=True, blank=True, 
-                            help_text="Potential risks associated with not running project.")
+    COMMENT = models.TextField(blank=False, 
+                               help_text="General project description.")
+    help_str = "Potential risks associated with not running project."
+    RISK = models.TextField("Risk", null=True, blank=True, 
+                            help_text=help_str)
     MasterDatabase = models.ForeignKey("TL_Database", null=True, blank=True)
     ProjectType = models.ForeignKey("TL_ProjType", null=True, blank=True)
 
     FieldProject = models.BooleanField(default = True)
     Approved = models.BooleanField(default = False)
-    Conducted  = models.BooleanField(default = False)
-    FieldWorkComplete  = models.BooleanField(default = False)
-    AgeStructures = models.BooleanField(default = False)
-    DataScrubbed  = models.BooleanField(default = False)
-    DataMerged  = models.BooleanField(default = False)
-    SignOff  = models.BooleanField(default = False)
+    #Conducted  = models.BooleanField(default = False)
+    #FieldWorkComplete  = models.BooleanField(default = False)
+    #AgeStructures = models.BooleanField(default = False)
+    #DataScrubbed  = models.BooleanField(default = False)
+    #DataMerged  = models.BooleanField(default = False)
+    #SignOff  = models.BooleanField(default = False)
 
     #TODO - replace with mulit-polygon or multi-point fields    
     Max_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
@@ -162,20 +212,20 @@ class Project(models.Model):
     DBA = models.ForeignKey(User, blank=True, related_name="ProjectDBA")
 
     Active  = models.BooleanField(default = True)
-    Funding = models.CharField("Funding Source", max_length=30, choices=FUNDING_CHOICES,
-                                default="spa")
-    #Lake =  models.CharField(max_length=30, choices=LAKE_CHOICES,
-    #                            default="LH")
+    Funding = models.CharField("Funding Source", max_length=30, 
+                               choices=FUNDING_CHOICES, default="spa")
+
     Lake = models.ForeignKey(TL_Lake, default=1)
 
-    TotalCost =  models.DecimalField("Total Cost", max_digits=8, decimal_places=2, 
-                                     null=True, blank=True)
+    TotalCost =  models.DecimalField("Total Cost", max_digits=8, 
+                                     decimal_places=2, null=True, blank=True)
 
     slug = models.SlugField(blank=True, editable=False)
     tags = TaggableManager()
 
     #managers
-    objects = models.Manager()
+    #objects = models.Manager()
+    objects = ProjectsManager()
     last_year = ProjectsLastYear()
     this_year = ProjectsThisYear()
 
@@ -183,8 +233,58 @@ class Project(models.Model):
     class Meta:
         verbose_name = "Project List"
         ordering = ['-PRJ_DATE1']
+
+    def approve(self):
+        '''a helper method to make approving projects easier.  A
+        project-milestone object will be created if it doesn't
+        exist.
+        '''
+        now = datetime.datetime.now(pytz.utc)
+        try:
+            ProjectMilestones.objects.filter(project=self, 
+                                     milestone__label='Approved').update(
+                                         completed=now)
+        except ProjectMilestones.DoesNotExist:
+            #create it if it doesn't exist
+            #milestone = Milestone.objects.get(label='Approved')
+            #ProjectMilestones.(project=self, 
+            #                     milestone=milestone,
+            #                     required=True,
+            #                     completed=now)
+            pass
+
+    def unapprove(self):
+        '''a helper method to reverse project.approved(), a project-milestone
+        object will be created if it doesn't exist.'''
+        try:
+            ProjectMilestones.objects.filter(project=self, 
+                                 milestone__label='Approved').update(
+                                     completed=None)
+        except ProjectMilestones.DoesNotExist:
+            #create it if it doesn't exist
+            #milestone = Milestone.objects.get(label='Approved')
+            #ProjectMilestones.(project=self, 
+            #                     milestone=milestone,
+            #                     required=True,
+            #                     completed=None)
+            pass
+
+    def signoff(self):
+        '''A helper function to make it easier to sign off a project'''
+        #to do - add logic here to make sure all previous requirements
+        #have been met! - can't signoff on a project that wasn't
+        #approved or compelted.
+        now = datetime.datetime.now(pytz.utc)
+        try:
+            ProjectMilestones.objects.filter(project=self, 
+                                     milestone__label='Sign off').update(
+                                         completed=now)
+        except ProjectMilestones.DoesNotExist:
+            pass
+
         
-    def ProjectSuffix(self):
+    def project_suffix(self):
+        '''return the prject suffix for the given project'''
         return self.PRJ_CD[-3:]
 
     def name(self):
@@ -198,47 +298,54 @@ class Project(models.Model):
         return self.COMMENT
 
     def __unicode__(self):
+        '''Return the name of the project and it's project code'''
         ret = "%s (%s)" % (self.PRJ_NM, self.PRJ_CD)
         return ret
-
-    def get_assignments(self):
-        '''get all of the reports have been assigned to 
-        this project - no distinction between core or custom reports'''
-        #TODO Filter for report=True
-        return ProjectMilestones.objects.filter(project=self,milestone__report=True)
 
     def get_milestones(self, required=True):
         '''get all of the milestone events have been assigned to 
         this project - (these are just milestone events where report==False)'''
-        if required==True:
+        if required == True:
             return ProjectMilestones.objects.filter(project=self,
-                                                    required=True, 
-                                                    milestone__report=False).order_by(
-                                                        'milestone__order')
+                                        required=True, 
+                                        milestone__report=False).order_by(
+                                        'milestone__order')
         else:
             return ProjectMilestones.objects.filter(project=self,
-                                                    milestone__report=False).order_by(
-                                                        'milestone__order')
+                                        milestone__report=False).order_by(
+                                        'milestone__order')
+
+    def get_assignments(self):
+        # TODO - this should be get_reports()
+        '''get all of the reports have been assigned to 
+        this project - no distinction between core or custom reports'''
+        return ProjectMilestones.objects.filter(project=self,
+                                                milestone__report=True)
 
 
-    def get_core_assignments(self, all=True):
-        '''get all of the core reports have been assigned to this
-        project, if all is true, all assignements are returned, if all
-        is False, only required assignments are returned.'''
 
-        if all==True:
+    def get_core_assignments(self, all_reports=True):
+        '''get all of the core reports have been assigned to this project, if
+        all is true, all assignements are returned, if all_reports
+        is False, only required assignments are returned.
+
+        '''
+
+        if all_reports == True:
             assignments = self.get_assignments().filter(
                 milestone__category='Core', milestone__report=True)
         else:
             assignments = self.get_assignments().filter(
-                milestone__category='Core', milestone__report=True).filter(required=True) 
+                milestone__category='Core', 
+                milestone__report=True).filter(required=True) 
         return assignments
 
     def get_custom_assignments(self):
         '''get a list of any custom reports that have been assigned to
         this project'''
-        return self.get_assignments().filter(required=True, milestone__report=True).exclude(
-            milestone__category='Core')
+        return self.get_assignments().filter(
+                      required=True, milestone__report=True).exclude(
+                      milestone__category='Core')
 
     def get_complete(self):
         '''get the project reports that have uploaded reports
@@ -251,12 +358,16 @@ class Project(models.Model):
     def get_outstanding(self):
         '''these are the required reports that have not been submitted yet'''
         #TODO Filter for report=True
-        return ProjectMilestones.objects.filter(project=self, milestone__report=True).exclude(
-            report__in=Report.objects.filter(projectreport__project=self))
+        return ProjectMilestones.objects.filter(project=self, 
+                                milestone__report=True).exclude(
+                                report__in=Report.objects.filter(
+                                projectreport__project=self))
 
     def get_reports(self):
-        '''get all of the CURRENT reports that are associated with
-        this project.  Non-current reports are not included in this recordset.'''
+        '''get all of the CURRENT reports that are associated with this
+        project.  Non-current reports are not included in this
+        recordset.
+        '''
         #TODO Filter for report=True
         return Report.objects.filter(current=True, 
                                      projectreport__project=self)
@@ -274,17 +385,17 @@ class Project(models.Model):
         corereports = Milestone.objects.filter(category='Core', report=True)
         customreports = Milestone.objects.filter(category='Custom', report=True)
     
-
-
         #we need to convert the querset to a tuple of tuples
         milestones = tuple([(x[0], x[1]) for x in milestones.values_list()])
         corereports = tuple([(x[0], x[1]) for x in corereports.values_list()])
-        customreports = tuple([(x[0], x[1]) for x in customreports.values_list()])    
+        customreports = tuple([(x[0], x[1]) for x 
+                               in customreports.values_list()])    
         
         #get the milestones currently assigned to this project, if not return a
         #dictionary with all reports assigned
         milestones_assigned = self.get_milestones()
-        milestones_assigned = [x.milestone_id for x in list(milestones_assigned)]
+        milestones_assigned = [x.milestone_id for x 
+                               in list(milestones_assigned)]
 
         core_assigned = self.get_core_assignments()
         core_assigned = [x.milestone_id for x in list(core_assigned)]
@@ -293,55 +404,56 @@ class Project(models.Model):
         custom_assigned = [x.milestone_id for x in list(custom_assigned)]
  
         #put the reports and assigned reports in a dictionary    
-        Milestones = dict(milestones=milestones, assigned=milestones_assigned)
-        Core = dict(milestones=corereports, assigned=core_assigned)
-        Custom = dict(milestones=customreports, assigned=custom_assigned)
+        milestones = dict(milestones=milestones, assigned=milestones_assigned)
+        core = dict(milestones=corereports, assigned=core_assigned)
+        custom = dict(milestones=customreports, assigned=custom_assigned)
 
-        milestones_dict = dict(Milestones=Milestones, Core=Core, Custom=Custom)
+        milestones_dict = dict(Milestones=milestones, Core=core, Custom=custom)
     
         return milestones_dict
 
-
-    def resetMilestones(self):
+    def reset_milestones(self):
         '''a function to make sure that all of the project milestones are
         set to zero. Used when copying an existing project - we don t want
         to copy its milestones too'''
         #TODO - this function will be obsolete soon
-        self.Approved = False
-        self.Conducted = False
-        self.DataScrubbed = False
-        self.DataMerged = False                        
-        self.SignOff = False
-        return self
+        ##self.Approved = False
+        ##self.Conducted = False
+        ##self.DataScrubbed = False
+        ##self.DataMerged = False                        
+        ##self.SignOff = False
+        ##return self
+        pass
 
-    def initialReports(self):
+    def initialize_milestones(self):
         '''A function that will add a record into "ProjectMilestones" for
-        each of the core report for newly created projects'''
-
-        #TODO Filter for report=True??
+        each of the core reports and milestones for newly created projects'''
 
         #project = Project.objects.get(slug=slug)
         corereports = Milestone.objects.filter(category='Core')
 
         for report in corereports:
-            #'Submitted' milestone is already added by post_save send_message()
-            #if report.label != "Submitted":
-            #    pr = ProjectMilestones(project=self, milestone = report)
-            #    pr.save()
-            pr, created = ProjectMilestones.objects.get_or_create(project=self, 
+            #pr,created = ProjectMilestones.objects.get_or_create(project=self, 
+            #                                            milestone = report)
+            ProjectMilestones.objects.get_or_create(project=self, 
                                                         milestone = report)
-            
-
 
     def get_family(self):   
-       try:
-           family = Family.objects.get(projectsisters__project=self)
-       except:
-           family = None
- 
-       return family
+        '''If this project belongs to a familiy (i.e. - has sisters) return
+        the family, otherwise return None.'''
+
+        try:
+            family = Family.objects.get(projectsisters__project=self)
+        except Family.DoesNotExist:
+            family = None  
+        return family
 
     def add_sister(self, slug):
+        '''Add the project identified by slug to the familiy of the current
+        project.  If the current project, doesn't belong to a family, create
+        it first then add the sister.
+        '''
+
         family = self.get_family()
         if family is None:
             family = Family.objects.create()
@@ -364,7 +476,7 @@ class Project(models.Model):
                 else:
                     sisters = Project.objects.filter(
                         projectsisters__family=family)
-            except:
+            except Project.DoesNotExist:
                 sisters = []
         else:
             sisters = []
@@ -380,25 +492,29 @@ class Project(models.Model):
         if self.Approved:
             try:
                 candidates = Project.objects.filter(Approved=True, 
-                                            ProjectType=self.ProjectType, 
-                                            YEAR = self.YEAR,
-                                            projectsisters__isnull=True).exclude(
-                                            slug=self.slug)
-            except:
+                                      ProjectType=self.ProjectType, 
+                                      YEAR = self.YEAR,
+                                      projectsisters__isnull=True).exclude(
+                                      slug=self.slug)
+            except Project.DoesNotExist:
                 candidates = []
         else:
             candidates = []
-        return candidates
-            
+        return candidates            
 
     def delete_sister(self, slug):
+        '''remove the project identified by "slug" from the familiy associated
+        with this project.  If this project is now the only member of
+        teh familiy, delete the family so we don't end-up with a bunch
+        of single member families.
+        '''
         project = Project.objects.get(slug=slug)
         ProjectSisters.objects.filter(project=project).delete()
         family = self.get_family()
         #if this was the last sibling in the family get rid of its
         #record and the family record too.
         familysize = ProjectSisters.objects.filter(family=family).count()
-        if familysize==1:
+        if familysize == 1:
             ProjectSisters.objects.filter(family=family).delete()
             Family.objects.filter(id=family.id).delete()                    
 
@@ -412,14 +528,15 @@ class Project(models.Model):
         self.delete_sister(self.slug)
         #if this was the last sibling in the family get rid of it too.
         familysize = ProjectSisters.objects.filter(family=family.id).count()
-        if familysize==1:
+        if familysize == 1:
             ProjectSisters.objects.filter(family=family).delete()
             Family.objects.filter(id=family.id).delete()                    
 
 
     #@models.permalink
     def get_absolute_url(self):
-        url = reverse('pjtk2.views.ProjectDetail', kwargs={'slug':self.slug})
+        '''return the url for the project'''
+        url = reverse('pjtk2.views.project_detail', kwargs={'slug':self.slug})
         return url
 
     def save(self, *args, **kwargs):
@@ -429,7 +546,7 @@ class Project(models.Model):
         Slugify name if it doesn't exist. IMPORTANT: doesn't check to see
         if slug is a dupicate!
         """
-        new=False
+        new = False
         if not self.slug or not self.YEAR:
             self.slug = slugify(self.PRJ_CD)
             self.YEAR = self.PRJ_DATE0.year
@@ -437,7 +554,7 @@ class Project(models.Model):
 
         super(Project, self).save( *args, **kwargs)
         if new:
-            self.initialReports()
+            self.initialize_milestones()
 
 
 ##  @receiver(post_save, sender=Project)
@@ -450,7 +567,8 @@ class Project(models.Model):
 ##      if created:
 ##          proj = Project.objects.get(pk=instance.pk)
 ##          msgtxt =  "Project %s was just submitted." % proj.PRJ_CD
-##          #we want to send this message up the chain of command to all supervisors
+##          # we want to send this message up the chain of command to 
+##          # all supervisors
 ##          try:
 ##              #try and send messages starting at project lead - ideal
 ##              prjLead = proj.PRJ_LDR
@@ -484,17 +602,21 @@ class ProjectMilestones(models.Model):
         verbose_name_plural = "Project Milestones"
         
     def __unicode__(self):
-        return "%s - %s" % (self.project.PRJ_CD, self.milestone)
+        '''Return a string that include the project code and milestone label'''
+        return "%s - %s" % (self.project.PRJ_CD, self.milestone.label)
 
     def __str__(self):
         return self.milestone.label
 
 
-# TODO Complete the pre_save signal to ProjectMilestones - send message to appropriate people whenever
+# TODO Complete the pre_save signal to ProjectMilestones - send
+# message to appropriate people whenever
+
 # a record in this table is added or updated.
 ##  @receiver(pre_save, sender=ProjectMilestones)
 ##  def send_notices_if_projmilestones_changed(sender, instance, **kwargs):
-##      '''If the status of a milestone has changed, send a message to the project lead, their supervisor,
+##      '''If the status of a milestone has changed, send a message to
+##      the project lead, their supervisor,
 ##      the data custodian (and perhaps someday, the operations team).'''
 ##      try:
 ##          original = ProjectMilestones.objects.get(pk=instance.pk)
@@ -503,7 +625,8 @@ class ProjectMilestones(models.Model):
 ##          pass
 ##      else:
 ##          print "%s was Updated. %s is not %s.\n" % (instance.project.PRJ_CD, 
-##                                                     instance.milestone.label,instance.milestone.completed)
+##                                         instance.milestone.label,
+##                                         instance.milestone.completed)
 ##          pass
 ##  
 ##      #see if there is a difference between original and the new
@@ -524,14 +647,13 @@ class Report(models.Model):
     entries in Project Reports'''
     current = models.BooleanField(default=True)
     projectreport = models.ManyToManyField('ProjectMilestones')
-    #projectreport = models.ForeignKey('ProjectMilestones')
-    #report_path = models.CharField(max_length = 300, default="")
     report_path = models.FileField(upload_to="reports/")
     uploaded_on = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.CharField(max_length = 300)
     report_hash = models.CharField(max_length = 300)
 
     def __unicode__(self):
+        '''Use the file path as the string representation of a report'''
         return str(self.report_path)
 
 
@@ -546,24 +668,31 @@ class Bookmark(models.Model):
         ordering = ['-date']
 
     def __unicode__(self):
+        '''return the name of the associated project as our representation'''
         return "%s" % self.project
 
     def get_project_url(self):
+        '''Use the url of the project for the bookmark too.'''
         return self.project.get_absolute_url()
 
     def name(self):
+        '''Use the project name for the bookmark too.'''
         return self.project.PRJ_NM
         
     def get_project_code(self):
+        '''Use the project code for the bookmark too.'''
         return self.project.PRJ_CD
 
-    def ProjectType(self):
+    def project_type(self):
+        '''Use the project type for the bookmark too.'''
         return self.project.ProjectType
 
-    def PRJ_LDR(self):
+    def prj_ldr(self):
+        '''Use the project leader for the bookmark too.'''
         return self.project.PRJ_LDR
 
-    def YEAR(self):
+    def year(self):
+        '''Use the project year for the bookmark too.'''
         return self.project.YEAR
 
 class Family(models.Model):
@@ -578,11 +707,11 @@ class Family(models.Model):
         verbose_name_plural = "Families"
 
     def __unicode__(self):
+        '''A simple string representation'''
         return str("Family %s" % self.id)
         
     
 class ProjectSisters(models.Model): 
-
     '''Sister projects have common presentations and summary reports.
     They must be the same project type, and run in the same year.'''  
 
@@ -594,6 +723,7 @@ class ProjectSisters(models.Model):
         ordering = ['family', 'project']
 
     def __unicode__(self):
+        '''Return the project and family as a string'''
         return str("Project - %s - Family %s" % (self.project, self.family))
 
 
@@ -616,6 +746,7 @@ class employee(models.Model):
                                    null=True)
 
     def __unicode__(self):
+        '''Use the username of the employee as the string representation'''
         return self.user.username
 
 
@@ -639,6 +770,7 @@ class Message(models.Model):
                                 default='info')
 
     def __unicode__(self):
+        '''return the messsage as it's unicode method.'''
         return self.msg
 
     
@@ -651,16 +783,18 @@ class Messages2Users(models.Model):
     read = models.DateTimeField(blank=True, null=True)
 
 
-def sendMessage(msgtxt, users, project, milestone):
+def send_message(msgtxt, users, project, milestone):
 
     '''Create a record in the message database and send it to each user in
     users by appending a record to Messages2Users for each one.'''
 
-    #if the Project Milestone doesn't exist for this project and milestone create it
-    pdb.set_trace()
-    prjms, created = ProjectMilestones.objects.get_or_create(project=project, 
-                                                             milestone=milestone)
-
+    #if the Project Milestone doesn't exist for this project and
+    #milestone create it
+    #pdb.set_trace()
+    #prjms, created = 
+    #                                                    
+    ProjectMilestones.objects.get_or_create(project=project, 
+                                            milestone=milestone)
     #prjms = ProjectMilestones.objects.get(project=project, milestone=milestone)
     
     #create a message object using the message text and the project-milestone
@@ -668,69 +802,72 @@ def sendMessage(msgtxt, users, project, milestone):
     #then loop through the list of users and add one record to 
     #Messages2Users for each one:
     try:
-        for employee in users:
-            user = User.objects.get(employee=employee)
+        for emp in users:
+            user = User.objects.get(employee=emp)
             Messages2Users.objects.create(user=user, msg=message)
     except TypeError:
         Messages2Users.objects.create(user=users, msg=message)
 
 
-def myMessages(user, OnlyUnread=True):
+def my_messages(user, only_unread=True):
     '''Return a queryset of messages for the user, sorted in reverse
     chronilogical order (newest first).  By default, only unread messages
     are returned, but all messages can be retrieved.'''
 
-    if OnlyUnread:
-         MyMsgs = Messages2Users.objects.filter(user=user, 
-                                                read__isnull=True).order_by('-created')
+    if only_unread:
+        my_msgs = (Messages2Users.objects.filter(user=user, 
+                            read__isnull=True).order_by('-created'))
     else:
-         MyMsgs = Messages2Users.objects.filter(user=user).order_by('-created')
-    return(MyMsgs)
+        my_msgs = Messages2Users.objects.filter(user=user).order_by('-created')
+    return(my_msgs)
 
 
-
-
-
-
-        
         
 class AdminMilestone(admin.ModelAdmin):
+    '''Admin class for milestones'''
     list_display = ('label', 'report', 'category', 'protected',)
 
-class AdminTL_ProjType(admin.ModelAdmin):
+class Admin_TL_ProjType(admin.ModelAdmin):
+    '''Admin class for Project Types'''
     pass
 
-class AdminTL_Database(admin.ModelAdmin):
+class Admin_TL_Database(admin.ModelAdmin):
+    '''Admin class for databases'''
     pass
 
-class AdminTL_Lake(admin.ModelAdmin):
+class Admin_TL_Lake(admin.ModelAdmin):
+    '''Admin class for lakes'''
     pass
 
 class AdminProject(admin.ModelAdmin):
+    '''Admin class for Projects'''
     pass
 
 class AdminFamily(admin.ModelAdmin):
+    '''Admin class for familiy table'''
     pass
 
 class AdminProjectSisters(admin.ModelAdmin):
+    '''Admin class for project-sisters table'''
     pass
 
 class AdminProjectMilestones(admin.ModelAdmin):
+    '''Admin class for project - milestones'''
     list_display = ('project', 'milestone',)
     list_filter = ('project', 'milestone')
 
 class AdminReport(admin.ModelAdmin):
-    #list_display = ('current', 'ProjectMilestones_project', 'ProjectMilestones_report__type',)
-    list_display = ('current', 'report_path','uploaded_on', 'uploaded_by')
-    #    list_filter = ('ProjectMilestones__project',)
+    '''Admin class for reprorts'''
+    list_display = ('current', 'report_path', 'uploaded_on', 'uploaded_by')
 
 class AdminEmployee(admin.ModelAdmin):
+    '''Admin class for employees'''
     pass
 
 admin.site.register(Milestone, AdminMilestone)
-admin.site.register(TL_ProjType, AdminTL_ProjType)
-admin.site.register(TL_Database, AdminTL_Database)
-admin.site.register(TL_Lake, AdminTL_Lake)
+admin.site.register(TL_ProjType, Admin_TL_ProjType)
+admin.site.register(TL_Database, Admin_TL_Database)
+admin.site.register(TL_Lake, Admin_TL_Lake)
 admin.site.register(Project, AdminProject)
 admin.site.register(ProjectMilestones, AdminProjectMilestones)
 admin.site.register(Report, AdminReport)

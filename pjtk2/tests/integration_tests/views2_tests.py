@@ -103,7 +103,7 @@ class ProjectTaggingTestCase(WebTest):
         self.assertQuerysetEqual(tags_back, tags, lambda a:str(a.name))
         self.assertEqual(tags_back.count(),len(tags))
         #verify that the tag appears as a hyperlink on the details page for this project:
-        response = self.app.get(reverse('ProjectDetail', 
+        response = self.app.get(reverse('project_detail', 
                                 args=(self.project1.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
 
@@ -114,7 +114,7 @@ class ProjectTaggingTestCase(WebTest):
 
         #=======================
         #verify that the tags are NOT associated with project2
-        response = self.app.get(reverse('ProjectDetail', 
+        response = self.app.get(reverse('project_detail', 
                                 args=(self.project2.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
 
@@ -176,17 +176,17 @@ class ProjectTaggingTestCase(WebTest):
         self.assertContains(response, msg, html=True)
 
         #Project 1
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project1.slug,)), self.project1.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
         #Project 2
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), self.project2.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
         #Project 3
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project3.slug,)), self.project3.PRJ_CD)
         self.assertNotContains(response, linkstring, html=True)
 
@@ -197,17 +197,17 @@ class ProjectTaggingTestCase(WebTest):
         self.assertEqual(response.status_int, 200)
 
         #Project 1
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project1.slug,)), self.project1.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
         #Project 2
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), self.project2.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
         #Project 3
-        linkstring= '<a href="%s">%s</a>' % (reverse('ProjectDetail', 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project3.slug,)), self.project3.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
@@ -375,7 +375,7 @@ class UpdateReportsTestCase(WebTest):
 
         #now there should only be two core reports and one custom
         #report
-        core = self.project1.get_core_assignments(all=False)
+        core = self.project1.get_core_assignments(all_reports=False)
         custom = self.project1.get_custom_assignments()
         self.assertEqual(core.count(),2)
         self.assertEqual(custom.count(),1)
@@ -403,7 +403,7 @@ class UpdateReportsTestCase(WebTest):
         #get the sub-report that has the check boxes for reports
         forms = response.forms
         form = forms['dialog']
-        form['NewReport'] = "COA Summary"
+        form['new_report'] = "COA Summary"
         form.submit()
 
         #requery the database and verify that the new report has been added:
@@ -435,7 +435,7 @@ class UpdateReportsTestCase(WebTest):
         #get the sub-report that has the check boxes for reports
         forms = response.forms
         form = forms['dialog2']
-        form['NewMilestone'] = "Fieldwork Complete"        
+        form['new_milestone'] = "Fieldwork Complete"        
         response = form.submit()
 
         after = Milestone.objects.filter(report=False)    
@@ -529,6 +529,14 @@ class MyProjectViewTestCase(WebTest):
        
         self.ProjType = ProjTypeFactory(Project_Type = "Nearshore Index")
         
+        #we need approved and sign off milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)
+
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
                                               PRJ_LDR=self.user,
@@ -569,13 +577,31 @@ class MyProjectViewTestCase(WebTest):
         self.assertContains(response, self.project1.PRJ_CD)        
         self.assertContains(response, self.project2.PRJ_CD)                
 
-        print "self.project1.PRJ_LDR = %s" % self.project1.PRJ_LDR
-
         #these values should be in the response:
         self.assertContains(response, self.project3.PRJ_CD)                
         self.assertContains(response, self.user.username)                
         self.assertContains(response, self.user2.username)                
         self.assertContains(response, "Project Lead")                
+
+
+    def test__myprojects_submitted_approved_complete(self):
+        '''Verify that projects appear on "My Projects" even if they are subitted,
+        approved or completed.'''
+
+        self.project1.approve()
+        self.project2.approve()
+        self.project1.signoff()
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('MyProjects'),follow=True) 
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertContains(response, self.project1.PRJ_CD)        
+        self.assertContains(response, self.project2.PRJ_CD)                
+        self.assertContains(response, self.project3.PRJ_CD)                
+
+
 
 
 
@@ -911,8 +937,9 @@ class TestProjectDetailForm(WebTest):
         self.ms3.delete()
         self.ms2.delete()
         self.ms1.delete()
-        self.user1.delete()
+        self.user3.delete()
         self.user2.delete()
+        self.user1.delete()
 
 
         

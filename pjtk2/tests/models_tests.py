@@ -7,11 +7,112 @@ from pjtk2.tests.factories import *
 from pjtk2.views import get_minions, get_supervisors
 
 import datetime
+import pytz
 import pdb
 import sys
 
 def print_err(*args):
     sys.stderr.write(' '.join(map(str,args)) + '\n')
+
+
+class TestProjectApproveMethods(TestCase):
+    
+
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+        
+        #Add milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Completed",
+                                        category = 'Core', order=2, 
+                                             report=False)
+        self.milestone3 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)
+
+        
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              Owner=self.user)
+
+
+    def test_approve_unapprove_project(self):
+
+        #verify that the project milestone for this project is null
+        #before we call the method
+        milestone = ProjectMilestones.objects.get(
+                             project=self.project1, 
+                             milestone__label='Approved')
+        self.assertIsNone(milestone.completed)
+
+        #call self.project1.approve()
+        self.project1.approve()
+
+        #assert that the value in completed is not null and that it is
+        #close to the current time
+        now = datetime.datetime.now(pytz.utc)
+        milestone = ProjectMilestones.objects.get(
+                             project=self.project1, 
+                             milestone__label='Approved')
+        completed = milestone.completed
+        self.assertIsNotNone(completed)
+        self.assertTrue((completed - now)<datetime.timedelta(seconds=1))
+
+
+        #call self.project1.unapprove()
+        self.project1.unapprove()
+        #assert that the value in completed is null
+        milestone = ProjectMilestones.objects.get(
+                             project=self.project1, 
+                             milestone__label='Approved')
+        completed = milestone.completed
+        self.assertIsNone(completed)
+
+
+
+    def test_signoff_project(self):
+
+        #verify that the 'Sign off' project milestone for this project is null
+        #before we call the method
+
+        #call self.project1.signoff()
+
+        #assert that the value in completed is not null and that it is
+        #close to the current time
+
+        milestone = ProjectMilestones.objects.get(
+                             project=self.project1, 
+                             milestone__label='Sign off')
+        self.assertIsNone(milestone.completed)
+
+        #call self.project1.approve()
+        self.project1.signoff()
+
+        #assert that the value in completed is not null and that it is
+        #close to the current time
+        now = datetime.datetime.now(pytz.utc)
+        milestone = ProjectMilestones.objects.get(
+                             project=self.project1, 
+                             milestone__label='Sign off')
+        completed = milestone.completed
+        self.assertIsNotNone(completed)
+        self.assertTrue((completed - now)<datetime.timedelta(seconds=1))
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.milestone1.delete()
+        self.milestone2.delete()
+        self.milestone3.delete()
+        self.user.delete()
+
+
+
+
 
 class TestProjectModel(TestCase):
 
@@ -45,47 +146,47 @@ class TestProjectModel(TestCase):
                                               Owner=self.user)
 
 
-    def test_resetMilestone(self):
-        '''reset milestones is a method that is used to clear all of the
-        milestones associated with a project.  used when we create new
-        projects by copying old ones.  we don't want to include the old
-        milestones in the new project
-
-        THIS IS OBSOLETE!!
-        '''
-        
-        project = ProjectFactory.create(Approved=False)
-
-        #the default for all of these milestones should be False
-        self.assertEqual(project.Approved, False)
-        self.assertEqual(project.Conducted, False)
-        self.assertEqual(project.DataScrubbed, False)                
-        self.assertEqual(project.DataMerged, False)
-        self.assertEqual(project.SignOff, False)                
-
-        #reset them all to true
-        project.Approved = True
-        project.Conducted = True
-        project.DataScrubbed = True
-        project.DataMerged = True
-        project.SignOff = True
-
-        #verity that they have all been changed
-        self.assertEqual(project.Approved, True)
-        self.assertEqual(project.Conducted, True)
-        self.assertEqual(project.DataScrubbed, True)                
-        self.assertEqual(project.DataMerged, True)
-        self.assertEqual(project.SignOff, True)                
-
-        #run our reset method
-        project.resetMilestones()
-
-        #verify that each of the milestones are infact False
-        self.assertEqual(project.Approved, False)
-        self.assertEqual(project.Conducted, False)
-        self.assertEqual(project.DataScrubbed, False)                
-        self.assertEqual(project.DataMerged, False)
-        self.assertEqual(project.SignOff, False)                
+##    def test_resetMilestone(self):
+##        '''reset milestones is a method that is used to clear all of the
+##        milestones associated with a project.  used when we create new
+##        projects by copying old ones.  we don't want to include the old
+##        milestones in the new project
+##
+##        THIS IS OBSOLETE!!
+##        '''
+##        
+##        project = ProjectFactory.create(Approved=False)
+##
+##        #the default for all of these milestones should be False
+##        self.assertEqual(project.Approved, False)
+##        self.assertEqual(project.Conducted, False)
+##        self.assertEqual(project.DataScrubbed, False)                
+##        self.assertEqual(project.DataMerged, False)
+##        self.assertEqual(project.SignOff, False)                
+##
+##        #reset them all to true
+##        project.Approved = True
+##        project.Conducted = True
+##        project.DataScrubbed = True
+##        project.DataMerged = True
+##        project.SignOff = True
+##
+##        #verity that they have all been changed
+##        self.assertEqual(project.Approved, True)
+##        self.assertEqual(project.Conducted, True)
+##        self.assertEqual(project.DataScrubbed, True)                
+##        self.assertEqual(project.DataMerged, True)
+##        self.assertEqual(project.SignOff, True)                
+##
+##        #run our reset method
+##        project.reset_milestones()
+##
+##        #verify that each of the milestones are infact False
+##        self.assertEqual(project.Approved, False)
+##        self.assertEqual(project.Conducted, False)
+##        self.assertEqual(project.DataScrubbed, False)                
+##        self.assertEqual(project.DataMerged, False)
+##        self.assertEqual(project.SignOff, False)                
 
 
     def test_project_unicode(self):
@@ -116,9 +217,9 @@ class TestProjectModel(TestCase):
         '''verify that project suffix is the last three elements of
         the project code'''
 
-        self.assertEqual(len(self.project1.ProjectSuffix()), 3)                
+        self.assertEqual(len(self.project1.project_suffix()), 3)                
         should_be = self.project1.PRJ_CD[-3:]
-        self.assertEqual(self.project1.ProjectSuffix(), should_be)                
+        self.assertEqual(self.project1.project_suffix(), should_be)                
 
 
     def test_project_save(self):
@@ -545,10 +646,10 @@ class TestModelBookmarks(TestCase):
 
         self.assertEqual(bookmark.get_project_code(), self.project.PRJ_CD)
         self.assertEqual(bookmark.get_project_url(), self.project.get_absolute_url())
-        self.assertEqual(bookmark.YEAR(), self.project.YEAR)
+        self.assertEqual(bookmark.year(), self.project.YEAR)
         self.assertEqual(str(bookmark), str(self.project))
         self.assertEqual(bookmark.name(), self.project.PRJ_NM)
-        self.assertEqual(bookmark.ProjectType(), self.project.ProjectType)
+        self.assertEqual(bookmark.project_type(), self.project.ProjectType)
 
     def tearDown(self):
         self.project.delete()
@@ -622,9 +723,6 @@ class TestProjectTagging(TestCase):
         self.assertEqual(projects.count(),1)
         self.assertEqual(projects[0].PRJ_CD,self.project1.PRJ_CD)
 
-
-
-
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
@@ -648,7 +746,7 @@ class TestEmployeeFunctions(TestCase):
         self.user5 = UserFactory(first_name = "Kenny", last_name="Banya",
                                 username='kbanya')
 
-        self.user6 = UserFactory(first_name = "Ruteger", last_name="Newman",
+        self.user6 = UserFactory(first_name = "Ruteger", last_name="Newm",
                                 username='rnewman')
 
 
@@ -757,3 +855,85 @@ class TestEmployeeFunctions(TestCase):
 
         
         
+class TestApprovedCompletedModelManagers(TestCase):
+    
+
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+        
+        #Add milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Completed",
+                                        category = 'Core', order=2, 
+                                             report=False)
+        self.milestone3 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)
+
+        
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              Owner=self.user)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", 
+                                              Owner=self.user) 
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", 
+                                              Owner=self.user)
+        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", 
+                                              Owner=self.user) 
+        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", 
+                                              Owner=self.user)
+        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", 
+                                              Owner=self.user)
+
+        
+    def test_ApprovedProjects(self):
+        # project 1-4 willb be approved
+        self.project1.approve()
+        self.project2.approve()
+        self.project3.approve()
+        self.project4.approve()
+
+        # project 1 and 2 will be signed off
+        self.project1.signoff()
+        self.project2.signoff()
+
+        #assert approved projects will get 2 projects and that their
+        #project codes are the same as self.project3 and self.project4
+        approved = Project.objects.approved()
+        self.assertEqual(approved.count(),2)
+        shouldbe = [self.project3.PRJ_CD, self.project4.PRJ_CD]
+        self.assertQuerysetEqual(approved, shouldbe, lambda a:a.PRJ_CD)
+
+        #assert completed projects will get 2 projects and that their
+        #project codes are the same as self.project1 and self.project2
+        completed = Project.objects.completed()
+        self.assertEqual(completed.count(),2)
+        shouldbe = [self.project1.PRJ_CD, self.project2.PRJ_CD]
+        self.assertQuerysetEqual(completed, shouldbe, lambda a:a.PRJ_CD)
+
+
+        # projects 5 and 6 have been created but have not been
+        # approved or completed, they should be returned by Project.objects.submitted()
+        submitted = Project.objects.submitted()
+        self.assertEqual(submitted.count(),2)
+        shouldbe = [self.project5.PRJ_CD, self.project6.PRJ_CD]
+        self.assertQuerysetEqual(submitted, shouldbe, lambda a:a.PRJ_CD)
+
+
+
+            
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()        
+        self.project4.delete()        
+        self.project5.delete()        
+        self.project6.delete()        
+        self.milestone1.delete()
+        self.milestone2.delete()
+        self.milestone3.delete()
+        self.user.delete()

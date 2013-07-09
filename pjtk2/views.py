@@ -1,16 +1,18 @@
 
+# E1101 - Class 'whatever' has no 'something' member
+# E1120 - No value passed for parameter 'cls' in function call
+#pylint: disable=E1101, E1120
+
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.contrib.auth.decorators import (login_required, permission_required,
-                                            user_passes_test)
-from django.core.context_processors import csrf
+from django.contrib.auth.decorators import (login_required, user_passes_test)
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 from django.core.servers.basehttp import FileWrapper
-from django.forms.models import modelformset_factory, inlineformset_factory
+from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
@@ -19,8 +21,7 @@ from django.utils.decorators import method_decorator
 
 from pjtk2.filters import ProjectFilter
 from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
-                          TL_ProjType, TL_Database, Bookmark, ProjectSisters, 
-                          Family, employee)
+                           Bookmark, employee)
 
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm, 
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,  
@@ -29,9 +30,7 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm,
 import datetime
 import mimetypes
 import os
-import pdb
-
-#from functions import *
+#import pdb
 
 def get_supervisors(employee):
     '''Given an employee object, return a list of supervisors.  the first
@@ -41,25 +40,28 @@ def get_supervisors(employee):
     else:
         return [employee]
 
+
 def get_minions(employee):
     '''Given an employee objects, return a list of employees under his/her
     supervision.  The first element of list will be the intial
     employee.
     '''
-    ret=[employee]
+    ret = [employee]
     for minion in employee.employee_set.all():
         #ret.append(get_minions(minion))        
         ret.extend(get_minions(minion))
     return ret
 
 
-
 def group_required(*group_names):
     """Requires user membership in at least one of the groups passed in."""
     #from:http://djangosnippets.org/snippets/1703/
-    def in_groups(u):
-        if u.is_authenticated():
-            if bool(u.groups.filter(name__in=group_names)) | u.is_superuser:
+    def in_groups(user):
+        '''returns true if user is in one of the groups in group_names or is a
+        superuser'''
+        if user.is_authenticated():
+            if (bool(user.groups.filter(name__in=group_names)) 
+                    | user.is_superuser):
                 return True
         return False
     return user_passes_test(in_groups)
@@ -74,21 +76,21 @@ def is_manager(user):
         manager = False
     return(manager)
 
-def canEdit(user, project):
+def can_edit(user, project):
     '''Another helper function to see if this user should be allowed
     to edit this project.  In order to edit the use must be either the
     project Owner, a manager or a superuser.'''
-    canEdit = ((user.groups.filter(name='manager').count()>0) or
+    canedit = ((user.groups.filter(name='manager').count()>0) or
                  (user.is_superuser) or
                  (user.username == project.Owner.username))
-    if canEdit:
-        canEdit = True
+    if canedit:
+        canedit = True
     else:
-        canEdit = False
-    return(canEdit)
+        canedit = False
+    return(canedit)
 
 
-def get_assignments_with_paths(slug, Core=True):
+def get_assignments_with_paths(slug, core=True):
     '''function that will return a list of dictionaries for each of the
     reporting requirements.  each dictionary will indicate what the
     report is, whether or not it has been requested for this
@@ -97,7 +99,7 @@ def get_assignments_with_paths(slug, Core=True):
 
     project = Project.objects.get(slug=slug)
 
-    if Core:
+    if core:
         assignments = project.get_core_assignments()
     else:
         assignments = project.get_custom_assignments()
@@ -105,7 +107,8 @@ def get_assignments_with_paths(slug, Core=True):
     assign_dicts = []
     for assignment in assignments:
         try:
-            filepath = Report.objects.get(projectreport=assignment, current=True)
+            filepath = Report.objects.get(projectreport=assignment, 
+                                          current=True)
         except Report.DoesNotExist:
             filepath = None
         required = assignment.required
@@ -123,6 +126,7 @@ def get_assignments_with_paths(slug, Core=True):
 #Generic Views
 
 class HomePageView(TemplateView):
+    '''The page that will render first.'''
     template_name = "index.html"
 
 
@@ -167,9 +171,9 @@ class ListFilteredMixin(object):
         if getattr(self, 'constructed_filter', None):
             return self.constructed_filter
         else:
-            f = self.get_filter_set()(**self.get_filter_set_kwargs())
-            self.constructed_filter = f
-            return f
+            filter = self.get_filter_set()(**self.get_filter_set_kwargs())
+            self.constructed_filter = filter
+            return filter
 
     def get_queryset(self):
         return self.get_constructed_filter().qs
@@ -181,20 +185,21 @@ class ListFilteredMixin(object):
 
 class ProjectList(ListFilteredMixin, ListView):
     """ A list view that can be filtered by django-filter """
-    
     # modified to accept tag argument 
     queryset = Project.objects.all()
     filter_set = ProjectFilter
     template_name = "ProjectList.html"
 
-
     def get_context_data(self, **kwargs):
+        '''get any additional context information that has been passed in with
+        the request.'''
         context = super(ProjectList, self).get_context_data(**kwargs)
         context['tag'] = self.tag
         return context
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
+        '''Override the dispatch method'''
         return super(ProjectList, self).dispatch(*args, **kwargs)
 
 project_list = ProjectList.as_view()
@@ -204,6 +209,8 @@ taggedprojects = ProjectList.as_view()
 
 
 class ApprovedProjectsList(ListView):
+    '''A CBV that will render a list of currently approved project'''
+
     queryset = Project.objects.filter(Approved = True)
     template_name = "ApprovedProjectList.html"
 
@@ -217,12 +224,12 @@ class ApprovedProjectsList(ListView):
     def dispatch(self, *args, **kwargs):
         return super(ApprovedProjectsList, self).dispatch(*args, **kwargs)
 
-
 approved_projects_list = ApprovedProjectsList.as_view()
 
 
 
 def logout_view(request):
+    '''log the user out and redirect to the login page.'''
     logout(request)
     return HttpResponseRedirect(reverse('login'))
 
@@ -230,7 +237,7 @@ def logout_view(request):
 # My application Views
 
 @login_required
-def ProjectDetail(request, slug):
+def project_detail(request, slug):
     '''View project details.'''
 
     project = get_object_or_404(Project, slug=slug)
@@ -238,17 +245,17 @@ def ProjectDetail(request, slug):
     #reports = project.get_milestone_dicts()
 
     milestones = project.get_milestones()
-    Core = get_assignments_with_paths(slug)
-    Custom = get_assignments_with_paths(slug, Core=False)
+    core = get_assignments_with_paths(slug)
+    custom = get_assignments_with_paths(slug, core=False)
 
     user = User.objects.get(username__exact=request.user)
-    edit = canEdit(user, project)
+    edit = can_edit(user, project)
     manager = is_manager(user)
 
     return render_to_response('projectdetail.html',
                               {'milestones':milestones,
-                               'Core':Core,
-                               'Custom':Custom,
+                               'Core':core,
+                               'Custom':custom,
                                'project':project,
                                'edit':edit,
                                'manager':manager
@@ -287,41 +294,36 @@ def update_milestones(form_ms, milestones):
     ProjectMilestones.objects.filter(id__in=added_ms).update(completed=now)
 
     #these ones were done, but now they aren't
-    removed_ms =old_completed.difference(form_ms)
+    removed_ms = old_completed.difference(form_ms)
     ProjectMilestones.objects.filter(id__in=removed_ms).update(completed=None)
 
     
 
-def update_tags(form_tags, tags):
-    '''a helper function to update tags assocaited with a project.
-    Tags that are in form_tags but have not associated with this
-    project will be added, tags associated with this project that
-    are not in form_tags will be removed.
-
-    tags - queryset of tags associated with a project generated by \n
-        proj.get_tags()
-    forms_tags - list of proejctmilestone id numbers generated from
-        form.cleaned_data['tags']
-    '''
-    pass
-
-
-
 def edit_project(request, slug):
+    '''if we are editing an existing project, first make sure that this
+    user has priviledges to edit this project and if so, call
+    crud_project with the slug of the project and with action set to
+    Edit.  If not, redirectt them back to the details page for this
+    slug.
+    '''
 
     project = get_object_or_404(Project, slug=slug)
 
-    if canEdit(request.user, project)==False:
+    if can_edit(request.user, project)==False:
         return HttpResponseRedirect(project.get_absolute_url())
 
     return crud_project(request, slug, action='Edit')
 
 
 def copy_project(request, slug):
+    '''if we are copying an existing project call crud_project with the
+    slug of the original project and with action set to Copy'''
     return crud_project(request, slug, action='Copy')
 
 
 def new_project(request):
+    '''if this is a new project, call crud_project without a slug and
+    with action set to New'''
     return crud_project(request, slug=None, action='New')
 
 @login_required
@@ -340,30 +342,30 @@ def crud_project(request, slug, action='New'):
     user = User.objects.get(username__exact=request.user)
     manager = is_manager(user)
 
-    if action=='Copy':
+    if action == 'Copy':
         milestones = None
 
-    if action=='Edit':
+    if action == 'Edit':
         readonly = True
     else:
         readonly = False
 
     if request.method == 'POST': # If the form has been submitted...
-        if action=='Copy':
+        if action == 'Copy':
             instance = None
         form = ProjectForm(request.POST, instance=instance, 
                                milestones=milestones,
                                readonly=readonly, manager=manager)
         if form.is_valid():
             tags = form.cleaned_data['tags']
-            form_ms = form.cleaned_data.get('milestones',None)
+            form_ms = form.cleaned_data.get('milestones', None)
             form = form.save(commit=False)
-            if action=='Copy':
+            if action == 'Copy':
                 form.Owner = request.user
             form.save()
             form.tags.set(*tags)
             if form_ms:
-                update_milestones(form_ms=form_ms, milestones=milestones)                
+                update_milestones(form_ms=form_ms, milestones=milestones)
             proj = Project.objects.get(slug=form.slug)
             return HttpResponseRedirect(proj.get_absolute_url())
         else:
@@ -375,10 +377,6 @@ def crud_project(request, slug, action='New'):
     else:
         form = ProjectForm(instance=instance, readonly=readonly, 
                                manager=manager, milestones=milestones)
-
-        #if action == "Copy":
-            #make sure that project milestones are reset to false for new projects
-        #    instance.resetMilestones()
 
     return render_to_response('ProjectForm.html',
                               {'form':form, 
@@ -394,39 +392,45 @@ def approveprojects(request):
     '''create a list of projects, project names and an
     approved/unapproved checkbox widget.'''
 
-    if is_manager(request.user)==False:
+    if is_manager(request.user) == False:
         return HttpResponseRedirect(reverse('ApprovedProjectsList'))
 
-    ProjectFormSet = modelformset_factory(model=Project, form=ApproveProjectsForm, 
-                                          extra=0)
+    project_formset = modelformset_factory(model=Project, 
+                                           form=ApproveProjectsForm, 
+                                           extra=0)
     
     #TODO - test that signed off and unactive projects are not included.
     #TODO - test that projects in the future are included in this year
-    thisyears = Project.this_year.all().filter(SignOff=False)
-    lastyears = Project.last_year.all().filter(SignOff=False)
+    #thisyears = Project.this_year.all().filter(SignOff=False)
+    #lastyears = Project.last_year.all().filter(SignOff=False)
+    thisyears = Project.this_year.all()
+    lastyears = Project.last_year.all()
+
     year = datetime.datetime.now().year
 
     if thisyears.count()==0:
-        thisYearEmpty = True
+        this_year_empty = True
     else:
-        thisYearEmpty = False
+        this_year_empty = False
 
     if lastyears.count()==0:
-        lastYearEmpty = True
+        last_year_empty = True
     else:
-        lastYearEmpty = False
+        last_year_empty = False
 
     if request.method == 'POST':
-        if request.POST['form-type']==u"thisyear":
-            thisyearsformset = ProjectFormSet(request.POST, queryset = thisyears,
-                                      prefix = "thisyear")
-            lastyearsformset = ProjectFormSet(queryset = lastyears,
+        if request.POST['form-type'] == u"thisyear":
+            thisyearsformset = project_formset(request.POST, 
+                                               queryset = thisyears,
+                                               prefix = "thisyear")
+            lastyearsformset = project_formset(queryset = lastyears,
                                       prefix = "lastyear")
             
-        elif request.POST['form-type']==u"lastyear":
-            lastyearsformset = ProjectFormSet(request.POST, queryset = lastyears,
-                                      prefix = "lastyear")
-            thisyearsformset = ProjectFormSet(queryset = thisyears,
+        elif request.POST['form-type'] == u"lastyear":
+            lastyearsformset = project_formset(request.POST, 
+                                               queryset = lastyears,
+                                               prefix = "lastyear")
+            thisyearsformset = project_formset(queryset = thisyears,
                                       prefix = "thisyear")
         if thisyearsformset.is_valid():  
             thisyearsformset.save()
@@ -437,21 +441,21 @@ def approveprojects(request):
         else:
             return render_to_response('ApproveProjects.html',
                               {
-                               'year':year, 'thisYearEmpty':thisYearEmpty,
-                                'lastYearEmpty':lastYearEmpty,
+                               'year':year, 'thisYearEmpty':this_year_empty,
+                                'lastYearEmpty':last_year_empty,
                                'thisyearsformset': thisyearsformset,
                                'lastyearsformset': lastyearsformset},
                                context_instance=RequestContext(request))
     else:
-        thisyearsformset = ProjectFormSet(queryset = thisyears, 
+        thisyearsformset = project_formset(queryset = thisyears, 
                                           prefix = "thisyear")
-        lastyearsformset = ProjectFormSet(queryset = lastyears,
+        lastyearsformset = project_formset(queryset = lastyears,
                                           prefix = "lastyear")
 
     return render_to_response('ApproveProjects.html',
                               {
-                               'year':year, 'thisYearEmpty':thisYearEmpty,
-                                'lastYearEmpty':lastYearEmpty,
+                               'year':year, 'thisYearEmpty':this_year_empty,
+                                'lastYearEmpty':last_year_empty,
                                'thisyearsformset': thisyearsformset,
                                'lastyearsformset': lastyearsformset},
                                context_instance=RequestContext(request))
@@ -470,54 +474,57 @@ def report_milestones(request, slug):
     #reports = get_assignments(slug)
     reports = project.get_milestone_dicts()
 
-    if request.method=="POST":
-        NewReport = request.POST.get('NewReport', None)
-        NewMilestone = request.POST.get('NewMilestone', None)
-        if NewReport or NewMilestone:
-            if NewReport:
-                NewReport = NewReport.title()
+    if request.method == "POST":
+        new_report = request.POST.get('new_report', None)
+        new_milestone = request.POST.get('new_milestone', None)
+        if new_report or new_milestone:
+            if new_report:
+                new_report = new_report.title()
                 #verify that this reporting requirement doesn't already exist
                 # then add it to the reporting requirements
                 try:
-                    Milestone.objects.get_or_create(label=NewReport, report=True)
-                except Exception:
+                    Milestone.objects.get_or_create(label=new_report, 
+                                                    report=True)
+                except Milestone.DoesNotExist:
                     pass
             else:
-                NewMilestone = NewMilestone.title()
+                new_milestone = new_milestone.title()
                 #verify that this reporting requirement doesn't already exist
                 # then add it to the reporting requirements
                 try:
-                    Milestone.objects.get_or_create(label=NewMilestone, report=False)
-                except Exception:
+                    Milestone.objects.get_or_create(label=new_milestone, 
+                                                    report=False)
+                except Milestone.DoesNotExist:
                     pass
 
-                #now redirect back to the update reports form for this project
-            return HttpResponseRedirect(reverse('Reports', args=(project.slug,)))
+            #now redirect back to the update reports form for this project
+            return HttpResponseRedirect(reverse('Reports', 
+                                                args=(project.slug,)))
 
         else:
-            Milestones =  ReportsForm(request.POST, project=project, reports=reports,
-                                      what = 'Milestones')
-            Core =  ReportsForm(request.POST, project=project, reports=reports)
-            Custom = ReportsForm(request.POST, project=project, reports = reports,
-                                 what='Custom')
+            milestones =  ReportsForm(request.POST, project=project, 
+                                      reports=reports, what = 'Milestones')
+            core =  ReportsForm(request.POST, project=project, reports=reports)
+            custom = ReportsForm(request.POST, project=project, 
+                                 reports = reports, what='Custom')
 
-            if Core.is_valid() and Custom.is_valid() and Milestones.is_valid():
-                Core.save()
-                Custom.save()
-                Milestones.save()
+            if core.is_valid() and custom.is_valid() and milestones.is_valid():
+                core.save()
+                custom.save()
+                milestones.save()
 
                 return HttpResponseRedirect(project.get_absolute_url())
     else:
-        Milestones = ReportsForm(project=project, reports = reports, what='Milestones')
-        Core =  ReportsForm(project=project, reports = reports)
-        #Custom =  ReportsForm(project=project, reports = reports, Core=False)
-        Custom =  ReportsForm(project=project, reports = reports, what='Custom')
+        milestones = ReportsForm(project=project, reports = reports, 
+                                 what='Milestones')
+        core =  ReportsForm(project=project, reports = reports)
+        custom =  ReportsForm(project=project, reports = reports, what='Custom')
 
 
     return render_to_response('reportform.html',
-                              {'Milestones':Milestones,
-                               'Core':Core,
-                               'Custom':Custom,
+                              {'Milestones':milestones,
+                               'Core':core,
+                               'Custom':custom,
                                'project':project
                                },
                               context_instance=RequestContext(request)
@@ -525,7 +532,7 @@ def report_milestones(request, slug):
 
 
 @login_required
-def ReportUpload(request, slug):
+def report_upload(request, slug):
     '''This view will render a formset with filefields for each of the
     reports associated with this project.  It used a custom formset
     that has been extended to accept a user and a project - these are
@@ -535,28 +542,25 @@ def ReportUpload(request, slug):
 
     #get the core and custom reports associated with this project
     reports = get_assignments_with_paths(slug)
-    Custom =  get_assignments_with_paths(slug, Core=False)
-    if Custom:
-        [reports.append(x) for x in Custom]
+    custom =  get_assignments_with_paths(slug, core=False)
+    if custom:
+        for report in custom:
+            reports.append(report)
     
-    print "reports = %s" % reports
-
-
-    ReportFormSet = formset_factory(ReportUploadForm, 
+    report_formset = formset_factory(ReportUploadForm, 
                                     formset=ReportUploadFormSet, extra=0)
     
     if request.method == 'POST': 
-        formset = ReportFormSet(request.POST,  request.FILES, 
+        formset = report_formset(request.POST,  request.FILES, 
                                 initial = reports, 
                                 project = project,
                                 user = request.user)    
         if formset.is_valid(): 
             for form in formset:
                 form.save()
-                #form.save_m2m()
             return HttpResponseRedirect(project.get_absolute_url())
     else:
-        formset = ReportFormSet(initial = reports)
+        formset = report_formset(initial = reports)
     return render_to_response('UploadReports.html', {
                 'formset': formset,
                 'project': project,
@@ -569,7 +573,8 @@ def ReportUpload(request, slug):
 
 
 def serve_file(request, filename):
-    '''from:http://stackoverflow.com/questions/2464888/downloading-a-csv-file-in-django?rq=1
+    '''from:http://stackoverflow.com/questions/2464888/
+    downloading-a-csv-file-in-django?rq=1
 
     This function is my first attempt at a function used to
     serve/download files.  It works for basic text files, but seems to
@@ -584,7 +589,7 @@ def serve_file(request, filename):
     #resp = HttpResponse(data, mimetype='application/x-download')
     #resp = HttpResponse(data, mimetype=content_type)
 
-    data = FileWrapper(file(os.path.join(settings.MEDIA_ROOT,filename),'rb'))
+    data = FileWrapper(file(os.path.join(settings.MEDIA_ROOT, filename), 'rb'))
     response = HttpResponse(data, mimetype=content_type)
     filename = os.path.split(filename)[-1]
     response['Content-Disposition'] = 'attachment;filename=%s' % filename
@@ -597,26 +602,37 @@ def serve_file(request, filename):
 
 @login_required
 def my_projects(request):
-    '''gather all of the things a user needs and render them on a single page.'''
+    '''gather all of the things a user needs and render them on a single
+    page.'''
     #TODO - write more tests to verify this works as expected.
     bookmarks = Bookmark.objects.filter(user__pk=request.user.id)
 
     user = User.objects.get(username__exact=request.user)
 
-    me = employee.objects.get(user=user)
-    employees = get_minions(me)
+    myself = employee.objects.get(user=user)
+    employees = get_minions(myself)
     employees = [x.user.username for x in employees]
 
-    boss=False
-    if len(employees)>1:
+    boss = False
+    if len(employees) > 1:
         boss = True
 
-    myprojects = Project.objects.filter(Owner__username__in=employees)
+    #myprojects = Project.objects.filter(Owner__username__in=employees)
     
-    complete = myprojects.filter(SignOff=True)
-    approved = myprojects.filter(Approved=True).filter(SignOff=False)
-    submitted = myprojects.filter(Approved=False)
-    
+    #complete = myprojects.filter(SignOff=True)
+    #approved = myprojects.filter(Approved=True).filter(SignOff=False)
+    #YOU ARE HERE!!!
+    #approved = myprojects.filter(Approved=True)
+    #submitted = myprojects.filter(Approved=False)
+
+    #I don't like how this takes three queries:
+    submitted = Project.objects.submitted().filter(
+        Owner__username__in=employees)
+    approved = Project.objects.approved().filter(
+        Owner__username__in=employees)
+    complete = Project.objects.completed().filter(
+        Owner__username__in=employees)
+
     template_name = "my_projects.html"
 
     return render_to_response(template_name,
@@ -633,21 +649,21 @@ def my_projects(request):
 #Bookmark views
 @login_required
 def bookmark_project(request, slug):
-    '''Modified from Practical Django Projects - pg 189.'''
-    #TODO - write test to verify this works as expected.
+    '''Modified from Practical Django Projects - pg 189.  Add an entry in
+    the bookmarks table for the given user and proejct.'''
     project = get_object_or_404(Project, slug=slug)
     try:
         Bookmark.objects.get(user__pk=request.user.id,
                              project__slug=project.slug)
     except Bookmark.DoesNotExist:
-        bookmark = Bookmark.objects.create(user=request.user,
+        Bookmark.objects.create(user=request.user,
                                            project=project)
     return HttpResponseRedirect(project.get_absolute_url())
 
 
 @login_required    
 def unbookmark_project(request, slug):
-    #TODO - write test to verify this works as expected.
+    '''A function to remove a bookmark for a particular user and project'''
     project = get_object_or_404(Project, slug=slug)
     if request.method == 'POST':
         Bookmark.objects.filter(user__pk=request.user.id,
@@ -667,9 +683,9 @@ def get_sisters_dict(slug):
     by this function are used to populate the sister project formset'''
     
     project = get_object_or_404(Project, slug=slug)
-    initial=[]
+    initial = []
     
-    family = project.get_family()
+    #family = project.get_family()
     sisters = project.get_sisters()
     candidates = project.get_sister_candidates()
         
@@ -698,17 +714,18 @@ def sisterprojects(request, slug):
     initial = get_sisters_dict(slug)
     empty = True if len(initial)==0 else False
         
-    SisterFormSet = formset_factory(SisterProjectsForm, extra=0)
+    sister_formset = formset_factory(SisterProjectsForm, extra=0)
 
     if request.method == 'POST': 
-        formset = SisterFormSet(request.POST, request.FILES, initial=initial)
+        formset = sister_formset(request.POST, request.FILES, initial=initial)
         if formset.is_valid():
             #see if any checkboxes have changed
             cleandata = [x.cleaned_data['sister'] for x in formset]
             init = [x.initial['sister'] for x in formset]            
             #if cleandata==init, there is nothing to do
             if cleandata != init:                    
-                #if all cleandata==False then remove this project from this family
+                #if all cleandata==False then remove this project from this 
+                #family
                 if all(x==False for x in cleandata):
                     project.disown()
                 else:
@@ -716,7 +733,7 @@ def sisterprojects(request, slug):
                         form.save(parentslug=slug)
             return HttpResponseRedirect(project.get_absolute_url())
     else:
-        formset = SisterFormSet(initial=initial)
+        formset = sister_formset(initial=initial)
     return render_to_response('SisterProjects.html', {
                 'formset': formset,
                 'project':project,

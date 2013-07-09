@@ -542,22 +542,22 @@ class ProjectForm(forms.ModelForm):
         else:
             return self.cleaned_data["Approved"]
 
-    def clean_SignOff(self):
-        '''if this wasn't a manager, reset the SignOff value to the
-        original (read only always returns false)'''
-        if not self.manager:
-            return self.instance.SignOff
-        else:
-            return self.cleaned_data["SignOff"]
-
-        
-    def clean_DataMerged(self):
-        '''if this wasn't a manager, reset the DataMerged value to the
-        original (read only always returns false)'''
-        if not self.manager:
-            return self.instance.DataMerged
-        else:
-            return self.cleaned_data["DataMerged"]
+    #def clean_SignOff(self):
+    #    '''if this wasn't a manager, reset the SignOff value to the
+    #    original (read only always returns false)'''
+    #    if not self.manager:
+    #        return self.instance.SignOff
+    #    else:
+    #        return self.cleaned_data["SignOff"]
+    #
+    #    
+    #def clean_DataMerged(self):
+    #    '''if this wasn't a manager, reset the DataMerged value to the
+    #    original (read only always returns false)'''
+    #    if not self.manager:
+    #        return self.instance.DataMerged
+    #    else:
+    #        return self.cleaned_data["DataMerged"]
         
             
     def clean_PRJ_CD(self):
