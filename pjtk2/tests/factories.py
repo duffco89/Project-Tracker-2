@@ -79,7 +79,7 @@ class ProjectFactory(factory.Factory):
     FACTORY_FOR = Project
     PRJ_CD = "LHA_IA12_123"
     PRJ_NM = "Fake Project"
-    PRJ_LDR = "Bob Sakamano"
+    prj_ldr = "Bob Sakamano"
     comment = "This is a fake project"
     project_type = factory.SubFactory(ProjTypeFactory)
     master_database = factory.SubFactory(DatabaseFactory)

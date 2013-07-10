@@ -695,13 +695,13 @@ def get_sisters_dict(slug):
         for proj in sisters:
             initial.append(dict(sister=True, PRJ_CD = proj.PRJ_CD, 
                                 slug=proj.slug, PRJ_NM = proj.PRJ_NM, 
-                                PRJ_LDR = proj.PRJ_LDR,
+                                prj_ldr = proj.prj_ldr,
                                 url=proj.get_absolute_url()))
     if candidates:
         for proj in candidates:
             initial.append(dict(sister=False, PRJ_CD = proj.PRJ_CD, 
                                 slug=proj.slug, PRJ_NM = proj.PRJ_NM, 
-                                PRJ_LDR = proj.PRJ_LDR,
+                                prj_ldr = proj.prj_ldr,
                                 url=proj.get_absolute_url()))
     return initial
 

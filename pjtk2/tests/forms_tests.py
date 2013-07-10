@@ -29,7 +29,7 @@ class TestApproveProjectForm(TestCase):
                                              category = 'Core', order=1, 
                                              report=False)
         self.proj = ProjectFactory.create(PRJ_CD="LHA_IA12_123",
-                                          PRJ_LDR = "Homer Simpson",
+                                          prj_ldr = "Homer Simpson",
                                           PRJ_NM = "Homer's Odyssey")
         
     def test_ApproveProjectsForm(self):
@@ -38,7 +38,7 @@ class TestApproveProjectForm(TestCase):
             Approved = self.proj.is_approved(),
             PRJ_CD = self.proj.PRJ_CD,
             PRJ_NM = self.proj.PRJ_NM,
-            PRJ_LDR = self.proj.PRJ_LDR,
+            prj_ldr = self.proj.prj_ldr,
         )
 
         form = ApproveProjectsForm(data=initial, instance=self.proj)
@@ -47,7 +47,7 @@ class TestApproveProjectForm(TestCase):
         self.assertEqual(form.is_valid(), True)
         self.assertEqual(form.cleaned_data['PRJ_CD'],self.proj.PRJ_CD)
         self.assertEqual(form.cleaned_data['PRJ_NM'],self.proj.PRJ_NM)
-        self.assertEqual(form.cleaned_data['PRJ_LDR'],self.proj.PRJ_LDR)
+        self.assertEqual(form.cleaned_data['prj_ldr'],self.proj.prj_ldr)
 
 
     def test_ApproveProjectsForm(self):
@@ -58,7 +58,7 @@ class TestApproveProjectForm(TestCase):
             Approved = False,
             PRJ_CD = 'ZZZ_ZZ12_ZZZ',
             PRJ_NM = 'The Wrong Project',
-            PRJ_LDR = 'George Costanza'
+            prj_ldr = 'George Costanza'
         )
 
         form = ApproveProjectsForm(data=initial, instance=self.proj)
@@ -67,13 +67,13 @@ class TestApproveProjectForm(TestCase):
         self.assertEqual(form.is_valid(), True)
         self.assertEqual(form.cleaned_data['PRJ_CD'],self.proj.PRJ_CD)
         self.assertEqual(form.cleaned_data['PRJ_NM'],self.proj.PRJ_NM)
-        self.assertEqual(form.cleaned_data['PRJ_LDR'],self.proj.PRJ_LDR)
+        self.assertEqual(form.cleaned_data['prj_ldr'],self.proj.prj_ldr)
 
         #everything but approved should be over-ridden by the instance
         #self.assertEqual(form.cleaned_data['Approved'],initial['Approved'])
         self.assertNotEqual(form.cleaned_data['PRJ_CD'],initial['PRJ_CD'])
         self.assertNotEqual(form.cleaned_data['PRJ_NM'],initial['PRJ_NM'])
-        self.assertNotEqual(form.cleaned_data['PRJ_LDR'],initial['PRJ_LDR'])
+        self.assertNotEqual(form.cleaned_data['prj_ldr'],initial['prj_ldr'])
 
 
     def tearDown(self):
@@ -92,7 +92,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -124,7 +124,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -146,7 +146,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_IA12_123",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -173,7 +173,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_xxx12_103",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -208,7 +208,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_12_103",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -234,7 +234,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_IA02_103",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -255,7 +255,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("August 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -276,7 +276,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("March 15, 2011", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -295,7 +295,7 @@ class TestProjectForm(TestCase):
         proj = dict(
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
-            PRJ_LDR = "Bob Sakamano",
+            prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
             comment = "This is a fake project",
@@ -339,13 +339,13 @@ class TestSelectSistersForm(TestCase):
         initial = dict(
             PRJ_CD = 'ZZZ_ZZ12_ZZZ',
             PRJ_NM = 'The Wrong Project',
-            PRJ_LDR = 'George Costanza'
+            prj_ldr = 'George Costanza'
         )
 
         data = dict(
             PRJ_CD = 'YYY_YY12_YYY',
             PRJ_NM = 'The Second Project',
-            PRJ_LDR = 'Jerry Sienfield'
+            prj_ldr = 'Jerry Sienfield'
         )
 
         form = SisterProjectsForm(initial=initial, data=data)#, slug=self.project1.slug)
@@ -355,7 +355,7 @@ class TestSelectSistersForm(TestCase):
         #(they are actually null in the real form - since we used read-only widgets).
         self.assertEqual(form.cleaned_data['PRJ_CD'],initial['PRJ_CD'])
         self.assertEqual(form.cleaned_data['PRJ_NM'],initial['PRJ_NM'])
-        self.assertEqual(form.cleaned_data['PRJ_LDR'],initial['PRJ_LDR'])
+        self.assertEqual(form.cleaned_data['prj_ldr'],initial['prj_ldr'])
 
 
 

@@ -172,7 +172,7 @@ class Project(models.Model):
     PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, 
                               blank=False)
     PRJ_NM = models.CharField("Proejct Name", max_length=50, blank=False)
-    PRJ_LDR = models.CharField("Project Lead", max_length=40, blank=False)
+    prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
     comment = models.TextField(blank=False, 
                                help_text="General project description.")
     help_str = "Potential risks associated with not running project."
@@ -532,7 +532,7 @@ class Project(models.Model):
 ##          # all supervisors
 ##          try:
 ##              #try and send messages starting at project lead - ideal
-##              prjLead = proj.PRJ_LDR
+##              prjLead = proj.prj_ldr
 ##              prjLead = Employee.objects.get(user__username=prjLead)
 ##              users = get_supervisors(prjLead)
 ##          except:
@@ -650,7 +650,7 @@ class Bookmark(models.Model):
 
     def prj_ldr(self):
         '''Use the project leader for the bookmark too.'''
-        return self.project.PRJ_LDR
+        return self.project.prj_ldr
 
     def year(self):
         '''Use the project year for the bookmark too.'''

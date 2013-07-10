@@ -126,7 +126,7 @@ class ApproveProjectsForm(forms.ModelForm):
         required =False,
     )
       
-    PRJ_LDR = forms.CharField(
+    prj_ldr = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Leader",
         max_length = 80,
@@ -136,7 +136,7 @@ class ApproveProjectsForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ('PRJ_CD', 'PRJ_NM', 'PRJ_LDR') 
+        fields = ('PRJ_CD', 'PRJ_NM', 'prj_ldr') 
 
     def __init__(self, *args, **kwargs):
         super(ApproveProjectsForm, self).__init__(*args, **kwargs)
@@ -158,7 +158,7 @@ class ApproveProjectsForm(forms.ModelForm):
         ,})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['Approved','PRJ_CD', 'PRJ_NM', 'PRJ_LDR']
+        self.fields.keyOrder = ['Approved','PRJ_CD', 'PRJ_NM', 'prj_ldr']
 
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
@@ -168,9 +168,9 @@ class ApproveProjectsForm(forms.ModelForm):
         '''return the original value of PRJ_NM'''
         return self.instance.PRJ_NM
 
-    def clean_PRJ_LDR(self):
-        '''return the original value of PRJ_LDR'''
-        return self.instance.PRJ_LDR
+    def clean_prj_ldr(self):
+        '''return the original value of prj_ldr'''
+        return self.instance.prj_ldr
         
 
     def save(self, commit=True):
@@ -419,7 +419,7 @@ class ProjectForm(forms.ModelForm):
         required = True,
     )
 
-    PRJ_LDR = forms.CharField(
+    prj_ldr = forms.CharField(
         label = "Project Leader:",
         required = True,
     )
@@ -479,7 +479,7 @@ class ProjectForm(forms.ModelForm):
     
     class Meta:
         model = Project
-        fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "prj_date0", "prj_date1", 
+        fields = ("PRJ_NM", "prj_ldr", "PRJ_CD", "prj_date0", "prj_date1", 
                   "risk", 'project_type', "master_database", "lake", "comment", 
                   "dba", "tags")
         
@@ -501,7 +501,7 @@ class ProjectForm(forms.ModelForm):
                 'Project Elements',
                 'PRJ_NM',                
                 'PRJ_CD',
-                'PRJ_LDR',                
+                'prj_ldr',                
                 'comment',
                 'risk',
                 Field('prj_date0', datadatepicker='datepicker'),                
@@ -636,7 +636,7 @@ class SisterProjectsForm(forms.Form):
     )
     
 
-    PRJ_LDR = forms.CharField(
+    prj_ldr = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Leader",
         max_length = 80,
@@ -662,7 +662,7 @@ class SisterProjectsForm(forms.Form):
         ,})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['sister','PRJ_CD', 'PRJ_NM', 'PRJ_LDR', 'slug']
+        self.fields.keyOrder = ['sister','PRJ_CD', 'PRJ_NM', 'prj_ldr', 'slug']
 
 
     def clean_PRJ_CD(self):
@@ -673,9 +673,9 @@ class SisterProjectsForm(forms.Form):
         '''return the original value of PRJ_NM'''
         return self.initial['PRJ_NM']
         
-    def clean_PRJ_LDR(self):
-        '''return the original value of PRJ_LDR'''
-        return self.initial['PRJ_LDR']
+    def clean_prj_ldr(self):
+        '''return the original value of prj_ldr'''
+        return self.initial['prj_ldr']
 
     def save(self, *args, **kwargs):
         #family = kwargs.pop('family', None)

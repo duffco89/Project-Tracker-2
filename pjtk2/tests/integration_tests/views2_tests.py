@@ -548,16 +548,16 @@ class MyProjectViewTestCase(WebTest):
 
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
-                                              PRJ_LDR=self.user,
+                                              prj_ldr=self.user,
                                               owner=self.user,
                                               project_type = self.ProjType)
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
-                                              PRJ_LDR=self.user,
+                                              prj_ldr=self.user,
                                               owner=self.user,
                                               project_type = self.ProjType)
         #this one is run by mr. burns
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
-                                              PRJ_LDR=self.user2,
+                                              prj_ldr=self.user2,
                                               owner=self.user2,
                                               project_type = self.ProjType)
 
@@ -985,7 +985,7 @@ class TestCanCopyProject(WebTest):
                                        )
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              PRJ_LDR=self.user1.first_name,
+                                              prj_ldr=self.user1.first_name,
                                               owner=self.user1)
 
 
@@ -997,7 +997,7 @@ class TestCanCopyProject(WebTest):
         #we want to make sure that none of the attributes of proejct1
         #are changed by making a copy of it
         old_PRJ_CD = self.project1.PRJ_CD
-        old_PRJ_LDR = self.project1.PRJ_LDR
+        old_prj_ldr = self.project1.prj_ldr
         old_PRJ_NM = self.project1.PRJ_NM
         old_owner = self.project1.owner
         old_slug = self.project1.slug
@@ -1016,7 +1016,7 @@ class TestCanCopyProject(WebTest):
 
         #He needs to fill in a number of the important fields:
         form['PRJ_CD'] = new_PRJ_CD
-        form['PRJ_LDR'] = self.user2.first_name
+        form['prj_ldr'] = self.user2.first_name
         form['PRJ_NM'] = new_PRJ_NM
         #make sure that the project dates match the project code and
         #that date0 happens before date1
@@ -1036,7 +1036,7 @@ class TestCanCopyProject(WebTest):
         #self.assertEqual(project.PRJ_CD, new_PRJ_CD)
         self.assertEqual(project.slug, slugify(new_PRJ_CD))
         self.assertEqual(project.PRJ_NM, new_PRJ_NM)
-        self.assertEqual(project.PRJ_LDR, self.user2.first_name)
+        self.assertEqual(project.prj_ldr, self.user2.first_name)
         self.assertEqual(project.owner, self.user2)
         self.assertEqual(project.year,'2013')
 
@@ -1045,7 +1045,7 @@ class TestCanCopyProject(WebTest):
         project = Project.objects.get(PRJ_CD=old_PRJ_CD)
         self.assertEqual(project.slug, slugify(old_PRJ_CD))
         self.assertEqual(project.PRJ_NM, old_PRJ_NM)
-        self.assertEqual(project.PRJ_LDR,old_PRJ_LDR)
+        self.assertEqual(project.prj_ldr,old_prj_ldr)
         self.assertEqual(project.owner, old_owner)
         self.assertEqual(project.year, str(old_year))
         

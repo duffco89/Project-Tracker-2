@@ -223,7 +223,7 @@ class ProjectDetailownerTestCase(TestCase):
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.PRJ_CD)
         self.assertContains(response, self.project.PRJ_NM)
-        self.assertContains(response, self.project.PRJ_LDR)
+        self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
 
@@ -275,7 +275,7 @@ class ProjectDetailJoeUserTestCase(TestCase):
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.PRJ_CD)
         self.assertContains(response, self.project.PRJ_NM)
-        self.assertContains(response, self.project.PRJ_LDR)
+        self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
 
@@ -333,7 +333,7 @@ class ProjectDetailManagerTestCase(TestCase):
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.PRJ_CD)
         self.assertContains(response, self.project.PRJ_NM)
-        self.assertContains(response, self.project.PRJ_LDR)
+        self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
 
@@ -387,7 +387,7 @@ class ApprovedProjectListUserTestCase(TestCase):
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
-            PRJ_LDR = self.user,
+            prj_ldr = self.user,
             owner = self.user)
         self.project2.approve()
         #self.project2.save()
@@ -454,7 +454,7 @@ class ApprovedProjectListManagerTestCase(TestCase):
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
-            PRJ_LDR = self.owner,
+            prj_ldr = self.owner,
             owner = self.owner)
         #self.project2.Approved = True
         self.project2.save()
