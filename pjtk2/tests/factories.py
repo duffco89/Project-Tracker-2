@@ -52,7 +52,7 @@ class LakeFactory(factory.Factory):
     lake = "Lake Huron"
 
 class EmployeeFactory(factory.Factory):
-    FACTORY_FOR = employee
+    FACTORY_FOR = Employee
     user = factory.SubFactory(UserFactory)
     position = 'worker bee'
     role = 'employee'
@@ -77,7 +77,6 @@ class FamilyFactory(factory.Factory):
 class ProjectFactory(factory.Factory):
     '''year and slug are built by the project save method'''
     FACTORY_FOR = Project
-    Approved = True
     PRJ_CD = "LHA_IA12_123"
     #slug = "lha_ia12_123"
     #slug = factory.LazyAttribute(lambda a:slugify(a.PRJ_CD))
@@ -86,9 +85,10 @@ class ProjectFactory(factory.Factory):
     #PRJ_DATE0 = datetime.strptime("January 15, 20%s" 
     #                                % PRJ_CD[6:8], "%B %d, %Y")
     #PRJ_DATE1 = datetime.strptime("May 15, 20%s" % PRJ_CD[6:8], "%B %d, %Y")
-    #YEAR = factory.LazyAttribute(lambda a:a.PRJ_DATE1.year)
+    #year = factory.LazyAttribute(lambda a:a.PRJ_DATE1.year)
+    #Approved = True
     COMMENT = "This is a fake project"
-    ProjectType = factory.SubFactory(ProjTypeFactory)
+    project_type = factory.SubFactory(ProjTypeFactory)
     master_database = factory.SubFactory(DatabaseFactory)
     Owner = factory.SubFactory(UserFactory)
     DBA = factory.SubFactory(DBA_Factory)

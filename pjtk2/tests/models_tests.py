@@ -79,8 +79,6 @@ class TestProjectApproveMethods(TestCase):
         #verify that the 'Sign off' project milestone for this project is null
         #before we call the method
 
-        #call self.project1.signoff()
-
         #assert that the value in completed is not null and that it is
         #close to the current time
 
@@ -90,6 +88,7 @@ class TestProjectApproveMethods(TestCase):
         self.assertIsNone(milestone.completed)
 
         #call self.project1.approve()
+        #call self.project1.signoff()
         self.project1.signoff()
 
         #assert that the value in completed is not null and that it is
@@ -233,7 +232,7 @@ class TestProjectModel(TestCase):
         should_be = prj_cd.lower()
         self.assertEqual(project.slug, should_be)
         should_be = "20" + prj_cd[6:8]                
-        self.assertEqual(str(project.YEAR), should_be)                
+        self.assertEqual(str(project.year), should_be)                
 
 
     def test_projects_this_year(self):
@@ -332,7 +331,8 @@ class TestMilestoneModel(TestCase):
             )
 
         #add the custom milestone to this project
-        ProjectMilestones.objects.create(project=self.project, milestone=self.customMS)
+        ProjectMilestones.objects.create(project=self.project, 
+                                         milestone=self.customMS)
         #verify that it appears in the milestone list for this project
         milestones = self.project.get_milestones()
         cnt = milestones.count()
@@ -471,13 +471,16 @@ class TestModelReports(TestCase):
         missing = self.project.get_outstanding()
         self.assertEqual(len(missing),1)
 
-        #make sure that the project report objects match the attributes of core2 and self.project
-        self.assertEqual(missing.values()[0]['required'], self.projectreport.required)
+        #make sure that the project report objects match the
+        #attributes of core2 and self.project
+        self.assertEqual(missing.values()[0]['required'], 
+                         self.projectreport.required)
         self.assertEqual(missing.values()[0]['milestone_id'], 
                          self.core2.id)
         self.assertEqual(missing.values()[0]['project_id'], self.project.id) 
 
-        #verify that core1 isnt in the missing list - it was completed during setup
+        #verify that core1 isnt in the missing list - it was completed
+        #during setup
         projids = [x['milestone_id'] for x in missing.values()] 
         self.assertNotIn(self.core1.id, projids)
 
@@ -499,18 +502,47 @@ class TestModelSisters(TestCase):
         self.ProjType = ProjTypeFactory()
         self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
         
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user,
-                                              ProjectType = self.ProjType)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", Owner=self.user, 
-                                              ProjectType = self.ProjType)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", Owner=self.user, 
-                                              ProjectType = self.ProjType)
-        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", Owner=self.user, 
-                                              ProjectType = self.ProjType, Approved=False)
-        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", Owner=self.user,
-                                              ProjectType = self.ProjType2)
-        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", Owner=self.user,
-                                              ProjectType = self.ProjType)        
+
+        #create milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)
+
+        #projects
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              Owner=self.user,
+                                              project_type = self.ProjType)
+
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", 
+                                              Owner=self.user, 
+                                              project_type = self.ProjType)
+
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", 
+                                              Owner=self.user, 
+                                              project_type = self.ProjType)
+
+        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", 
+                                              Owner=self.user, 
+                                              project_type = self.ProjType)
+
+        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", 
+                                              Owner=self.user,
+                                              project_type = self.ProjType2)
+
+        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", 
+                                              Owner=self.user,
+                                              project_type = self.ProjType) 
+
+        self.project1.approve()
+        self.project2.approve()
+        self.project3.approve()
+        #self.project4.approve()  - #4 Not Approved
+        self.project5.approve()
+        self.project6.approve()
+
 
     def test_sisters(self):
 
@@ -618,6 +650,8 @@ class TestModelSisters(TestCase):
         self.project6.delete()        
         self.ProjType.delete()
         self.ProjType2.delete()
+        self.milestone1.delete()
+        self.milestone2.delete()
         self.user.delete()
         
 
@@ -637,7 +671,7 @@ class TestModelBookmarks(TestCase):
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
         self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              ProjectType = self.ProjType)
+                                              project_type = self.ProjType)
 
     def TestBookmarkAttributes(self):
         '''Verify that bookmark methods retrun expected values'''
@@ -645,11 +679,12 @@ class TestModelBookmarks(TestCase):
                                            project=self.project)
 
         self.assertEqual(bookmark.get_project_code(), self.project.PRJ_CD)
-        self.assertEqual(bookmark.get_project_url(), self.project.get_absolute_url())
-        self.assertEqual(bookmark.year(), self.project.YEAR)
+        self.assertEqual(bookmark.get_project_url(), 
+                         self.project.get_absolute_url())
+        self.assertEqual(bookmark.year(), self.project.year)
         self.assertEqual(str(bookmark), str(self.project))
         self.assertEqual(bookmark.name(), self.project.PRJ_NM)
-        self.assertEqual(bookmark.project_type(), self.project.ProjectType)
+        self.assertEqual(bookmark.project_type(), self.project.project_type)
 
     def tearDown(self):
         self.project.delete()
@@ -917,14 +952,26 @@ class TestApprovedCompletedModelManagers(TestCase):
 
 
         # projects 5 and 6 have been created but have not been
-        # approved or completed, they should be returned by Project.objects.submitted()
+        # approved or completed, they should be returned by 
+        #Project.objects.submitted()
         submitted = Project.objects.submitted()
         self.assertEqual(submitted.count(),2)
         shouldbe = [self.project5.PRJ_CD, self.project6.PRJ_CD]
         self.assertQuerysetEqual(submitted, shouldbe, lambda a:a.PRJ_CD)
 
 
+    def test_is_approved_method(self):
+        # project 1-3 will be approved
+        self.project1.approve()
+        self.project2.approve()
+        self.project3.approve()
 
+        self.assertEqual(self.project1.is_approved(),True)
+        self.assertEqual(self.project2.is_approved(),True)
+        self.assertEqual(self.project3.is_approved(),True)
+        self.assertEqual(self.project4.is_approved(),False)
+        self.assertEqual(self.project5.is_approved(),False)
+        self.assertEqual(self.project6.is_approved(),False)
             
     def tearDown(self):
         self.project1.delete()

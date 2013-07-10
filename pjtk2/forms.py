@@ -1,16 +1,18 @@
-import pdb
+# E1101 - Class 'whatever' has no 'something' member
+# E1120 - No value passed for parameter 'cls' in function call
+#pylint: disable=E1101, E1120
+
+
 import re
 import hashlib
 
 from django import forms
 from django.contrib.auth.models import User
-from django.forms import ModelForm
 from django.forms.formsets import BaseFormSet
-from django.forms.models import BaseInlineFormSet
-from django.forms.widgets import (Select, CheckboxSelectMultiple, 
+from django.forms.widgets import (CheckboxSelectMultiple, 
                                   CheckboxInput, mark_safe)
 from django.utils.encoding import force_unicode
-from django.utils.html import escape, conditional_escape
+from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
 from itertools import chain
@@ -21,38 +23,36 @@ from crispy_forms.layout import Submit, Layout, Fieldset, Field, ButtonHolder
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report, 
                           ProjectType, Database, Lake)
-from pjtk2.models import ProjectSisters
 
-
-#from functions import *
 
 #==================================
 #  WIDGETS
 
-def make_custom_datefield(f, **kwargs):
+def make_custom_datefield(fld, **kwargs):
     '''from: http://strattonbrazil.blogspot.ca/2011/03/
                  using-jquery-uis-date-picker-on-all.html'''
     from django.db import models
-    formfield = f.formfield(**kwargs)
-    if isinstance(f, models.DateField):
+    formfield = fld.formfield(**kwargs)
+    if isinstance(fld, models.DateField):
         formfield.widget.format = '%m/%d/%Y'
         formfield.widget.attrs.update({'class':'datepicker'})
     return formfield
 
 
 class ReadOnlyText(forms.TextInput):
-  '''from:
-  http://stackoverflow.com/questions/1134085/rendering-a-value-as-text-instead-of-field-inside-a-django-form
-  modified to get milestone labels if name starts with 'projectmilestone'
-  '''
-
-  input_type = 'text'
-  def render(self, name, value, attrs=None):
-     if name.startswith('projectmilestone'):
-         value = Milestone.objects.get(id=value).label
-     elif value is None: 
-         value = ''
-     return str(value)
+    '''from:
+    http://stackoverflow.com/questions/1134085/
+                rendering-a-value-as-text-instead-of-field-inside-a-django-form
+    modified to get milestone labels if name starts with 'projectmilestone'
+    '''
+  
+    input_type = 'text'
+    def render(self, name, value, attrs=None):
+        if name.startswith('projectmilestone'):
+            value = Milestone.objects.get(id=value).label
+        elif value is None: 
+            value = ''
+        return str(value)
 
 class HyperlinkWidget(forms.TextInput):
     """This is a widget that will insert a hyperlink to a project
@@ -65,25 +65,27 @@ class HyperlinkWidget(forms.TextInput):
         super(HyperlinkWidget, self).__init__(attrs)
         #super(HyperlinkWidget, self).__init__(*args, **kwargs)
 
-    def render(self, name, value, url=None, attrs=None):
+    def render(self, name, value, attrs=None):
         output = []
         if value is None:
             value = ''
-        output.append('<a href="/test/projectdetail/%s/">%s</a>' % (value.lower(), value))
+        output.append('<a href="/test/projectdetail/%s/">%s</a>' % 
+                      (value.lower(), value))
         #output.append('<a href="%s">%s</a>' % (url, value))
         return mark_safe(u''.join(output))
 
 
         
 class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
-    """
-    Subclass of Django's checkbox select multiple widget that allows disabling checkbox-options.
-    To disable an option, pass a dict instead of a string for its label,
-    of the form: {'label': 'option label', 'disabled': True}
+    """Subclass of Django's checkbox select multiple widget that allows
+    disabling checkbox-options.  To disable an option, pass a dict
+    instead of a string for its label, of the form: {'label': 'option
+    label', 'disabled': True}
     """
     #from http://djangosnippets.org/snippets/2786/
     def render(self, name, value, attrs=None, choices=()):
-        if value is None: value = []
+        if value is None: 
+            value = []
         has_id = attrs and 'id' in attrs
         final_attrs = self.build_attrs(attrs, name=name)
         #output = [u'<ul>']
@@ -104,11 +106,13 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
                 label_for = u' for="%s"' % final_attrs['id']
             else:
                 label_for = ''            
-            cb = CheckboxInput(final_attrs, check_test=lambda value: value in str_values)
+            chbox = CheckboxInput(final_attrs, 
+                               check_test=lambda value: value in str_values)
             option_value = force_unicode(option_value)
-            rendered_cb = cb.render(name, option_value)
+            rendered_cb = chbox.render(name, option_value)
             option_label = conditional_escape(force_unicode(option_label))
-            output.append(u'<label%s>%s %s</label>' % (label_for, rendered_cb, option_label))
+            output.append(u'<label%s>%s %s</label>' 
+                          % (label_for, rendered_cb, option_label))
         #output.append(u'</ul>')
         return mark_safe(u'\n'.join(output))
 
@@ -150,7 +154,7 @@ class ApproveProjectsForm(forms.ModelForm):
         super(ApproveProjectsForm, self).__init__(*args, **kwargs)
 
     class Meta:
-        model=Project
+        model = Project
         fields = ('Approved', 'PRJ_CD', 'PRJ_NM', 'PRJ_LDR') 
 
 
@@ -245,7 +249,8 @@ class ReportsForm(forms.Form):
 
 class ReportUploadFormSet(BaseFormSet):
     '''modified from
-    here:http://stackoverflow.com/questions/5426031/django-formset-set-current-user
+    here:http://stackoverflow.com/questions/
+                     5426031/django-formset-set-current-user
     allows additional parameters to be passed to formset.  Project and
     user are required to upload reports.
 
@@ -324,7 +329,8 @@ class ReportUploadForm(forms.Form):
         for them too.
         '''
 
-        if 'report_path' in self.changed_data and self.cleaned_data['report_path']:        
+        if ('report_path' in self.changed_data and 
+                          self.cleaned_data['report_path']):        
            
             projectreport = ProjectMilestones.objects.get(
                 project=self.project, milestone=self.clean_milestone())
@@ -431,7 +437,7 @@ class ProjectForm(forms.ModelForm):
         required = True,
     )
     
-    ProjectType = forms.ModelChoiceField(
+    project_type = forms.ModelChoiceField(
         label = "Project Type:",
         queryset = ProjectType.objects.all(),
         required = True,
@@ -463,9 +469,9 @@ class ProjectForm(forms.ModelForm):
 
     
     class Meta:
-        model=Project
+        model = Project
         fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", 
-                  "RISK", 'ProjectType', "master_database", "Lake", "COMMENT", 
+                  "RISK", 'project_type', "master_database", "Lake", "COMMENT", 
                   "DBA", "tags")
         
 
@@ -473,7 +479,7 @@ class ProjectForm(forms.ModelForm):
         readonly = kwargs.pop('readonly', False)
         manager = kwargs.pop('manager', False)        
 
-        milestones = kwargs.pop('milestones',None)        
+        milestones = kwargs.pop('milestones', None)        
 
         self.helper = FormHelper()
         self.helper.form_id = 'ProjectForm'
@@ -491,7 +497,7 @@ class ProjectForm(forms.ModelForm):
                 'RISK',
                 Field('PRJ_DATE0', datadatepicker='datepicker'),                
                 Field('PRJ_DATE1', datadatepicker='datepicker'),
-                'ProjectType',
+                'project_type',
                 'master_database',
                 'Lake',
                 'DBA',
@@ -515,16 +521,17 @@ class ProjectForm(forms.ModelForm):
         #pdb.set_trace()
         if milestones:
             if self.manager == True:
-                choices = [(x.id,{'label':x.milestone.label, 'disabled':False}) 
+                choices = [(x.id, {'label':x.milestone.label, 
+                                   'disabled':False}) 
                        for x in milestones]
             else:
-                choices = [(x.id,{'label':x.milestone.label, 
+                choices = [(x.id, {'label':x.milestone.label, 
                                   'disabled':x.milestone.protected}) 
                        for x in milestones]
 
             # *** NOTE *** 
             #completed must be a list of values that match the choices (above)
-            completed = [x.id for x in milestones if x.completed!=None]
+            completed = [x.id for x in milestones if x.completed != None]
             self.fields.update({"milestones":forms.MultipleChoiceField(
                 widget = CheckboxSelectMultipleWithDisabled(),
                 #widget = CheckboxSelectMultiple(),
@@ -544,22 +551,6 @@ class ProjectForm(forms.ModelForm):
         else:
             return self.cleaned_data["Approved"]
 
-    #def clean_SignOff(self):
-    #    '''if this wasn't a manager, reset the SignOff value to the
-    #    original (read only always returns false)'''
-    #    if not self.manager:
-    #        return self.instance.SignOff
-    #    else:
-    #        return self.cleaned_data["SignOff"]
-    #
-    #    
-    #def clean_DataMerged(self):
-    #    '''if this wasn't a manager, reset the DataMerged value to the
-    #    original (read only always returns false)'''
-    #    if not self.manager:
-    #        return self.instance.DataMerged
-    #    else:
-    #        return self.cleaned_data["DataMerged"]
         
             
     def clean_PRJ_CD(self):
@@ -570,7 +561,7 @@ class ProjectForm(forms.ModelForm):
         project code.  The method only applies to new projects.  When
         editing a project, project code is readonly and does need to be checked.
         '''
-        pattern  = "^[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3}$"
+        pattern  = r"^[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3}$"
         project_code =  self.cleaned_data["PRJ_CD"]
 
         if self.readonly == False: 

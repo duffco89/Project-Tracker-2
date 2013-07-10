@@ -69,7 +69,7 @@ e.style.display = 'block';
   <tbody>
   {% for project in object_list %}
     <tr class="{% cycle row1,row2 %}">
-     <td> {{ project.YEAR }} </td>
+     <td> {{ project.year }} </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>

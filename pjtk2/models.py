@@ -33,8 +33,6 @@ class ProjectsManager(models.Manager):
                            projectmilestones__milestone__label='Sign off',
                            projectmilestones__completed__isnull=True)
 
-
-
     def approved(self):
         '''return a queryset containing only those projects that have been
         approved, but have not been completed.
@@ -62,7 +60,7 @@ class ProjectsThisYear(models.Manager):
         #use_for_related_fields = True
         year = datetime.datetime.now().year
         return super(ProjectsThisYear, self).get_query_set().filter(
-                     YEAR__gte=year, Active=True)
+                     year__gte=year, Active=True)
 
 class ProjectsLastYear(models.Manager):
     '''get all of the project objects from last year'''
@@ -70,7 +68,7 @@ class ProjectsLastYear(models.Manager):
         #use_for_related_fields = True
         year = datetime.datetime.now().year - 1
         return super(ProjectsLastYear, self).get_query_set().filter(
-                    YEAR = year, Active=True)
+                    year = year, Active=True)
 
 class Milestone(models.Model):
     '''Look-up table of reporting milestone and their attributes.  Not all
@@ -151,7 +149,7 @@ class Project(models.Model):
         ('other', 'other'),
     }
 
-    YEAR = models.CharField("Year", max_length=4, blank=True, editable=False)
+    year = models.CharField("Year", max_length=4, blank=True, editable=False)
     PRJ_DATE0 = models.DateField("Start Date", blank=False)
     PRJ_DATE1 = models.DateField("End Date", blank=False)
     PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, 
@@ -164,10 +162,10 @@ class Project(models.Model):
     RISK = models.TextField("Risk", null=True, blank=True, 
                             help_text=help_str)
     master_database = models.ForeignKey("Database", null=True, blank=True)
-    ProjectType = models.ForeignKey("ProjectType", null=True, blank=True)
+    project_type = models.ForeignKey("ProjectType", null=True, blank=True)
 
     FieldProject = models.BooleanField(default = True)
-    Approved = models.BooleanField(default = False)
+    #Approved = models.BooleanField(default = False)
     #Conducted  = models.BooleanField(default = False)
     #FieldWorkComplete  = models.BooleanField(default = False)
     #AgeStructures = models.BooleanField(default = False)
@@ -244,6 +242,20 @@ class Project(models.Model):
             #                     required=True,
             #                     completed=None)
             pass
+
+
+    def is_approved(self):
+        '''Is the current project approved?  Returns true if it is, otherwize
+        false.'''
+        approved = ProjectMilestones.objects.get(project=self, 
+                                 milestone__label='Approved')
+        if approved.completed != None:
+            return(True)
+        else:
+            return(False)
+
+
+
 
     def signoff(self):
         '''A helper function to make it easier to sign off a project'''
@@ -465,11 +477,11 @@ class Project(models.Model):
         approved, be the same project type, run in the same year and
         not be a sister to another project. If the current project
         isn't approved, no candidates will be returned regardless.'''
-        if self.Approved:
+        if self.is_approved():
             try:
-                candidates = Project.objects.filter(Approved=True, 
-                                      ProjectType=self.ProjectType, 
-                                      YEAR = self.YEAR,
+                candidates = Project.objects.approved().filter(
+                                      project_type=self.project_type, 
+                                      year = self.year,
                                       projectsisters__isnull=True).exclude(
                                       slug=self.slug)
             except Project.DoesNotExist:
@@ -523,9 +535,9 @@ class Project(models.Model):
         if slug is a dupicate!
         """
         new = False
-        if not self.slug or not self.YEAR:
+        if not self.slug or not self.year:
             self.slug = slugify(self.PRJ_CD)
-            self.YEAR = self.PRJ_DATE0.year
+            self.year = self.PRJ_DATE0.year
             new = True
 
         super(Project, self).save( *args, **kwargs)
@@ -548,15 +560,15 @@ class Project(models.Model):
 ##          try:
 ##              #try and send messages starting at project lead - ideal
 ##              prjLead = proj.PRJ_LDR
-##              prjLead = employee.objects.get(user__username=prjLead)
+##              prjLead = Employee.objects.get(user__username=prjLead)
 ##              users = get_supervisors(prjLead)
 ##          except:
 ##              #should be the same person, but could be someone else
 ##              prjLead = proj.Owner
-##              prjLead = employee.objects.get(user__username=prjLead)
+##              prjLead = Employee.objects.get(user__username=prjLead)
 ##              users = get_supervisors(prjLead)
 ##          #send notice to dba too
-##          users.append(employee.objects.get(user__username=proj.dba))
+##          users.append(Employee.objects.get(user__username=proj.dba))
 ##          #remove any duplicates
 ##          users = list(set(users))
 ##          ms = Milestone.objects.get(label="Submitted")
@@ -661,7 +673,7 @@ class Bookmark(models.Model):
 
     def project_type(self):
         '''Use the project type for the bookmark too.'''
-        return self.project.ProjectType
+        return self.project.project_type
 
     def prj_ldr(self):
         '''Use the project leader for the bookmark too.'''
@@ -669,7 +681,7 @@ class Bookmark(models.Model):
 
     def year(self):
         '''Use the project year for the bookmark too.'''
-        return self.project.YEAR
+        return self.project.year
 
 class Family(models.Model):
     '''Provides a mechanism to ensure that families are unique and
@@ -703,7 +715,7 @@ class ProjectSisters(models.Model):
         return str("Project - %s - Family %s" % (self.project, self.family))
 
 
-class employee(models.Model):
+class Employee(models.Model):
     '''The employee model is an extension to the user model that captures
     the hierachical employee-supervisor relationship between users.'''
     ROLL_CHOICES = {
@@ -722,7 +734,7 @@ class employee(models.Model):
                                    null=True)
 
     def __unicode__(self):
-        '''Use the username of the employee as the string representation'''
+        '''Use the username of the Employee as the string representation'''
         return self.user.username
 
 
@@ -779,7 +791,7 @@ def send_message(msgtxt, users, project, milestone):
     #Messages2Users for each one:
     try:
         for emp in users:
-            user = User.objects.get(employee=emp)
+            user = User.objects.get(Employee=emp)
             Messages2Users.objects.create(user=user, msg=message)
     except TypeError:
         Messages2Users.objects.create(user=users, msg=message)
@@ -802,7 +814,7 @@ class Admin_Milestone(admin.ModelAdmin):
     '''Admin class for milestones'''
     list_display = ('label', 'report', 'category', 'protected',)
 
-class Admin_Project_Type(admin.ModelAdmin):
+class Admin_ProjectType(admin.ModelAdmin):
     '''Admin class for Project Types'''
     pass
 
@@ -836,11 +848,11 @@ class Admin_Report(admin.ModelAdmin):
     list_display = ('current', 'report_path', 'uploaded_on', 'uploaded_by')
 
 class Admin_Employee(admin.ModelAdmin):
-    '''Admin class for employees'''
+    '''Admin class for Employees'''
     pass
 
 admin.site.register(Milestone, Admin_Milestone)
-admin.site.register(ProjectType, Admin_Project_Type)
+admin.site.register(ProjectType, Admin_ProjectType)
 admin.site.register(Database, Admin_Database)
 admin.site.register(Lake, Admin_Lake)
 admin.site.register(Project, Admin_Project)
@@ -848,6 +860,6 @@ admin.site.register(ProjectMilestones, Admin_ProjectMilestones)
 admin.site.register(Report, Admin_Report)
 admin.site.register(Family, Admin_Family)
 admin.site.register(ProjectSisters, Admin_ProjectSisters)
-admin.site.register(employee, Admin_Employee)
+admin.site.register(Employee, Admin_Employee)
 
 

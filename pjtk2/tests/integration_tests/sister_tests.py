@@ -26,57 +26,65 @@ class SisterFormTestCase(WebTest):
         self.ProjType = ProjTypeFactory()
         self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
         
+
+        #create milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)
+
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType)
+                                              project_type = self.ProjType)
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType)
+                                              project_type = self.ProjType)
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType)
+                                              project_type = self.ProjType)
 
         #same project type, but not approved
         self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType, 
-                                              Approved=False)
+                                              project_type = self.ProjType)
 
         #approved, different project type
         self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType2)
+                                              project_type = self.ProjType2)
         #approved, same project type, different year
         self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType)
+                                              project_type = self.ProjType)
+
+        self.project1.approve()
+        self.project2.approve()
+        self.project3.approve()
+        #self.project4.approve()
+        self.project5.approve()
+        self.project6.approve()
 
 
-    def test_projectlist(self):
 
-        response = self.app.get(reverse('ProjectList'), user=self.user)
-        assert response.status_int == 200
-        self.assertTemplateUsed(response, 'ProjectList.html')
-
-        
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                     args=(self.project3.slug,)), self.project3.PRJ_CD)
-        linkstring in response
 
     def test_sisterbtn(self):
         '''from the details pages, verify that the sisters button
         works and takes us to the sister project page for this
         project.'''
 
-        url = reverse('project_detail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,)) 
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
         self.assertTemplateUsed(response, 'projectdetail.html')
 
         #verify that the sister projects button exists
-        linkstring= '<a href="%s"' % reverse('SisterProjects', args = (self.project1.slug,))
-        assert linkstring in response
+        linkstring= '<a href="%s"' % reverse('SisterProjects', 
+                                             args = (self.project1.slug,))
+
+        self.assertContains(response, linkstring)
 
         response = response.click("Sister Projects")
 
@@ -87,16 +95,16 @@ class SisterFormTestCase(WebTest):
 
         #verify that the page contains:
         #"Sister projects for:"
-        assert "Sister projects for:" in response
+        self.assertContains(response,"Sister projects for:")
         # and self.project1.PRJ_CD
-        assert self.project1.PRJ_CD in response
-  
+        self.assertContains(response, self.project1.PRJ_CD)
 
     def test_sisterlist_nosisters(self):
-        '''the sister project page for a project with two candidates, none selected.'''
+        '''the sister project page for a project with two candidates, none
+        selected.'''
         #starting out at the sister project page for project1
 
-        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        url = reverse('SisterProjects', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -105,7 +113,8 @@ class SisterFormTestCase(WebTest):
         assert "Sister projects for:" in response
         
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project2.slug,)), self.project2.PRJ_CD)
+                             args = (self.project2.slug,)), 
+                                             self.project2.PRJ_CD)
         #print response
         print "linkstring = %s" % linkstring
         assert linkstring in response
@@ -114,7 +123,8 @@ class SisterFormTestCase(WebTest):
         assert linkstring in response
 
         form = response.form
-        #there should be two forms in the formset (these form elements end with -sister)
+        #there should be two forms in the formset (these form elements
+        #end with -sister)
         formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
         #print "formcnt = %s" % formcnt
         self.assertEquals(formcnt, 2)
@@ -137,7 +147,7 @@ class SisterFormTestCase(WebTest):
 
         self.project1.add_sister(self.project2.slug)
 
-        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        url = reverse('SisterProjects', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -146,7 +156,8 @@ class SisterFormTestCase(WebTest):
         assert "Sister projects for:" in response
         
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project2.slug,)), self.project2.PRJ_CD)
+                             args = (self.project2.slug,)), 
+                                             self.project2.PRJ_CD)
 
         assert linkstring in response
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
@@ -154,7 +165,8 @@ class SisterFormTestCase(WebTest):
         assert linkstring in response
 
         form = response.form
-        #there should be two forms in the formset (these form elements end with -sister)
+        #there should be two forms in the formset (these form elements
+        #end with -sister)
         formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
         #print "formcnt = %s" % formcnt
         self.assertEquals(formcnt, 2)
@@ -178,15 +190,17 @@ class SisterFormTestCase(WebTest):
         unapproved project, a project of a differnt type and a project
         in a different year.'''
 
-        url = reverse('SisterProjects', args = (self.project4.slug,))                     
+        url = reverse('SisterProjects', args = (self.project4.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
         self.assertTemplateUsed(response, 'SisterProjects.html')
 
-        assert "Sister projects for:" in response
-
-        msg = "There are currently no comperable projects for %s" % self.project4.PRJ_CD
+        #assert "Sister projects for:" in response
+        self.assertContains(response, "Sister projects for:")
+        
+        msg = ("There are currently no comperable projects for %s" 
+               % self.project4.PRJ_CD)
         self.assertIn(msg, response)
 
         #make sure that the projects that should not be candidates or
@@ -198,7 +212,7 @@ class SisterFormTestCase(WebTest):
         self.assertNotIn(self.project6.PRJ_CD, response)
 
         #Differnt Project Type
-        url = reverse('SisterProjects', args = (self.project5.slug,))                     
+        url = reverse('SisterProjects', args = (self.project5.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -206,7 +220,8 @@ class SisterFormTestCase(WebTest):
 
         assert "Sister projects for:" in response
 
-        msg = "There are currently no comperable projects for %s" % self.project5.PRJ_CD
+        msg = ("There are currently no comperable projects for %s" 
+               % self.project5.PRJ_CD)
         self.assertIn(msg, response)
 
         #make sure that the projects that should not be candidates or
@@ -218,7 +233,7 @@ class SisterFormTestCase(WebTest):
         self.assertNotIn(self.project6.PRJ_CD, response)
 
         #approved project, different year
-        url = reverse('SisterProjects', args = (self.project6.slug,))                     
+        url = reverse('SisterProjects', args = (self.project6.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -226,7 +241,8 @@ class SisterFormTestCase(WebTest):
 
         assert "Sister projects for:" in response
 
-        msg = "There are currently no comperable projects for %s" % self.project6.PRJ_CD
+        msg = ("There are currently no comperable projects for %s"
+               % self.project6.PRJ_CD)
         self.assertIn(msg, response)
 
         #make sure that the projects that should not be candidates or
@@ -246,13 +262,14 @@ class SisterFormTestCase(WebTest):
         sisters and verify that no sisters are selected.'''
 
         #we will log into the lister list, click on a sister, 
-        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        url = reverse('SisterProjects', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
         self.assertTemplateUsed(response, 'SisterProjects.html')
         form = response.form
-        #there should be two forms in the formset (these form elements end with -sister)
+        #there should be two forms in the formset (these form elements
+        #end with -sister)
         formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
         #print "formcnt = %s" % formcnt
         self.assertEquals(formcnt, 2)
@@ -272,7 +289,7 @@ class SisterFormTestCase(WebTest):
 
         #========================
         #return to the sister page, 
-        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        url = reverse('SisterProjects', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
         assert response.status_int == 200
 
@@ -295,13 +312,14 @@ class SisterFormTestCase(WebTest):
         # retuRn to the list of sisters one final time and verify that
         # no sisters are selected
 
-        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        url = reverse('SisterProjects', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
         self.assertTemplateUsed(response, 'SisterProjects.html')
         form = response.form
-        #there should be two forms in the formset (these form elements end with -sister)
+        #there should be two forms in the formset (these form elements
+        #end with -sister)
         formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
         #print "formcnt = %s" % formcnt
         self.assertEquals(formcnt, 2)
@@ -327,7 +345,7 @@ class SisterFormTestCase(WebTest):
             lambda a:a.PRJ_CD
             )
 
-        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        url = reverse('SisterProjects', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -336,15 +354,18 @@ class SisterFormTestCase(WebTest):
         assert "Sister projects for:" in response
         
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project2.slug,)), self.project2.PRJ_CD)
+                             args = (self.project2.slug,)), 
+                                             self.project2.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
         
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project3.slug,)), self.project3.PRJ_CD)
+                             args = (self.project3.slug,)), 
+                                             self.project3.PRJ_CD)
         self.assertContains(response, linkstring, html=True)
 
         form = response.form
-        #there should be two forms in the formset (these form elements end with -sister)
+        #there should be two forms in the formset (these form elements
+        #end with -sister)
         formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
         #print "formcnt = %s" % formcnt
         self.assertEquals(formcnt, 2)
@@ -388,7 +409,7 @@ class SisterFormTestCase(WebTest):
         self.assertEqual(sisters[1].PRJ_CD,self.project3.PRJ_CD)
 
         #we will log into the lister list, click on a sister, 
-        url = reverse('SisterProjects', args = (self.project1.slug,))                     
+        url = reverse('SisterProjects', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -427,12 +448,77 @@ class SisterFormTestCase(WebTest):
 
 
 
-
-
-
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
         self.project3.delete()        
         self.user.delete()
         
+
+##class SisterProjectsTestCase(TestCase):
+##    '''Verify that the user can see and update sisters associated with
+##    projects'''
+##
+##
+##    def setUp(self):
+##        '''we will need three projects with easy to rember project codes'''
+##        self.user = UserFactory(username = 'hsimpson',
+##                                first_name = 'Homer',
+##                                last_name = 'Simpson')
+##
+##        #create milestones
+##        self.milestone1 = MilestoneFactory.create(label="Approved",
+##                                             category = 'Core', order=1, 
+##                                             report=False)
+##        self.milestone2 = MilestoneFactory.create(label="Sign off",
+##                                        category = 'Core', order=999, 
+##                                             report=False)
+##
+##
+##        self.ProjType = ProjTypeFactory()
+##        self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
+##        
+##
+##        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+##                                              Owner=self.user, 
+##                                              project_type = self.ProjType)
+##
+##        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+##                                              Owner=self.user, 
+##                                              project_type = self.ProjType)
+##
+##        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+##                                              Owner=self.user, 
+##                                              project_type = self.ProjType)
+##        #don't forget to approve the projects
+##        self.project1.approve()
+##        self.project2.approve()
+##        self.project3.approve()
+##
+##
+##    def test_sisterbtn(self):
+##
+##        login = self.client.login(username=self.user.username, password='abc')
+##        self.assertTrue(login)
+##
+##        url = reverse('SisterProjects', args =(self.project1.slug,))
+##        response = self.client.get(url)
+##        self.assertEqual(response.status_code, 200)        
+##        self.assertTemplateUsed(response, 'SisterProjects.html')
+##
+##        linktext = '<a href="%s">%s</a>' % (reverse('project_detail', 
+##                                            args =(self.project2.slug,)), 
+##                                            self.project2.PRJ_CD)
+##        self.assertContains(response, linktext)
+##
+##
+##    def tearDown(self):
+##        self.project1.delete()
+##        self.project2.delete()
+##        self.project3.delete()        
+##        self.milestone1.delete()
+##        self.milestone2.delete()
+##        self.user.delete()
+##        
+
+

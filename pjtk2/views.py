@@ -21,7 +21,7 @@ from django.utils.decorators import method_decorator
 
 from pjtk2.filters import ProjectFilter
 from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
-                           Bookmark, employee)
+                           Bookmark, Employee)
 
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm, 
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,  
@@ -132,7 +132,8 @@ class HomePageView(TemplateView):
 
 class ListFilteredMixin(object):
     """ Mixin that adds support for django-filter
-    from: https://github.com/rasca/django-enhanced-cbv/blob/master/enhanced_cbv/views/list.py
+    from: https://github.com/rasca/django-enhanced-cbv/blob/master/
+                          enhanced_cbv/views/list.py
 """
     filter_set = None
  
@@ -211,7 +212,8 @@ taggedprojects = ProjectList.as_view()
 class ApprovedProjectsList(ListView):
     '''A CBV that will render a list of currently approved project'''
 
-    queryset = Project.objects.filter(Approved = True)
+    #queryset = Project.objects.filter(Approved = True)
+    queryset = Project.objects.approved()
     template_name = "ApprovedProjectList.html"
 
 
@@ -609,7 +611,7 @@ def my_projects(request):
 
     user = User.objects.get(username__exact=request.user)
 
-    myself = employee.objects.get(user=user)
+    myself = Employee.objects.get(user=user)
     employees = get_minions(myself)
     employees = [x.user.username for x in employees]
 

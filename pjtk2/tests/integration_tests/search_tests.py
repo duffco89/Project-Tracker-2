@@ -73,7 +73,7 @@ class CanUseSearchForm(WebTest):
                                               COMMENT=comment)
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
                                               Owner=self.user,
-                                              ProjectType = self.ProjType)
+                                              project_type = self.ProjType)
 
 
     def test_SearchProjectName(self):
@@ -154,7 +154,7 @@ class CanUseSearchForm(WebTest):
         #self.assertNotContains(response, linkstring, html=True)
 
 
-    def test_SearchProjectType(self):
+    def test_search_project_type(self):
         '''Verify that we can retrieve projects based on project type'''
 
         response = self.app.get(reverse('haystack_search'), user=self.user)

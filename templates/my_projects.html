@@ -89,7 +89,7 @@ $(document).ready(function()
   <tbody>
   {% for project in submitted %}
     <tr class="{% cycle row1,row2 %}">
-     <td> {{ project.YEAR }} </td>
+     <td> {{ project.year }} </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>
@@ -120,7 +120,7 @@ $(document).ready(function()
   <tbody>
   {% for project in approved %}
     <tr class="{% cycle row1,row2 %}">
-     <td> {{ project.YEAR }} </td>
+     <td> {{ project.year }} </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>
@@ -150,7 +150,7 @@ $(document).ready(function()
   <tbody>
   {% for project in complete %}
     <tr class="{% cycle row1,row2 %}">
-     <td> {{ project.YEAR }} </td>
+     <td> {{ project.year }} </td>
      <td>
        <a href="{{ project.get_absolute_url }}"> {{ project.PRJ_CD }}</a> 
      </td>

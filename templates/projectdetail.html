@@ -67,7 +67,7 @@
    onclick="javascript:window.location=this.href"> 
   <button>Edit Information</button> </a>
 
-  {% if project.Approved %}
+  {% if project.is_approved %}
   <a href="{% url 'SisterProjects' project.slug %}" 
    onclick="javascript:window.location=this.href">
    <button>Sister Projects</button> </a>

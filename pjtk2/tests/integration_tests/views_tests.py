@@ -373,15 +373,24 @@ class ApprovedProjectListUserTestCase(TestCase):
         #isn't.  Only the approved one should appear in the list.
         self.client = Client()        
         self.user = UserFactory()
-        self.project = ProjectFactory(Owner = self.user,
-                                      Approved = False)
+
+        #create milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)        
+
+        self.project = ProjectFactory(Owner = self.user)
+
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
             PRJ_LDR = self.user,
             Owner = self.user)
-        #self.project2.Approved = True
-        self.project2.save()
+        self.project2.approve()
+        #self.project2.save()
             
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
@@ -431,8 +440,17 @@ class ApprovedProjectListManagerTestCase(TestCase):
         #isn't.  Only the approved one should appear in the list.
         self.client = Client()        
         self.owner = UserFactory()
-        self.project = ProjectFactory(Owner = self.owner,
-                                      Approved = False)
+
+        #create milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)
+
+        self.project = ProjectFactory(Owner = self.owner)
+
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
@@ -440,6 +458,7 @@ class ApprovedProjectListManagerTestCase(TestCase):
             Owner = self.owner)
         #self.project2.Approved = True
         self.project2.save()
+        self.project2.approve()
 
         #create a differnt user that will be the manager
         self.user = UserFactory(username = 'gconstansa',
@@ -510,6 +529,16 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         managerGrp, created = Group.objects.get_or_create(name='manager')         
         self.user2.groups.add(managerGrp)
 
+        #create milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)
+
+
+
         #we need to create some models with different years - starting
         #with the current year (the actual model objects use the real
         #current year so the project codes must be dynamically built
@@ -518,31 +547,39 @@ class ApproveUnapproveProjectsTestCase(TestCase):
 
         #Two projects from this year:
         PRJ_CD = "LHA_IA%s_111" % str(self.year)[-2:]
-        self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+        self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD,
                                               Owner=self.user1)
 
         PRJ_CD = "LHA_IA%s_222" % str(self.year)[-2:]
-        self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+        self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD,
                                               Owner=self.user1)
         #Two projects from last year:
         PRJ_CD = "LHA_IA%s_333" % str(self.year-1)[-2:]
-        self.project3 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+        self.project3 = ProjectFactory.create(PRJ_CD=PRJ_CD,
                                               Owner=self.user1)
 
         PRJ_CD = "LHA_IA%s_444" % str(self.year-1)[-2:]
-        self.project4 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+        self.project4 = ProjectFactory.create(PRJ_CD=PRJ_CD,
                                               Owner=self.user1)
 
         #one project from 3 years ago
         PRJ_CD = "LHA_IA%s_555" % str(self.year -3)[-2:]
-        self.project5 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+        self.project5 = ProjectFactory.create(PRJ_CD=PRJ_CD,
                                               Owner=self.user1)
 
         #One project from next year (submitted by a keener):
         PRJ_CD = "LHA_IA%s_666" % str(self.year+1)[-2:]
-        self.project6 = ProjectFactory.create(PRJ_CD=PRJ_CD, Approved=True,
+        self.project6 = ProjectFactory.create(PRJ_CD=PRJ_CD,
                                               Owner=self.user1)
 
+
+        #approve all of the projects
+        self.project1.approve()
+        self.project2.approve()
+        self.project3.approve()
+        self.project4.approve()
+        self.project5.approve()
+        self.project6.approve()
 
     def test_without_Login(self):
         '''if we try to view page without logging in, we should be
@@ -636,10 +673,17 @@ class ApproveUnapproveProjectsTestCase(TestCase):
 
         #by default, the projects are all approved we need to
         #unapproved them before we run this test
-        Project.objects.all().update(Approved=False)
+        self.project1.unapprove()
+        self.project2.unapprove()
+        self.project3.unapprove()
+        self.project4.unapprove()
+        self.project5.unapprove()
+        self.project6.unapprove()
+
         #check that our update worked:
         projects = Project.this_year.all()
-        self.assertQuerysetEqual(projects, [False, False, False], lambda a:a.Approved)
+        self.assertQuerysetEqual(projects, [False, False, False], 
+                                 lambda a:a.is_approved())
 
         #now login and make the changes
         login = self.client.login(username=self.user2.username, password='abc')
@@ -663,10 +707,11 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #they should all be false now:
         thisyear = Project.this_year.all()
         self.assertEqual(thisyear.count(),3)
-        self.assertQuerysetEqual(thisyear, [True, True, True], lambda a:a.Approved)
+        self.assertQuerysetEqual(thisyear, [True, True, True], 
+                                 lambda a:a.is_approved())
 
     def test_projects_for_thisyear_can_be_unapproved(self):
-        '''Opps - funding was cut.  A project from this year that was
+        '''Oops - funding was cut.  A project from this year that was
         approved must be unapproved.'''
 
         login = self.client.login(username=self.user2.username, password='abc')
@@ -675,7 +720,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #verify database settings before submitting form
         thisyear = Project.this_year.all()
         self.assertEqual(thisyear.count(),3)
-        self.assertQuerysetEqual(thisyear, [True, True, True], lambda a:a.Approved)
+        self.assertQuerysetEqual(thisyear, [True, True, True], 
+                                 lambda a:a.is_approved())
 
         form_data = {
             'thisyear-TOTAL_FORMS': 3, 
@@ -695,7 +741,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #they should all be false now:
         thisyear = Project.this_year.all()
         self.assertEqual(thisyear.count(),3)
-        self.assertQuerysetEqual(thisyear, [False, False, False], lambda a:a.Approved)
+        self.assertQuerysetEqual(thisyear, [False, False, False], 
+                                 lambda a:a.is_approved())
 
         #lets make sure that we can submit with both true and false values:
         form_data = {
@@ -716,7 +763,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #they should all be false now:
         thisyear = Project.this_year.all()
         self.assertEqual(thisyear.count(),3)
-        self.assertQuerysetEqual(thisyear, [False, True, False], lambda a:a.Approved)
+        self.assertQuerysetEqual(thisyear, [False, True, False], 
+                                 lambda a:a.is_approved())
 
 
     def test_projects_for_lastyear_can_be_approved(self):
@@ -726,10 +774,17 @@ class ApproveUnapproveProjectsTestCase(TestCase):
 
         #by default, the projects are all approved we need to
         #unapproved them before we run this test
-        Project.objects.all().update(Approved=False)
+        self.project1.unapprove()
+        self.project2.unapprove()
+        self.project3.unapprove()
+        self.project4.unapprove()
+        self.project5.unapprove()
+        self.project6.unapprove()
+
         #check that our update worked:
         projects = Project.last_year.all()
-        self.assertQuerysetEqual(projects, [False, False], lambda a:a.Approved)
+        self.assertQuerysetEqual(projects, [False, False], 
+                                 lambda a:a.is_approved())
 
         login = self.client.login(username=self.user2.username, password='abc')
         self.assertTrue(login)
@@ -737,7 +792,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #verify database settings before submitting form
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)
-        self.assertQuerysetEqual(lastyear, [False, False], lambda a:a.Approved)
+        self.assertQuerysetEqual(lastyear, [False, False], 
+                                 lambda a:a.is_approved())
 
         form_data = {
             'lastyear-TOTAL_FORMS': 2, 
@@ -755,7 +811,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #they should all be false now:
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)
-        self.assertQuerysetEqual(lastyear, [True, True], lambda a:a.Approved)
+        self.assertQuerysetEqual(lastyear, [True, True], 
+                                 lambda a:a.is_approved())
 
 
 
@@ -770,7 +827,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #verify database settings before submitting form
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)
-        self.assertQuerysetEqual(lastyear, [True, True], lambda a:a.Approved)
+        self.assertQuerysetEqual(lastyear, [True, True], 
+                                 lambda a:a.is_approved())
 
         form_data = {
             'lastyear-TOTAL_FORMS': 2, 
@@ -788,7 +846,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #they should all be false now:
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)
-        self.assertQuerysetEqual(lastyear, [False, False], lambda a:a.Approved)
+        self.assertQuerysetEqual(lastyear, [False, False], 
+                                 lambda a:a.is_approved())
 
         #lets make sure that we can submit with both true and false values:
         form_data = {
@@ -807,7 +866,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #they should all be false now:
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)
-        self.assertQuerysetEqual(lastyear, [False, True], lambda a:a.Approved)
+        self.assertQuerysetEqual(lastyear, [False, True], 
+                                 lambda a:a.is_approved())
 
 
     def tearDown(self):
@@ -875,6 +935,14 @@ class ChangeReportingRequirementsTestCase2(TestCase):
         #make Mr. Burns the manager:
         managerGrp, created = Group.objects.get_or_create(name='manager')         
         self.user2.groups.add(managerGrp)
+
+        #create milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999, 
+                                             report=False)
 
         self.rep4 = MilestoneFactory.create(label = "Budget Report",
                                             category = 'Custom', order = 99, 

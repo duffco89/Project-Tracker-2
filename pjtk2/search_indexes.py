@@ -8,13 +8,13 @@ class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
 
     #author = indexes.CharField(model_attr='user')
     #pub_date = indexes.DateTimeField(model_attr='EFFDT1')
-    YEAR = indexes.CharField(model_attr='YEAR')
+    year = indexes.CharField(model_attr='year')
     code = indexes.CharField(model_attr='PRJ_CD')
     name = indexes.CharField(model_attr='PRJ_NM')
     description = indexes.CharField(model_attr='COMMENT')
 
     ##Database = indexes.CharField(model_attr='master_database')
-    ProjectType = indexes.CharField(model_attr='ProjectType', faceted=True)
+    project_type = indexes.CharField(model_attr='project_type', faceted=True)
     ##
     #Approved = indexes.BooleanField(model_attr='Approved', faceted=True)
     #Completed = indexes.BooleanField(model_attr='SignOff', faceted=True)
