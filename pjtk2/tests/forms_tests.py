@@ -28,7 +28,7 @@ class TestApproveProjectForm(TestCase):
         self.milestone = MilestoneFactory.create(label="Approved",
                                              category = 'Core', order=1, 
                                              report=False)
-        self.proj = ProjectFactory.create(PRJ_CD="LHA_IA12_123",
+        self.proj = ProjectFactory.create(prj_cd="LHA_IA12_123",
                                           prj_ldr = "Homer Simpson",
                                           prj_nm = "Homer's Odyssey")
         
@@ -36,7 +36,7 @@ class TestApproveProjectForm(TestCase):
         '''verify that the same data comes out as went in'''
         initial = dict(
             Approved = self.proj.is_approved(),
-            PRJ_CD = self.proj.PRJ_CD,
+            prj_cd = self.proj.prj_cd,
             prj_nm = self.proj.prj_nm,
             prj_ldr = self.proj.prj_ldr,
         )
@@ -45,7 +45,7 @@ class TestApproveProjectForm(TestCase):
         form.is_valid()
 
         self.assertEqual(form.is_valid(), True)
-        self.assertEqual(form.cleaned_data['PRJ_CD'],self.proj.PRJ_CD)
+        self.assertEqual(form.cleaned_data['prj_cd'],self.proj.prj_cd)
         self.assertEqual(form.cleaned_data['prj_nm'],self.proj.prj_nm)
         self.assertEqual(form.cleaned_data['prj_ldr'],self.proj.prj_ldr)
 
@@ -56,7 +56,7 @@ class TestApproveProjectForm(TestCase):
 
         initial = dict(
             Approved = False,
-            PRJ_CD = 'ZZZ_ZZ12_ZZZ',
+            prj_cd = 'ZZZ_ZZ12_ZZZ',
             prj_nm = 'The Wrong Project',
             prj_ldr = 'George Costanza'
         )
@@ -65,13 +65,13 @@ class TestApproveProjectForm(TestCase):
         form.is_valid()
 
         self.assertEqual(form.is_valid(), True)
-        self.assertEqual(form.cleaned_data['PRJ_CD'],self.proj.PRJ_CD)
+        self.assertEqual(form.cleaned_data['prj_cd'],self.proj.prj_cd)
         self.assertEqual(form.cleaned_data['prj_nm'],self.proj.prj_nm)
         self.assertEqual(form.cleaned_data['prj_ldr'],self.proj.prj_ldr)
 
         #everything but approved should be over-ridden by the instance
         #self.assertEqual(form.cleaned_data['Approved'],initial['Approved'])
-        self.assertNotEqual(form.cleaned_data['PRJ_CD'],initial['PRJ_CD'])
+        self.assertNotEqual(form.cleaned_data['prj_cd'],initial['prj_cd'])
         self.assertNotEqual(form.cleaned_data['prj_nm'],initial['prj_nm'])
         self.assertNotEqual(form.cleaned_data['prj_ldr'],initial['prj_ldr'])
 
@@ -90,7 +90,7 @@ class TestProjectForm(TestCase):
     def test_good_data(self):
         """All fields contain valid data """        
         proj = dict(
-            PRJ_CD = "LHA_IA12_103",
+            prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
@@ -122,7 +122,7 @@ class TestProjectForm(TestCase):
                     "LHA_IA12_XX3", "LHA_IA12_XXX"]
         
         proj = dict(
-            PRJ_CD = "LHA_IA12_103",
+            prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
@@ -136,7 +136,7 @@ class TestProjectForm(TestCase):
            )
 
         for code in goodcodes:
-            proj['PRJ_CD'] = code
+            proj['prj_cd'] = code
             form = ProjectForm(data=proj)
             self.assertEqual(form.is_valid(), True)
 
@@ -144,7 +144,7 @@ class TestProjectForm(TestCase):
     def test_duplicate_project_code(self):
         """Duplicate Project code"""        
         proj = dict(
-            PRJ_CD = "LHA_IA12_123",
+            prj_cd = "LHA_IA12_123",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
@@ -160,7 +160,7 @@ class TestProjectForm(TestCase):
         form = ProjectForm(data=proj)
             
         errmsg = "Project Code already exists"
-        self.assertIn(errmsg, str(form.errors['PRJ_CD']))
+        self.assertIn(errmsg, str(form.errors['prj_cd']))
         self.assertEqual(form.is_valid(), False)
 
 
@@ -171,7 +171,7 @@ class TestProjectForm(TestCase):
         badcodes = ["LHA_IS12A_110", "LHA_IS12_1103","LHAR_IS12_110", "LHA_IS12_110A"]
         
         proj = dict(
-            PRJ_CD = "LHA_xxx12_103",
+            prj_cd = "LHA_xxx12_103",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
@@ -187,9 +187,9 @@ class TestProjectForm(TestCase):
         errmsg = "Ensure this value has at most 12 characters"
 
         for code in badcodes:
-            proj['PRJ_CD'] = code
+            proj['prj_cd'] = code
             form = ProjectForm(data=proj)
-            self.assertIn(errmsg, str(form.errors['PRJ_CD']))
+            self.assertIn(errmsg, str(form.errors['prj_cd']))
             self.assertEqual(form.is_valid(), False)
 
 
@@ -206,7 +206,7 @@ class TestProjectForm(TestCase):
                     "LHA_IS1A_110", "LA_IS12_110A", "LH_IS12_110"]
         
         proj = dict(
-            PRJ_CD = "LHA_12_103",
+            prj_cd = "LHA_12_103",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
@@ -222,9 +222,9 @@ class TestProjectForm(TestCase):
         errmsg = "Malformed Project Code."
 
         for code in badcodes:
-            proj['PRJ_CD'] = code
+            proj['prj_cd'] = code
             form = ProjectForm(data=proj)
-            self.assertIn(errmsg, form.errors['PRJ_CD'])
+            self.assertIn(errmsg, form.errors['prj_cd'])
             self.assertEqual(form.is_valid(), False)
 
         
@@ -232,7 +232,7 @@ class TestProjectForm(TestCase):
         """Year on project code does not agree with start and end dates. """
         
         proj = dict(
-            PRJ_CD = "LHA_IA02_103",
+            prj_cd = "LHA_IA02_103",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
@@ -253,7 +253,7 @@ class TestProjectForm(TestCase):
     def test_end_date_before_start(self):
         """ The end date of the project occures before the start date"""
         proj = dict(
-            PRJ_CD = "LHA_IA12_103",
+            prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("August 15, 2012", "%B %d, %Y"),
@@ -274,7 +274,7 @@ class TestProjectForm(TestCase):
     def test_start_end_different_years(self):
         """project start and end date occur in different years """
         proj = dict(
-            PRJ_CD = "LHA_IA12_103",
+            prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("March 15, 2011", "%B %d, %Y"),
@@ -293,7 +293,7 @@ class TestProjectForm(TestCase):
     def test_start_date_equal_to_end_date(self):
         """One day project, start date equal to end date. """        
         proj = dict(
-            PRJ_CD = "LHA_IA12_103",
+            prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = "Bob Sakamano",
             prj_date0 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
@@ -326,34 +326,36 @@ class TestSelectSistersForm(TestCase):
                                 last_name = 'Simpson')
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", owner=self.user)
-
-
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              owner=self.user)
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
+                                              owner=self.user)
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
+                                              owner=self.user)
 
     def test_initial_values(self):
         '''this test will verify that the initial values for project
         code, project name and project leader remain unchanged by the form.'''
 
         initial = dict(
-            PRJ_CD = 'ZZZ_ZZ12_ZZZ',
+            prj_cd = 'ZZZ_ZZ12_ZZZ',
             prj_nm = 'The Wrong Project',
             prj_ldr = 'George Costanza'
         )
 
         data = dict(
-            PRJ_CD = 'YYY_YY12_YYY',
+            prj_cd = 'YYY_YY12_YYY',
             prj_nm = 'The Second Project',
             prj_ldr = 'Jerry Sienfield'
         )
 
-        form = SisterProjectsForm(initial=initial, data=data)#, slug=self.project1.slug)
+        form = SisterProjectsForm(initial=initial, data=data)
         form.is_valid()
 
         #these three fields should be over-ridden by the initial data
-        #(they are actually null in the real form - since we used read-only widgets).
-        self.assertEqual(form.cleaned_data['PRJ_CD'],initial['PRJ_CD'])
+        #(they are actually null in the real form - since we used
+        #read-only widgets).
+        self.assertEqual(form.cleaned_data['prj_cd'],initial['prj_cd'])
         self.assertEqual(form.cleaned_data['prj_nm'],initial['prj_nm'])
         self.assertEqual(form.cleaned_data['prj_ldr'],initial['prj_ldr'])
 
@@ -386,9 +388,12 @@ class TestReportUploadForm(TestCase):
                                             report = True)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", owner=self.user)
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+                                              owner=self.user)
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
+                                              owner=self.user)
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
+                                              owner=self.user)
 
         #here is fake file that we will upload
         self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'

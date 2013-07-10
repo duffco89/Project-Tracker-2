@@ -11,7 +11,7 @@ class TestUrls(DemoTestCase):
     def setUp(self):
 
         #PROJECT
-        self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111")
+        self.project = ProjectFactory.create(prj_cd="LHA_IA12_111")
 
     def test_urls(self):
         '''Verify that all of the pages exist.  Can't use template_used

@@ -136,7 +136,7 @@ class ApproveProjectsForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ('PRJ_CD', 'prj_nm', 'prj_ldr') 
+        fields = ('prj_cd', 'prj_nm', 'prj_ldr') 
 
     def __init__(self, *args, **kwargs):
         super(ApproveProjectsForm, self).__init__(*args, **kwargs)
@@ -147,10 +147,10 @@ class ApproveProjectsForm(forms.ModelForm):
             initial = self.instance.is_approved(),
         )
 
-        self.fields.update({"PRJ_CD":forms.CharField(
+        self.fields.update({"prj_cd":forms.CharField(
             widget = HyperlinkWidget(
                              url = self.instance.get_absolute_url(),
-                             text = self.instance.PRJ_CD),
+                             text = self.instance.prj_cd),
             label = "Project Code",
             max_length = 80,
             required = False,            
@@ -158,11 +158,11 @@ class ApproveProjectsForm(forms.ModelForm):
         ,})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['Approved','PRJ_CD', 'prj_nm', 'prj_ldr']
+        self.fields.keyOrder = ['Approved','prj_cd', 'prj_nm', 'prj_ldr']
 
-    def clean_PRJ_CD(self):
-        '''return the original value of PRJ_CD'''
-        return self.instance.PRJ_CD
+    def clean_prj_cd(self):
+        '''return the original value of prj_cd'''
+        return self.instance.prj_cd
         
     def clean_prj_nm(self):
         '''return the original value of prj_nm'''
@@ -413,7 +413,7 @@ class ProjectForm(forms.ModelForm):
         required = True,
     )
     
-    PRJ_CD = forms.CharField(
+    prj_cd = forms.CharField(
         label = "Project Code:",
         max_length = 12,
         required = True,
@@ -479,7 +479,7 @@ class ProjectForm(forms.ModelForm):
     
     class Meta:
         model = Project
-        fields = ("prj_nm", "prj_ldr", "PRJ_CD", "prj_date0", "prj_date1", 
+        fields = ("prj_nm", "prj_ldr", "prj_cd", "prj_date0", "prj_date1", 
                   "risk", 'project_type', "master_database", "lake", "comment", 
                   "dba", "tags")
         
@@ -500,7 +500,7 @@ class ProjectForm(forms.ModelForm):
         Fieldset(
                 'Project Elements',
                 'prj_nm',                
-                'PRJ_CD',
+                'prj_cd',
                 'prj_ldr',                
                 'comment',
                 'risk',
@@ -523,7 +523,7 @@ class ProjectForm(forms.ModelForm):
         self.manager = manager
               
         if readonly:
-            self.fields["PRJ_CD"].widget.attrs['readonly'] = True 
+            self.fields["prj_cd"].widget.attrs['readonly'] = True 
 
         if milestones:
             if self.manager == True:
@@ -558,7 +558,7 @@ class ProjectForm(forms.ModelForm):
 
         
             
-    def clean_PRJ_CD(self):
+    def clean_prj_cd(self):
         '''a clean method to ensure that the project code matches the
         given regular expression.  method also ensure that project
         code is unique.  If duplicate code is entered, an error
@@ -567,13 +567,13 @@ class ProjectForm(forms.ModelForm):
         editing a project, project code is readonly and does need to be checked.
         '''
         pattern  = r"^[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3}$"
-        project_code =  self.cleaned_data["PRJ_CD"]
+        project_code =  self.cleaned_data["prj_cd"]
 
         if self.readonly == False: 
             if re.search(pattern, project_code):
                 #make sure that this project code doesn't already exist:
                 try:
-                    proj = Project.objects.get(PRJ_CD=project_code)
+                    proj = Project.objects.get(prj_cd=project_code)
                 except Project.DoesNotExist:
                     proj = None
                 if proj:
@@ -597,7 +597,7 @@ class ProjectForm(forms.ModelForm):
         cleaned_data = super(ProjectForm, self).clean()
         start_date = cleaned_data.get('prj_date0')
         end_date = cleaned_data.get('prj_date1')
-        project_code = cleaned_data.get('PRJ_CD')
+        project_code = cleaned_data.get('prj_cd')
         
         if start_date and end_date and project_code:                
             
@@ -647,11 +647,11 @@ class SisterProjectsForm(forms.Form):
         super(SisterProjectsForm, self).__init__(*args, **kwargs)
 
         self.fields["slug"].widget = forms.HiddenInput()        
-        self.prj_cd = kwargs['initial'].get('PRJ_CD', None)
+        self.prj_cd = kwargs['initial'].get('prj_cd', None)
         self.url = kwargs['initial'].get('url', None)
 
         #use a hyperlink widget for the project code
-        self.fields.update({"PRJ_CD":forms.CharField(
+        self.fields.update({"prj_cd":forms.CharField(
             widget = HyperlinkWidget(
                              url = self.url,
                              text = self.prj_cd),
@@ -662,12 +662,12 @@ class SisterProjectsForm(forms.Form):
         ,})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['sister','PRJ_CD', 'prj_nm', 'prj_ldr', 'slug']
+        self.fields.keyOrder = ['sister','prj_cd', 'prj_nm', 'prj_ldr', 'slug']
 
 
-    def clean_PRJ_CD(self):
-        '''return the original value of PRJ_CD'''
-        return self.initial['PRJ_CD']
+    def clean_prj_cd(self):
+        '''return the original value of prj_cd'''
+        return self.initial['prj_cd']
         
     def clean_prj_nm(self):
         '''return the original value of prj_nm'''

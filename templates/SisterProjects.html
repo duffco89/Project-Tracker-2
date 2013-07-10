@@ -14,7 +14,7 @@
 </p>
 
 <h1> Sister projects for: </h1>
-<h2> {{ project.prj_nm }} ({{ project.PRJ_CD }})</h2>
+<h2> {{ project.prj_nm }} ({{ project.prj_cd }})</h2>
 <hr />
 
 {% if empty == False %}
@@ -56,12 +56,12 @@
 <br /> 
 
 <em> There are currently no comperable projects for 
-{{ project.PRJ_CD}}. </em>
+{{ project.prj_cd}}. </em>
 
 <br /> <br />
 
 <em> Return to 
-<a href="{{ project.get_absolute_url }}">{{ project.PRJ_CD }}</a>.</em>
+<a href="{{ project.get_absolute_url }}">{{ project.prj_cd }}</a>.</em>
 
 {% endif %}
 
@@ -75,13 +75,13 @@
 <ul>
 
 <li>To create a family of sister projects to be associated with 
-{{ project.PRJ_CD }} select one or more of the listed projects.</li>
+{{ project.prj_cd }} select one or more of the listed projects.</li>
 
 <li>To add this project as a new sister to an existing family,
   access the sisters page from an existing family member and look for
   this project number in the list of candidates.</li>
 
-<li>To remove {{ project.PRJ_CD }} from the family, clear all of the
+<li>To remove {{ project.prj_cd }} from the family, clear all of the
 checkboxes and click "Update Sister Projects". </li>
   
 </ul>

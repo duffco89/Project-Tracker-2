@@ -93,7 +93,7 @@
 
   {% for result in page.object_list %}
     <p>
-      <a href="{{ result.object.get_absolute_url }}"> {{ result.object.PRJ_CD }} - {{ result.object.prj_nm }} </a>
+      <a href="{{ result.object.get_absolute_url }}"> {{ result.object.prj_cd }} - {{ result.object.prj_nm }} </a>
     </p>
    {% empty %}
  

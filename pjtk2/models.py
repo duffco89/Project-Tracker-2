@@ -169,7 +169,7 @@ class Project(models.Model):
     year = models.CharField("Year", max_length=4, blank=True, editable=False)
     prj_date0 = models.DateField("Start Date", blank=False)
     prj_date1 = models.DateField("End Date", blank=False)
-    PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, 
+    prj_cd = models.CharField("Project Code", max_length=12, unique=True, 
                               blank=False)
     prj_nm = models.CharField("Proejct Name", max_length=50, blank=False)
     prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
@@ -260,7 +260,7 @@ class Project(models.Model):
 
     def project_suffix(self):
         '''return the prject suffix for the given project'''
-        return self.PRJ_CD[-3:]
+        return self.prj_cd[-3:]
 
     def name(self):
         '''alias for prj_nm - maintains fishnetII name in model but works
@@ -274,7 +274,7 @@ class Project(models.Model):
 
     def __unicode__(self):
         '''Return the name of the project and it's project code'''
-        ret = "%s (%s)" % (self.prj_nm, self.PRJ_CD)
+        ret = "%s (%s)" % (self.prj_nm, self.prj_cd)
         return ret
 
     def get_milestones(self, required=True):
@@ -509,7 +509,7 @@ class Project(models.Model):
         """
         new = False
         if not self.slug or not self.year:
-            self.slug = slugify(self.PRJ_CD)
+            self.slug = slugify(self.prj_cd)
             self.year = self.prj_date0.year
             new = True
 
@@ -527,7 +527,7 @@ class Project(models.Model):
 ##  
 ##      if created:
 ##          proj = Project.objects.get(pk=instance.pk)
-##          msgtxt =  "Project %s was just submitted." % proj.PRJ_CD
+##          msgtxt =  "Project %s was just submitted." % proj.prj_cd
 ##          # we want to send this message up the chain of command to 
 ##          # all supervisors
 ##          try:
@@ -564,7 +564,7 @@ class ProjectMilestones(models.Model):
         
     def __unicode__(self):
         '''Return a string that include the project code and milestone label'''
-        return "%s - %s" % (self.project.PRJ_CD, self.milestone.label)
+        return "%s - %s" % (self.project.prj_cd, self.milestone.label)
 
     def __str__(self):
         return self.milestone.label
@@ -585,7 +585,7 @@ class ProjectMilestones(models.Model):
 ##          #in this case, there was no original - nothing to do
 ##          pass
 ##      else:
-##          print "%s was Updated. %s is not %s.\n" % (instance.project.PRJ_CD, 
+##          print "%s was Updated. %s is not %s.\n" % (instance.project.prj_cd, 
 ##                                         instance.milestone.label,
 ##                                         instance.milestone.completed)
 ##          pass
@@ -642,7 +642,7 @@ class Bookmark(models.Model):
         
     def get_project_code(self):
         '''Use the project code for the bookmark too.'''
-        return self.project.PRJ_CD
+        return self.project.prj_cd
 
     def project_type(self):
         '''Use the project type for the bookmark too.'''

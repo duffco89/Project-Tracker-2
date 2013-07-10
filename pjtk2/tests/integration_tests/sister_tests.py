@@ -35,27 +35,27 @@ class SisterFormTestCase(WebTest):
                                         category = 'Core', order=999, 
                                              report=False)
 
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user,
                                               project_type = self.ProjType)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user,
                                               project_type = self.ProjType)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               owner=self.user,
                                               project_type = self.ProjType)
 
         #same project type, but not approved
-        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444",
+        self.project4 = ProjectFactory.create(prj_cd="LHA_IA12_444",
                                               owner=self.user,
                                               project_type = self.ProjType)
 
         #approved, different project type
-        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555",
+        self.project5 = ProjectFactory.create(prj_cd="LHA_IA12_555",
                                               owner=self.user,
                                               project_type = self.ProjType2)
         #approved, same project type, different year
-        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666",
+        self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666",
                                               owner=self.user,
                                               project_type = self.ProjType)
 
@@ -96,8 +96,8 @@ class SisterFormTestCase(WebTest):
         #verify that the page contains:
         #"Sister projects for:"
         self.assertContains(response,"Sister projects for:")
-        # and self.project1.PRJ_CD
-        self.assertContains(response, self.project1.PRJ_CD)
+        # and self.project1.prj_cd
+        self.assertContains(response, self.project1.prj_cd)
 
     def test_sisterlist_nosisters(self):
         '''the sister project page for a project with two candidates, none
@@ -114,12 +114,12 @@ class SisterFormTestCase(WebTest):
         
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), 
-                                             self.project2.PRJ_CD)
+                                             self.project2.prj_cd)
         #print response
         print "linkstring = %s" % linkstring
         assert linkstring in response
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args=(self.project3.slug,)), self.project3.PRJ_CD)
+                             args=(self.project3.slug,)), self.project3.prj_cd)
         assert linkstring in response
 
         form = response.form
@@ -135,9 +135,9 @@ class SisterFormTestCase(WebTest):
 
         #make sure that the projects that should be candidates or
         #sisters aren't in the response
-        self.assertNotIn(self.project4.PRJ_CD, response)
-        self.assertNotIn(self.project5.PRJ_CD, response)
-        self.assertNotIn(self.project6.PRJ_CD, response)
+        self.assertNotIn(self.project4.prj_cd, response)
+        self.assertNotIn(self.project5.prj_cd, response)
+        self.assertNotIn(self.project6.prj_cd, response)
 
 
 
@@ -157,11 +157,11 @@ class SisterFormTestCase(WebTest):
         
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), 
-                                             self.project2.PRJ_CD)
+                                             self.project2.prj_cd)
 
         assert linkstring in response
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args=(self.project3.slug,)), self.project3.PRJ_CD)
+                             args=(self.project3.slug,)), self.project3.prj_cd)
         assert linkstring in response
 
         form = response.form
@@ -177,9 +177,9 @@ class SisterFormTestCase(WebTest):
 
         #make sure that the projects that should be candidates or
         #sisters aren't in the response
-        self.assertNotIn(self.project4.PRJ_CD, response)
-        self.assertNotIn(self.project5.PRJ_CD, response)
-        self.assertNotIn(self.project6.PRJ_CD, response)
+        self.assertNotIn(self.project4.prj_cd, response)
+        self.assertNotIn(self.project5.prj_cd, response)
+        self.assertNotIn(self.project6.prj_cd, response)
 
 
     def test_sisterlist_nocandidates(self):
@@ -200,16 +200,16 @@ class SisterFormTestCase(WebTest):
         self.assertContains(response, "Sister projects for:")
         
         msg = ("There are currently no comperable projects for %s" 
-               % self.project4.PRJ_CD)
+               % self.project4.prj_cd)
         self.assertIn(msg, response)
 
         #make sure that the projects that should not be candidates or
         #sisters aren't in the response
-        self.assertNotIn(self.project1.PRJ_CD, response)
-        self.assertNotIn(self.project2.PRJ_CD, response)
-        self.assertNotIn(self.project3.PRJ_CD, response)
-        self.assertNotIn(self.project5.PRJ_CD, response)
-        self.assertNotIn(self.project6.PRJ_CD, response)
+        self.assertNotIn(self.project1.prj_cd, response)
+        self.assertNotIn(self.project2.prj_cd, response)
+        self.assertNotIn(self.project3.prj_cd, response)
+        self.assertNotIn(self.project5.prj_cd, response)
+        self.assertNotIn(self.project6.prj_cd, response)
 
         #Differnt Project Type
         url = reverse('SisterProjects', args = (self.project5.slug,))
@@ -221,16 +221,16 @@ class SisterFormTestCase(WebTest):
         assert "Sister projects for:" in response
 
         msg = ("There are currently no comperable projects for %s" 
-               % self.project5.PRJ_CD)
+               % self.project5.prj_cd)
         self.assertIn(msg, response)
 
         #make sure that the projects that should not be candidates or
         #sisters aren't in the response
-        self.assertNotIn(self.project1.PRJ_CD, response)
-        self.assertNotIn(self.project2.PRJ_CD, response)
-        self.assertNotIn(self.project3.PRJ_CD, response)
-        self.assertNotIn(self.project4.PRJ_CD, response)
-        self.assertNotIn(self.project6.PRJ_CD, response)
+        self.assertNotIn(self.project1.prj_cd, response)
+        self.assertNotIn(self.project2.prj_cd, response)
+        self.assertNotIn(self.project3.prj_cd, response)
+        self.assertNotIn(self.project4.prj_cd, response)
+        self.assertNotIn(self.project6.prj_cd, response)
 
         #approved project, different year
         url = reverse('SisterProjects', args = (self.project6.slug,))
@@ -242,16 +242,16 @@ class SisterFormTestCase(WebTest):
         assert "Sister projects for:" in response
 
         msg = ("There are currently no comperable projects for %s"
-               % self.project6.PRJ_CD)
+               % self.project6.prj_cd)
         self.assertIn(msg, response)
 
         #make sure that the projects that should not be candidates or
         #sisters aren't in the response
-        self.assertNotIn(self.project1.PRJ_CD, response)
-        self.assertNotIn(self.project2.PRJ_CD, response)
-        self.assertNotIn(self.project3.PRJ_CD, response)
-        self.assertNotIn(self.project4.PRJ_CD, response)
-        self.assertNotIn(self.project5.PRJ_CD, response)
+        self.assertNotIn(self.project1.prj_cd, response)
+        self.assertNotIn(self.project2.prj_cd, response)
+        self.assertNotIn(self.project3.prj_cd, response)
+        self.assertNotIn(self.project4.prj_cd, response)
+        self.assertNotIn(self.project5.prj_cd, response)
 
 
     def test_add_remove_sisters(self):
@@ -285,7 +285,7 @@ class SisterFormTestCase(WebTest):
         proj = Project.objects.get(slug=self.project1.slug)
         sisters = proj.get_sisters()
         self.assertEqual(len(sisters),1)
-        self.assertEqual(sisters[0].PRJ_CD,self.project2.PRJ_CD)
+        self.assertEqual(sisters[0].prj_cd,self.project2.prj_cd)
 
         #========================
         #return to the sister page, 
@@ -341,8 +341,8 @@ class SisterFormTestCase(WebTest):
         #verify that the project 1 has the sisters we think:
         sisters1 = self.project1.get_sisters()
         self.assertQuerysetEqual(
-            sisters1,[self.project2.PRJ_CD, self.project3.PRJ_CD],
-            lambda a:a.PRJ_CD
+            sisters1,[self.project2.prj_cd, self.project3.prj_cd],
+            lambda a:a.prj_cd
             )
 
         url = reverse('SisterProjects', args = (self.project1.slug,))
@@ -355,12 +355,12 @@ class SisterFormTestCase(WebTest):
         
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), 
-                                             self.project2.PRJ_CD)
+                                             self.project2.prj_cd)
         self.assertContains(response, linkstring, html=True)
         
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project3.slug,)), 
-                                             self.project3.PRJ_CD)
+                                             self.project3.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         form = response.form
@@ -376,9 +376,9 @@ class SisterFormTestCase(WebTest):
 
         #make sure that the projects that should be candidates or
         #sisters aren't in the response
-        self.assertNotIn(self.project4.PRJ_CD, response)
-        self.assertNotIn(self.project5.PRJ_CD, response)
-        self.assertNotIn(self.project6.PRJ_CD, response)
+        self.assertNotIn(self.project4.prj_cd, response)
+        self.assertNotIn(self.project5.prj_cd, response)
+        self.assertNotIn(self.project6.prj_cd, response)
 
 
         #resubmit the form with one of the check boxes unchecked:
@@ -388,7 +388,7 @@ class SisterFormTestCase(WebTest):
         #project 1 shouldn't have any sisters now
         sisters = self.project1.get_sisters()
         self.assertEqual(len(sisters),1)
-        self.assertEqual(sisters[0].PRJ_CD,self.project2.PRJ_CD)
+        self.assertEqual(sisters[0].prj_cd,self.project2.prj_cd)
         
         self.assertEqual(len(self.project3.get_sisters()),0)
 
@@ -405,8 +405,8 @@ class SisterFormTestCase(WebTest):
         proj = Project.objects.get(slug=self.project1.slug)
         sisters = proj.get_sisters()
         self.assertEqual(len(sisters),2)
-        self.assertEqual(sisters[0].PRJ_CD,self.project2.PRJ_CD)
-        self.assertEqual(sisters[1].PRJ_CD,self.project3.PRJ_CD)
+        self.assertEqual(sisters[0].prj_cd,self.project2.prj_cd)
+        self.assertEqual(sisters[1].prj_cd,self.project3.prj_cd)
 
         #we will log into the lister list, click on a sister, 
         url = reverse('SisterProjects', args = (self.project1.slug,))
@@ -438,13 +438,13 @@ class SisterFormTestCase(WebTest):
         proj = Project.objects.get(slug=self.project2.slug)
         sisters = proj.get_sisters()
         self.assertEqual(len(sisters),1)
-        self.assertEqual(sisters[0].PRJ_CD,self.project3.PRJ_CD)
+        self.assertEqual(sisters[0].prj_cd,self.project3.prj_cd)
 
         #Likewise project 3 should have just one sister - project 2
         proj = Project.objects.get(slug=self.project3.slug)
         sisters = proj.get_sisters()
         self.assertEqual(len(sisters),1)
-        self.assertEqual(sisters[0].PRJ_CD,self.project2.PRJ_CD)
+        self.assertEqual(sisters[0].prj_cd,self.project2.prj_cd)
 
 
 
@@ -479,15 +479,15 @@ class SisterFormTestCase(WebTest):
 ##        self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
 ##        
 ##
-##        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+##        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
 ##                                              owner=self.user, 
 ##                                              project_type = self.ProjType)
 ##
-##        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+##        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
 ##                                              owner=self.user, 
 ##                                              project_type = self.ProjType)
 ##
-##        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+##        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
 ##                                              owner=self.user, 
 ##                                              project_type = self.ProjType)
 ##        #don't forget to approve the projects
@@ -508,7 +508,7 @@ class SisterFormTestCase(WebTest):
 ##
 ##        linktext = '<a href="%s">%s</a>' % (reverse('project_detail', 
 ##                                            args =(self.project2.slug,)), 
-##                                            self.project2.PRJ_CD)
+##                                            self.project2.prj_cd)
 ##        self.assertContains(response, linktext)
 ##
 ##

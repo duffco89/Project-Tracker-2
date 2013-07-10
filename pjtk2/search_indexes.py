@@ -9,7 +9,7 @@ class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
     #author = indexes.CharField(model_attr='user')
     #pub_date = indexes.DateTimeField(model_attr='EFFDT1')
     year = indexes.CharField(model_attr='year')
-    code = indexes.CharField(model_attr='PRJ_CD')
+    code = indexes.CharField(model_attr='prj_cd')
     name = indexes.CharField(model_attr='prj_nm')
     description = indexes.CharField(model_attr='comment')
 

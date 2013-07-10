@@ -36,7 +36,7 @@ class TestProjectApproveMethods(TestCase):
                                              report=False)
 
         
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user)
 
 
@@ -130,18 +130,18 @@ class TestProjectModel(TestCase):
         #we need to create some models with different years - starting
         #with the current year.
         yr = datetime.datetime.now()
-        PRJ_CD = "LHA_IA%s_111" % str(yr.year)[-2:]
-        self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_111" % str(yr.year)[-2:]
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               comment=self.commentStr,
                                               prj_nm = self.ProjectName)
 
-        PRJ_CD = "LHA_IA%s_222" % str(yr.year -1)[-2:]
-        self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_222" % str(yr.year -1)[-2:]
+        self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user)
 
-        PRJ_CD = "LHA_IA%s_333" % str(yr.year-2)[-2:]
-        self.project3 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_333" % str(yr.year-2)[-2:]
+        self.project3 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user)
 
 
@@ -150,7 +150,7 @@ class TestProjectModel(TestCase):
         what we expect (project name (project code))"""
 
         should_be = "%s (%s)" % (self.project1.prj_nm, 
-                                 self.project1.PRJ_CD)
+                                 self.project1.prj_cd)
         self.assertEqual(str(self.project1), should_be)                
 
 
@@ -174,7 +174,7 @@ class TestProjectModel(TestCase):
         the project code'''
 
         self.assertEqual(len(self.project1.project_suffix()), 3)                
-        should_be = self.project1.PRJ_CD[-3:]
+        should_be = self.project1.prj_cd[-3:]
         self.assertEqual(self.project1.project_suffix(), should_be)                
 
 
@@ -183,7 +183,7 @@ class TestProjectModel(TestCase):
         should be'''
         prj_cd = "LHA_IA12_111"
         prj_nm = "Fake Project"
-        project = ProjectFactory.create(PRJ_CD = prj_cd)
+        project = ProjectFactory.create(prj_cd = prj_cd)
 
         project.save()
         should_be = prj_cd.lower()
@@ -196,13 +196,13 @@ class TestProjectModel(TestCase):
         '''This one should return self.project1, but not project 2 or 3'''
         projects = Project.this_year.all()
         self.assertEqual(projects.count(),1)
-        self.assertEqual(projects[0].PRJ_CD, self.project1.PRJ_CD)
+        self.assertEqual(projects[0].prj_cd, self.project1.prj_cd)
 
     def test_projects_last_year(self):
         '''This one should return self.project2, but not project 1 or 3'''
         projects = Project.last_year.all()
         self.assertEqual(projects.count(),1)
-        self.assertEqual(projects[0].PRJ_CD, self.project2.PRJ_CD)
+        self.assertEqual(projects[0].prj_cd, self.project2.prj_cd)
 
     def tearDown(self):
         self.project1.delete()
@@ -469,27 +469,27 @@ class TestModelSisters(TestCase):
                                              report=False)
 
         #projects
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user,
                                               project_type = self.ProjType)
 
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", 
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
                                               owner=self.user, 
                                               project_type = self.ProjType)
 
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", 
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
                                               owner=self.user, 
                                               project_type = self.ProjType)
 
-        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", 
+        self.project4 = ProjectFactory.create(prj_cd="LHA_IA12_444", 
                                               owner=self.user, 
                                               project_type = self.ProjType)
 
-        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", 
+        self.project5 = ProjectFactory.create(prj_cd="LHA_IA12_555", 
                                               owner=self.user,
                                               project_type = self.ProjType2)
 
-        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", 
+        self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666", 
                                               owner=self.user,
                                               project_type = self.ProjType) 
 
@@ -526,8 +526,8 @@ class TestModelSisters(TestCase):
         self.assertEqual(candidates.count(), 1)
 
         #each sister should return the other:
-        self.assertEqual(sisters1[0].PRJ_CD, "LHA_IA12_222")
-        self.assertEqual(sisters2[0].PRJ_CD, "LHA_IA12_111")
+        self.assertEqual(sisters1[0].prj_cd, "LHA_IA12_222")
+        self.assertEqual(sisters2[0].prj_cd, "LHA_IA12_111")
 
         #and they should all be in the same family
         self.assertEqual(self.project1.get_family(), self.project2.get_family())
@@ -541,9 +541,9 @@ class TestModelSisters(TestCase):
         sisters2 = self.project2.get_sisters()
         sisters3 = self.project3.get_sisters()
 
-        self.assertEqual(sisters1[0].PRJ_CD,"LHA_IA12_222")
-        self.assertEqual(sisters1[1].PRJ_CD,"LHA_IA12_333")
-        #self.assertEqual(sisters1[2].PRJ_CD,"LHA_IA12_333")
+        self.assertEqual(sisters1[0].prj_cd,"LHA_IA12_222")
+        self.assertEqual(sisters1[1].prj_cd,"LHA_IA12_333")
+        #self.assertEqual(sisters1[2].prj_cd,"LHA_IA12_333")
 
         FamilyCnt = Family.objects.all().count()
         self.assertEqual(FamilyCnt,1)
@@ -588,13 +588,13 @@ class TestModelSisters(TestCase):
         sisters2 = self.project2.get_sisters(False)
 
         self.assertQuerysetEqual(
-            sisters1,[self.project1.PRJ_CD, self.project2.PRJ_CD],
-            lambda a:a.PRJ_CD
+            sisters1,[self.project1.prj_cd, self.project2.prj_cd],
+            lambda a:a.prj_cd
             )
 
         self.assertQuerysetEqual(
-            sisters2,[self.project1.PRJ_CD, self.project2.PRJ_CD],
-            lambda a:a.PRJ_CD
+            sisters2,[self.project1.prj_cd, self.project2.prj_cd],
+            lambda a:a.prj_cd
             )
 
 
@@ -627,7 +627,7 @@ class TestModelBookmarks(TestCase):
 
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
-        self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               project_type = self.ProjType)
 
     def TestBookmarkAttributes(self):
@@ -635,7 +635,7 @@ class TestModelBookmarks(TestCase):
         bookmark = Bookmark.objects.create(user=self.user,
                                            project=self.project)
 
-        self.assertEqual(bookmark.get_project_code(), self.project.PRJ_CD)
+        self.assertEqual(bookmark.get_project_code(), self.project.prj_cd)
         self.assertEqual(bookmark.get_project_url(), 
                          self.project.get_absolute_url())
         self.assertEqual(bookmark.year(), self.project.year)
@@ -659,11 +659,11 @@ class TestProjectTagging(TestCase):
                                 last_name = 'Simpson')        
         
         
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               owner=self.user)
 
     def test_add_remove_tags(self):
@@ -698,22 +698,22 @@ class TestProjectTagging(TestCase):
         projects = Project.objects.filter(tags__name__in=["allprojects"])
         self.assertEqual(projects.count(),3)
         self.assertQuerysetEqual(projects,
-                                 [self.project1.PRJ_CD,
-                                  self.project2.PRJ_CD,
-                                  self.project3.PRJ_CD],
-                                 lambda a:a.PRJ_CD)
+                                 [self.project1.prj_cd,
+                                  self.project2.prj_cd,
+                                  self.project3.prj_cd],
+                                 lambda a:a.prj_cd)
 
         projects = Project.objects.filter(tags__name__in=["project12"])
         self.assertEqual(projects.count(),2)
         self.assertQuerysetEqual(projects,
-                                 [self.project1.PRJ_CD,
-                                  self.project2.PRJ_CD],
-                                 lambda a:a.PRJ_CD)
+                                 [self.project1.prj_cd,
+                                  self.project2.prj_cd],
+                                 lambda a:a.prj_cd)
 
 
         projects = Project.objects.filter(tags__name__in=["project1"])
         self.assertEqual(projects.count(),1)
-        self.assertEqual(projects[0].PRJ_CD,self.project1.PRJ_CD)
+        self.assertEqual(projects[0].prj_cd,self.project1.prj_cd)
 
     def tearDown(self):
         self.project1.delete()
@@ -868,17 +868,17 @@ class TestApprovedCompletedModelManagers(TestCase):
                                              report=False)
 
         
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", 
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
                                               owner=self.user) 
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", 
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
                                               owner=self.user)
-        self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", 
+        self.project4 = ProjectFactory.create(prj_cd="LHA_IA12_444", 
                                               owner=self.user) 
-        self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", 
+        self.project5 = ProjectFactory.create(prj_cd="LHA_IA12_555", 
                                               owner=self.user)
-        self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", 
+        self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666", 
                                               owner=self.user)
 
         
@@ -897,15 +897,15 @@ class TestApprovedCompletedModelManagers(TestCase):
         #project codes are the same as self.project3 and self.project4
         approved = Project.objects.approved()
         self.assertEqual(approved.count(),2)
-        shouldbe = [self.project3.PRJ_CD, self.project4.PRJ_CD]
-        self.assertQuerysetEqual(approved, shouldbe, lambda a:a.PRJ_CD)
+        shouldbe = [self.project3.prj_cd, self.project4.prj_cd]
+        self.assertQuerysetEqual(approved, shouldbe, lambda a:a.prj_cd)
 
         #assert completed projects will get 2 projects and that their
         #project codes are the same as self.project1 and self.project2
         completed = Project.objects.completed()
         self.assertEqual(completed.count(),2)
-        shouldbe = [self.project1.PRJ_CD, self.project2.PRJ_CD]
-        self.assertQuerysetEqual(completed, shouldbe, lambda a:a.PRJ_CD)
+        shouldbe = [self.project1.prj_cd, self.project2.prj_cd]
+        self.assertQuerysetEqual(completed, shouldbe, lambda a:a.prj_cd)
 
 
         # projects 5 and 6 have been created but have not been
@@ -913,8 +913,8 @@ class TestApprovedCompletedModelManagers(TestCase):
         #Project.objects.submitted()
         submitted = Project.objects.submitted()
         self.assertEqual(submitted.count(),2)
-        shouldbe = [self.project5.PRJ_CD, self.project6.PRJ_CD]
-        self.assertQuerysetEqual(submitted, shouldbe, lambda a:a.PRJ_CD)
+        shouldbe = [self.project5.prj_cd, self.project6.prj_cd]
+        self.assertQuerysetEqual(submitted, shouldbe, lambda a:a.prj_cd)
 
 
     def test_is_approved_method(self):

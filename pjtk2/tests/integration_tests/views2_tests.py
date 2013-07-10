@@ -21,7 +21,7 @@ class BookmarkTestCase(WebTest):
        
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
         
-        self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+        self.project = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user,
                                               project_type = self.ProjType)
     csrf_checks = False   
@@ -41,7 +41,7 @@ class BookmarkTestCase(WebTest):
         self.assertEqual(bookmarkcnt, 1)
         #make sure the bookmark is the one we think it is:
         bookmark = Bookmark.objects.get(user__pk=self.user.id)
-        self.assertEqual(bookmark.get_project_code(), self.project.PRJ_CD)
+        self.assertEqual(bookmark.get_project_code(), self.project.prj_cd)
 
         #==================
         #  CONFIRM DELETE
@@ -76,14 +76,14 @@ class ProjectTaggingTestCase(WebTest):
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
         
 
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user,
                                               project_type = self.ProjType,
                                               )
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user,
                                               project_type = self.ProjType)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               owner=self.user,
                                               project_type = self.ProjType)
 
@@ -182,19 +182,19 @@ class ProjectTaggingTestCase(WebTest):
         #Project 1
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project1.slug,)), 
-                                             self.project1.PRJ_CD)
+                                             self.project1.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 2
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), 
-                                             self.project2.PRJ_CD)
+                                             self.project2.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 3
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                             args = (self.project3.slug,)), 
-                                             self.project3.PRJ_CD)
+                                             self.project3.prj_cd)
         self.assertNotContains(response, linkstring, html=True)
 
         #====================
@@ -206,19 +206,19 @@ class ProjectTaggingTestCase(WebTest):
         #Project 1
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project1.slug,)), 
-                                             self.project1.PRJ_CD)
+                                             self.project1.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 2
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project2.slug,)), 
-                                             self.project2.PRJ_CD)
+                                             self.project2.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 3
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
                              args = (self.project3.slug,)), 
-                                             self.project3.PRJ_CD)
+                                             self.project3.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
 
@@ -297,7 +297,7 @@ class UpdateReportsTestCase(WebTest):
 
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user1)
 
 
@@ -547,16 +547,16 @@ class MyProjectViewTestCase(WebTest):
                                              report=False)
 
 
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               prj_ldr=self.user,
                                               owner=self.user,
                                               project_type = self.ProjType)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               prj_ldr=self.user,
                                               owner=self.user,
                                               project_type = self.ProjType)
         #this one is run by mr. burns
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               prj_ldr=self.user2,
                                               owner=self.user2,
                                               project_type = self.ProjType)
@@ -568,10 +568,10 @@ class MyProjectViewTestCase(WebTest):
         response = self.client.get(reverse('MyProjects'),follow=True) 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "my_projects.html")
-        self.assertContains(response, self.project1.PRJ_CD)        
-        self.assertContains(response, self.project2.PRJ_CD)                
+        self.assertContains(response, self.project1.prj_cd)        
+        self.assertContains(response, self.project2.prj_cd)                
         #these values should NOT be in the response:
-        self.assertNotContains(response, self.project3.PRJ_CD)                
+        self.assertNotContains(response, self.project3.prj_cd)                
         self.assertNotContains(response, self.user2.username)                
         self.assertNotContains(response, "Project Lead")                
 
@@ -583,11 +583,11 @@ class MyProjectViewTestCase(WebTest):
         response = self.client.get(reverse('MyProjects'),follow=True) 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "my_projects.html")
-        self.assertContains(response, self.project1.PRJ_CD)        
-        self.assertContains(response, self.project2.PRJ_CD)                
+        self.assertContains(response, self.project1.prj_cd)        
+        self.assertContains(response, self.project2.prj_cd)                
 
         #these values should be in the response:
-        self.assertContains(response, self.project3.PRJ_CD)                
+        self.assertContains(response, self.project3.prj_cd)                
         self.assertContains(response, self.user.username)                
         self.assertContains(response, self.user2.username)                
         self.assertContains(response, "Project Lead")                
@@ -607,9 +607,9 @@ class MyProjectViewTestCase(WebTest):
         response = self.client.get(reverse('MyProjects'),follow=True) 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "my_projects.html")
-        self.assertContains(response, self.project1.PRJ_CD)        
-        self.assertContains(response, self.project2.PRJ_CD)                
-        self.assertContains(response, self.project3.PRJ_CD)                
+        self.assertContains(response, self.project1.prj_cd)        
+        self.assertContains(response, self.project2.prj_cd)                
+        self.assertContains(response, self.project3.prj_cd)                
 
 
 
@@ -687,7 +687,7 @@ class TestProjectDetailForm(WebTest):
                                            report=False)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user1)
 
 
@@ -771,7 +771,7 @@ class TestProjectDetailForm(WebTest):
                                 user=self.user1)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "ProjectForm.html")
-        self.assertContains(response, self.project1.PRJ_CD)        
+        self.assertContains(response, self.project1.prj_cd)        
 
         form = response.form
         #none of the milestones have been completed yet so none of the
@@ -899,7 +899,7 @@ class TestProjectDetailForm(WebTest):
                                 user=self.user1)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "ProjectForm.html")
-        self.assertContains(response, self.project1.PRJ_CD)        
+        self.assertContains(response, self.project1.prj_cd)        
 
         form = response.form
 
@@ -927,7 +927,7 @@ class TestProjectDetailForm(WebTest):
                                 user=self.user2)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "ProjectForm.html")
-        self.assertContains(response, self.project1.PRJ_CD)        
+        self.assertContains(response, self.project1.prj_cd)        
 
         form = response.form
 
@@ -984,7 +984,7 @@ class TestCanCopyProject(WebTest):
                                 last_name = 'Gumble',
                                        )
 
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               prj_ldr=self.user1.first_name,
                                               owner=self.user1)
 
@@ -996,7 +996,7 @@ class TestCanCopyProject(WebTest):
 
         #we want to make sure that none of the attributes of proejct1
         #are changed by making a copy of it
-        old_PRJ_CD = self.project1.PRJ_CD
+        old_prj_cd = self.project1.prj_cd
         old_prj_ldr = self.project1.prj_ldr
         old_prj_nm = self.project1.prj_nm
         old_owner = self.project1.owner
@@ -1011,11 +1011,11 @@ class TestCanCopyProject(WebTest):
                                 user=self.user2)
         form = response.form        
         
-        new_PRJ_CD = "LHA_IA13_ZZZ"
+        new_prj_cd = "LHA_IA13_ZZZ"
         new_prj_nm = "Barney's First Project"
 
         #He needs to fill in a number of the important fields:
-        form['PRJ_CD'] = new_PRJ_CD
+        form['prj_cd'] = new_prj_cd
         form['prj_ldr'] = self.user2.first_name
         form['prj_nm'] = new_prj_nm
         #make sure that the project dates match the project code and
@@ -1032,9 +1032,9 @@ class TestCanCopyProject(WebTest):
         
         #check that all of the attributes of the new project have been
         #updated accordingly
-        project = Project.objects.get(PRJ_CD=new_PRJ_CD)
-        #self.assertEqual(project.PRJ_CD, new_PRJ_CD)
-        self.assertEqual(project.slug, slugify(new_PRJ_CD))
+        project = Project.objects.get(prj_cd=new_prj_cd)
+        #self.assertEqual(project.prj_cd, new_prj_cd)
+        self.assertEqual(project.slug, slugify(new_prj_cd))
         self.assertEqual(project.prj_nm, new_prj_nm)
         self.assertEqual(project.prj_ldr, self.user2.first_name)
         self.assertEqual(project.owner, self.user2)
@@ -1042,8 +1042,8 @@ class TestCanCopyProject(WebTest):
 
         #now just make sure that the orginial project is unchanged
         #I don't know why it would be.
-        project = Project.objects.get(PRJ_CD=old_PRJ_CD)
-        self.assertEqual(project.slug, slugify(old_PRJ_CD))
+        project = Project.objects.get(prj_cd=old_prj_cd)
+        self.assertEqual(project.slug, slugify(old_prj_cd))
         self.assertEqual(project.prj_nm, old_prj_nm)
         self.assertEqual(project.prj_ldr,old_prj_ldr)
         self.assertEqual(project.owner, old_owner)

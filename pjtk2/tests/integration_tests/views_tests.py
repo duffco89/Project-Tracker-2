@@ -41,7 +41,7 @@ class TestCanEditFunction(TestCase):
         self.user2.groups.add(managerGrp)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user1)
 
 
@@ -221,7 +221,7 @@ class ProjectDetailownerTestCase(TestCase):
         
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
-        self.assertContains(response, self.project.PRJ_CD)
+        self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
@@ -273,7 +273,7 @@ class ProjectDetailJoeUserTestCase(TestCase):
         
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
-        self.assertContains(response, self.project.PRJ_CD)
+        self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
@@ -331,7 +331,7 @@ class ProjectDetailManagerTestCase(TestCase):
         
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
-        self.assertContains(response, self.project.PRJ_CD)
+        self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
@@ -385,7 +385,7 @@ class ApprovedProjectListUserTestCase(TestCase):
         self.project = ProjectFactory(owner = self.user)
 
         self.project2 = ProjectFactory(
-            PRJ_CD = "LHA_IA12_111",
+            prj_cd = "LHA_IA12_111",
             prj_nm = "An approved project",
             prj_ldr = self.user,
             owner = self.user)
@@ -403,11 +403,11 @@ class ApprovedProjectListUserTestCase(TestCase):
         self.assertTemplateUsed(response, 'ApprovedProjectList.html')
         self.assertContains(response, 'Projects')
         #it should not contain the project that isn't approved
-        self.assertNotContains(response, self.project.PRJ_CD)
+        self.assertNotContains(response, self.project.prj_cd)
         self.assertNotContains(response, self.project.prj_nm)
 
         #this one is approved and should be in the list
-        self.assertContains(response, self.project2.PRJ_CD)
+        self.assertContains(response, self.project2.prj_cd)
         self.assertContains(response, self.project2.prj_nm)
 
         #since this user is not a manager, she should not be able to
@@ -452,7 +452,7 @@ class ApprovedProjectListManagerTestCase(TestCase):
         self.project = ProjectFactory(owner = self.owner)
 
         self.project2 = ProjectFactory(
-            PRJ_CD = "LHA_IA12_111",
+            prj_cd = "LHA_IA12_111",
             prj_nm = "An approved project",
             prj_ldr = self.owner,
             owner = self.owner)
@@ -480,11 +480,11 @@ class ApprovedProjectListManagerTestCase(TestCase):
         self.assertTemplateUsed(response, 'ApprovedProjectList.html')
         self.assertContains(response, 'Projects')
         #it should not contain the project that isn't approved
-        self.assertNotContains(response, self.project.PRJ_CD)
+        self.assertNotContains(response, self.project.prj_cd)
         self.assertNotContains(response, self.project.prj_nm)
 
         #this one is approved and should be in the list
-        self.assertContains(response, self.project2.PRJ_CD)
+        self.assertContains(response, self.project2.prj_cd)
         self.assertContains(response, self.project2.prj_nm)
 
         #since this user is a manager, she should be able to
@@ -546,30 +546,30 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         self.year = datetime.datetime.now().year
 
         #Two projects from this year:
-        PRJ_CD = "LHA_IA%s_111" % str(self.year)[-2:]
-        self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_111" % str(self.year)[-2:]
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
 
-        PRJ_CD = "LHA_IA%s_222" % str(self.year)[-2:]
-        self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_222" % str(self.year)[-2:]
+        self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
         #Two projects from last year:
-        PRJ_CD = "LHA_IA%s_333" % str(self.year-1)[-2:]
-        self.project3 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_333" % str(self.year-1)[-2:]
+        self.project3 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
 
-        PRJ_CD = "LHA_IA%s_444" % str(self.year-1)[-2:]
-        self.project4 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_444" % str(self.year-1)[-2:]
+        self.project4 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
 
         #one project from 3 years ago
-        PRJ_CD = "LHA_IA%s_555" % str(self.year -3)[-2:]
-        self.project5 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_555" % str(self.year -3)[-2:]
+        self.project5 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
 
         #One project from next year (submitted by a keener):
-        PRJ_CD = "LHA_IA%s_666" % str(self.year+1)[-2:]
-        self.project6 = ProjectFactory.create(PRJ_CD=PRJ_CD,
+        prj_cd = "LHA_IA%s_666" % str(self.year+1)[-2:]
+        self.project6 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
 
 
@@ -640,29 +640,29 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         print response
         #This year
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                         args = (self.project1.slug,)), self.project1.PRJ_CD)
+                         args = (self.project1.slug,)), self.project1.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
 
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                         args = (self.project2.slug,)), self.project2.PRJ_CD)
+                         args = (self.project2.slug,)), self.project2.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #last year
 
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                         args = (self.project3.slug,)), self.project3.PRJ_CD)
+                         args = (self.project3.slug,)), self.project3.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                         args = (self.project4.slug,)), self.project4.PRJ_CD)
+                         args = (self.project4.slug,)), self.project4.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #the old project should NOT be listed in any form in the response
-        self.assertNotContains(response, self.project5.PRJ_CD)
+        self.assertNotContains(response, self.project5.prj_cd)
         #the project from the future
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                         args = (self.project6.slug,)), self.project6.PRJ_CD)
+                         args = (self.project6.slug,)), self.project6.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
 
@@ -952,7 +952,7 @@ class ChangeReportingRequirementsTestCase2(TestCase):
                                             report=True)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user2)
             
     def test_Add_New_Report2(self):

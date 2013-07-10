@@ -44,9 +44,12 @@ class BasicReportUploadTestCase(WebTest):
                                             report = True)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", owner=self.user)
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+                                              owner=self.user)
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
+                                              owner=self.user)
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
+                                              owner=self.user)
 
         #here is fake file that we will upload
         self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
@@ -65,7 +68,7 @@ class BasicReportUploadTestCase(WebTest):
 
     def test_render_report_upload_form(self):
         
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -73,7 +76,7 @@ class BasicReportUploadTestCase(WebTest):
 
         #verify the basic elements of the page
         self.assertIn("Upload Reports", response)
-        self.assertIn(self.project1.PRJ_CD, response)
+        self.assertIn(self.project1.prj_cd, response)
         self.assertIn(self.project1.prj_nm, response)
 
         #each of the core reports should be the response by default: 
@@ -114,7 +117,7 @@ class BasicReportUploadTestCase(WebTest):
 
         #verify the basic elements of the page
         self.assertIn("Upload Reports", response)
-        self.assertIn(self.project1.PRJ_CD, response)
+        self.assertIn(self.project1.prj_cd, response)
         self.assertIn(self.project1.prj_nm, response)
 
         #each of the core reports should be the response by default: 
@@ -194,11 +197,11 @@ class TestActualFileUpload(TestCase):
                                             report = True)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", 
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
                                               owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", 
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
                                               owner=self.user)
 
         #here is fake file that we will upload
@@ -521,8 +524,8 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(pr.count(),2)
 
         self.assertQuerysetEqual(
-            pr,[self.project1.PRJ_CD, self.project2.PRJ_CD],
-            lambda a:a.project.PRJ_CD
+            pr,[self.project1.prj_cd, self.project2.prj_cd],
+            lambda a:a.project.prj_cd
             )
         
         self.assertEqual(pr[0].milestone, self.rep0)        
@@ -557,8 +560,8 @@ class TestActualFileUpload(TestCase):
         pr = ProjectMilestones.objects.filter(report__id=report_id)
         self.assertEqual(pr.count(),2)
         self.assertQuerysetEqual(
-            pr,[self.project1.PRJ_CD, self.project2.PRJ_CD],
-            lambda a:a.project.PRJ_CD
+            pr,[self.project1.prj_cd, self.project2.prj_cd],
+            lambda a:a.project.prj_cd
             )
 
         self.assertEqual(pr[0].milestone, self.rep2)        
@@ -678,7 +681,7 @@ class TestActualFileUpload(TestCase):
 ##                                  category = 'Core', order = 1)
 ##  
 ##          #PROJECTS
-##          self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+##          self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
 #3                     owner=self.user)
 ##  
 ##          #here is fake file that we will upload
