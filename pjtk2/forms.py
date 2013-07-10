@@ -58,7 +58,7 @@ class HyperlinkWidget(forms.TextInput):
     """This is a widget that will insert a hyperlink to a project
     detail page in a form set.  Currently, the url is hardwired and
     should be updated using get_absolute_url"""
-    
+    #TODO - use initial -> url = self.instance.get_abosulte_url()
     #def __init__(self, *args, **kwargs):
     def __init__(self, attrs={}):
 
@@ -124,10 +124,10 @@ class ApproveProjectsForm(forms.ModelForm):
     '''This project form is used for view to approve/unapprove
     multiple projects.'''
 
-    Approved = forms.BooleanField(
-        label = "Approved:",
-        required =False,
-    )
+    #Approved = forms.BooleanField(
+    #    label = "Approved:",
+    #    required =False,
+    #)
     
     PRJ_NM = forms.CharField(
         widget = ReadOnlyText,
@@ -150,12 +150,23 @@ class ApproveProjectsForm(forms.ModelForm):
     )
 
 
-    def __init__(self, *args, **kwargs):
-        super(ApproveProjectsForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = Project
-        fields = ('Approved', 'PRJ_CD', 'PRJ_NM', 'PRJ_LDR') 
+        fields = ('PRJ_CD', 'PRJ_NM', 'PRJ_LDR') 
+
+    def __init__(self, *args, **kwargs):
+        super(ApproveProjectsForm, self).__init__(*args, **kwargs)
+
+        self.fields['Approved'] = forms.BooleanField(
+            label = "Approved",
+            required =False,
+            initial = self.instance.is_approved(),
+        )
+
+        #snippet makes sure that Approved appears first
+        self.fields.keyOrder = ['Approved','PRJ_CD', 'PRJ_NM', 'PRJ_LDR']
+
 
 
     def clean_PRJ_CD(self):
@@ -171,7 +182,14 @@ class ApproveProjectsForm(forms.ModelForm):
         return self.instance.PRJ_LDR
         
 
-
+    def save(self, commit=True):
+        #import pdb; pdb.set_trace()
+        if self.has_changed:
+            if self.cleaned_data['Approved']:
+                self.instance.approve()
+            else:
+                self.instance.unapprove()
+        return super(ApproveProjectsForm, self).save(commit)
 
 
 
@@ -380,17 +398,17 @@ class ReportUploadForm(forms.Form):
             
             if sisters and common:
                 for sister in sisters:
-                    projectreport, created = ProjectMilestones.objects.get_or_create(
+                    projreport, created = ProjectMilestones.objects.get_or_create(
                         project=sister, milestone=self.clean_milestone())
                     try:
-                        oldReport = Report.objects.get(projectreport=projectreport, 
+                        oldReport = Report.objects.get(projectreport=projreport,
                                                        current=True)
                         oldReport.current = False
                         oldReport.save()
                     except Report.DoesNotExist:
                         oldReport = None
                     #add the m2m relationship for the sister
-                    newReport.projectreport.add(projectreport)
+                    newReport.projectreport.add(projreport)
 
 
 class ProjectForm(forms.ModelForm):
@@ -502,8 +520,6 @@ class ProjectForm(forms.ModelForm):
                 'Lake',
                 'DBA',
                 'tags',
-                #Fieldset("Milestones",
-                #         'milestones'),
               ),
             ButtonHolder(
                 Submit('submit', 'Submit')
@@ -518,7 +534,6 @@ class ProjectForm(forms.ModelForm):
         if readonly:
             self.fields["PRJ_CD"].widget.attrs['readonly'] = True 
 
-        #pdb.set_trace()
         if milestones:
             if self.manager == True:
                 choices = [(x.id, {'label':x.milestone.label, 
@@ -534,7 +549,6 @@ class ProjectForm(forms.ModelForm):
             completed = [x.id for x in milestones if x.completed != None]
             self.fields.update({"milestones":forms.MultipleChoiceField(
                 widget = CheckboxSelectMultipleWithDisabled(),
-                #widget = CheckboxSelectMultiple(),
                 choices=choices,
                 label="",
                 initial = completed,
@@ -543,13 +557,13 @@ class ProjectForm(forms.ModelForm):
             self.helper.layout[0].extend([Fieldset('Milestones','milestones')])
 
 
-    def clean_Approved(self):
-        '''if this wasn't a manager, reset the Approved value to the
-        original (read only always returns false)'''
-        if not self.manager:
-            return self.instance.Approved
-        else:
-            return self.cleaned_data["Approved"]
+    ##def clean_Approved(self):
+    ##    '''if this wasn't a manager, reset the Approved value to the
+    ##    original (read only always returns false)'''
+    ##    if not self.manager:
+    ##        return self.instance.Approved
+    ##    else:
+    ##        return self.cleaned_data["Approved"]
 
         
             

@@ -20,6 +20,8 @@
 # you must make sure ./some_folder/__init__.py exists
 # and run  ./manage.py runscript some_folder.some_script
 
+# usage:
+#  python manage.py runscript milestones
 
 IMPORT_HELPER_AVAILABLE = False
 try:

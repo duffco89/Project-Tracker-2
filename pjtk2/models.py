@@ -70,6 +70,20 @@ class ProjectsLastYear(models.Manager):
         return super(ProjectsLastYear, self).get_query_set().filter(
                     year = year, Active=True)
 
+
+class MilestoneManager(models.Manager):
+    '''Sumbitted milestone is created automatically when a project is
+    created, and is needed for messages, but is not used anywhere else.
+    This manager will auto-matically remove it from the returned
+    recordsets.
+    '''
+    def get_query_set(self):
+        #use_for_related_fields = True
+        return super(MilestoneManager, self).get_query_set().exclude(
+                     label='Sumbitted')
+
+
+
 class Milestone(models.Model):
     '''Look-up table of reporting milestone and their attributes.  Not all
     milestones will have a report associated with them.  Keeping
@@ -92,6 +106,8 @@ class Milestone(models.Model):
     report  = models.BooleanField(default = False)
     protected  = models.BooleanField(default = False)
     order = models.FloatField(default=99)
+
+    #objects = MilestoneManager()
 
     class Meta:
         verbose_name = "Milestones List"
