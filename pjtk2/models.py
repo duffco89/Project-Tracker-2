@@ -171,7 +171,7 @@ class Project(models.Model):
     prj_date1 = models.DateField("End Date", blank=False)
     PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, 
                               blank=False)
-    PRJ_NM = models.CharField("Proejct Name", max_length=50, blank=False)
+    prj_nm = models.CharField("Proejct Name", max_length=50, blank=False)
     prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
     comment = models.TextField(blank=False, 
                                help_text="General project description.")
@@ -263,9 +263,9 @@ class Project(models.Model):
         return self.PRJ_CD[-3:]
 
     def name(self):
-        '''alias for PRJ_NM - maintains fishnetII name in model but works
+        '''alias for prj_nm - maintains fishnetII name in model but works
          with django convention of obj.name.'''
-        return self.PRJ_NM
+        return self.prj_nm
 
     def description(self):
         '''alias for comment - maintains fishnetII comment in model but works
@@ -274,7 +274,7 @@ class Project(models.Model):
 
     def __unicode__(self):
         '''Return the name of the project and it's project code'''
-        ret = "%s (%s)" % (self.PRJ_NM, self.PRJ_CD)
+        ret = "%s (%s)" % (self.prj_nm, self.PRJ_CD)
         return ret
 
     def get_milestones(self, required=True):
@@ -638,7 +638,7 @@ class Bookmark(models.Model):
 
     def name(self):
         '''Use the project name for the bookmark too.'''
-        return self.project.PRJ_NM
+        return self.project.prj_nm
         
     def get_project_code(self):
         '''Use the project code for the bookmark too.'''

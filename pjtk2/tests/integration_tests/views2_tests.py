@@ -998,7 +998,7 @@ class TestCanCopyProject(WebTest):
         #are changed by making a copy of it
         old_PRJ_CD = self.project1.PRJ_CD
         old_prj_ldr = self.project1.prj_ldr
-        old_PRJ_NM = self.project1.PRJ_NM
+        old_prj_nm = self.project1.prj_nm
         old_owner = self.project1.owner
         old_slug = self.project1.slug
         old_year = self.project1.year
@@ -1012,12 +1012,12 @@ class TestCanCopyProject(WebTest):
         form = response.form        
         
         new_PRJ_CD = "LHA_IA13_ZZZ"
-        new_PRJ_NM = "Barney's First Project"
+        new_prj_nm = "Barney's First Project"
 
         #He needs to fill in a number of the important fields:
         form['PRJ_CD'] = new_PRJ_CD
         form['prj_ldr'] = self.user2.first_name
-        form['PRJ_NM'] = new_PRJ_NM
+        form['prj_nm'] = new_prj_nm
         #make sure that the project dates match the project code and
         #that date0 happens before date1
         form['prj_date0'] = "2013-6-6"
@@ -1035,7 +1035,7 @@ class TestCanCopyProject(WebTest):
         project = Project.objects.get(PRJ_CD=new_PRJ_CD)
         #self.assertEqual(project.PRJ_CD, new_PRJ_CD)
         self.assertEqual(project.slug, slugify(new_PRJ_CD))
-        self.assertEqual(project.PRJ_NM, new_PRJ_NM)
+        self.assertEqual(project.prj_nm, new_prj_nm)
         self.assertEqual(project.prj_ldr, self.user2.first_name)
         self.assertEqual(project.owner, self.user2)
         self.assertEqual(project.year,'2013')
@@ -1044,7 +1044,7 @@ class TestCanCopyProject(WebTest):
         #I don't know why it would be.
         project = Project.objects.get(PRJ_CD=old_PRJ_CD)
         self.assertEqual(project.slug, slugify(old_PRJ_CD))
-        self.assertEqual(project.PRJ_NM, old_PRJ_NM)
+        self.assertEqual(project.prj_nm, old_prj_nm)
         self.assertEqual(project.prj_ldr,old_prj_ldr)
         self.assertEqual(project.owner, old_owner)
         self.assertEqual(project.year, str(old_year))

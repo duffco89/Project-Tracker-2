@@ -134,7 +134,7 @@ class TestProjectModel(TestCase):
         self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD,
                                               owner=self.user,
                                               comment=self.commentStr,
-                                              PRJ_NM = self.ProjectName)
+                                              prj_nm = self.ProjectName)
 
         PRJ_CD = "LHA_IA%s_222" % str(yr.year -1)[-2:]
         self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD,
@@ -149,7 +149,7 @@ class TestProjectModel(TestCase):
         """make sure that the string representation of our project is
         what we expect (project name (project code))"""
 
-        should_be = "%s (%s)" % (self.project1.PRJ_NM, 
+        should_be = "%s (%s)" % (self.project1.prj_nm, 
                                  self.project1.PRJ_CD)
         self.assertEqual(str(self.project1), should_be)                
 
@@ -640,7 +640,7 @@ class TestModelBookmarks(TestCase):
                          self.project.get_absolute_url())
         self.assertEqual(bookmark.year(), self.project.year)
         self.assertEqual(str(bookmark), str(self.project))
-        self.assertEqual(bookmark.name(), self.project.PRJ_NM)
+        self.assertEqual(bookmark.name(), self.project.prj_nm)
         self.assertEqual(bookmark.project_type(), self.project.project_type)
 
     def tearDown(self):

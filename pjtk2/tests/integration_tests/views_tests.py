@@ -222,7 +222,7 @@ class ProjectDetailownerTestCase(TestCase):
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.PRJ_CD)
-        self.assertContains(response, self.project.PRJ_NM)
+        self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
@@ -274,7 +274,7 @@ class ProjectDetailJoeUserTestCase(TestCase):
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.PRJ_CD)
-        self.assertContains(response, self.project.PRJ_NM)
+        self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
@@ -332,7 +332,7 @@ class ProjectDetailManagerTestCase(TestCase):
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.PRJ_CD)
-        self.assertContains(response, self.project.PRJ_NM)
+        self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
@@ -386,7 +386,7 @@ class ApprovedProjectListUserTestCase(TestCase):
 
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
-            PRJ_NM = "An approved project",
+            prj_nm = "An approved project",
             prj_ldr = self.user,
             owner = self.user)
         self.project2.approve()
@@ -404,11 +404,11 @@ class ApprovedProjectListUserTestCase(TestCase):
         self.assertContains(response, 'Projects')
         #it should not contain the project that isn't approved
         self.assertNotContains(response, self.project.PRJ_CD)
-        self.assertNotContains(response, self.project.PRJ_NM)
+        self.assertNotContains(response, self.project.prj_nm)
 
         #this one is approved and should be in the list
         self.assertContains(response, self.project2.PRJ_CD)
-        self.assertContains(response, self.project2.PRJ_NM)
+        self.assertContains(response, self.project2.prj_nm)
 
         #since this user is not a manager, she should not be able to
         #update the list
@@ -453,7 +453,7 @@ class ApprovedProjectListManagerTestCase(TestCase):
 
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
-            PRJ_NM = "An approved project",
+            prj_nm = "An approved project",
             prj_ldr = self.owner,
             owner = self.owner)
         #self.project2.Approved = True
@@ -481,11 +481,11 @@ class ApprovedProjectListManagerTestCase(TestCase):
         self.assertContains(response, 'Projects')
         #it should not contain the project that isn't approved
         self.assertNotContains(response, self.project.PRJ_CD)
-        self.assertNotContains(response, self.project.PRJ_NM)
+        self.assertNotContains(response, self.project.prj_nm)
 
         #this one is approved and should be in the list
         self.assertContains(response, self.project2.PRJ_CD)
-        self.assertContains(response, self.project2.PRJ_NM)
+        self.assertContains(response, self.project2.prj_nm)
 
         #since this user is a manager, she should be able to
         #update the list

@@ -74,7 +74,7 @@ class BasicReportUploadTestCase(WebTest):
         #verify the basic elements of the page
         self.assertIn("Upload Reports", response)
         self.assertIn(self.project1.PRJ_CD, response)
-        self.assertIn(self.project1.PRJ_NM, response)
+        self.assertIn(self.project1.prj_nm, response)
 
         #each of the core reports should be the response by default: 
         self.assertIn(self.rep1.label, response)
@@ -115,7 +115,7 @@ class BasicReportUploadTestCase(WebTest):
         #verify the basic elements of the page
         self.assertIn("Upload Reports", response)
         self.assertIn(self.project1.PRJ_CD, response)
-        self.assertIn(self.project1.PRJ_NM, response)
+        self.assertIn(self.project1.prj_nm, response)
 
         #each of the core reports should be the response by default: 
         self.assertIn(self.rep1.label, response)
@@ -128,7 +128,8 @@ class BasicReportUploadTestCase(WebTest):
 
         form = response.form
         #there should be four forms in the formset
-        formcnt = len([x for x in form.fields.keys() if x.endswith("-report_path")])
+        formcnt = len([x for x in form.fields.keys() if 
+                       x.endswith("-report_path")])
         self.assertEquals(formcnt, 4)
 
 

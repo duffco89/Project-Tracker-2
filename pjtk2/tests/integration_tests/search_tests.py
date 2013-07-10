@@ -64,7 +64,7 @@ class CanUseSearchForm(WebTest):
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
-                                              PRJ_NM='Parry Sound Index',
+                                              prj_nm='Parry Sound Index',
                                               owner=self.user)
 
         comment = "Test of UGLMU Project Tracker - Salvelinus"
@@ -88,15 +88,15 @@ class CanUseSearchForm(WebTest):
         # should be the only one in the response
         
         linkstring = '''<a href="{{ self.project1.get_absolute_url }}"> 
-                 {{ self.project1.PRJ_CD }} - {{ self.project1.PRJ_NM }} </a>'''
+                 {{ self.project1.PRJ_CD }} - {{ self.project1.prj_nm }} </a>'''
         #self.assertContains(response, linkstring, html=True)
 
         linkstring = '''<a href="{{ self.project2.get_absolute_url }}"> 
-                 {{ self.project2.PRJ_CD }} - {{ self.project2.PRJ_NM }} </a>'''
+                 {{ self.project2.PRJ_CD }} - {{ self.project2.prj_nm }} </a>'''
         #self.assertNotContains(response, linkstring, html=True)
 
         linkstring = '''<a href="{{ self.project3.get_absolute_url }}"> 
-                 {{ self.project3.PRJ_CD }} - {{ self.project3.PRJ_NM }} </a>'''
+                 {{ self.project3.PRJ_CD }} - {{ self.project3.prj_nm }} </a>'''
         #self.assertNotContains(response, linkstring, html=True)
 
 
@@ -112,15 +112,15 @@ class CanUseSearchForm(WebTest):
         # should be the only one in the response
         
         linkstring = '''<a href="{{ self.project1.get_absolute_url }}"> 
-                 {{ self.project1.PRJ_CD }} - {{ self.project1.PRJ_NM }} </a>'''
+                 {{ self.project1.PRJ_CD }} - {{ self.project1.prj_nm }} </a>'''
         #self.assertNotContains(response, linkstring, html=True)
 
         linkstring = '''<a href="{{ self.project2.get_absolute_url }}"> 
-                 {{ self.project2.PRJ_CD }} - {{ self.project2.PRJ_NM }} </a>'''
+                 {{ self.project2.PRJ_CD }} - {{ self.project2.prj_nm }} </a>'''
         #self.assertContains(response, linkstring, html=True)
 
         linkstring = '''<a href="{{ self.project3.get_absolute_url }}"> 
-                 {{ self.project3.PRJ_CD }} - {{ self.project3.PRJ_NM }} </a>'''
+                 {{ self.project3.PRJ_CD }} - {{ self.project3.prj_nm }} </a>'''
         #self.assertNotContains(response, linkstring, html=True)
 
 
@@ -142,15 +142,15 @@ class CanUseSearchForm(WebTest):
         response = form.submit('submit')
         
         linkstring = '''<a href="{{ self.project1.get_absolute_url }}"> 
-                 {{ self.project1.PRJ_CD }} - {{ self.project1.PRJ_NM }} </a>'''
+                 {{ self.project1.PRJ_CD }} - {{ self.project1.prj_nm }} </a>'''
         #self.assertContains(response, linkstring, html=True)
 
         linkstring = '''<a href="{{ self.project2.get_absolute_url }}"> 
-                 {{ self.project2.PRJ_CD }} - {{ self.project2.PRJ_NM }} </a>'''
+                 {{ self.project2.PRJ_CD }} - {{ self.project2.prj_nm }} </a>'''
         #self.assertContains(response, linkstring, html=True)
 
         linkstring = '''<a href="{{ self.project3.get_absolute_url }}"> 
-                 {{ self.project3.PRJ_CD }} - {{ self.project3.PRJ_NM }} </a>'''
+                 {{ self.project3.PRJ_CD }} - {{ self.project3.prj_nm }} </a>'''
         #self.assertNotContains(response, linkstring, html=True)
 
 
@@ -169,15 +169,15 @@ class CanUseSearchForm(WebTest):
         # be returned, project 3 was a nearshore index and should be.
         
         linkstring = '''<a href="{{ self.project1.get_absolute_url }}"> 
-                 {{ self.project1.PRJ_CD }} - {{ self.project1.PRJ_NM }} </a>'''
+                 {{ self.project1.PRJ_CD }} - {{ self.project1.prj_nm }} </a>'''
         #self.assertNotContains(response, linkstring, html=True)
 
         linkstring = '''<a href="{{ self.project2.get_absolute_url }}"> 
-                 {{ self.project2.PRJ_CD }} - {{ self.project2.PRJ_NM }} </a>'''
+                 {{ self.project2.PRJ_CD }} - {{ self.project2.prj_nm }} </a>'''
         #self.assertNotContains(response, linkstring, html=True)
 
         linkstring = '''<a href="{{ self.project3.get_absolute_url }}"> 
-                 {{ self.project3.PRJ_CD }} - {{ self.project3.PRJ_NM }} </a>'''
+                 {{ self.project3.PRJ_CD }} - {{ self.project3.prj_nm }} </a>'''
         #self.assertContains(response, linkstring, html=True)
 
 

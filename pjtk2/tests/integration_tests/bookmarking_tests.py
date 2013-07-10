@@ -32,7 +32,7 @@ class ProjectBookmarkingTestCase(TestCase):
             owner = self.user)
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
-            PRJ_NM = "An approved project",
+            prj_nm = "An approved project",
             prj_ldr = self.user,
             owner = self.user)
         self.project2.Approved = True
@@ -78,14 +78,14 @@ class ProjectBookmarkingTestCase(TestCase):
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project1.PRJ_CD)
-        self.assertContains(response, self.project1.PRJ_NM)
+        self.assertContains(response, self.project1.prj_nm)
         self.assertContains(response, self.project1.prj_ldr)
                 
         bookmarks = Bookmark.objects.filter(user=self.user)
         self.assertEqual(bookmarks.count(),1)
         bookmark=bookmarks[0]
         self.assertEqual(bookmark.project.PRJ_CD,self.project1.PRJ_CD)
-        self.assertEqual(bookmark.project.PRJ_NM,self.project1.PRJ_NM)        
+        self.assertEqual(bookmark.project.prj_nm,self.project1.prj_nm)        
 
     def test_unbookmarking_confirm_view(self):
         '''Verify that we get the confirm bookmark page when we first try and
@@ -135,7 +135,7 @@ class ProjectBookmarkingTestCase(TestCase):
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project1.PRJ_CD)
-        self.assertContains(response, self.project1.PRJ_NM)
+        self.assertContains(response, self.project1.prj_nm)
         self.assertContains(response, self.project1.prj_ldr)
         
         bookmarks = Bookmark.objects.filter(user=self.user)

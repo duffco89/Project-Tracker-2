@@ -10,7 +10,7 @@ class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
     #pub_date = indexes.DateTimeField(model_attr='EFFDT1')
     year = indexes.CharField(model_attr='year')
     code = indexes.CharField(model_attr='PRJ_CD')
-    name = indexes.CharField(model_attr='PRJ_NM')
+    name = indexes.CharField(model_attr='prj_nm')
     description = indexes.CharField(model_attr='comment')
 
     ##Database = indexes.CharField(model_attr='master_database')

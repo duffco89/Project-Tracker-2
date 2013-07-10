@@ -78,7 +78,7 @@ class ProjectFactory(factory.Factory):
     '''year and slug are built by the project save method'''
     FACTORY_FOR = Project
     PRJ_CD = "LHA_IA12_123"
-    PRJ_NM = "Fake Project"
+    prj_nm = "Fake Project"
     prj_ldr = "Bob Sakamano"
     comment = "This is a fake project"
     project_type = factory.SubFactory(ProjTypeFactory)

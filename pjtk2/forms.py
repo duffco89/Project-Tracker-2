@@ -120,7 +120,7 @@ class ApproveProjectsForm(forms.ModelForm):
     '''This project form is used for view to approve/unapprove
     multiple projects.'''
     
-    PRJ_NM = forms.CharField(
+    prj_nm = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Name",
         required =False,
@@ -136,7 +136,7 @@ class ApproveProjectsForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ('PRJ_CD', 'PRJ_NM', 'prj_ldr') 
+        fields = ('PRJ_CD', 'prj_nm', 'prj_ldr') 
 
     def __init__(self, *args, **kwargs):
         super(ApproveProjectsForm, self).__init__(*args, **kwargs)
@@ -158,15 +158,15 @@ class ApproveProjectsForm(forms.ModelForm):
         ,})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['Approved','PRJ_CD', 'PRJ_NM', 'prj_ldr']
+        self.fields.keyOrder = ['Approved','PRJ_CD', 'prj_nm', 'prj_ldr']
 
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
         return self.instance.PRJ_CD
         
-    def clean_PRJ_NM(self):
-        '''return the original value of PRJ_NM'''
-        return self.instance.PRJ_NM
+    def clean_prj_nm(self):
+        '''return the original value of prj_nm'''
+        return self.instance.prj_nm
 
     def clean_prj_ldr(self):
         '''return the original value of prj_ldr'''
@@ -408,7 +408,7 @@ class ProjectForm(forms.ModelForm):
     and ....  for a new project, we need project code, name, comment,
     leader, start date, end date, database, project type,'''
     
-    PRJ_NM = forms.CharField(
+    prj_nm = forms.CharField(
         label = "Project Name:",
         required = True,
     )
@@ -479,7 +479,7 @@ class ProjectForm(forms.ModelForm):
     
     class Meta:
         model = Project
-        fields = ("PRJ_NM", "prj_ldr", "PRJ_CD", "prj_date0", "prj_date1", 
+        fields = ("prj_nm", "prj_ldr", "PRJ_CD", "prj_date0", "prj_date1", 
                   "risk", 'project_type', "master_database", "lake", "comment", 
                   "dba", "tags")
         
@@ -499,7 +499,7 @@ class ProjectForm(forms.ModelForm):
         self.helper.layout = Layout(
         Fieldset(
                 'Project Elements',
-                'PRJ_NM',                
+                'prj_nm',                
                 'PRJ_CD',
                 'prj_ldr',                
                 'comment',
@@ -624,7 +624,7 @@ class SisterProjectsForm(forms.Form):
         required =False,
     )
     
-    PRJ_NM = forms.CharField(
+    prj_nm = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Name",
         required =False,
@@ -662,16 +662,16 @@ class SisterProjectsForm(forms.Form):
         ,})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['sister','PRJ_CD', 'PRJ_NM', 'prj_ldr', 'slug']
+        self.fields.keyOrder = ['sister','PRJ_CD', 'prj_nm', 'prj_ldr', 'slug']
 
 
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
         return self.initial['PRJ_CD']
         
-    def clean_PRJ_NM(self):
-        '''return the original value of PRJ_NM'''
-        return self.initial['PRJ_NM']
+    def clean_prj_nm(self):
+        '''return the original value of prj_nm'''
+        return self.initial['prj_nm']
         
     def clean_prj_ldr(self):
         '''return the original value of prj_ldr'''
