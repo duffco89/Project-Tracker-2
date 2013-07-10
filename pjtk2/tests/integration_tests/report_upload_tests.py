@@ -44,9 +44,9 @@ class BasicReportUploadTestCase(WebTest):
                                             report = True)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", Owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", Owner=self.user)
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", owner=self.user)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", owner=self.user)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", owner=self.user)
 
         #here is fake file that we will upload
         self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
@@ -87,7 +87,8 @@ class BasicReportUploadTestCase(WebTest):
 
         form = response.form
         #there should be four forms in the formset
-        formcnt = len([x for x in form.fields.keys() if x.endswith("-report_path")])
+        formcnt = len([x for x in form.fields.keys() if 
+                               x.endswith("-report_path")])
         self.assertEquals(formcnt,3)
 
 
@@ -95,14 +96,17 @@ class BasicReportUploadTestCase(WebTest):
     def test_render_report_upload_form_custom(self):
         '''exactly the same as previous test but with a requirement
         for a custom report'''
-        
-        self.assertEqual(self.project1.get_assignments().count(),3)
+        requirement_count = self.project1.get_reporting_requirements().count()
+        self.assertEqual(requirement_count,3)
+
         ProjectMilestones.objects.create(project=self.project1, 
                                       milestone = self.rep4)
-        #verify that this project has 4 reporting requirements now
-        self.assertEqual(self.project1.get_assignments().count(),4)
+        #verify that this project now has 4 reporting requirements
 
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        requirement_count = self.project1.get_reporting_requirements().count()
+        self.assertEqual(requirement_count,4)
+
+        url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.app.get(url, user = self.user)
 
         assert response.status_int == 200
@@ -189,9 +193,12 @@ class TestActualFileUpload(TestCase):
                                             report = True)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", Owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", Owner=self.user)
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+                                              owner=self.user)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", 
+                                              owner=self.user)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", 
+                                              owner=self.user)
 
         #here is fake file that we will upload
         self.mock_file0 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
@@ -214,7 +221,7 @@ class TestActualFileUpload(TestCase):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
 
@@ -233,7 +240,7 @@ class TestActualFileUpload(TestCase):
         filepath = os.path.join(settings.MEDIA_URL,
                                 os.path.split(self.mock_file0.name)[1])
         
-        reports = self.project1.get_reports()
+        reports = self.project1.get_uploaded_reports()
         self.assertEqual(reports.values()[0]['report_path'],filepath)
 
         #make sure that the milestone is what we think it is:
@@ -241,7 +248,7 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(pr.milestone, self.rep0)
         
         #verify that a link to the file is on the project details page
-        url = reverse('project_detail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -257,7 +264,7 @@ class TestActualFileUpload(TestCase):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
 
@@ -304,7 +311,7 @@ class TestActualFileUpload(TestCase):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'UploadReports.html')
@@ -376,7 +383,7 @@ class TestActualFileUpload(TestCase):
 
         #=============
         #verify that a link to the file is on the project details page
-        url = reverse('project_detail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -399,7 +406,7 @@ class TestActualFileUpload(TestCase):
         #verify that the file names are associated with the
         #appropriate report type
 
-        #verify that the file names are in queryset returned by  get_reports()
+        #verify that the file names are in queryset returned by  get_uploaded_reports()
 
     def test_upload_report_sister_projects(self):
         '''verify that we can upload more than 1 file'''
@@ -409,7 +416,7 @@ class TestActualFileUpload(TestCase):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'UploadReports.html')
@@ -430,7 +437,7 @@ class TestActualFileUpload(TestCase):
         filepath = os.path.join(settings.MEDIA_URL,
                                 os.path.split(self.mock_file0.name)[1])
         
-        reports = self.project1.get_reports()
+        reports = self.project1.get_uploaded_reports()
         self.assertEqual(reports.values()[0]['report_path'],filepath)
 
         #make sure that the milestone is what we think it is:
@@ -439,7 +446,7 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(pr[1].milestone, self.rep2)
         
         #verify that a link to the file is on the project details page
-        url = reverse('project_detail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -451,11 +458,11 @@ class TestActualFileUpload(TestCase):
         #============================
         #verify all of the same details for the sister project
         
-        reports = self.project2.get_reports()
+        reports = self.project2.get_uploaded_reports()
         self.assertEqual(reports.values()[0]['report_path'], filepath)
         
         #verify that a link to the file is on the project details page
-        url = reverse('project_detail', args = (self.project2.slug,))                     
+        url = reverse('project_detail', args = (self.project2.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -465,7 +472,7 @@ class TestActualFileUpload(TestCase):
 
         #============================
         #the information should not be associated with the thrid project
-        reports = self.project3.get_reports()
+        reports = self.project3.get_uploaded_reports()
         self.assertEqual(reports.count(),0)
 
 
@@ -477,7 +484,7 @@ class TestActualFileUpload(TestCase):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        url = reverse('ReportUpload', args = (self.project1.slug,))                     
+        url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'UploadReports.html')
@@ -505,9 +512,10 @@ class TestActualFileUpload(TestCase):
                                 os.path.split(self.mock_file0.name)[1])
         self.assertEqual(reports.values()[0]['report_path'],filepath1)
         
-        #make sure that the milestone is what we think it is:
-        #there should TWO projectreport records associate with
-        #this report - one for each sister project, and its report type should match that of rep1
+        #make sure that the milestone is what we think it is: there
+        #should TWO projectreport records associate with this report -
+        #one for each sister project, and its report type should match
+        #that of rep1
         pr = reports[0].projectreport.all()
         self.assertEqual(pr.count(),2)
 
@@ -557,7 +565,7 @@ class TestActualFileUpload(TestCase):
         #============= 
         #verify that a links to each of the file are on
         #the details page for the first project
-        url = reverse('project_detail', args = (self.project1.slug,))                     
+        url = reverse('project_detail', args = (self.project1.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -576,7 +584,7 @@ class TestActualFileUpload(TestCase):
 
         # the sister proejct should have the project proposal and
         # summary report, but not the completion report
-        url = reverse('project_detail', args = (self.project2.slug,))                     
+        url = reverse('project_detail', args = (self.project2.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -596,10 +604,10 @@ class TestActualFileUpload(TestCase):
 
         #============================
         #the information should not be associated with the thrid project
-        reports = self.project3.get_reports()
+        reports = self.project3.get_uploaded_reports()
         self.assertEqual(reports.count(),0)
 
-        url = reverse('project_detail', args = (self.project3.slug,))                     
+        url = reverse('project_detail', args = (self.project3.slug,))
         response = self.client.get(url) 
         self.assertEqual(response.status_code, 200)
       
@@ -669,7 +677,8 @@ class TestActualFileUpload(TestCase):
 ##                                  category = 'Core', order = 1)
 ##  
 ##          #PROJECTS
-##          self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
+##          self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
+#3                     owner=self.user)
 ##  
 ##          #here is fake file that we will upload
 ##          self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'

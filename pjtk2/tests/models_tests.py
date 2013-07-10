@@ -37,7 +37,7 @@ class TestProjectApproveMethods(TestCase):
 
         
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              Owner=self.user)
+                                              owner=self.user)
 
 
     def test_approve_unapprove_project(self):
@@ -132,60 +132,17 @@ class TestProjectModel(TestCase):
         yr = datetime.datetime.now()
         PRJ_CD = "LHA_IA%s_111" % str(yr.year)[-2:]
         self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user,
-                                              COMMENT=self.commentStr,
+                                              owner=self.user,
+                                              comment=self.commentStr,
                                               PRJ_NM = self.ProjectName)
 
         PRJ_CD = "LHA_IA%s_222" % str(yr.year -1)[-2:]
         self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user)
+                                              owner=self.user)
 
         PRJ_CD = "LHA_IA%s_333" % str(yr.year-2)[-2:]
         self.project3 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user)
-
-
-##    def test_resetMilestone(self):
-##        '''reset milestones is a method that is used to clear all of the
-##        milestones associated with a project.  used when we create new
-##        projects by copying old ones.  we don't want to include the old
-##        milestones in the new project
-##
-##        THIS IS OBSOLETE!!
-##        '''
-##        
-##        project = ProjectFactory.create(Approved=False)
-##
-##        #the default for all of these milestones should be False
-##        self.assertEqual(project.Approved, False)
-##        self.assertEqual(project.Conducted, False)
-##        self.assertEqual(project.DataScrubbed, False)                
-##        self.assertEqual(project.DataMerged, False)
-##        self.assertEqual(project.SignOff, False)                
-##
-##        #reset them all to true
-##        project.Approved = True
-##        project.Conducted = True
-##        project.DataScrubbed = True
-##        project.DataMerged = True
-##        project.SignOff = True
-##
-##        #verity that they have all been changed
-##        self.assertEqual(project.Approved, True)
-##        self.assertEqual(project.Conducted, True)
-##        self.assertEqual(project.DataScrubbed, True)                
-##        self.assertEqual(project.DataMerged, True)
-##        self.assertEqual(project.SignOff, True)                
-##
-##        #run our reset method
-##        project.reset_milestones()
-##
-##        #verify that each of the milestones are infact False
-##        self.assertEqual(project.Approved, False)
-##        self.assertEqual(project.Conducted, False)
-##        self.assertEqual(project.DataScrubbed, False)                
-##        self.assertEqual(project.DataMerged, False)
-##        self.assertEqual(project.SignOff, False)                
+                                              owner=self.user)
 
 
     def test_project_unicode(self):
@@ -302,7 +259,7 @@ class TestMilestoneModel(TestCase):
 
     def test_get_assigment_methods(self):
 
-        assignments = self.project.get_assignments()
+        assignments = self.project.get_reporting_requirements()
         cnt = assignments.count()
         self.assertEqual(cnt, 3)
         
@@ -388,9 +345,9 @@ class TestMilestoneModel(TestCase):
         projectreport = ProjectMilestonesFactory(project=self.project,
                                              milestone=custom1)
         
-        self.assertEqual(self.project.get_assignments().count(), 4)
-        self.assertNotEqual(self.project.get_assignments().count(), 3)
-        self.assertNotEqual(self.project.get_assignments().count(), 5)
+        self.assertEqual(self.project.get_reporting_requirements().count(), 4)
+        self.assertNotEqual(self.project.get_reporting_requirements().count(), 3)
+        self.assertNotEqual(self.project.get_reporting_requirements().count(), 5)
         
         self.assertEqual(self.project.get_core_assignments().count(), 3)
         self.assertEqual(self.project.get_custom_assignments().count(), 1)
@@ -443,8 +400,8 @@ class TestModelReports(TestCase):
         #associate the report with the project reporting requirement
         report.projectreport.add(self.projectreport) 
         
-    def test_get_reports(self):
-        rep = self.project.get_reports()
+    def test_get_reporting_requirementss(self):
+        rep = self.project.get_uploaded_reports()
         self.assertEqual(len(rep),1)
         self.assertEqual(rep[0].report_path, "path\to\fake\file.txt")
         #self.fail("Finish this test.")
@@ -513,27 +470,27 @@ class TestModelSisters(TestCase):
 
         #projects
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", 
-                                              Owner=self.user, 
+                                              owner=self.user, 
                                               project_type = self.ProjType)
 
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", 
-                                              Owner=self.user, 
+                                              owner=self.user, 
                                               project_type = self.ProjType)
 
         self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", 
-                                              Owner=self.user, 
+                                              owner=self.user, 
                                               project_type = self.ProjType)
 
         self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", 
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType2)
 
         self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", 
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType) 
 
         self.project1.approve()
@@ -703,11 +660,11 @@ class TestProjectTagging(TestCase):
         
         
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              Owner=self.user)
+                                              owner=self.user)
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
-                                              Owner=self.user)
+                                              owner=self.user)
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
-                                              Owner=self.user)
+                                              owner=self.user)
 
     def test_add_remove_tags(self):
         '''verify that we can add and remove tags to a project'''
@@ -912,17 +869,17 @@ class TestApprovedCompletedModelManagers(TestCase):
 
         
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              Owner=self.user)
+                                              owner=self.user)
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", 
-                                              Owner=self.user) 
+                                              owner=self.user) 
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", 
-                                              Owner=self.user)
+                                              owner=self.user)
         self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444", 
-                                              Owner=self.user) 
+                                              owner=self.user) 
         self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555", 
-                                              Owner=self.user)
+                                              owner=self.user)
         self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666", 
-                                              Owner=self.user)
+                                              owner=self.user)
 
         
     def test_ApprovedProjects(self):

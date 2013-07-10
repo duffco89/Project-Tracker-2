@@ -8,7 +8,7 @@ from pjtk2.models import Bookmark
 from django.template.defaultfilters import slugify
 
 import datetime
-
+import pytz
 
 class BookmarkTestCase(WebTest):
 
@@ -22,7 +22,7 @@ class BookmarkTestCase(WebTest):
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
         
         self.project = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
     csrf_checks = False   
     def test_add_delete_bookmarks(self):
@@ -77,14 +77,14 @@ class ProjectTaggingTestCase(WebTest):
         
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType,
                                               )
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
     def test_tags_in_project_details_view(self):
@@ -298,7 +298,7 @@ class UpdateReportsTestCase(WebTest):
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
 
     def test_only_managers_can_view_form(self):
@@ -549,16 +549,16 @@ class MyProjectViewTestCase(WebTest):
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
                                               PRJ_LDR=self.user,
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
                                               PRJ_LDR=self.user,
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
         #this one is run by mr. burns
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
                                               PRJ_LDR=self.user2,
-                                              Owner=self.user2,
+                                              owner=self.user2,
                                               project_type = self.ProjType)
 
     def test_employee_version_myprojects(self):
@@ -688,7 +688,7 @@ class TestProjectDetailForm(WebTest):
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
 
 
@@ -700,7 +700,7 @@ class TestProjectDetailForm(WebTest):
         '''
 
         #first update the 'completed' field for a number of milestones:
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(pytz.utc)
         ms = [self.ms1.label, self.ms2.label, self.ms3.label]
         ProjectMilestones.objects.filter(project=self.project1,
                                          milestone__report=False,
@@ -732,7 +732,7 @@ class TestProjectDetailForm(WebTest):
         are checked'''
 
         #first update the 'completed' field for a number of milestones:
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(pytz.utc)
         ProjectMilestones.objects.filter(project=self.project1,
                                          milestone__report=False
                                       ).update(completed=now)
@@ -844,7 +844,7 @@ class TestProjectDetailForm(WebTest):
         - i.e. milestones that were complete, aren't
         '''
         #first update the 'completed' field for a number of milestones:
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(pytz.utc)
         ms = [self.ms1.label, self.ms2.label, self.ms3.label]
         ProjectMilestones.objects.filter(project=self.project1,
                                          milestone__report=False,
@@ -885,6 +885,7 @@ class TestProjectDetailForm(WebTest):
         self.assertQuerysetEqual(milestones, shouldbe, 
                                  lambda a:a.completed!=None)
 
+           
 
     def test_protected_milestones_are_disabled_for_users(self):
         '''Homer is a project lead, not a manager, and should not be able to
@@ -985,7 +986,7 @@ class TestCanCopyProject(WebTest):
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
                                               PRJ_LDR=self.user1.first_name,
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
 
     def test_can_copy_project(self):
@@ -998,7 +999,7 @@ class TestCanCopyProject(WebTest):
         old_PRJ_CD = self.project1.PRJ_CD
         old_PRJ_LDR = self.project1.PRJ_LDR
         old_PRJ_NM = self.project1.PRJ_NM
-        old_Owner = self.project1.Owner
+        old_owner = self.project1.owner
         old_slug = self.project1.slug
         old_year = self.project1.year
 
@@ -1019,8 +1020,8 @@ class TestCanCopyProject(WebTest):
         form['PRJ_NM'] = new_PRJ_NM
         #make sure that the project dates match the project code and
         #that date0 happens before date1
-        form['PRJ_DATE0'] = "2013-6-6"
-        form['PRJ_DATE1'] = "2013-8-8"
+        form['prj_date0'] = "2013-6-6"
+        form['prj_date1'] = "2013-8-8"
 
         #if the form is submitted successfully, we should be
         #re-directed to it's details page
@@ -1036,7 +1037,7 @@ class TestCanCopyProject(WebTest):
         self.assertEqual(project.slug, slugify(new_PRJ_CD))
         self.assertEqual(project.PRJ_NM, new_PRJ_NM)
         self.assertEqual(project.PRJ_LDR, self.user2.first_name)
-        self.assertEqual(project.Owner, self.user2)
+        self.assertEqual(project.owner, self.user2)
         self.assertEqual(project.year,'2013')
 
         #now just make sure that the orginial project is unchanged
@@ -1045,7 +1046,7 @@ class TestCanCopyProject(WebTest):
         self.assertEqual(project.slug, slugify(old_PRJ_CD))
         self.assertEqual(project.PRJ_NM, old_PRJ_NM)
         self.assertEqual(project.PRJ_LDR,old_PRJ_LDR)
-        self.assertEqual(project.Owner, old_Owner)
+        self.assertEqual(project.owner, old_owner)
         self.assertEqual(project.year, str(old_year))
         
 

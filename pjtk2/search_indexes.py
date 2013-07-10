@@ -11,7 +11,7 @@ class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
     year = indexes.CharField(model_attr='year')
     code = indexes.CharField(model_attr='PRJ_CD')
     name = indexes.CharField(model_attr='PRJ_NM')
-    description = indexes.CharField(model_attr='COMMENT')
+    description = indexes.CharField(model_attr='comment')
 
     ##Database = indexes.CharField(model_attr='master_database')
     project_type = indexes.CharField(model_attr='project_type', faceted=True)
@@ -19,8 +19,8 @@ class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
     #Approved = indexes.BooleanField(model_attr='Approved', faceted=True)
     #Completed = indexes.BooleanField(model_attr='SignOff', faceted=True)
     ##
-    Lake = indexes.CharField(model_attr='Lake', faceted=True)
-    Funding = indexes.CharField(model_attr='Funding', faceted=True)
+    lake = indexes.CharField(model_attr='lake', faceted=True)
+    funding = indexes.CharField(model_attr='funding', faceted=True)
 
     tags = indexes.MultiValueField()
 

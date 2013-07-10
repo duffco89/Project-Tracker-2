@@ -36,27 +36,27 @@ class SisterFormTestCase(WebTest):
                                              report=False)
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
         #same project type, but not approved
         self.project4 = ProjectFactory.create(PRJ_CD="LHA_IA12_444",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
         #approved, different project type
         self.project5 = ProjectFactory.create(PRJ_CD="LHA_IA12_555",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType2)
         #approved, same project type, different year
         self.project6 = ProjectFactory.create(PRJ_CD="LHA_IA11_666",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
         self.project1.approve()
@@ -480,15 +480,15 @@ class SisterFormTestCase(WebTest):
 ##        
 ##
 ##        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
-##                                              Owner=self.user, 
+##                                              owner=self.user, 
 ##                                              project_type = self.ProjType)
 ##
 ##        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
-##                                              Owner=self.user, 
+##                                              owner=self.user, 
 ##                                              project_type = self.ProjType)
 ##
 ##        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
-##                                              Owner=self.user, 
+##                                              owner=self.user, 
 ##                                              project_type = self.ProjType)
 ##        #don't forget to approve the projects
 ##        self.project1.approve()

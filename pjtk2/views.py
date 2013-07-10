@@ -80,10 +80,10 @@ def is_manager(user):
 def can_edit(user, project):
     '''Another helper function to see if this user should be allowed
     to edit this project.  In order to edit the use must be either the
-    project Owner, a manager or a superuser.'''
+    project owner, a manager or a superuser.'''
     canedit = ((user.groups.filter(name='manager').count()>0) or
                  (user.is_superuser) or
-                 (user.username == project.Owner.username))
+                 (user.username == project.owner.username))
     if canedit:
         canedit = True
     else:
@@ -244,8 +244,6 @@ def project_detail(request, slug):
     '''View project details.'''
 
     project = get_object_or_404(Project, slug=slug)
-    #reports = get_assignments(slug)
-    #reports = project.get_milestone_dicts()
 
     milestones = project.get_milestones()
     core = get_assignments_with_paths(slug)
@@ -366,7 +364,7 @@ def crud_project(request, slug, action='New'):
             form_ms = form.cleaned_data.get('milestones', None)
             form = form.save(commit=False)
             if action == 'Copy':
-                form.Owner = request.user
+                form.owner = request.user
             form.save()
             form.tags.set(*tags)
             if form_ms:
@@ -476,7 +474,6 @@ def report_milestones(request, slug):
     reporting requirements for each project..'''
 
     project = Project.objects.get(slug = slug)
-    #reports = get_assignments(slug)
     reports = project.get_milestone_dicts()
 
     if request.method == "POST":
@@ -622,7 +619,7 @@ def my_projects(request):
     if len(employees) > 1:
         boss = True
 
-    #myprojects = Project.objects.filter(Owner__username__in=employees)
+    #myprojects = Project.objects.filter(owner__username__in=employees)
     
     #complete = myprojects.filter(SignOff=True)
     #approved = myprojects.filter(Approved=True).filter(SignOff=False)
@@ -632,11 +629,11 @@ def my_projects(request):
 
     #I don't like how this takes three queries:
     submitted = Project.objects.submitted().filter(
-        Owner__username__in=employees)
+        owner__username__in=employees)
     approved = Project.objects.approved().filter(
-        Owner__username__in=employees)
+        owner__username__in=employees)
     complete = Project.objects.completed().filter(
-        Owner__username__in=employees)
+        owner__username__in=employees)
 
     template_name = "my_projects.html"
 

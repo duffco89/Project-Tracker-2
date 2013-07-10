@@ -75,10 +75,10 @@
 
 
         <dl>
-            {% if facets.fields.Funding %}
+            {% if facets.fields.funding %}
                 <dt>Funding:</dt>
-                {% for obj in facets.fields.Funding %}
-	            <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Funding_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
+                {% for obj in facets.fields.funding %}
+	            <dd><a href="{{ request.get_full_path }}&amp;selected_facets=funding_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
                 {% endfor %}
             {% else %}
                 <dt>No Funding facets.</dt>

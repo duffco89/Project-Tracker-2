@@ -65,14 +65,14 @@ class CanUseSearchForm(WebTest):
 
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111",
                                               PRJ_NM='Parry Sound Index',
-                                              Owner=self.user)
+                                              owner=self.user)
 
         comment = "Test of UGLMU Project Tracker - Salvelinus"
         self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222",
-                                              Owner=self.user,
-                                              COMMENT=comment)
+                                              owner=self.user,
+                                              comment=comment)
         self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333",
-                                              Owner=self.user,
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
 

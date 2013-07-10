@@ -93,15 +93,15 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Lake =1,
+            lake =1,
             tags = "red, blue, green",
-            Owner = "Bob Sakamano",
-            DBA = self.dba.id,
+            owner = "Bob Sakamano",
+            dba = self.dba.id,
            )
 
         form = ProjectForm(data=proj)
@@ -125,14 +125,14 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Owner = "Bob Sakamano",
-            DBA = self.dba.id,
-            Lake=1
+            owner = "Bob Sakamano",
+            dba = self.dba.id,
+            lake=1
            )
 
         for code in goodcodes:
@@ -147,14 +147,14 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_IA12_123",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Owner = "Bob Sakamano",
-            DBA = self.dba.id,
-            Lake=1
+            owner = "Bob Sakamano",
+            dba = self.dba.id,
+            lake=1
            )
 
         form = ProjectForm(data=proj)
@@ -174,14 +174,14 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_xxx12_103",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Owner = "Bob Sakamano",
-            DBA = self.dba.id,
-            Lake=1
+            owner = "Bob Sakamano",
+            dba = self.dba.id,
+            lake=1
            )
 
         errmsg = "Ensure this value has at most 12 characters"
@@ -209,14 +209,14 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_12_103",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Owner = "Bob Sakamano",
-            DBA = self.dba.id,
-            Lake=1,
+            owner = "Bob Sakamano",
+            dba = self.dba.id,
+            lake=1,
            )
 
         errmsg = "Malformed Project Code."
@@ -235,14 +235,14 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_IA02_103",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Owner = "Bob Sakamano",
-            DBA = self.dba.id,
-            Lake=1
+            owner = "Bob Sakamano",
+            dba = self.dba.id,
+            lake=1
            )
 
         form = ProjectForm(data=proj)
@@ -256,14 +256,14 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("August 15, 2012", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("August 15, 2012", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Owner = "Bob Sakamano",
-            DBA = self.dba.id,
-            Lake=1,
+            owner = "Bob Sakamano",
+            dba = self.dba.id,
+            lake=1,
            )
 
         form = ProjectForm(data=proj)
@@ -277,12 +277,12 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("March 15, 2011", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("March 15, 2011", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Owner = "Bob Sakamano",
+            owner = "Bob Sakamano",
            )
 
         form = ProjectForm(data=proj)
@@ -296,14 +296,14 @@ class TestProjectForm(TestCase):
             PRJ_CD = "LHA_IA12_103",
             PRJ_NM = "Fake Project",
             PRJ_LDR = "Bob Sakamano",
-            PRJ_DATE0 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
-            PRJ_DATE1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
-            COMMENT = "This is a fake project",
+            prj_date0 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            Owner = "Bob Sakamano",
-            DBA = self.dba.id,
-            Lake=1,
+            owner = "Bob Sakamano",
+            dba = self.dba.id,
+            lake=1,
            )
 
         form = ProjectForm(data=proj)
@@ -326,9 +326,9 @@ class TestSelectSistersForm(TestCase):
                                 last_name = 'Simpson')
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", Owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", Owner=self.user)
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", owner=self.user)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", owner=self.user)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", owner=self.user)
 
 
 
@@ -386,9 +386,9 @@ class TestReportUploadForm(TestCase):
                                             report = True)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", Owner=self.user)
-        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", Owner=self.user)
-        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", Owner=self.user)
+        self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", owner=self.user)
+        self.project2 = ProjectFactory.create(PRJ_CD="LHA_IA12_222", owner=self.user)
+        self.project3 = ProjectFactory.create(PRJ_CD="LHA_IA12_333", owner=self.user)
 
         #here is fake file that we will upload
         self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
@@ -429,7 +429,7 @@ class TestReportUploadForm(TestCase):
 
         form.save()
         #verify that this our report is associated with this project
-        reports = self.project1.get_reports()
+        reports = self.project1.get_uploaded_reports()
         comp = self.project1.get_complete()
         outstanding = self.project1.get_outstanding()
 
@@ -468,7 +468,7 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(form.is_valid(), True)
         form.save()
         #verify that this our report is associated with this project
-        reports = self.project1.get_reports()
+        reports = self.project1.get_reporting_requirements()
         comp = self.project1.get_complete()
         outstanding = self.project1.get_outstanding()
 
@@ -485,7 +485,8 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(form.is_valid(), True)
         form.save()
         #verify that this our report is associated with this project
-        reports = self.project1.get_reports()
+        #reports = self.project1.get_reporting_requirements()
+        reports = self.project1.get_uploaded_reports()
         comp = self.project1.get_complete()
         outstanding = self.project1.get_outstanding()
 
@@ -532,7 +533,7 @@ class TestReportUploadForm(TestCase):
 
         #THIS PROJECT:
         #verify that this our report is associated with this project
-        reports = self.project1.get_reports()
+        reports = self.project1.get_uploaded_reports()
         comp = self.project1.get_complete()
         outstanding = self.project1.get_outstanding()
 
@@ -558,7 +559,7 @@ class TestReportUploadForm(TestCase):
         #this project is a sister so the report we just
         #uploaded should be listed here too verify that this our
         #report is associated with this project
-        reports = self.project2.get_reports()
+        reports = self.project2.get_uploaded_reports()
         comp = self.project2.get_complete()
         outstanding = self.project2.get_outstanding()
 

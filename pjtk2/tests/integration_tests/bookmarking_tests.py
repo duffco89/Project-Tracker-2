@@ -29,12 +29,12 @@ class ProjectBookmarkingTestCase(TestCase):
         #self.user = UserFactory()
         self.project1 = ProjectFactory(
             PRJ_CD="LHA_IA12_222",
-            Owner = self.user)
+            owner = self.user)
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
             PRJ_LDR = self.user,
-            Owner = self.user)
+            owner = self.user)
         self.project2.Approved = True
         self.project2.save()
 

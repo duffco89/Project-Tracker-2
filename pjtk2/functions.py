@@ -46,7 +46,7 @@ def canEdit(user, project):
     project Owner, a manager or a superuser.'''
     canEdit = ((user.groups.filter(name='manager').count()>0) or
                  (user.is_superuser) or
-                 (user.username == project.Owner.username))
+                 (user.username == project.owner.username))
     if canEdit:
         canEdit = True
     else:

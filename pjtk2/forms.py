@@ -424,24 +424,24 @@ class ProjectForm(forms.ModelForm):
         required = True,
     )
     
-    COMMENT = forms.CharField(
+    comment = forms.CharField(
         widget = forms.Textarea(),
         label = "Brief Project Description:",
         required=True,
         )
 
-    RISK = forms.CharField(
+    risk = forms.CharField(
         widget = forms.Textarea(),
         label = "Risks associated with not running project:",
         required=False,
         )
     
-    PRJ_DATE0 = forms.DateField(
+    prj_date0 = forms.DateField(
         label = "Start Date:",
         required = True,
     )
 
-    PRJ_DATE1 = forms.DateField(
+    prj_date1 = forms.DateField(
         label = "End Date:",
         required = True,
     )
@@ -458,13 +458,13 @@ class ProjectForm(forms.ModelForm):
         required = True,
     )
 
-    Lake = forms.ModelChoiceField(
+    lake = forms.ModelChoiceField(
         label = "Lake:",
         queryset = Lake.objects.all(),
         required = True,
     )
 
-    DBA = forms.ModelChoiceField(
+    dba = forms.ModelChoiceField(
         label = "Data Custodian:",
         #TODO - change this from superuser to groups__contain='dba'
         queryset = User.objects.filter(is_superuser=True),
@@ -479,9 +479,9 @@ class ProjectForm(forms.ModelForm):
     
     class Meta:
         model = Project
-        fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "PRJ_DATE0", "PRJ_DATE1", 
-                  "RISK", 'project_type', "master_database", "Lake", "COMMENT", 
-                  "DBA", "tags")
+        fields = ("PRJ_NM", "PRJ_LDR", "PRJ_CD", "prj_date0", "prj_date1", 
+                  "risk", 'project_type', "master_database", "lake", "comment", 
+                  "dba", "tags")
         
 
     def __init__(self, *args, **kwargs):
@@ -502,14 +502,14 @@ class ProjectForm(forms.ModelForm):
                 'PRJ_NM',                
                 'PRJ_CD',
                 'PRJ_LDR',                
-                'COMMENT',
-                'RISK',
-                Field('PRJ_DATE0', datadatepicker='datepicker'),                
-                Field('PRJ_DATE1', datadatepicker='datepicker'),
+                'comment',
+                'risk',
+                Field('prj_date0', datadatepicker='datepicker'),                
+                Field('prj_date1', datadatepicker='datepicker'),
                 'project_type',
                 'master_database',
-                'Lake',
-                'DBA',
+                'lake',
+                'dba',
                 'tags',
               ),
             ButtonHolder(
@@ -595,8 +595,8 @@ class ProjectForm(forms.ModelForm):
         and end dates.'''
 
         cleaned_data = super(ProjectForm, self).clean()
-        start_date = cleaned_data.get('PRJ_DATE0')
-        end_date = cleaned_data.get('PRJ_DATE1')
+        start_date = cleaned_data.get('prj_date0')
+        end_date = cleaned_data.get('prj_date1')
         project_code = cleaned_data.get('PRJ_CD')
         
         if start_date and end_date and project_code:                

@@ -42,7 +42,7 @@ class TestCanEditFunction(TestCase):
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
 
     def test_can_edit_function(self):
@@ -201,14 +201,14 @@ class FactoryBoyLoginTestCase(unittest.TestCase):
         
 #================================
 #PROJECT DETAIL VIEWS
-class ProjectDetailOwnerTestCase(TestCase):
+class ProjectDetailownerTestCase(TestCase):
     '''verify that a project owner can see the project and make
     appropriated changes, but not those available only to managers'''
 
     def setUp(self):        
         self.client = Client()        
         self.user = UserFactory()
-        self.project = ProjectFactory(Owner = self.user)
+        self.project = ProjectFactory(owner = self.user)
             
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
@@ -260,7 +260,7 @@ class ProjectDetailJoeUserTestCase(TestCase):
                                 last_name = 'Costansa')
         #now create a project using a different user
         self.owner = UserFactory()
-        self.project = ProjectFactory(Owner = self.owner)
+        self.project = ProjectFactory(owner = self.owner)
             
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
@@ -318,7 +318,7 @@ class ProjectDetailManagerTestCase(TestCase):
 
         #now create a project using a different user
         self.owner = UserFactory()
-        self.project = ProjectFactory(Owner = self.owner)
+        self.project = ProjectFactory(owner = self.owner)
             
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
@@ -382,13 +382,13 @@ class ApprovedProjectListUserTestCase(TestCase):
                                         category = 'Core', order=999, 
                                              report=False)        
 
-        self.project = ProjectFactory(Owner = self.user)
+        self.project = ProjectFactory(owner = self.user)
 
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
             PRJ_LDR = self.user,
-            Owner = self.user)
+            owner = self.user)
         self.project2.approve()
         #self.project2.save()
             
@@ -449,13 +449,13 @@ class ApprovedProjectListManagerTestCase(TestCase):
                                         category = 'Core', order=999, 
                                              report=False)
 
-        self.project = ProjectFactory(Owner = self.owner)
+        self.project = ProjectFactory(owner = self.owner)
 
         self.project2 = ProjectFactory(
             PRJ_CD = "LHA_IA12_111",
             PRJ_NM = "An approved project",
             PRJ_LDR = self.owner,
-            Owner = self.owner)
+            owner = self.owner)
         #self.project2.Approved = True
         self.project2.save()
         self.project2.approve()
@@ -548,29 +548,29 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #Two projects from this year:
         PRJ_CD = "LHA_IA%s_111" % str(self.year)[-2:]
         self.project1 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
         PRJ_CD = "LHA_IA%s_222" % str(self.year)[-2:]
         self.project2 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user1)
+                                              owner=self.user1)
         #Two projects from last year:
         PRJ_CD = "LHA_IA%s_333" % str(self.year-1)[-2:]
         self.project3 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
         PRJ_CD = "LHA_IA%s_444" % str(self.year-1)[-2:]
         self.project4 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
         #one project from 3 years ago
         PRJ_CD = "LHA_IA%s_555" % str(self.year -3)[-2:]
         self.project5 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
         #One project from next year (submitted by a keener):
         PRJ_CD = "LHA_IA%s_666" % str(self.year+1)[-2:]
         self.project6 = ProjectFactory.create(PRJ_CD=PRJ_CD,
-                                              Owner=self.user1)
+                                              owner=self.user1)
 
 
         #approve all of the projects
@@ -953,7 +953,7 @@ class ChangeReportingRequirementsTestCase2(TestCase):
 
         #PROJECTS
         self.project1 = ProjectFactory.create(PRJ_CD="LHA_IA12_111", 
-                                              Owner=self.user2)
+                                              owner=self.user2)
             
     def test_Add_New_Report2(self):
         '''verify that we can add new report reporting requirements

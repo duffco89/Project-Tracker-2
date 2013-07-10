@@ -23,13 +23,13 @@
   <p><strong>Project Code:</strong>  {{ project.PRJ_CD }} </p>
   <p><strong>Project Name:</strong>  {{ project.PRJ_NM }}</p>
   <p><strong>Project Lead:</strong>  <a href="#">{{ project.PRJ_LDR }}</a> </p>
-  <p><strong>Start and End Dates:</strong>  {{ project.PRJ_DATE0 }}  - 
-  {{ project.PRJ_DATE1 }} </p>
+  <p><strong>Start and End Dates:</strong>  {{ project.prj_date0 }}  - 
+  {{ project.prj_date1 }} </p>
   <p><strong>Project Description:</strong></p>
   <div style="width:800px; padding:10px;
 	      border:1px solid #CCCCCC;bgcolor="#FFFFFF"">
-    {% if project.COMMENT %}
-      <p>{{ project.COMMENT|linebreaks  }} </p>
+    {% if project.comment %}
+      <p>{{ project.comment|linebreaks  }} </p>
     {% else %}
       <p><em>Sorry. No project description has been provided. </em>   </p>
     {% endif %}

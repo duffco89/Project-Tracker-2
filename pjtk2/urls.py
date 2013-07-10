@@ -6,7 +6,7 @@ from haystack.forms import FacetedSearchForm
 from haystack.query import SearchQuerySet
 from haystack.views import FacetedSearchView
 
-sqs = SearchQuerySet().facet('ProjectType').facet('Lake').facet('Funding')
+sqs = SearchQuerySet().facet('project_type').facet('lake').facet('funding')
 
 
 urlpatterns = patterns('pjtk2.views',

@@ -27,7 +27,7 @@ class ProjectsManager(models.Manager):
         '''return a queryset containing only those projects that have been
         submitted, but have not yet been approved or completed.
         '''
-        return self.filter(Active=True,
+        return self.filter(active=True,
                            projectmilestones__milestone__label='Approved',
                            projectmilestones__completed__isnull=True).filter(
                            projectmilestones__milestone__label='Sign off',
@@ -37,7 +37,7 @@ class ProjectsManager(models.Manager):
         '''return a queryset containing only those projects that have been
         approved, but have not been completed.
         '''
-        return self.filter(Active=True,
+        return self.filter(active=True,
                            projectmilestones__milestone__label='Approved',
                            projectmilestones__completed__isnull=False).filter(
                            projectmilestones__milestone__label='Sign off',
@@ -47,7 +47,7 @@ class ProjectsManager(models.Manager):
         '''return a queryset containing only those projects that have been
         both approved and completed.
         '''
-        return self.filter(Active=True,
+        return self.filter(active=True,
                            projectmilestones__milestone__label='Approved',
                            projectmilestones__completed__isnull=False).filter(
                            projectmilestones__milestone__label='Sign off',
@@ -60,7 +60,7 @@ class ProjectsThisYear(models.Manager):
         #use_for_related_fields = True
         year = datetime.datetime.now().year
         return super(ProjectsThisYear, self).get_query_set().filter(
-                     year__gte=year, Active=True)
+                     year__gte=year, active=True)
 
 class ProjectsLastYear(models.Manager):
     '''get all of the project objects from last year'''
@@ -68,7 +68,7 @@ class ProjectsLastYear(models.Manager):
         #use_for_related_fields = True
         year = datetime.datetime.now().year - 1
         return super(ProjectsLastYear, self).get_query_set().filter(
-                    year = year, Active=True)
+                    year = year, active=True)
 
 
 class MilestoneManager(models.Manager):
@@ -78,9 +78,9 @@ class MilestoneManager(models.Manager):
     recordsets.
     '''
     def get_query_set(self):
-        #use_for_related_fields = True
+        use_for_related_fields = True
         return super(MilestoneManager, self).get_query_set().exclude(
-                     label='Sumbitted')
+                     label='Submitted')
 
 
 
@@ -133,7 +133,7 @@ class ProjectType(models.Model):
 class Database(models.Model):
     '''A lookup table to hole list of master databases.'''
     master_database = models.CharField(max_length=250)
-    Path = models.CharField(max_length=250)
+    path = models.CharField(max_length=250)
 
     class Meta:
         verbose_name = "Master Database"
@@ -165,49 +165,31 @@ class Project(models.Model):
         ('other', 'other'),
     }
 
+    active  = models.BooleanField(default = True)
     year = models.CharField("Year", max_length=4, blank=True, editable=False)
-    PRJ_DATE0 = models.DateField("Start Date", blank=False)
-    PRJ_DATE1 = models.DateField("End Date", blank=False)
+    prj_date0 = models.DateField("Start Date", blank=False)
+    prj_date1 = models.DateField("End Date", blank=False)
     PRJ_CD = models.CharField("Project Code", max_length=12, unique=True, 
                               blank=False)
     PRJ_NM = models.CharField("Proejct Name", max_length=50, blank=False)
     PRJ_LDR = models.CharField("Project Lead", max_length=40, blank=False)
-    COMMENT = models.TextField(blank=False, 
+    comment = models.TextField(blank=False, 
                                help_text="General project description.")
     help_str = "Potential risks associated with not running project."
-    RISK = models.TextField("Risk", null=True, blank=True, 
+    risk = models.TextField("Risk", null=True, blank=True, 
                             help_text=help_str)
     master_database = models.ForeignKey("Database", null=True, blank=True)
     project_type = models.ForeignKey("ProjectType", null=True, blank=True)
 
-    FieldProject = models.BooleanField(default = True)
-    #Approved = models.BooleanField(default = False)
-    #Conducted  = models.BooleanField(default = False)
-    #FieldWorkComplete  = models.BooleanField(default = False)
-    #AgeStructures = models.BooleanField(default = False)
-    #DataScrubbed  = models.BooleanField(default = False)
-    #DataMerged  = models.BooleanField(default = False)
-    #SignOff  = models.BooleanField(default = False)
-
-    #TODO - replace with mulit-polygon or multi-point fields    
-    Max_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
-                                     null=True, blank=True)
-    Min_DD_LAT = models.DecimalField(max_digits=5, decimal_places=3, 
-                                     null=True, blank=True)
-    Max_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, 
-                                     null=True, blank=True)
-    Min_DD_LON = models.DecimalField(max_digits=5, decimal_places=3, 
-                                     null=True, blank=True)
-    Owner = models.ForeignKey(User, blank=True, related_name="ProjectOwner")
-    DBA = models.ForeignKey(User, blank=True, related_name="ProjectDBA")
-
-    Active  = models.BooleanField(default = True)
-    Funding = models.CharField("Funding Source", max_length=30, 
+    field_project = models.BooleanField(default = True)
+    owner = models.ForeignKey(User, blank=True, related_name="ProjectOwner")
+    dba = models.ForeignKey(User, blank=True, related_name="ProjectDBA")
+    funding = models.CharField("Funding Source", max_length=30, 
                                choices=FUNDING_CHOICES, default="spa")
 
-    Lake = models.ForeignKey(Lake, default=1)
+    lake = models.ForeignKey(Lake, default=1)
 
-    TotalCost =  models.DecimalField("Total Cost", max_digits=8, 
+    total_cost =  models.DecimalField("Total Cost", max_digits=8, 
                                      decimal_places=2, null=True, blank=True)
 
     slug = models.SlugField(blank=True, editable=False)
@@ -222,7 +204,7 @@ class Project(models.Model):
 
     class Meta:
         verbose_name = "Project List"
-        ordering = ['-PRJ_DATE1']
+        ordering = ['-prj_date1']
 
     def approve(self):
         '''a helper method to make approving projects easier.  A
@@ -236,12 +218,11 @@ class Project(models.Model):
                                          completed=now)
         except ProjectMilestones.DoesNotExist:
             #create it if it doesn't exist
-            #milestone = Milestone.objects.get(label='Approved')
-            #ProjectMilestones.(project=self, 
-            #                     milestone=milestone,
-            #                     required=True,
-            #                     completed=now)
-            pass
+            milestone = Milestone.objects.get(label='Approved')
+            projectmilestone = ProjectMilestones(project=self, 
+                                 milestone=milestone,
+                                 required=True,
+                                 completed=now)
 
     def unapprove(self):
         '''a helper method to reverse project.approved(), a project-milestone
@@ -251,12 +232,6 @@ class Project(models.Model):
                                  milestone__label='Approved').update(
                                      completed=None)
         except ProjectMilestones.DoesNotExist:
-            #create it if it doesn't exist
-            #milestone = Milestone.objects.get(label='Approved')
-            #ProjectMilestones.(project=self, 
-            #                     milestone=milestone,
-            #                     required=True,
-            #                     completed=None)
             pass
 
 
@@ -270,12 +245,9 @@ class Project(models.Model):
         else:
             return(False)
 
-
-
-
     def signoff(self):
         '''A helper function to make it easier to sign off a project'''
-        #to do - add logic here to make sure all previous requirements
+        #TODO - add logic here to make sure all previous requirements
         #have been met! - can't signoff on a project that wasn't
         #approved or compelted.
         now = datetime.datetime.now(pytz.utc)
@@ -286,7 +258,6 @@ class Project(models.Model):
         except ProjectMilestones.DoesNotExist:
             pass
 
-        
     def project_suffix(self):
         '''return the prject suffix for the given project'''
         return self.PRJ_CD[-3:]
@@ -299,7 +270,7 @@ class Project(models.Model):
     def description(self):
         '''alias for comment - maintains fishnetII comment in model but works
          with django convention of obj.description.'''
-        return self.COMMENT
+        return self.comment
 
     def __unicode__(self):
         '''Return the name of the project and it's project code'''
@@ -319,13 +290,20 @@ class Project(models.Model):
                                         milestone__report=False).order_by(
                                         'milestone__order')
 
-    def get_assignments(self):
-        # TODO - this should be get_reports()
+    def get_reporting_requirements(self):
         '''get all of the reports have been assigned to 
         this project - no distinction between core or custom reports'''
         return ProjectMilestones.objects.filter(project=self,
                                                 milestone__report=True)
 
+    def get_uploaded_reports(self):
+        '''get all of the CURRENT reports that are associated with this
+        project.  Non-current reports are not included in this
+        recordset.
+        '''
+        #TODO Filter for report=True
+        return Report.objects.filter(current=True, 
+                                     projectreport__project=self)
 
 
     def get_core_assignments(self, all_reports=True):
@@ -336,10 +314,10 @@ class Project(models.Model):
         '''
 
         if all_reports == True:
-            assignments = self.get_assignments().filter(
+            assignments = self.get_reporting_requirements().filter(
                 milestone__category='Core', milestone__report=True)
         else:
-            assignments = self.get_assignments().filter(
+            assignments = self.get_reporting_requirements().filter(
                 milestone__category='Core', 
                 milestone__report=True).filter(required=True) 
         return assignments
@@ -347,7 +325,7 @@ class Project(models.Model):
     def get_custom_assignments(self):
         '''get a list of any custom reports that have been assigned to
         this project'''
-        return self.get_assignments().filter(
+        return self.get_reporting_requirements().filter(
                       required=True, milestone__report=True).exclude(
                       milestone__category='Core')
 
@@ -366,15 +344,6 @@ class Project(models.Model):
                                 milestone__report=True).exclude(
                                 report__in=Report.objects.filter(
                                 projectreport__project=self))
-
-    def get_reports(self):
-        '''get all of the CURRENT reports that are associated with this
-        project.  Non-current reports are not included in this
-        recordset.
-        '''
-        #TODO Filter for report=True
-        return Report.objects.filter(current=True, 
-                                     projectreport__project=self)
 
 
     def get_milestone_dicts(self):
@@ -416,18 +385,6 @@ class Project(models.Model):
     
         return milestones_dict
 
-    def reset_milestones(self):
-        '''a function to make sure that all of the project milestones are
-        set to zero. Used when copying an existing project - we don t want
-        to copy its milestones too'''
-        #TODO - this function will be obsolete soon
-        ##self.Approved = False
-        ##self.Conducted = False
-        ##self.DataScrubbed = False
-        ##self.DataMerged = False                        
-        ##self.SignOff = False
-        ##return self
-        pass
 
     def initialize_milestones(self):
         '''A function that will add a record into "ProjectMilestones" for
@@ -553,7 +510,7 @@ class Project(models.Model):
         new = False
         if not self.slug or not self.year:
             self.slug = slugify(self.PRJ_CD)
-            self.year = self.PRJ_DATE0.year
+            self.year = self.prj_date0.year
             new = True
 
         super(Project, self).save( *args, **kwargs)
@@ -580,7 +537,7 @@ class Project(models.Model):
 ##              users = get_supervisors(prjLead)
 ##          except:
 ##              #should be the same person, but could be someone else
-##              prjLead = proj.Owner
+##              prjLead = proj.owner
 ##              prjLead = Employee.objects.get(user__username=prjLead)
 ##              users = get_supervisors(prjLead)
 ##          #send notice to dba too
@@ -764,7 +721,7 @@ class Message(models.Model):
     }
 
     msg = models.CharField(max_length=100)
-    ProjectMilestone = models.ForeignKey(ProjectMilestones)
+    project_milestone = models.ForeignKey(ProjectMilestones)
     #these two fields will allow us to keep track of why messages were sent:
 
     #we will need a project 'admin' to send announcements

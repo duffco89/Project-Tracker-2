@@ -49,7 +49,7 @@ class ManagerFactory(factory.Factory):
 
 class LakeFactory(factory.Factory):
     FACTORY_FOR = Lake
-    lake = "Lake Huron"
+    lake = "lake Huron"
 
 class EmployeeFactory(factory.Factory):
     FACTORY_FOR = Employee
@@ -66,7 +66,7 @@ class ProjTypeFactory(factory.Factory):
 class DatabaseFactory(factory.Factory):
     FACTORY_FOR = Database
     master_database = "Offshore Master"
-    Path = "C:/Path/to/somedb.mdb"    
+    path = "C:/Path/to/somedb.mdb"    
 
 
 class FamilyFactory(factory.Factory):
@@ -78,35 +78,28 @@ class ProjectFactory(factory.Factory):
     '''year and slug are built by the project save method'''
     FACTORY_FOR = Project
     PRJ_CD = "LHA_IA12_123"
-    #slug = "lha_ia12_123"
-    #slug = factory.LazyAttribute(lambda a:slugify(a.PRJ_CD))
     PRJ_NM = "Fake Project"
     PRJ_LDR = "Bob Sakamano"
-    #PRJ_DATE0 = datetime.strptime("January 15, 20%s" 
-    #                                % PRJ_CD[6:8], "%B %d, %Y")
-    #PRJ_DATE1 = datetime.strptime("May 15, 20%s" % PRJ_CD[6:8], "%B %d, %Y")
-    #year = factory.LazyAttribute(lambda a:a.PRJ_DATE1.year)
-    #Approved = True
-    COMMENT = "This is a fake project"
+    comment = "This is a fake project"
     project_type = factory.SubFactory(ProjTypeFactory)
     master_database = factory.SubFactory(DatabaseFactory)
-    Owner = factory.SubFactory(UserFactory)
-    DBA = factory.SubFactory(DBA_Factory)
+    owner = factory.SubFactory(UserFactory)
+    dba = factory.SubFactory(DBA_Factory)
 
-    Lake = factory.SubFactory(LakeFactory)
+    lake = factory.SubFactory(LakeFactory)
 
-
-    @factory.lazy_attribute
-    def PRJ_DATE0(a):
-        datestring = "January 15, 20%s" % a.PRJ_CD[6:8] 
-        PRJ_DATE0 = datetime.datetime.strptime(datestring, "%B %d, %Y")
-        return(PRJ_DATE0)
 
     @factory.lazy_attribute
-    def PRJ_DATE1(a):
+    def prj_date0(a):
         datestring = "January 15, 20%s" % a.PRJ_CD[6:8] 
-        PRJ_DATE1 = datetime.datetime.strptime(datestring, "%B %d, %Y")
-        return(PRJ_DATE1)
+        prj_date0 = datetime.datetime.strptime(datestring, "%B %d, %Y")
+        return(prj_date0)
+
+    @factory.lazy_attribute
+    def prj_date1(a):
+        datestring = "January 15, 20%s" % a.PRJ_CD[6:8] 
+        prj_date1 = datetime.datetime.strptime(datestring, "%B %d, %Y")
+        return(prj_date1)
 
 class ProjectSisters(factory.Factory):
     FACTORY_FOR = ProjectSisters    

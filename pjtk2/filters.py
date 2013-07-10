@@ -10,17 +10,17 @@ class ProjectFilter(django_filters.FilterSet):
 
     class Meta:
         model = Project
-        fields = ['year', 'project_type', 'Lake', 'Funding']
+        fields = ['year', 'project_type', 'lake', 'funding']
     
     def __init__(self, *args, **kwargs):
         #from https://github.com/alex/django-filter/issues/29
         super(ProjectFilter, self).__init__(*args, **kwargs)
         filter_ = self.filters['project_type']
 
-        #self.filters['Lake'].extra.update(
-        #    {'empty_label': 'All Lakes'})
+        #self.filters['lake'].extra.update(
+        #    {'empty_label': 'All lakes'})
         #
-        #self.filters['Lake'].extra.update(
+        #self.filters['lake'].extra.update(
         #    {'empty_label': 'All Sources'})
 
 
