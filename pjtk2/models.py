@@ -107,7 +107,7 @@ class Milestone(models.Model):
     protected  = models.BooleanField(default = False)
     order = models.FloatField(default=99)
 
-    #objects = MilestoneManager()
+    objects = MilestoneManager()
 
     class Meta:
         verbose_name = "Milestones List"

@@ -54,25 +54,21 @@ class ReadOnlyText(forms.TextInput):
             value = ''
         return str(value)
 
-class HyperlinkWidget(forms.TextInput):
-    """This is a widget that will insert a hyperlink to a project
-    detail page in a form set.  Currently, the url is hardwired and
-    should be updated using get_absolute_url"""
-    #TODO - use initial -> url = self.instance.get_abosulte_url()
-    #def __init__(self, *args, **kwargs):
-    def __init__(self, attrs={}):
 
-        super(HyperlinkWidget, self).__init__(attrs)
-        #super(HyperlinkWidget, self).__init__(*args, **kwargs)
+class HyperlinkWidget(forms.Widget):
+    """This is a widget that will insert a hyperlink to a project
+    detail page in a form set."""
+
+    def __init__(self, text, url='#',*args, **kwargs):
+        self.url = url
+        self.text = text
+        super(HyperlinkWidget, self).__init__(*args, **kwargs)
 
     def render(self, name, value, attrs=None):
         output = []
-        if value is None:
-            value = ''
-        output.append('<a href="/test/projectdetail/%s/">%s</a>' % 
-                      (value.lower(), value))
-        #output.append('<a href="%s">%s</a>' % (url, value))
+        output.append('<a href="%s">%s</a>' % (self.url, self.text))
         return mark_safe(u''.join(output))
+
 
 
         
@@ -123,32 +119,19 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
 class ApproveProjectsForm(forms.ModelForm):
     '''This project form is used for view to approve/unapprove
     multiple projects.'''
-
-    #Approved = forms.BooleanField(
-    #    label = "Approved:",
-    #    required =False,
-    #)
     
     PRJ_NM = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Name",
         required =False,
     )
-    
-    PRJ_CD = forms.CharField(
-        widget = HyperlinkWidget,
-        label = "Project Code",
-        max_length = 80,
-        required = False,
-    )
-
+      
     PRJ_LDR = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Leader",
         max_length = 80,
         required = False,
     )
-
 
 
     class Meta:
@@ -164,10 +147,18 @@ class ApproveProjectsForm(forms.ModelForm):
             initial = self.instance.is_approved(),
         )
 
+        self.fields.update({"PRJ_CD":forms.CharField(
+            widget = HyperlinkWidget(
+                             url = self.instance.get_absolute_url(),
+                             text = self.instance.PRJ_CD),
+            label = "Project Code",
+            max_length = 80,
+            required = False,            
+        )
+        ,})
+
         #snippet makes sure that Approved appears first
         self.fields.keyOrder = ['Approved','PRJ_CD', 'PRJ_NM', 'PRJ_LDR']
-
-
 
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
@@ -632,14 +623,6 @@ class SisterProjectsForm(forms.Form):
         label = "Sister:",
         required =False,
     )
-
-    PRJ_CD = forms.CharField(
-        widget = HyperlinkWidget,
-        label = "Project Code",
-        max_length = 13,
-        required = False,
-    )
-
     
     PRJ_NM = forms.CharField(
         widget = ReadOnlyText,
@@ -662,7 +645,25 @@ class SisterProjectsForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         super(SisterProjectsForm, self).__init__(*args, **kwargs)
-        self.fields["slug"].widget = forms.HiddenInput()
+
+        self.fields["slug"].widget = forms.HiddenInput()        
+        self.prj_cd = kwargs['initial'].get('PRJ_CD', None)
+        self.url = kwargs['initial'].get('url', None)
+
+        #use a hyperlink widget for the project code
+        self.fields.update({"PRJ_CD":forms.CharField(
+            widget = HyperlinkWidget(
+                             url = self.url,
+                             text = self.prj_cd),
+            label = "Project Code",
+            max_length = 13,
+            required = False,            
+        )
+        ,})
+
+        #snippet makes sure that Approved appears first
+        self.fields.keyOrder = ['sister','PRJ_CD', 'PRJ_NM', 'PRJ_LDR', 'slug']
+
 
     def clean_PRJ_CD(self):
         '''return the original value of PRJ_CD'''
