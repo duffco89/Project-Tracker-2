@@ -30,19 +30,23 @@ urlpatterns = patterns('pjtk2.views',
     
     url(r'^newproject/$', 'new_project', name='NewProject'),
 
-    url(r'^copyproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+    url((r'^copyproject/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'copy_project', name='CopyProject'),
 
-    url(r'^editproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+    url((r'^editproject/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'edit_project', name='EditProject'),
 
-    url(r'^projectdetail/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+    url((r'^projectdetail/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'project_detail', name='project_detail'),
 
     url(r'^myprojects/$', 'my_projects', name='MyProjects'),
         
 
-    url(r'^sisterprojects/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+    url((r'^sisterprojects/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'sisterprojects', name='SisterProjects'),
 
 ##     url(r'^projects/(?P<year>\d{4})/$',
@@ -50,7 +54,8 @@ urlpatterns = patterns('pjtk2.views',
 ## 
 
     #tagging/keywords                  
-    url(r'^taggedprojects/(?P<tag>.+)/$', 'taggedprojects', name='TaggedProjects'),
+    url(r'^taggedprojects/(?P<tag>.+)/$', 'taggedprojects', 
+        name='TaggedProjects'),
 
     
 # Reports and milestones
@@ -59,7 +64,8 @@ urlpatterns = patterns('pjtk2.views',
 
 #    url(r'^reportformset/', 'report_formset', name='ReportFormSet'),
 
-#    url(r'^updateassignments/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+#    url((r'^updateassignments/'
+#            '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
 #        'update_assignments', name='UpdateAssignments'),
 
 
@@ -67,7 +73,8 @@ urlpatterns = patterns('pjtk2.views',
 #       'project_milestones', name='ProjectMilestones'),
 
 
-    url(r'^reportupload/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
+    url((r'^reportupload/'
+        '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'report_upload', name='ReportUpload'),
     
     url(r'^uploadlist/$', 'uploadlist', name='UploadList'),
@@ -77,11 +84,13 @@ urlpatterns = patterns('pjtk2.views',
 
 
 #bookmarking
-    url(r'^bookmarkproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
-        'bookmark_project', name='Bookmark_Project'),
+    url((r'^bookmarkproject/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
+          'bookmark_project', name='Bookmark_Project'),
 
-    url(r'^unbookmarkproject/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
-        'unbookmark_project', name='Unbookmark_Project'),
+    url((r'^unbookmarkproject/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
+          'unbookmark_project', name='Unbookmark_Project'),
 
 )
 

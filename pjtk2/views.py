@@ -6,15 +6,16 @@
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
-from django.contrib.auth.decorators import (login_required, user_passes_test)
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 from django.core.servers.basehttp import FileWrapper
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
@@ -339,6 +340,7 @@ def crud_project(request, slug, action='New'):
         milestones = instance.get_milestones()
     else:
         instance = Project()
+        milestones = None
 
     #find out if the user is a manager or superuser, if so set manager
     #to true so that he or she can edit all fields.
@@ -611,7 +613,17 @@ def my_projects(request):
 
     user = User.objects.get(username__exact=request.user)
 
-    myself = Employee.objects.get(user=user)
+    #make sure that the user exists - otherwise redirect them to a
+    #help page
+    try:
+        myself = Employee.objects.get(user=user)
+    except:
+        msg = '''Your employee profile does not appear to be propery 
+                 configured.\nPlease contact the site administrators.'''
+        messages.error(request, msg)
+        raise Http404("Error")
+
+
     employees = get_minions(myself)
     employees = [x.user.username for x in employees]
 
