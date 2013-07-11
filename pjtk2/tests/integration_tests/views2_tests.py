@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
+from django.db.models.signals import pre_save, post_save
 from django_webtest import WebTest
 #from testfixtures import compare
 from pjtk2.tests.factories import *
@@ -9,6 +10,16 @@ from django.template.defaultfilters import slugify
 
 import datetime
 import pytz
+
+
+def setup():
+    '''disconnect the signals before each test - not needed here'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+def teardown():
+    '''re-connecct the signals here.'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
 
 class BookmarkTestCase(WebTest):
 

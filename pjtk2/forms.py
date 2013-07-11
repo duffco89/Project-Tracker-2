@@ -152,7 +152,7 @@ class ApproveProjectsForm(forms.ModelForm):
                              url = self.instance.get_absolute_url(),
                              text = self.instance.prj_cd),
             label = "Project Code",
-            max_length = 80,
+            max_length = 12,
             required = False,            
         )
         ,})

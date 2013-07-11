@@ -4,6 +4,17 @@ that the admin contains interfaces to the models that we need.'''
 from pjtk2.tests import DemoTestCase
 from django.core.urlresolvers import reverse
 from pjtk2.tests.factories import *
+from django.db.models.signals import pre_save, post_save
+
+
+def setup():
+    '''disconnect the signals before each test - not needed here'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+def teardown():
+    '''re-connecct the signals here.'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
 
 
 class TestUrls(DemoTestCase):

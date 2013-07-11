@@ -2,6 +2,7 @@ import unittest
 
 from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
+from django.db.models.signals import pre_save, post_save
 from django.test.client import Client
 from django_webtest import WebTest
 #from django.test import TestCase
@@ -11,6 +12,18 @@ import haystack
 
 #from pjtk2.models import Bookmark
 from pjtk2.tests.factories import *
+
+
+
+def setup():
+    '''disconnect the signals before each test - not needed here'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+def teardown():
+    '''re-connecct the signals here.'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+
 
 class CanViewSearchForm(WebTest):
     '''verify that we can view and submit the search form'''

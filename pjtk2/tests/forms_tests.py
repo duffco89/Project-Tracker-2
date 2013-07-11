@@ -9,17 +9,31 @@ from StringIO import StringIO
 from datetime import datetime
 
 #from django.core.urlresolvers import reverse
-from django.test import TestCase
-from django import forms
-from django.core.files.uploadedfile import SimpleUploadedFile, InMemoryUploadedFile
-from django.conf import settings
 
-#import unittest
+from django import forms
+from django.db.models.signals import pre_save, post_save
+from django.conf import settings
+from django.core.files.uploadedfile import (SimpleUploadedFile, 
+                                            InMemoryUploadedFile)
+from django.test import TestCase
 
 from pjtk2.models import *
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm, SisterProjectsForm,
                          ReportUploadForm, ReportUploadFormSet)
 from pjtk2.tests.factories import *
+
+
+
+
+def setup():
+    '''disconnect the signals before each test - not needed here'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+def teardown():
+    '''re-connecct the signals here.'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+
 
 
 class TestApproveProjectForm(TestCase):

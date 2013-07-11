@@ -1,10 +1,9 @@
 from django.test import TestCase
-
-
+from django.db.models.signals import pre_save, post_save
 from pjtk2.models import *
 from pjtk2.tests.factories import *
 
-from pjtk2.views import get_minions, get_supervisors
+from pjtk2.functions import get_minions, get_supervisors
 
 import datetime
 import pytz
@@ -15,11 +14,22 @@ def print_err(*args):
     sys.stderr.write(' '.join(map(str,args)) + '\n')
 
 
+def setup():
+    '''disconnect the signals before each test - not needed here'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+def teardown():
+    '''re-connecct the signals here.'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+
+
 class TestProjectApproveMethods(TestCase):
     
 
     def setUp(self):
         '''we will need three projects with easy to rember project codes'''
+
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
@@ -73,7 +83,6 @@ class TestProjectApproveMethods(TestCase):
         self.assertIsNone(completed)
 
 
-
     def test_signoff_project(self):
 
         #verify that the 'Sign off' project milestone for this project is null
@@ -101,16 +110,13 @@ class TestProjectApproveMethods(TestCase):
         self.assertIsNotNone(completed)
         self.assertTrue((completed - now)<datetime.timedelta(seconds=1))
 
-
     def tearDown(self):
+
         self.project1.delete()
         self.milestone1.delete()
         self.milestone2.delete()
         self.milestone3.delete()
         self.user.delete()
-
-
-
 
 
 class TestProjectModel(TestCase):
@@ -209,6 +215,7 @@ class TestProjectModel(TestCase):
         self.project2.delete()
         self.project3.delete()
         self.user.delete()
+
 
 class TestMilestoneModel(TestCase):        
 
@@ -452,6 +459,7 @@ class TestModelSisters(TestCase):
 
     def setUp(self):
         '''we will need three projects with easy to rember project codes'''
+
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
@@ -612,7 +620,6 @@ class TestModelSisters(TestCase):
         self.user.delete()
         
 
-
 class TestModelBookmarks(TestCase):        
     '''Verify that the bookmark objects return the data in the
     expected format.'''
@@ -625,12 +632,16 @@ class TestModelBookmarks(TestCase):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
+        self.user2 = UserFactory(username = 'mburns',
+                                first_name = 'Monty',
+                                last_name = 'Burns')
+
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
         self.project = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               project_type = self.ProjType)
 
-    def TestBookmarkAttributes(self):
+    def test_BookmarkAttributes(self):
         '''Verify that bookmark methods retrun expected values'''
         bookmark = Bookmark.objects.create(user=self.user,
                                            project=self.project)
@@ -643,9 +654,33 @@ class TestModelBookmarks(TestCase):
         self.assertEqual(bookmark.name(), self.project.prj_nm)
         self.assertEqual(bookmark.project_type(), self.project.project_type)
 
+
+
+    def test_bookmark_get_watchers_method(self):
+        '''This function should return a list of users who are watching this
+        project.  This function is need to help build the message
+        distribution list
+        '''
+
+        #homer bookmarks this project
+        bookmark = Bookmark.objects.create(user=self.user, 
+                                           project=self.project)
+        watchers = bookmark.get_watchers()
+        self.assertEqual(watchers[0],self.user)
+
+        #Mr Burns bookmarks this project too
+        bookmark = Bookmark.objects.create(user=self.user2, 
+                                           project=self.project)
+        watchers = bookmark.get_watchers()
+        self.assertEqual(watchers,[self.user2, self.user])
+
+
     def tearDown(self):
         self.project.delete()
         self.ProjType.delete()
+        self.user.delete()
+        self.user2.delete()
+
 
 class TestProjectTagging(TestCase):        
     '''make sure we can add and delete tags, and retrieve all projects
@@ -653,7 +688,7 @@ class TestProjectTagging(TestCase):
 
     def setUp(self):
         '''we will need three projects with easy to rember project codes'''
-        
+
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')        
@@ -721,10 +756,10 @@ class TestProjectTagging(TestCase):
         self.project3.delete()
 
 
-
 class TestEmployeeFunctions(TestCase):
     
     def setUp(self):
+
         self.user1 = UserFactory(first_name = "Jerry", last_name="Seinfield",
                                 username='jseinfield')
 
@@ -745,11 +780,16 @@ class TestEmployeeFunctions(TestCase):
         #now setup employee relationships
 
         self.employee1 = EmployeeFactory(user=self.user1)
-        self.employee2 = EmployeeFactory(user=self.user2, supervisor=self.employee1)
-        self.employee3 = EmployeeFactory(user=self.user3, supervisor=self.employee1)
-        self.employee4 = EmployeeFactory(user=self.user4, supervisor=self.employee3)
-        self.employee5 = EmployeeFactory(user=self.user5, supervisor=self.employee3)
-        self.employee6 = EmployeeFactory(user=self.user6, supervisor=self.employee5)
+        self.employee2 = EmployeeFactory(user=self.user2, 
+                                         supervisor=self.employee1)
+        self.employee3 = EmployeeFactory(user=self.user3, 
+                                         supervisor=self.employee1)
+        self.employee4 = EmployeeFactory(user=self.user4, 
+                                         supervisor=self.employee3)
+        self.employee5 = EmployeeFactory(user=self.user5, 
+                                         supervisor=self.employee3)
+        self.employee6 = EmployeeFactory(user=self.user6, 
+                                         supervisor=self.employee5)
         
         #Jerry is everyone's boss
         #Jerry's direct reports are George and Kramer
@@ -796,16 +836,17 @@ class TestEmployeeFunctions(TestCase):
 
         #for Newman get_supervisor will return he, Banya, Kramer and Jerry
         bosses = get_supervisors(self.employee6)
-        shouldbe = [self.employee6, self.employee5, self.employee3, self.employee1]
+        shouldbe = [self.employee6, self.employee5, self.employee3, 
+                    self.employee1]
         bosses = [unicode(x) for x in bosses]
         shouldbe = [unicode(x) for x in shouldbe]
         self.assertEquals(bosses, shouldbe)
 
     def test_get_minions(self):
         
-        # George, Elaine and Newman don't have anyone working for them, so get_minions
-        # shouldn't return anyone but them
-        #for George, get_minions will return just him
+        # George, Elaine and Newman don't have anyone working for
+        # them, so get_minions shouldn't return anyone but them for
+        # George, get_minions will return just him
         minions = get_minions(self.employee2)
         shouldbe = [self.employee2]
         minions = [unicode(x) for x in minions]
@@ -820,10 +861,12 @@ class TestEmployeeFunctions(TestCase):
         shouldbe = [unicode(x) for x in shouldbe]
         self.assertListEqual(minions, shouldbe)
 
-        # Kramer supervises Elaine and Banya directly, Banya supervises Newman 
-        # get_minions(Kramer) should return all four employees.
+        # Kramer supervises Elaine and Banya directly, Banya
+        # supervises Newman get_minions(Kramer) should return all four
+        # employees.
         minions = get_minions(self.employee3)
-        shouldbe = [self.employee3, self.employee4, self.employee5, self.employee6]
+        shouldbe = [self.employee3, self.employee4, self.employee5, 
+                    self.employee6]
         minions = [unicode(x) for x in minions]
         shouldbe = [unicode(x) for x in shouldbe]
         self.assertListEqual(minions, shouldbe)
@@ -839,12 +882,20 @@ class TestEmployeeFunctions(TestCase):
 
             
     def tearDown(self):
+
+        self.employee1.delete()
+        self.employee2.delete()
+        self.employee3.delete()
+        self.employee4.delete()
+        self.employee5.delete()
+        self.employee6.delete()
+
         self.user1.delete()
         self.user2.delete()
         self.user3.delete()
         self.user4.delete()
         self.user5.delete()
-
+        self.user6.delete()
         
         
 class TestApprovedCompletedModelManagers(TestCase):
@@ -852,6 +903,7 @@ class TestApprovedCompletedModelManagers(TestCase):
 
     def setUp(self):
         '''we will need three projects with easy to rember project codes'''
+
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
@@ -941,3 +993,4 @@ class TestApprovedCompletedModelManagers(TestCase):
         self.milestone2.delete()
         self.milestone3.delete()
         self.user.delete()
+

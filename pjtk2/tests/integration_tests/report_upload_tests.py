@@ -6,16 +6,26 @@ files as expected.'''
 import os
 from StringIO import StringIO
 
-from django.core.urlresolvers import reverse
-from django_webtest import WebTest 
 from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.db.models.signals import pre_save, post_save
 from django.test import TestCase
-#from testfixtures import compare
+from django_webtest import WebTest 
+from webtest import Upload
+
+
 from pjtk2.models import ProjectMilestones
 from pjtk2.tests.factories import *
 
 
-from webtest import Upload
+def setup():
+    '''disconnect the signals before each test - not needed here'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+def teardown():
+    '''re-connecct the signals here.'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
 
 class BasicReportUploadTestCase(WebTest):
     '''NOTE - actual file upload tests moved to the bottom of the is

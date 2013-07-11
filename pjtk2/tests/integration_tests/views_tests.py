@@ -1,16 +1,25 @@
 import unittest
 import pdb
 
-
+from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.core.urlresolvers import reverse
+from django.db.models.signals import pre_save, post_save
 from django.test.client import Client
 from django.test import TestCase
-from django.conf import settings
+
 
 from pjtk2.tests.factories import *
 from pjtk2.views import can_edit
 
+
+def setup():
+    '''disconnect the signals before each test - not needed here'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+
+def teardown():
+    '''re-connecct the signals here.'''
+    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
 
 
 class TestCanEditFunction(TestCase):
@@ -37,7 +46,8 @@ class TestCanEditFunction(TestCase):
                                        )
 
         #make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name='manager')         
+        managerGrp, created = Group.objects.get_or_create(
+            name='manager')         
         self.user2.groups.add(managerGrp)
 
         #PROJECTS

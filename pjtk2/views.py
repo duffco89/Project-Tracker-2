@@ -28,32 +28,34 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm,
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,  
                          ReportUploadFormSet)
 
+from pjtk2.functions import get_minions, get_supervisors
+
 import datetime
 import pytz
 import mimetypes
 import os
 #import pdb
 
-def get_supervisors(employee):
-    '''Given an employee object, return a list of supervisors.  the first
-    element of list will be the intial employee.'''
-    if employee.supervisor:
-        return [employee] + get_supervisors(employee.supervisor)
-    else:
-        return [employee]
-
-
-def get_minions(employee):
-    '''Given an employee objects, return a list of employees under his/her
-    supervision.  The first element of list will be the intial
-    employee.
-    '''
-    ret = [employee]
-    for minion in employee.employee_set.all():
-        #ret.append(get_minions(minion))        
-        ret.extend(get_minions(minion))
-    return ret
-
+##def get_supervisors(employee):
+##    '''Given an employee object, return a list of supervisors.  the first
+##    element of list will be the intial employee.'''
+##    if employee.supervisor:
+##        return [employee] + get_supervisors(employee.supervisor)
+##    else:
+##        return [employee]
+##
+##
+##def get_minions(employee):
+##    '''Given an employee objects, return a list of employees under his/her
+##    supervision.  The first element of list will be the intial
+##    employee.
+##    '''
+##    ret = [employee]
+##    for minion in employee.employee_set.all():
+##        #ret.append(get_minions(minion))        
+##        ret.extend(get_minions(minion))
+##    return ret
+##
 
 def group_required(*group_names):
     """Requires user membership in at least one of the groups passed in."""
@@ -365,7 +367,7 @@ def crud_project(request, slug, action='New'):
             tags = form.cleaned_data['tags']
             form_ms = form.cleaned_data.get('milestones', None)
             form = form.save(commit=False)
-            if action == 'Copy':
+            if action == 'Copy' or action == 'New':
                 form.owner = request.user
             form.save()
             form.tags.set(*tags)

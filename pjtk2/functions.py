@@ -17,14 +17,13 @@ def get_supervisors(employee):
     else:
         return [employee]
 
-def get_minions(employee):
-    '''Given an employee objects, return a list of employees under
-    his/her## from pjtk2.models import (Milestone, Project, Report,
-    ProjectReports, supervision.  The first element of list will be
-    the intial employee.
 
+def get_minions(employee):
+    '''Given an employee objects, return a list of employees under his/her
+    supervision.  The first element of list will be the intial
+    employee.
     '''
-    ret=[employee]
+    ret = [employee]
     for minion in employee.employee_set.all():
         #ret.append(get_minions(minion))        
         ret.extend(get_minions(minion))
