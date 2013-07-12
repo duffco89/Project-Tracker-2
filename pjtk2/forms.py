@@ -2,9 +2,11 @@
 # E1120 - No value passed for parameter 'cls' in function call
 #pylint: disable=E1101, E1120
 
-
+import datetime
+import pytz
 import re
 import hashlib
+
 
 from django import forms
 from django.contrib.auth.models import User
@@ -22,7 +24,7 @@ from crispy_forms.layout import Submit, Layout, Fieldset, Field, ButtonHolder
 
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report, 
-                          ProjectType, Database, Lake)
+                          ProjectType, Database, Lake, Messages2Users)
 
 
 #==================================
@@ -88,7 +90,8 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
         output = [u'']
         # Normalize to strings
         str_values = set([force_unicode(v) for v in value])
-        for i, (option_value, option_label) in enumerate(chain(self.choices, choices)):
+        for i, (option_value, option_label) in enumerate(chain(self.choices, 
+                                                               choices)):
             if final_attrs.has_key('disabled'):
                 del final_attrs['disabled']
             if isinstance(option_label, dict):
@@ -115,6 +118,74 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
 #==================================
 #  FORMS
 
+
+class NoticesForm(forms.Form):
+    '''This form is used to display un-read messages.  Once read, the user
+    can click the read box and submit the form to remove them from the
+    que.''' 
+
+    read = forms.BooleanField(
+        label = "Read:",
+        required =False,
+    )
+    
+    prj_nm = forms.CharField(
+        widget = ReadOnlyText,
+        label = "Project Name",
+        required =False,
+    )
+
+    msg_id = forms.CharField(
+        label = "msg_id",
+        required =False,
+    )
+    
+    user_id = forms.CharField(
+        label = "user_id",
+        required =False,
+    )
+    
+    msg = forms.CharField(
+        widget = ReadOnlyText,
+        label = "Message",
+        max_length = 80,
+        required = False,
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super(NoticesForm, self).__init__(*args, **kwargs)
+
+        self.fields["msg_id"].widget = forms.HiddenInput()        
+        self.fields["user_id"].widget = forms.HiddenInput()        
+        self.prj_cd = kwargs['initial'].get('prj_cd', None)
+        self.url = kwargs['initial'].get('url', None)
+
+        #use a hyperlink widget for the project code
+        self.fields.update({"prj_cd":forms.CharField(
+            widget = HyperlinkWidget(
+                             url = self.url,
+                             text = self.prj_cd),
+            label = "Project Code",
+            max_length = 13,
+            required = False,            
+        )
+        ,})
+
+        #snippet makes sure that Approved appears first
+        self.fields.keyOrder = ['read','prj_cd', 'prj_nm', 'msg', 
+                                'msg_id','user_id']
+
+    def save(self, *args, **kwargs):
+
+        if self.cleaned_data['read']==True:
+            now = datetime.datetime.now(pytz.utc)
+            msg_id = self.initial['msg_id']
+            user_id = self.initial['user_id']
+
+            message2user = Messages2Users.objects.filter(msg__id=msg_id,
+                                       user__id=user_id)
+            message2user.update(read = now)
+            
         
 class ApproveProjectsForm(forms.ModelForm):
     '''This project form is used for view to approve/unapprove

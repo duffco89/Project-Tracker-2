@@ -22,11 +22,11 @@ from django.utils.decorators import method_decorator
 
 from pjtk2.filters import ProjectFilter
 from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
-                           Bookmark, Employee)
+                           Bookmark, Employee, my_messages)
 
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm, 
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,  
-                         ReportUploadFormSet)
+                         ReportUploadFormSet, NoticesForm)
 
 from pjtk2.functions import get_minions
 
@@ -612,21 +612,12 @@ def my_projects(request):
         messages.error(request, msg)
         raise Http404("Error")
 
-
     employees = get_minions(myself)
     employees = [x.user.username for x in employees]
 
     boss = False
     if len(employees) > 1:
         boss = True
-
-    #myprojects = Project.objects.filter(owner__username__in=employees)
-    
-    #complete = myprojects.filter(SignOff=True)
-    #approved = myprojects.filter(Approved=True).filter(SignOff=False)
-    #YOU ARE HERE!!!
-    #approved = myprojects.filter(Approved=True)
-    #submitted = myprojects.filter(Approved=False)
 
     #I don't like how this takes three queries:
     submitted = Project.objects.submitted().filter(
@@ -636,15 +627,42 @@ def my_projects(request):
     complete = Project.objects.completed().filter(
         owner__username__in=employees)
 
+    notices = get_messages_dict(my_messages(user))
+    formset = formset_factory(NoticesForm, extra=0)
+
+    if request.method == 'POST': 
+        notices_formset = formset(request.POST, request.FILES, initial=notices)
+        if notices_formset.is_valid():
+            #notices_formset.save()
+            for form in notices_formset:
+                form.save()
+            redirect_url = reverse('MyProjects') + '#tabs-2'
+            return HttpResponseRedirect(redirect_url)
+    else:
+        notices_formset = formset(initial=notices)
+
     template_name = "my_projects.html"
 
     return render_to_response(template_name,
                               { 'bookmarks':bookmarks,
+                                'formset': notices_formset,
                                 'complete':complete,
                                 'approved':approved,
                                 'submitted':submitted,
                                 'boss':boss,},
                               context_instance=RequestContext(request))
+
+
+
+
+
+
+
+
+
+
+    
+
 
     
 
@@ -679,6 +697,27 @@ def unbookmark_project(request, slug):
 
 
 #=====================
+
+def get_messages_dict(messages):
+    '''given a notification message, pull out the project, url, id and
+    message.  wrap them up in a dict and return it.  The dict is then
+    passed to the notifcation form so that each message can be displayed
+    and marked as read by the user.'''
+
+    initial = []
+
+    for msg in messages:
+       initial.append(dict(
+                    prj_cd = msg.msg.project_milestone.project.prj_cd,
+                    prj_nm = msg.msg.project_milestone.project.prj_nm,
+                    msg = msg.msg.msg,
+                    msg_id = msg.id,
+                    user_id = msg.user.id,
+                    url = msg.msg.project_milestone.project.get_absolute_url(),
+                       )) 
+    return initial
+        
+
 
 def get_sisters_dict(slug):
     '''given a slug, return a list of dictionaries of projects that
