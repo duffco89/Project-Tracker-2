@@ -11,13 +11,13 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
-from pjtk2.functions import get_minions, get_supervisors
+from pjtk2.functions import get_supervisors
 
 from taggit.managers import TaggableManager
 
 import datetime
 import pytz
-import pdb
+
 
 
 class ProjectsManager(models.Manager):
@@ -216,9 +216,13 @@ class Project(models.Model):
         '''
         now = datetime.datetime.now(pytz.utc)
         try:
-            ProjectMilestones.objects.filter(project=self, 
-                                     milestone__label='Approved').update(
-                                         completed=now)
+            #ProjectMilestones.objects.filter(project=self, 
+            #                         milestone__label='Approved').update(
+            #                             completed=now)
+            prjms = ProjectMilestones.objects.get(project=self, 
+                                     milestone__label='Approved')
+            prjms.completed = now
+            prjms.save()  #save sends pre_save signal
         except ProjectMilestones.DoesNotExist:
             #create it if it doesn't exist
             milestone = Milestone.objects.get(label='Approved')
@@ -231,9 +235,15 @@ class Project(models.Model):
         '''a helper method to reverse project.approved(), a project-milestone
         object will be created if it doesn't exist.'''
         try:
-            ProjectMilestones.objects.filter(project=self, 
-                                 milestone__label='Approved').update(
-                                     completed=None)
+            #ProjectMilestones.objects.filter(project=self, 
+            #                     milestone__label='Approved').update(
+            #                         completed=None)
+            prjms = ProjectMilestones.objects.get(project=self, 
+                                     milestone__label='Approved')
+            prjms.completed = None
+            prjms.save()  #save sends pre_save signal
+
+
         except ProjectMilestones.DoesNotExist:
             pass
 
@@ -393,14 +403,9 @@ class Project(models.Model):
         '''A function that will add a record into "ProjectMilestones" for
         each of the core reports and milestones for newly created projects'''
 
-        #project = Project.objects.get(slug=slug)
-        #corereports = Milestone.objects.filter(category='Core')
         corereports = Milestone.allmilestones.filter(category='Core')
-
         for report in corereports:
-            #pr,created = ProjectMilestones.objects.get_or_create(project=self, 
-            #                                            milestone = report)
-            if report.label=='Submitted':
+            if report.label == 'Submitted':
                 now = datetime.datetime.now(pytz.utc)
             else:
                 now = None
@@ -700,6 +705,10 @@ class Messages2Users(models.Model):
     read = models.DateTimeField(blank=True, null=True)
 
 
+    def __unicode__(self):
+        '''return the messsage as it's unicode method.'''
+        return "%s - %s" % (self.user, self.msg)
+        
 
         
 class Admin_Milestone(admin.ModelAdmin):
@@ -757,41 +766,75 @@ admin.site.register(Employee, Admin_Employee)
 
 #===================================== 
 #    Signals 
-#can't use this function
-#    - it requires access to project milestones that don't exist yet.
-##@receiver(post_save, sender=Project)
-##def send_notices_submitted(sender, instance, created, **kwargs):
-##    '''If this project was just created, we will need to send a
-##    notification to the project lead, his/her supervisors, and the
-##    data custodian that it was submitted.
-##    '''
-##
-##    if created:
-##        proj = Project.objects.get(pk=instance.pk)
-##        msgtxt =  "Project %s was just submitted." % proj.prj_cd
-##        # we want to send this message up the chain of command to 
-##        # all supervisors
-##        try:
-##            #try and send messages starting at project lead - ideal
-##            prjLead = proj.prj_ldr
-##            prjLead = Employee.objects.get(user__username=prjLead)
-##            users = get_supervisors(prjLead)
-##        except:
-##            #should be the same person, but could be someone else
-##            prjLead = proj.owner
-##            prjLead = Employee.objects.get(user__username=prjLead)
-##            users = get_supervisors(prjLead)
-##        #send notice to dba too
-##        users.append(Employee.objects.get(user__username=proj.dba))
-##        #remove any duplicates
-##        users = list(set(users))
-##        #ms = Milestone.objects.get(label="Submitted")
-##        sendMessage(msgtxt, users, project=proj, milestone=ms)
 
 
-def build_msg_recipients(Project,level=None,dba=True,ops=True):
+
+# TODO Complete the pre_save signal to ProjectMilestones - send
+# message to appropriate people whenever a record in this table is
+# added or updated.
+
+@receiver(pre_save, sender=ProjectMilestones)
+def send_notice_prjms_changed(sender, instance, **kwargs):
+    '''If the status of a milestone has changed, send a message to the
+    project lead, their supervisor, the data custodian (and perhaps
+    someday, the operations team).  Note that 'submitted' milestone
+    need to be handled using a post_save signal.
+    '''
+
+    msgtxt = ""
+
+    try:
+        original = ProjectMilestones.objects.get(pk=instance.pk)
+    except ProjectMilestones.DoesNotExist:
+        #in this case, there was no original.  
+        original = None
+
+    #if we found an origincal projectmilestone,
+    if original:
+        #find out if 'completed' has changed and whether or not it is now 
+        #empty and build an appropriate message
+        if instance.completed != original.completed and instance.completed:
+            #this milestone has been satisfied
+            msgtxt = instance.milestone.label
+
+        elif instance.completed != original.completed and original.completed:
+            #this milestone has been 'un-approved'
+            msgtxt = ("The milestone '%s' has been revoked"  
+                    %  instance.milestone.label)
+    if msgtxt:
+        #build the list of people we will be sending the message to
+        recipients = build_msg_recipients(instance.project)
+        send_message(msgtxt, recipients, project=instance.project, 
+                    milestone=instance.milestone)
+
+#pre_save.connect(send_notice_prjms_changed, sender=ProjectMilestones)
+
+@receiver(post_save, sender=ProjectMilestones)
+def send_notice_project_submitted(sender, instance, **kwargs):
+    '''If the status of a milestone has changed, send a message to the
+    project lead, their supervisor, the data custodian (and perhaps
+    someday, the operations team).  Note that 'submitted' milestone
+    need to be handled using a post_save signal.
+    '''
+
+    if instance.milestone.label == 'Submitted':
+        msgtxt = 'Submitted'
+        recipients = build_msg_recipients(instance.project)
+        send_message(msgtxt, recipients, project=instance.project, 
+                    milestone=instance.milestone)
+
+
+
+
+
+#=========================
+#   Message functions
+
+
+
+def build_msg_recipients(project, level=None, dba=True, ops=True):
     '''A function to complile the list of recipients for messages 
-    Project - a project instance 
+    project - a project instance 
     level - an integer indicating how high up the employee hierarchy the
              message should propegate (not yet implemented)
     dba - should the project's dba be notified too?
@@ -800,9 +843,9 @@ def build_msg_recipients(Project,level=None,dba=True,ops=True):
     The function returns a list of unique user instances.
     '''
 
-    prjLead = Project.owner
-    prjLead = Employee.objects.get(user__username=prjLead)
-    recipients = get_supervisors(prjLead)
+    prj_owner = project.owner
+    prj_owner = Employee.objects.get(user__username=prj_owner)
+    recipients = get_supervisors(prj_owner)
     #convert the employees to user objects
     recipients = [x.user for x in recipients]
     
@@ -810,81 +853,32 @@ def build_msg_recipients(Project,level=None,dba=True,ops=True):
         #trim the list of supervisors here (if appropriate)
         recipients = recipients[:-(level-1)]
     #Find out who is watching this project and add them to the list too
-    bookmarks = Bookmark.objects.filter(project=Project)
+    bookmarks = Bookmark.objects.filter(project=project)
     if bookmarks.exists():
         for watcher in bookmarks:
             recipients.append(watcher.user)
     #send notice to dba too
     if dba:
-        recipients.append(Project.dba)
+        recipients.append(project.dba)
     if ops:
-        #recipients.append(Project.ops)
+        #recipients.append(project.ops)
         pass
     #remove any duplicates
     recipients = list(set(recipients))
     return(recipients)
 
 
-# TODO Complete the pre_save signal to ProjectMilestones - send
-# message to appropriate people whenever a record in this table is
-# added or updated.
-
-@receiver(pre_save, sender=ProjectMilestones)
-def send_notices_changed(sender, instance, **kwargs):
-    '''If the status of a milestone has changed, send a message to
-    the project lead, their supervisor,
-    the data custodian (and perhaps someday, the operations team).'''
-    try:
-        original = ProjectMilestones.objects.get(pk=instance.pk)
-    except ProjectMilestones.DoesNotExist:
-        #in this case, there was no original - nothing to do since we
-        #don't send messages when the projecctmilestone is created -
-        #only satisfied.
-        #  NOTE - we may have to modify for 'Submitted' milestones
-        pass
-    else:
-        #here is the list of people we will be sending a message to
-        recipients = build_msg_recipients(original.project)
-
-        #find out if 'completed' has changed and whether or not it is now 
-        #empty and build an appropriate message
-        if instance.completed!=original.completed and instance.completed:
-            #this milestone has been satisfied
-            msgtxt = instance.milestone.label
-
-            sendMessage(msgtxt, recipients, project=original.project, 
-                        milestone=original.milestone)
-
-        elif instance.completed!=original.completed and instance.completed:
-            #this milestone has been 'un-approved'
-            msgtxt=("The milestone '%s' has been revoked"  
-                    %  instance.milestone.label)
-
-            sendMessage(msgtxt, recipients, project=original.project, 
-                        milestone=original.milestone)
-
-#pre_save.connect(send_notices_changed, sender=ProjectMilestones)
-
-
-#=========================
-#   Message functions
-
 def send_message(msgtxt, recipients, project, milestone):
-
     '''Create a record in the message database and send it to each user in
     recipients by appending a record to Messages2Users for each one.'''
 
     #if the Project Milestone doesn't exist for this project and
     #milestone create it
-    #pdb.set_trace()
-    #prjms, created = 
-    #                                                    
-    ProjectMilestones.objects.get_or_create(project=project, 
+    prjms, created = ProjectMilestones.objects.get_or_create(project=project, 
                                             milestone=milestone)
-    #prjms = ProjectMilestones.objects.get(project=project, milestone=milestone)
     
     #create a message object using the message text and the project-milestone
-    message = Message.objects.create(msg=msgtxt, ProjectMilestone=prjms)
+    message = Message.objects.create(msg=msgtxt, project_milestone=prjms)
     #then loop through the list of recipients and add one record to 
     #Messages2Users for each one:
     try:
@@ -897,7 +891,7 @@ def send_message(msgtxt, recipients, project, milestone):
 
 def my_messages(user, only_unread=True):
     '''Return a queryset of messages for the user, sorted in reverse
-    chronilogical order (newest first).  By default, only unread messages
+    chronological order (newest first).  By default, only unread messages
     are returned, but all messages can be retrieved.'''
 
     if only_unread:

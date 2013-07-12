@@ -16,16 +16,19 @@ def print_err(*args):
 
 def setup():
     '''disconnect the signals before each test - not needed here'''
-    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
 def teardown():
     '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
 
 
-class TestProjectApproveMethods(TestCase):
-    
+class TestProjectApproveUnapproveMethods(TestCase):
+    '''Project instances have been given clas methods to approve,
+    unapprove and sign off.  These tests verify that they work as
+    expected.
+    '''
 
     def setUp(self):
         '''we will need three projects with easy to rember project codes'''
@@ -44,11 +47,9 @@ class TestProjectApproveMethods(TestCase):
         self.milestone3 = MilestoneFactory.create(label="Sign off",
                                         category = 'Core', order=999, 
                                              report=False)
-
         
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
                                               owner=self.user)
-
 
     def test_approve_unapprove_project(self):
 
@@ -127,9 +128,10 @@ class TestProjectModel(TestCase):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
-        #self.employee = EmployeeFactory(user=self.user)
-        
+        #self.employee = EmployeeFactory(user=self.user) 
 
+        #define these as strings here so that we can access them later
+        #and verify that the returned values match.
         self.commentStr = "This is a fake comment."
         self.ProjectName = "Homer's Odyssey"
         
@@ -898,99 +900,3 @@ class TestEmployeeFunctions(TestCase):
         self.user6.delete()
         
         
-class TestApprovedCompletedModelManagers(TestCase):
-    
-
-    def setUp(self):
-        '''we will need three projects with easy to rember project codes'''
-
-        self.user = UserFactory(username = 'hsimpson',
-                                first_name = 'Homer',
-                                last_name = 'Simpson')
-        
-        #Add milestones
-        self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1, 
-                                             report=False)
-        self.milestone2 = MilestoneFactory.create(label="Completed",
-                                        category = 'Core', order=2, 
-                                             report=False)
-        self.milestone3 = MilestoneFactory.create(label="Sign off",
-                                        category = 'Core', order=999, 
-                                             report=False)
-
-        
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
-                                              owner=self.user)
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
-                                              owner=self.user) 
-        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
-                                              owner=self.user)
-        self.project4 = ProjectFactory.create(prj_cd="LHA_IA12_444", 
-                                              owner=self.user) 
-        self.project5 = ProjectFactory.create(prj_cd="LHA_IA12_555", 
-                                              owner=self.user)
-        self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666", 
-                                              owner=self.user)
-
-        
-    def test_ApprovedProjects(self):
-        # project 1-4 willb be approved
-        self.project1.approve()
-        self.project2.approve()
-        self.project3.approve()
-        self.project4.approve()
-
-        # project 1 and 2 will be signed off
-        self.project1.signoff()
-        self.project2.signoff()
-
-        #assert approved projects will get 2 projects and that their
-        #project codes are the same as self.project3 and self.project4
-        approved = Project.objects.approved()
-        self.assertEqual(approved.count(),2)
-        shouldbe = [self.project3.prj_cd, self.project4.prj_cd]
-        self.assertQuerysetEqual(approved, shouldbe, lambda a:a.prj_cd)
-
-        #assert completed projects will get 2 projects and that their
-        #project codes are the same as self.project1 and self.project2
-        completed = Project.objects.completed()
-        self.assertEqual(completed.count(),2)
-        shouldbe = [self.project1.prj_cd, self.project2.prj_cd]
-        self.assertQuerysetEqual(completed, shouldbe, lambda a:a.prj_cd)
-
-
-        # projects 5 and 6 have been created but have not been
-        # approved or completed, they should be returned by 
-        #Project.objects.submitted()
-        submitted = Project.objects.submitted()
-        self.assertEqual(submitted.count(),2)
-        shouldbe = [self.project5.prj_cd, self.project6.prj_cd]
-        self.assertQuerysetEqual(submitted, shouldbe, lambda a:a.prj_cd)
-
-
-    def test_is_approved_method(self):
-        # project 1-3 will be approved
-        self.project1.approve()
-        self.project2.approve()
-        self.project3.approve()
-
-        self.assertEqual(self.project1.is_approved(),True)
-        self.assertEqual(self.project2.is_approved(),True)
-        self.assertEqual(self.project3.is_approved(),True)
-        self.assertEqual(self.project4.is_approved(),False)
-        self.assertEqual(self.project5.is_approved(),False)
-        self.assertEqual(self.project6.is_approved(),False)
-            
-    def tearDown(self):
-        self.project1.delete()
-        self.project2.delete()
-        self.project3.delete()        
-        self.project4.delete()        
-        self.project5.delete()        
-        self.project6.delete()        
-        self.milestone1.delete()
-        self.milestone2.delete()
-        self.milestone3.delete()
-        self.user.delete()
-

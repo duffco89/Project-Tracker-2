@@ -28,34 +28,12 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm,
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,  
                          ReportUploadFormSet)
 
-from pjtk2.functions import get_minions, get_supervisors
+from pjtk2.functions import get_minions
 
 import datetime
 import pytz
 import mimetypes
 import os
-#import pdb
-
-##def get_supervisors(employee):
-##    '''Given an employee object, return a list of supervisors.  the first
-##    element of list will be the intial employee.'''
-##    if employee.supervisor:
-##        return [employee] + get_supervisors(employee.supervisor)
-##    else:
-##        return [employee]
-##
-##
-##def get_minions(employee):
-##    '''Given an employee objects, return a list of employees under his/her
-##    supervision.  The first element of list will be the intial
-##    employee.
-##    '''
-##    ret = [employee]
-##    for minion in employee.employee_set.all():
-##        #ret.append(get_minions(minion))        
-##        ret.extend(get_minions(minion))
-##    return ret
-##
 
 def group_required(*group_names):
     """Requires user membership in at least one of the groups passed in."""
@@ -294,14 +272,23 @@ def update_milestones(form_ms, milestones):
 
     now = datetime.datetime.now(pytz.utc)
 
-    #pdb.set_trace()
     #these ones are now complete:
     added_ms =  old_outstanding.intersection(form_ms)
-    ProjectMilestones.objects.filter(id__in=added_ms).update(completed=now)
+    #ProjectMilestones.objects.filter(id__in=added_ms).update(completed=now)
+    #in order to trigger a singal - we need to loop over each project milestone,
+    #and mannually save them:
+    for prjms_id in added_ms:
+        prjms = ProjectMilestones.objects.get(id=prjms_id)
+        prjms.completed = now
+        prjms.save()
 
     #these ones were done, but now they aren't
     removed_ms = old_completed.difference(form_ms)
-    ProjectMilestones.objects.filter(id__in=removed_ms).update(completed=None)
+    #ProjectMilestones.objects.filter(id__in=removed_ms).update(completed=None)
+    for prjms_id in removed_ms:
+        prjms = ProjectMilestones.objects.get(id=prjms_id)
+        prjms.completed = None
+        prjms.save()
 
     
 

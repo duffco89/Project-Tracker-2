@@ -12,5 +12,6 @@ uploads/*
 static_root/*
 main/whoosh*
 *.pyc
+*.pyr
 db/*
 coverage/*

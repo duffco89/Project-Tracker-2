@@ -14,11 +14,11 @@ import pytz
 
 def setup():
     '''disconnect the signals before each test - not needed here'''
-    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
 def teardown():
     '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notices_changed, sender=ProjectMilestones)
+    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
 
 class BookmarkTestCase(WebTest):
