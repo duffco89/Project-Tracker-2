@@ -88,8 +88,7 @@ class IndexViewTestCase(TestCase):
         self.assertContains(response, 'Site Index')
         self.assertContains(response, 'Project List')        
         self.assertContains(response, 'Approved Project List')                
-        self.assertContains(response, 'Approve Projects')                        
-        
+        self.assertContains(response, 'Approve Projects')        
 
 class ProjectListTestCase(TestCase):
     '''verfiy that we view the  project list, but only after logging-in'''
@@ -103,7 +102,8 @@ class ProjectListTestCase(TestCase):
         re-directed to the login page'''
         response = self.client.get(reverse('ProjectList'), follow=True)
         self.assertEqual(response.status_code,200)
-        redirectstring = "%s?next=%s" % (reverse('login'),reverse('ProjectList'))
+        redirectstring = "%s?next=%s" % (reverse('login'), 
+                                         reverse('ProjectList'))
         self.assertRedirects(response, redirectstring)
 
     def test_bad_Password_Login(self):

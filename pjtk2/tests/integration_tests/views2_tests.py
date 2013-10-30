@@ -25,17 +25,18 @@ class BookmarkTestCase(WebTest):
 
     def setUp(self):
         ''' '''
-        
+
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
-       
+
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
-        
+
         self.project = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user,
                                               project_type = self.ProjType)
-    csrf_checks = False   
+    csrf_checks = False
+
     def test_add_delete_bookmarks(self):
 
         #make sure that we are starting out without any bookmarks
@@ -45,7 +46,7 @@ class BookmarkTestCase(WebTest):
         #==================
         #   ADD BOOKMARK
         #a request to bookmark should add a bookmark
-        response = self.app.get(reverse('Bookmark_Project', 
+        response = self.app.get(reverse('Bookmark_Project',
                                 args=(self.project.slug,)), user=self.user)
         self.assertEqual(response.status_int, 302)
         bookmarkcnt = Bookmark.objects.filter(user__pk=self.user.id).count()
@@ -57,7 +58,7 @@ class BookmarkTestCase(WebTest):
         #==================
         #  CONFIRM DELETE
         #check that the a get request to unbookmark produce the confirm page
-        response = self.app.get(reverse('Unbookmark_Project', 
+        response = self.app.get(reverse('Unbookmark_Project',
                                 args=(self.project.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed(response, 'confirm_bookmark_delete.html')
@@ -65,7 +66,7 @@ class BookmarkTestCase(WebTest):
         #==================
         #  DELETE BOOKMARK
         #check that the post request really does delete the bookmark
-        response = self.app.post(reverse('Unbookmark_Project', 
+        response = self.app.post(reverse('Unbookmark_Project',
                                 args=(self.project.slug,)), user=self.user)
         self.assertEqual(response.status_int, 302)
         bookmarkcnt = Bookmark.objects.filter(user__pk=self.user.id).count()
@@ -79,13 +80,13 @@ class ProjectTaggingTestCase(WebTest):
 
     def setUp(self):
         ''' '''
-        
+
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
-       
+
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
-        
+
 
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user,
@@ -107,7 +108,7 @@ class ProjectTaggingTestCase(WebTest):
         tags.sort()
         for tag in tags:
             self.project1.tags.add(tag)
-            
+
         #=======================
         #verify that the tags are associated with that project
         tags_back = self.project1.tags.all().order_by("name")
@@ -115,35 +116,35 @@ class ProjectTaggingTestCase(WebTest):
         self.assertEqual(tags_back.count(),len(tags))
         #verify that the tag appears as a hyperlink on the details
         #page for this project:
-        response = self.app.get(reverse('project_detail', 
+        response = self.app.get(reverse('project_detail',
                                 args=(self.project1.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
 
         for tag in tags:
-            linkstring= '<a href="%s">%s</a>' % (reverse('TaggedProjects', 
+            linkstring= '<a href="%s">%s</a>' % (reverse('TaggedProjects',
                      args=(tag,)), tag)
             self.assertContains(response, linkstring)
 
         #=======================
         #verify that the tags are NOT associated with project2
-        response = self.app.get(reverse('project_detail', 
+        response = self.app.get(reverse('project_detail',
                                 args=(self.project2.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
 
         for tag in tags:
-            linkstring= '<a href="%s">%s</a>' % (reverse('TaggedProjects', 
+            linkstring= '<a href="%s">%s</a>' % (reverse('TaggedProjects',
                      args=(tag,)), tag)
             self.assertNotContains(response, linkstring)
 
 
-    csrf_checks = False           
+    csrf_checks = False
     def test_tags_in_project_detail_form(self):
         '''verify that the tags added in project detail form are
         actually associated with the correct project and appear on its
         details page (and not on others)'''
 
         #call the edit project form for project 1
-        response = self.app.get(reverse('EditProject', 
+        response = self.app.get(reverse('EditProject',
                                 args=(self.project1.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed(response, 'ProjectForm.html')
@@ -156,7 +157,7 @@ class ProjectTaggingTestCase(WebTest):
         print "response = %s" % response
 
 
-        #verify that the tags submitted on the form are actually 
+        #verify that the tags submitted on the form are actually
         #saved to the database and associated with this project.
         tags_back = self.project1.tags.all().order_by('name')
         self.assertEqual(tags_back.count(),4)
@@ -171,7 +172,7 @@ class ProjectTaggingTestCase(WebTest):
         for tag in tags:
             self.project1.tags.add(tag)
             self.project2.tags.add(tag)
-            
+
         #=======================
         #verify that the tags are associated with that project
         tags_back = self.project1.tags.all().order_by("name")
@@ -182,7 +183,7 @@ class ProjectTaggingTestCase(WebTest):
         #load the page associated with tag 1 and verify that it
         #contains records for projectt 1 and 2 (as hyperlinks), but
         #not project 3
-        response = self.app.get(reverse('TaggedProjects', 
+        response = self.app.get(reverse('TaggedProjects',
                                 args=(tags[0],)), user=self.user)
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed('ProjectList.html')
@@ -191,20 +192,20 @@ class ProjectTaggingTestCase(WebTest):
         self.assertContains(response, msg, html=True)
 
         #Project 1
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project1.slug,)), 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
+                             args = (self.project1.slug,)),
                                              self.project1.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 2
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project2.slug,)), 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
+                             args = (self.project2.slug,)),
                                              self.project2.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 3
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                            args = (self.project3.slug,)), 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
+                            args = (self.project3.slug,)),
                                              self.project3.prj_cd)
         self.assertNotContains(response, linkstring, html=True)
 
@@ -215,20 +216,20 @@ class ProjectTaggingTestCase(WebTest):
         self.assertEqual(response.status_int, 200)
 
         #Project 1
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project1.slug,)), 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
+                             args = (self.project1.slug,)),
                                              self.project1.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 2
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project2.slug,)), 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
+                             args = (self.project2.slug,)),
                                              self.project2.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 3
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail', 
-                             args = (self.project3.slug,)), 
+        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
+                             args = (self.project3.slug,)),
                                              self.project3.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
@@ -245,7 +246,7 @@ class ProjectTaggingTestCase(WebTest):
             self.project1.tags.add(tag)
             self.project2.tags.add(tag)
 
-        response = self.app.get(reverse('TaggedProjects', 
+        response = self.app.get(reverse('TaggedProjects',
                                 args=("gold",)), user=self.user)
         self.assertEqual(response.status_int, 200)
 
@@ -276,7 +277,7 @@ class UpdateReportsTestCase(WebTest):
                                 last_name = 'Montgomery',
                                        )
         #make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name='manager') 
+        managerGrp, created = Group.objects.get_or_create(name='manager')
         self.user2.groups.add(managerGrp)
 
         #required reports
@@ -298,17 +299,17 @@ class UpdateReportsTestCase(WebTest):
 
         #milestones
         self.ms1 = MilestoneFactory.create(label = "Approved", protected=True,
-                                            category = 'Core', order = 1, 
+                                            category = 'Core', order = 1,
                                            report=False)
         self.ms2 = MilestoneFactory.create(label = "Sign off", protected=True,
-                                            category = 'Core', order = 999, 
+                                            category = 'Core', order = 999,
                                            report=False)
         self.ms3 = MilestoneFactory.create(label = "Aging", report=False,
                                              category = 'Custom', order = 4)
 
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user1)
 
 
@@ -317,8 +318,8 @@ class UpdateReportsTestCase(WebTest):
         requirements associated with a project - if they try to access
         the url, they will be redirected to the login page'''
 
-        response = self.app.get(reverse('Reports', 
-                                args=(self.project1.slug,)), 
+        response = self.app.get(reverse('Reports',
+                                args=(self.project1.slug,)),
                                 user=self.user1).follow()
 
         self.assertEqual(response.status_int, 200)
@@ -333,8 +334,8 @@ class UpdateReportsTestCase(WebTest):
         should be required.  All custom reports should be listed
         but not checked.'''
 
-        response = self.app.get(reverse('Reports', 
-                                args=(self.project1.slug,)), 
+        response = self.app.get(reverse('Reports',
+                                args=(self.project1.slug,)),
                                 user=self.user2)
 
         self.assertEqual(response.status_int, 200)
@@ -355,7 +356,7 @@ class UpdateReportsTestCase(WebTest):
         self.assertEquals(len(form.fields['Custom']), 2)
         self.assertFalse(form.fields['Custom'][0].checked)
         self.assertFalse(form.fields['Custom'][1].checked)
-        
+
 
 
     def test_reports_can_be_updated_from_form(self):
@@ -373,8 +374,8 @@ class UpdateReportsTestCase(WebTest):
 
         #Mr Burns navigates to the report update page
         #verify that he can load it
-        response = self.app.get(reverse('Reports', 
-                                args=(self.project1.slug,)), 
+        response = self.app.get(reverse('Reports',
+                                args=(self.project1.slug,)),
                                 user=self.user2)
 
         self.assertEqual(response.status_int, 200)
@@ -390,7 +391,7 @@ class UpdateReportsTestCase(WebTest):
         #custom reports
         form.fields['Core'][2].value = None
         form.fields['Custom'][1].value = 'on'
-        
+
         form.submit()
 
         #now there should only be two core reports and one custom
@@ -405,22 +406,22 @@ class UpdateReportsTestCase(WebTest):
     def test_add_new_report_form(self):
         '''verify that Mr Burns can add a new custom report that is
         not on the original list.'''
-    
-        before = Milestone.objects.filter(category='Custom', 
+
+        before = Milestone.objects.filter(category='Custom',
                                           report=True).count()
         self.assertEqual(before, 2)
-    
+
         #Mr Burns navigates to the report update page
         #verify that he can load it
-        response = self.app.get(reverse('Reports', 
-                                args=(self.project1.slug,)), 
+        response = self.app.get(reverse('Reports',
+                                args=(self.project1.slug,)),
                                 user=self.user2)
-    
+
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed("reportform.html")
         self.assertContains(response, "Core Reporting Requirements")
         self.assertContains(response, "Additional Reporting Requirements")
-    
+
         #get the sub-report that has the check boxes for reports
         forms = response.forms
         form = forms['dialog']
@@ -428,7 +429,7 @@ class UpdateReportsTestCase(WebTest):
         form.submit()
 
         #requery the database and verify that the new report has been added:
-        after = Milestone.objects.filter(category='Custom', report=True)        
+        after = Milestone.objects.filter(category='Custom', report=True)
         self.assertEqual(after.count(), 3)
         self.assertEqual(after.filter(label="Coa Summary").count(), 1)
 
@@ -437,29 +438,29 @@ class UpdateReportsTestCase(WebTest):
     def test_add_new_milestone_form(self):
         '''verify that Mr Burns can add a new milestone that is
         not on the original list.'''
-    
+
         before = Milestone.objects.filter(report=False).count()
         #before = self.project1.get_milestones().count()
         self.assertEqual(before, 3)
-    
+
         #Mr Burns navigates to the report update page
         #verify that he can load it
-        response = self.app.get(reverse('Reports', 
-                                args=(self.project1.slug,)), 
+        response = self.app.get(reverse('Reports',
+                                args=(self.project1.slug,)),
                                 user=self.user2)
-    
+
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed("reportform.html")
         self.assertContains(response, "Core Reporting Requirements")
         self.assertContains(response, "Additional Reporting Requirements")
-    
+
         #get the sub-report that has the check boxes for reports
         forms = response.forms
         form = forms['dialog2']
-        form['new_milestone'] = "Fieldwork Complete"        
+        form['new_milestone'] = "Fieldwork Complete"
         response = form.submit()
 
-        after = Milestone.objects.filter(report=False)    
+        after = Milestone.objects.filter(report=False)
         #after = self.project1.get_milestones()
         self.assertEqual(after.count(), before + 1)
         self.assertEqual(after.filter(label="Fieldwork Complete").count(),1)
@@ -479,10 +480,10 @@ class UpdateReportsTestCase(WebTest):
 
         #Mr Burns navigates to the report update page
         #verify that he can load it
-        response = self.app.get(reverse('Reports', 
-                                args=(self.project1.slug,)), 
+        response = self.app.get(reverse('Reports',
+                                args=(self.project1.slug,)),
                                 user=self.user2)
-        
+
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed("reportform.html")
         self.assertContains(response, "Project Milestones")
@@ -494,14 +495,14 @@ class UpdateReportsTestCase(WebTest):
         form = forms['reports']
 
         form.fields['Milestones'][1].value = 'on'
-        
+
         form.submit()
 
         #there should now be three milestones associated with this project
         milestones = self.project1.get_milestones()
         self.assertQuerysetEqual(milestones, ['Approved','Aging','Sign off'],
                                  lambda a:str(a.milestone.label))
-        
+
 
     def tearDown(self):
 
@@ -529,8 +530,8 @@ class MyProjectViewTestCase(WebTest):
     def setUp(self):
         '''create two employees, one supervises the other. Additionally,
         create 3 projects, one run by the supervisor, 2 by the employee.'''
-        
-        #self.client = Client()        
+
+        #self.client = Client()
 
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
@@ -543,18 +544,18 @@ class MyProjectViewTestCase(WebTest):
 
         #mr. burns is an employee without a boss
         self.employee2 = EmployeeFactory(user=self.user2)
-        #make mr. burns homer's boss 
+        #make mr. burns homer's boss
         self.employee = EmployeeFactory(user=self.user,
                                         supervisor=self.employee2)
-       
+
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
-        
+
         #we need approved and sign off milestones
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=False)
         self.milestone2 = MilestoneFactory.create(label="Sign off",
-                                        category = 'Core', order=999, 
+                                        category = 'Core', order=999,
                                              report=False)
 
 
@@ -576,35 +577,35 @@ class MyProjectViewTestCase(WebTest):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        response = self.client.get(reverse('MyProjects'),follow=True) 
+        response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "my_projects.html")
-        self.assertContains(response, self.project1.prj_cd)        
-        self.assertContains(response, self.project2.prj_cd)                
+        self.assertContains(response, self.project1.prj_cd)
+        self.assertContains(response, self.project2.prj_cd)
         #these values should NOT be in the response:
-        self.assertNotContains(response, self.project3.prj_cd)                
-        self.assertNotContains(response, self.user2.username)                
-        self.assertNotContains(response, "Project Lead")                
+        self.assertNotContains(response, self.project3.prj_cd)
+        self.assertNotContains(response, self.user2.username)
+        self.assertNotContains(response, "Project Lead")
 
 
     def test_supervisor_version_myprojects(self):
 
         login = self.client.login(username=self.user2.username, password='abc')
         self.assertTrue(login)
-        response = self.client.get(reverse('MyProjects'),follow=True) 
+        response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "my_projects.html")
-        self.assertContains(response, self.project1.prj_cd)        
-        self.assertContains(response, self.project2.prj_cd)                
+        self.assertContains(response, self.project1.prj_cd)
+        self.assertContains(response, self.project2.prj_cd)
 
         #these values should be in the response:
-        self.assertContains(response, self.project3.prj_cd)                
-        self.assertContains(response, self.user.username)                
-        self.assertContains(response, self.user2.username)                
-        self.assertContains(response, "Project Lead")                
+        self.assertContains(response, self.project3.prj_cd)
+        self.assertContains(response, self.user.username)
+        self.assertContains(response, self.user2.username)
+        self.assertContains(response, "Project Lead")
 
 
-    def test__myprojects_submitted_approved_complete(self):
+    def test_myprojects_submitted_approved_complete(self):
         '''Verify that projects appear on "My Projects" even if they are
         subitted, approved or completed.
         '''
@@ -615,12 +616,12 @@ class MyProjectViewTestCase(WebTest):
 
         login = self.client.login(username=self.user2.username, password='abc')
         self.assertTrue(login)
-        response = self.client.get(reverse('MyProjects'),follow=True) 
+        response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "my_projects.html")
-        self.assertContains(response, self.project1.prj_cd)        
-        self.assertContains(response, self.project2.prj_cd)                
-        self.assertContains(response, self.project3.prj_cd)                
+        self.assertContains(response, self.project1.prj_cd)
+        self.assertContains(response, self.project2.prj_cd)
+        self.assertContains(response, self.project3.prj_cd)
 
 
 
@@ -633,11 +634,11 @@ class MyProjectViewTestCase(WebTest):
         self.ProjType.delete()
         self.user.delete()
         self.user2.delete()
-        
+
 
 
 class TestProjectDetailForm(WebTest):
-    
+
     def setUp(self):
 
         #USER
@@ -657,7 +658,7 @@ class TestProjectDetailForm(WebTest):
 
 
         #make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name='manager')         
+        managerGrp, created = Group.objects.get_or_create(name='manager')
         self.user2.groups.add(managerGrp)
 
         ##required reports
@@ -679,14 +680,14 @@ class TestProjectDetailForm(WebTest):
 
         #milestones
         self.ms1 = MilestoneFactory.create(label = "Approved", protected=True,
-                                           category = 'Core', order = 1, 
+                                           category = 'Core', order = 1,
                                            report=False)
 
-        self.ms2 = MilestoneFactory.create(label = "Fieldwork Complete", 
+        self.ms2 = MilestoneFactory.create(label = "Fieldwork Complete",
                                            report=False,
                                            category = 'Core', order = 2)
 
-        self.ms3 = MilestoneFactory.create(label = "Data Scrubbed", 
+        self.ms3 = MilestoneFactory.create(label = "Data Scrubbed",
                                            report=False,
                                            category = 'Core', order = 3)
 
@@ -694,11 +695,11 @@ class TestProjectDetailForm(WebTest):
                                              category = 'Core', order = 4)
 
         self.ms5 = MilestoneFactory.create(label = "Sign off", protected=True,
-                                            category = 'Core', order = 999, 
+                                            category = 'Core', order = 999,
                                            report=False)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user1)
 
 
@@ -782,7 +783,7 @@ class TestProjectDetailForm(WebTest):
                                 user=self.user1)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "ProjectForm.html")
-        self.assertContains(response, self.project1.prj_cd)        
+        self.assertContains(response, self.project1.prj_cd)
 
         form = response.form
         #none of the milestones have been completed yet so none of the
@@ -795,7 +796,7 @@ class TestProjectDetailForm(WebTest):
         # data scrubbed.
         form.fields['milestones'][1].value = 'on'
         form.fields['milestones'][2].value = 'on'
-        
+
         response = form.submit().follow()
         #we should be re-directed to to the project detail page
         self.assertEqual(response.status_code, 200)
@@ -805,9 +806,9 @@ class TestProjectDetailForm(WebTest):
         #verify that the milestones homer checked off now have values in
         #completed field:
         shouldbe = [False, True, True, False, False]
-        #the lamba function will return True if it has been completed, 
+        #the lamba function will return True if it has been completed,
         #otherwise false
-        self.assertQuerysetEqual(milestones, shouldbe, 
+        self.assertQuerysetEqual(milestones, shouldbe,
                                  lambda a:a.completed!=None)
 
 
@@ -816,7 +817,7 @@ class TestProjectDetailForm(WebTest):
         milestone requirements for the project - 'Approved',
         'Fieldwork Complete', and 'Sign Off'
         '''
-        
+
         #now Mr Burns edits the form
         login = self.client.login(username=self.user2.username, password='abc')
         self.assertTrue(login)
@@ -835,7 +836,7 @@ class TestProjectDetailForm(WebTest):
         # the field work has been completed
         form.fields['milestones'][0].value = 'on'
         form.fields['milestones'][1].value = 'on'
-        
+
         response = form.submit().follow()
         #we should be re-directed to to the project detail page
         self.assertEqual(response.status_code, 200)
@@ -845,9 +846,9 @@ class TestProjectDetailForm(WebTest):
         #verify that the milestones homer checked off now have values in
         #completed field:
         shouldbe = [True, True, False, False, False]
-        #the lamba function will return True if it has been completed, 
+        #the lamba function will return True if it has been completed,
         #otherwise false
-        self.assertQuerysetEqual(milestones, shouldbe, 
+        self.assertQuerysetEqual(milestones, shouldbe,
                                  lambda a:a.completed!=None)
 
     def test_status_of_milestones_can_be_reversed_from_form(self):
@@ -866,9 +867,9 @@ class TestProjectDetailForm(WebTest):
 
         #verify that the first three milestones are completed
         shouldbe = [True, True, True, False, False]
-        #the lamba function will return True if it has been completed, 
+        #the lamba function will return True if it has been completed,
         #otherwise false
-        self.assertQuerysetEqual(milestones, shouldbe, 
+        self.assertQuerysetEqual(milestones, shouldbe,
                                  lambda a:a.completed!=None)
 
         #now Mr Burns edits the form
@@ -882,7 +883,7 @@ class TestProjectDetailForm(WebTest):
         #data isn't scrubbed
         form.fields['milestones'][1].value = None
         form.fields['milestones'][2].value = None
-        
+
         response = form.submit().follow()
         #we should be re-directed to to the project detail page
         self.assertEqual(response.status_code, 200)
@@ -891,12 +892,12 @@ class TestProjectDetailForm(WebTest):
 
         #verify that the only milestone completed is now the first one
         shouldbe = [True, False, False, False, False]
-        #the lamba function will return True if it has been completed, 
+        #the lamba function will return True if it has been completed,
         #otherwise false
-        self.assertQuerysetEqual(milestones, shouldbe, 
+        self.assertQuerysetEqual(milestones, shouldbe,
                                  lambda a:a.completed!=None)
 
-           
+
 
     def test_protected_milestones_are_disabled_for_users(self):
         '''Homer is a project lead, not a manager, and should not be able to
@@ -910,16 +911,16 @@ class TestProjectDetailForm(WebTest):
                                 user=self.user1)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "ProjectForm.html")
-        self.assertContains(response, self.project1.prj_cd)        
+        self.assertContains(response, self.project1.prj_cd)
 
         form = response.form
 
-        Enabled = [cb.attrs.get('disabled','enabled') for cb in 
+        Enabled = [cb.attrs.get('disabled','enabled') for cb in
                               form.fields['milestones']]
         #verify that the protected milestones are disabled
         shouldbe = ['disabled', 'enabled', 'enabled', 'enabled', 'disabled']
 
-        #the lamba function will return True if it has been completed, 
+        #the lamba function will return True if it has been completed,
         #otherwise false
         self.assertListEqual(Enabled, shouldbe)
 
@@ -938,17 +939,17 @@ class TestProjectDetailForm(WebTest):
                                 user=self.user2)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "ProjectForm.html")
-        self.assertContains(response, self.project1.prj_cd)        
+        self.assertContains(response, self.project1.prj_cd)
 
         form = response.form
 
-        Enabled = [cb.attrs.get('disabled','enabled') for cb in 
+        Enabled = [cb.attrs.get('disabled','enabled') for cb in
                                       form.fields['milestones']]
 
         #verify that the protected milestones are disabled
         shouldbe = ['enabled', 'enabled', 'enabled', 'enabled', 'enabled']
 
-        #the lamba function will return True if it has been completed, 
+        #the lamba function will return True if it has been completed,
         #otherwise false
         self.assertListEqual(Enabled, shouldbe)
 
@@ -965,7 +966,7 @@ class TestProjectDetailForm(WebTest):
                                         args=(self.project1.slug,)),
                                 user=self.user3).follow()
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "projectdetail.html")        
+        self.assertTemplateUsed(response, "projectdetail.html")
 
 
     def tearDown(self):
@@ -979,7 +980,7 @@ class TestProjectDetailForm(WebTest):
         self.user2.delete()
         self.user1.delete()
 
-class TestCanCopyProject(WebTest):    
+class TestCanCopyProject(WebTest):
     '''verify that the project owner, slug and year are correctly
     populated when an existing project is copied using the project crud
     form.'''
@@ -995,7 +996,7 @@ class TestCanCopyProject(WebTest):
                                 last_name = 'Gumble',
                                        )
 
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               prj_ldr=self.user1.first_name,
                                               owner=self.user1)
 
@@ -1014,14 +1015,14 @@ class TestCanCopyProject(WebTest):
         old_slug = self.project1.slug
         old_year = self.project1.year
 
-        #barney logs and chooses to copy the existing project 
+        #barney logs and chooses to copy the existing project
         login = self.client.login(username=self.user2.username, password='abc')
         self.assertTrue(login)
         response = self.app.get(reverse('CopyProject',
                                         args=(self.project1.slug,)),
                                 user=self.user2)
-        form = response.form        
-        
+        form = response.form
+
         new_prj_cd = "LHA_IA13_ZZZ"
         new_prj_nm = "Barney's First Project"
 
@@ -1040,7 +1041,7 @@ class TestCanCopyProject(WebTest):
 
         projects = Project.objects.all()
         self.assertEqual(projects.count(),2)
-        
+
         #check that all of the attributes of the new project have been
         #updated accordingly
         project = Project.objects.get(prj_cd=new_prj_cd)
@@ -1059,12 +1060,10 @@ class TestCanCopyProject(WebTest):
         self.assertEqual(project.prj_ldr,old_prj_ldr)
         self.assertEqual(project.owner, old_owner)
         self.assertEqual(project.year, str(old_year))
-        
 
-                    
+
+
     def tearDown(self):
         self.project1.delete()
         self.user2.delete()
         self.user1.delete()
-
-        

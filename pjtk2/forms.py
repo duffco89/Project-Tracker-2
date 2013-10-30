@@ -11,7 +11,7 @@ import hashlib
 from django import forms
 from django.contrib.auth.models import User
 from django.forms.formsets import BaseFormSet
-from django.forms.widgets import (CheckboxSelectMultiple, 
+from django.forms.widgets import (CheckboxSelectMultiple,
                                   CheckboxInput, mark_safe)
 from django.utils.encoding import force_unicode
 from django.utils.html import conditional_escape
@@ -23,7 +23,7 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit, Layout, Fieldset, Field, ButtonHolder
 
 from taggit.forms import *
-from pjtk2.models import (Milestone, Project, ProjectMilestones, Report, 
+from pjtk2.models import (Milestone, Project, ProjectMilestones, Report,
                           ProjectType, Database, Lake, Messages2Users)
 
 
@@ -47,12 +47,12 @@ class ReadOnlyText(forms.TextInput):
                 rendering-a-value-as-text-instead-of-field-inside-a-django-form
     modified to get milestone labels if name starts with 'projectmilestone'
     '''
-  
+
     input_type = 'text'
     def render(self, name, value, attrs=None):
         if name.startswith('projectmilestone'):
             value = Milestone.objects.get(id=value).label
-        elif value is None: 
+        elif value is None:
             value = ''
         return str(value)
 
@@ -73,7 +73,7 @@ class HyperlinkWidget(forms.Widget):
 
 
 
-        
+
 class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
     """Subclass of Django's checkbox select multiple widget that allows
     disabling checkbox-options.  To disable an option, pass a dict
@@ -82,7 +82,7 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
     """
     #from http://djangosnippets.org/snippets/2786/
     def render(self, name, value, attrs=None, choices=()):
-        if value is None: 
+        if value is None:
             value = []
         has_id = attrs and 'id' in attrs
         final_attrs = self.build_attrs(attrs, name=name)
@@ -90,7 +90,7 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
         output = [u'']
         # Normalize to strings
         str_values = set([force_unicode(v) for v in value])
-        for i, (option_value, option_label) in enumerate(chain(self.choices, 
+        for i, (option_value, option_label) in enumerate(chain(self.choices,
                                                                choices)):
             if final_attrs.has_key('disabled'):
                 del final_attrs['disabled']
@@ -104,13 +104,13 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
                 final_attrs = dict(final_attrs, id='%s_%s' % (attrs['id'], i))
                 label_for = u' for="%s"' % final_attrs['id']
             else:
-                label_for = ''            
-            chbox = CheckboxInput(final_attrs, 
+                label_for = ''
+            chbox = CheckboxInput(final_attrs,
                                check_test=lambda value: value in str_values)
             option_value = force_unicode(option_value)
             rendered_cb = chbox.render(name, option_value)
             option_label = conditional_escape(force_unicode(option_label))
-            output.append(u'<label%s>%s %s</label>' 
+            output.append(u'<label%s>%s %s</label>'
                           % (label_for, rendered_cb, option_label))
         #output.append(u'</ul>')
         return mark_safe(u'\n'.join(output))
@@ -122,81 +122,80 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
 class NoticesForm(forms.Form):
     '''This form is used to display un-read messages.  Once read, the user
     can click the read box and submit the form to remove them from the
-    que.''' 
+    que.'''
 
     read = forms.BooleanField(
-        label = "Read:",
-        required =False,
+        label="Read:",
+        required=False,
     )
-    
+
     prj_nm = forms.CharField(
-        widget = ReadOnlyText,
-        label = "Project Name",
-        required =False,
+        widget=ReadOnlyText,
+        label="Project Name",
+        required=False,
     )
 
     msg_id = forms.CharField(
-        label = "msg_id",
-        required =False,
+        label="msg_id",
+        required=False,
     )
-    
+
     user_id = forms.CharField(
-        label = "user_id",
-        required =False,
+        label="user_id",
+        required=False,
     )
-    
+
     msg = forms.CharField(
-        widget = ReadOnlyText,
-        label = "Message",
-        max_length = 80,
-        required = False,
+        widget=ReadOnlyText,
+        label="Message",
+        max_length=80,
+        required=False,
     )
-    
+
     def __init__(self, *args, **kwargs):
         super(NoticesForm, self).__init__(*args, **kwargs)
 
-        self.fields["msg_id"].widget = forms.HiddenInput()        
-        self.fields["user_id"].widget = forms.HiddenInput()        
+        self.fields["msg_id"].widget = forms.HiddenInput()
+        self.fields["user_id"].widget = forms.HiddenInput()
         self.prj_cd = kwargs['initial'].get('prj_cd', None)
         self.url = kwargs['initial'].get('url', None)
 
         #use a hyperlink widget for the project code
-        self.fields.update({"prj_cd":forms.CharField(
-            widget = HyperlinkWidget(
-                             url = self.url,
-                             text = self.prj_cd),
-            label = "Project Code",
-            max_length = 13,
-            required = False,            
-        )
-        ,})
+        self.fields.update({"prj_cd": forms.CharField(
+            widget=HyperlinkWidget(url=self.url,
+                                   text=self.prj_cd),
+            label="Project Code",
+            max_length=13,
+            required=False)})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['read','prj_cd', 'prj_nm', 'msg', 
-                                'msg_id','user_id']
+        self.fields.keyOrder = ['read', 'prj_cd', 'prj_nm', 'msg',
+                                'msg_id', 'user_id']
 
     def save(self, *args, **kwargs):
 
-        if self.cleaned_data['read']==True:
+        #import pdb; pdb.set_trace()
+
+        if self.cleaned_data['read'] is True:
             now = datetime.datetime.now(pytz.utc)
             msg_id = self.initial['msg_id']
             user_id = self.initial['user_id']
 
-            message2user = Messages2Users.objects.filter(msg__id=msg_id,
-                                       user__id=user_id)
-            message2user.update(read = now)
-            
-        
+            message2user = Messages2Users.objects.filter(id=msg_id,
+                                                         user__id=user_id)
+            message2user.update(read=now)
+
+
 class ApproveProjectsForm(forms.ModelForm):
     '''This project form is used for view to approve/unapprove
     multiple projects.'''
-    
+
     prj_nm = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Name",
         required =False,
     )
-      
+
     prj_ldr = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Leader",
@@ -207,7 +206,7 @@ class ApproveProjectsForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ('prj_cd', 'prj_nm', 'prj_ldr') 
+        fields = ('prj_cd', 'prj_nm', 'prj_ldr')
 
     def __init__(self, *args, **kwargs):
         super(ApproveProjectsForm, self).__init__(*args, **kwargs)
@@ -224,7 +223,7 @@ class ApproveProjectsForm(forms.ModelForm):
                              text = self.instance.prj_cd),
             label = "Project Code",
             max_length = 12,
-            required = False,            
+            required = False,
         )
         ,})
 
@@ -234,7 +233,7 @@ class ApproveProjectsForm(forms.ModelForm):
     def clean_prj_cd(self):
         '''return the original value of prj_cd'''
         return self.instance.prj_cd
-        
+
     def clean_prj_nm(self):
         '''return the original value of prj_nm'''
         return self.instance.prj_nm
@@ -242,7 +241,7 @@ class ApproveProjectsForm(forms.ModelForm):
     def clean_prj_ldr(self):
         '''return the original value of prj_ldr'''
         return self.instance.prj_ldr
-        
+
 
     def save(self, commit=True):
         #import pdb; pdb.set_trace()
@@ -260,17 +259,17 @@ class ReportsForm(forms.Form):
     particular project.  Checkbox widgets are dynamically added to the
     form depending on reports identified as core plus any additional
     custom reports requested by the manager.'''
-                                                
+
     def __init__(self, *args, **kwargs):
         self.milestones = kwargs.pop('reports')
         self.what = kwargs.pop('what', 'Core')
         self.project = kwargs.pop('project', None)
-       
+
         super(ReportsForm, self).__init__(*args, **kwargs)
-        
+
         reports = self.milestones[self.what]["milestones"]
         assigned = self.milestones[self.what]["assigned"]
-        
+
         self.fields[self.what] = forms.MultipleChoiceField(
             choices = reports,
             initial = assigned,
@@ -278,7 +277,7 @@ class ReportsForm(forms.Form):
             required = False,
             widget = forms.widgets.CheckboxSelectMultiple(),
             )
-        
+
 
     def save(self):
         '''in order for a milestone to be associated with a project, it must
@@ -286,7 +285,7 @@ class ReportsForm(forms.Form):
         are three logic paths we have to cover:\n
         - records in ProjectMilestones that need to have required set to True
         - records in ProjectMilestones that need to have required set to False
-        - records tht need to be added to ProjectMilestones 
+        - records tht need to be added to ProjectMilestones
         '''
 
         cleaned_data = self.cleaned_data
@@ -303,11 +302,11 @@ class ReportsForm(forms.Form):
         turn_on = list(set(cleaned_list) - set(existing))
 
         #turn OFF any ProjectMilestones that are not in cleaned data
-        ProjectMilestones.objects.filter(project = project, 
+        ProjectMilestones.objects.filter(project = project,
                   milestone__id__in=turn_off).update(required=False)
 
         #turn on any ProjectMilestones that are in cleaned data
-        ProjectMilestones.objects.filter(project = project, 
+        ProjectMilestones.objects.filter(project = project,
                   milestone__id__in=turn_on).update(required=True)
 
         #new records can be identified as milestone id's in cleaned
@@ -318,12 +317,12 @@ class ReportsForm(forms.Form):
 
         new = list(set(cleaned_list) - set(projmst))
 
-        #now loop over new milestones adding a new record to ProjectReports for 
+        #now loop over new milestones adding a new record to ProjectReports for
         #each one with required=True
         if new:
             for milestone in new:
                 ProjectMilestones.objects.create(project=project,
-                                              required=True, 
+                                              required=True,
                                               milestone_id=milestone)
 
 
@@ -347,24 +346,24 @@ class ReportUploadFormSet(BaseFormSet):
         self. user = kwargs.pop('user', None)
         super(ReportUploadFormSet, self).__init__(*args, **kwargs)
 
-    def _construct_forms(self): 
+    def _construct_forms(self):
         self.forms = []
         for i in xrange(self.total_form_count()):
             self.forms.append(self._construct_form(i, project=self.project,
                                                    user=self.user))
-        
+
 
 class ReportUploadForm(forms.Form):
     """This form is used in ReportUploadFormset to upload files. Each
     form includes a label for the report type, a read only checkbox
     indicating whether or not this report is required, and a file
-    input widget.""" 
+    input widget."""
 
     required = forms.BooleanField(
         label = "Required",
         required =False,
     )
-    
+
     milestone = forms.CharField(
         widget = ReadOnlyText,
         label = "Report Name",
@@ -373,8 +372,8 @@ class ReportUploadForm(forms.Form):
 
     report_path = forms.FileField(
         label = "File",
-        required =False,        
-        )    
+        required =False,
+        )
 
     def __init__(self, *args, **kwargs):
         self.project = kwargs.pop('project')
@@ -382,9 +381,9 @@ class ReportUploadForm(forms.Form):
         super(ReportUploadForm, self).__init__(*args, **kwargs)
         self.fields["required"].widget.attrs['disabled'] = True
         #self.fields["report_path"].widget.attrs['style'] = "text-align: right;"
-        self.fields["report_path"].widget.attrs['size'] = "40"        
-        self.fields["report_path"].widget.attrs['class'] = "fileinput"        
-                         
+        self.fields["report_path"].widget.attrs['size'] = "40"
+        self.fields["report_path"].widget.attrs['class'] = "fileinput"
+
     def clean_milestone(self):
         '''return the original value of milestone'''
         return self.initial['milestone']
@@ -392,32 +391,32 @@ class ReportUploadForm(forms.Form):
     def clean_required(self):
         '''return the original value of required'''
         return self.initial['required']
-                
+
     def save(self):
         '''see if a report already exists for this projectreport, if
-        so, make sure that it Current flag is set to false 
-        
+        so, make sure that it Current flag is set to false
+
         - populate uploaded by with user name
-        
+
         - TODO:calculate hash of file (currently calculated on hash of path)
-        
+
         - TODO:verify that it matches certain criteria (file
         types/extentions) depending on reporting milestone
-        
+
         - if this is a presentation or summary report, see if the
         project has any sister projects, if so, update projectreports
         for them too.
         '''
 
-        if ('report_path' in self.changed_data and 
-                          self.cleaned_data['report_path']):        
-           
+        if ('report_path' in self.changed_data and
+                          self.cleaned_data['report_path']):
+
             projectreport = ProjectMilestones.objects.get(
                 project=self.project, milestone=self.clean_milestone())
 
             #see if there is already is a report for this projectreport
             try:
-                oldReport = Report.objects.get(projectreport=projectreport, 
+                oldReport = Report.objects.get(projectreport=projectreport,
                                                current=True)
             except Report.DoesNotExist:
                 oldReport = None
@@ -441,23 +440,23 @@ class ReportUploadForm(forms.Form):
             newReport.save()
             #add the m2m record for this projectreport
             newReport.projectreport.add(projectreport)
-            
+
             #if this a presentation or summary report, see if
             #this project has any sister projects.  If so, add an m2m
             #for each one so this document is associated with them
-            #too.  
+            #too.
             #TODO: figure out how to handle sisters
             #that are adopted or dis-owned - how do we synchronize
             #existing files?
-            
+
             sisters = self.project.get_sisters()
             #TODO: change reporting milestone model to include
             #"Copy2Sisters" flag - then this list could be refactored
             #to dynamic query
             common = str(self.clean_milestone()) in ["Proposal Presentation",
                                                 "Completetion Presentation",
-                                                "Summary Report",] 
-            
+                                                "Summary Report",]
+
             if sisters and common:
                 for sister in sisters:
                     projreport, created = ProjectMilestones.objects.get_or_create(
@@ -478,12 +477,12 @@ class ProjectForm(forms.ModelForm):
     cleaning methods to ensure that project code is valid, dates agree
     and ....  for a new project, we need project code, name, comment,
     leader, start date, end date, database, project type,'''
-    
+
     prj_nm = forms.CharField(
         label = "Project Name:",
         required = True,
     )
-    
+
     prj_cd = forms.CharField(
         label = "Project Code:",
         max_length = 12,
@@ -494,7 +493,7 @@ class ProjectForm(forms.ModelForm):
         label = "Project Leader:",
         required = True,
     )
-    
+
     comment = forms.CharField(
         widget = forms.Textarea(),
         label = "Brief Project Description:",
@@ -506,7 +505,7 @@ class ProjectForm(forms.ModelForm):
         label = "Risks associated with not running project:",
         required=False,
         )
-    
+
     prj_date0 = forms.DateField(
         label = "Start Date:",
         required = True,
@@ -516,13 +515,13 @@ class ProjectForm(forms.ModelForm):
         label = "End Date:",
         required = True,
     )
-    
+
     project_type = forms.ModelChoiceField(
         label = "Project Type:",
         queryset = ProjectType.objects.all(),
         required = True,
     )
-    
+
     master_database = forms.ModelChoiceField(
         label = "Master Database:",
         queryset = Database.objects.all(),
@@ -547,19 +546,19 @@ class ProjectForm(forms.ModelForm):
         required = False,
         help_text="<em>(comma separated values)</em>")
 
-    
+
     class Meta:
         model = Project
-        fields = ("prj_nm", "prj_ldr", "prj_cd", "prj_date0", "prj_date1", 
-                  "risk", 'project_type', "master_database", "lake", "comment", 
+        fields = ("prj_nm", "prj_ldr", "prj_cd", "prj_date0", "prj_date1",
+                  "risk", 'project_type', "master_database", "lake", "comment",
                   "dba", "tags")
-        
+
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
-        manager = kwargs.pop('manager', False)        
+        manager = kwargs.pop('manager', False)
 
-        milestones = kwargs.pop('milestones', None)        
+        milestones = kwargs.pop('milestones', None)
 
         self.helper = FormHelper()
         self.helper.form_id = 'ProjectForm'
@@ -570,12 +569,12 @@ class ProjectForm(forms.ModelForm):
         self.helper.layout = Layout(
         Fieldset(
                 'Project Elements',
-                'prj_nm',                
+                'prj_nm',
                 'prj_cd',
-                'prj_ldr',                
+                'prj_ldr',
                 'comment',
                 'risk',
-                Field('prj_date0', datadatepicker='datepicker'),                
+                Field('prj_date0', datadatepicker='datepicker'),
                 Field('prj_date1', datadatepicker='datepicker'),
                 'project_type',
                 'master_database',
@@ -588,25 +587,25 @@ class ProjectForm(forms.ModelForm):
             )
          )
 
-        
+
         super(ProjectForm, self).__init__(*args, **kwargs)
         self.readonly = readonly
         self.manager = manager
-              
+
         if readonly:
-            self.fields["prj_cd"].widget.attrs['readonly'] = True 
+            self.fields["prj_cd"].widget.attrs['readonly'] = True
 
         if milestones:
             if self.manager == True:
-                choices = [(x.id, {'label':x.milestone.label, 
-                                   'disabled':False}) 
+                choices = [(x.id, {'label':x.milestone.label,
+                                   'disabled':False})
                        for x in milestones]
             else:
-                choices = [(x.id, {'label':x.milestone.label, 
-                                  'disabled':x.milestone.protected}) 
+                choices = [(x.id, {'label':x.milestone.label,
+                                  'disabled':x.milestone.protected})
                        for x in milestones]
 
-            # *** NOTE *** 
+            # *** NOTE ***
             #completed must be a list of values that match the choices (above)
             completed = [x.id for x in milestones if x.completed != None]
             self.fields.update({"milestones":forms.MultipleChoiceField(
@@ -627,8 +626,8 @@ class ProjectForm(forms.ModelForm):
     ##    else:
     ##        return self.cleaned_data["Approved"]
 
-        
-            
+
+
     def clean_prj_cd(self):
         '''a clean method to ensure that the project code matches the
         given regular expression.  method also ensure that project
@@ -640,7 +639,7 @@ class ProjectForm(forms.ModelForm):
         pattern  = r"^[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3}$"
         project_code =  self.cleaned_data["prj_cd"]
 
-        if self.readonly == False: 
+        if self.readonly == False:
             if re.search(pattern, project_code):
                 #make sure that this project code doesn't already exist:
                 try:
@@ -669,43 +668,43 @@ class ProjectForm(forms.ModelForm):
         start_date = cleaned_data.get('prj_date0')
         end_date = cleaned_data.get('prj_date1')
         project_code = cleaned_data.get('prj_cd')
-        
-        if start_date and end_date and project_code:                
-            
+
+        if start_date and end_date and project_code:
+
             if end_date < start_date:
                 errmsg = "Project end date occurs before start date."
                 raise forms.ValidationError(errmsg)
-            
+
             if end_date.year != start_date.year:
                 errmsg = "Project start and end date occur in different years."
                 raise forms.ValidationError(errmsg)
-            
+
             if end_date.strftime("%y") != project_code[6:8]:
                 errmsg = "Project dates do not agree with project code."
                 raise forms.ValidationError(errmsg)
         return cleaned_data
-        
 
-        
+
+
 class SisterProjectsForm(forms.Form):
-    '''This project form is used to identify sister projects''' 
+    '''This project form is used to identify sister projects'''
 
     sister = forms.BooleanField(
         label = "Sister:",
         required =False,
     )
-    
+
     prj_nm = forms.CharField(
         widget = ReadOnlyText,
         label = "Project Name",
         required =False,
     )
-    
+
     slug = forms.CharField(
         label = "slug",
         required =False,
     )
-    
+
 
     prj_ldr = forms.CharField(
         widget = ReadOnlyText,
@@ -713,11 +712,11 @@ class SisterProjectsForm(forms.Form):
         max_length = 80,
         required = False,
     )
-    
+
     def __init__(self, *args, **kwargs):
         super(SisterProjectsForm, self).__init__(*args, **kwargs)
 
-        self.fields["slug"].widget = forms.HiddenInput()        
+        self.fields["slug"].widget = forms.HiddenInput()
         self.prj_cd = kwargs['initial'].get('prj_cd', None)
         self.url = kwargs['initial'].get('url', None)
 
@@ -728,7 +727,7 @@ class SisterProjectsForm(forms.Form):
                              text = self.prj_cd),
             label = "Project Code",
             max_length = 13,
-            required = False,            
+            required = False,
         )
         ,})
 
@@ -739,11 +738,11 @@ class SisterProjectsForm(forms.Form):
     def clean_prj_cd(self):
         '''return the original value of prj_cd'''
         return self.initial['prj_cd']
-        
+
     def clean_prj_nm(self):
         '''return the original value of prj_nm'''
         return self.initial['prj_nm']
-        
+
     def clean_prj_ldr(self):
         '''return the original value of prj_ldr'''
         return self.initial['prj_ldr']
@@ -771,4 +770,3 @@ class DocumentForm(forms.ModelForm):
     '''A simple little demo form for testing file uploads'''
     class Meta:
         model = Report
-

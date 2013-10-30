@@ -23,7 +23,7 @@ def teardown():
 class ProjectBookmarkingTestCase(TestCase):
     '''User should be able to bookmark and unbookmark projects'''
 
-    def setUp(self):        
+    def setUp(self):
 
         #create a differnt user that will be the manager
         self.user = UserFactory(username = 'gconstansa',
@@ -33,10 +33,10 @@ class ProjectBookmarkingTestCase(TestCase):
         self.employee = EmployeeFactory(user=self.user)
 
 
-        
+
         #create two projects, one that will be bookmarked, and one that
-        #isn't.  
-        self.client = Client()        
+        #isn't.
+        self.client = Client()
         #self.user = UserFactory()
         self.project1 = ProjectFactory(
             prj_cd="LHA_IA12_222",
@@ -49,7 +49,7 @@ class ProjectBookmarkingTestCase(TestCase):
         self.project2.Approved = True
         self.project2.save()
 
-    def test_bookmarking(self):        
+    def test_bookmarking(self):
 
         #navigate to myproject view
         #bookmark project list should be empty
@@ -62,41 +62,41 @@ class ProjectBookmarkingTestCase(TestCase):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        response = self.client.get(reverse('MyProjects'),follow=True) 
+        response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "my_projects.html")
         self.assertContains(response, 'Bookmarks')
-        #self.assertNotContains(response, self.project1.prj_cd)        
-        #self.assertNotContains(response, self.project2.prj_cd)                
+        #self.assertNotContains(response, self.project1.prj_cd)
+        #self.assertNotContains(response, self.project2.prj_cd)
 
 
     def test_bookmarking_view(self):
 
         projectCnt = Project.objects.all().count()
         bookmarkCnt = Bookmark.objects.filter(user=self.user).count()
-        
+
         self.assertEqual(projectCnt,2)
         self.assertEqual(bookmarkCnt,0)
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        
+
         #bookmark a project
         response = self.client.get(
              reverse('Bookmark_Project', args=(self.project1.slug,)),
-                     follow=True) 
+                     follow=True)
         #we should be re-directed back to the project detail page
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project1.prj_nm)
         self.assertContains(response, self.project1.prj_ldr)
-                
+
         bookmarks = Bookmark.objects.filter(user=self.user)
         self.assertEqual(bookmarks.count(),1)
         bookmark=bookmarks[0]
         self.assertEqual(bookmark.project.prj_cd,self.project1.prj_cd)
-        self.assertEqual(bookmark.project.prj_nm,self.project1.prj_nm)        
+        self.assertEqual(bookmark.project.prj_nm,self.project1.prj_nm)
 
     def test_unbookmarking_confirm_view(self):
         '''Verify that we get the confirm bookmark page when we first try and
@@ -104,21 +104,21 @@ class ProjectBookmarkingTestCase(TestCase):
 
         projectCnt = Project.objects.all().count()
         bookmarkCnt = Bookmark.objects.filter(user=self.user).count()
-        
+
         login = self.client.login(username=self.user.username, password='abc')
-        self.assertTrue(login)        
+        self.assertTrue(login)
         #bookmark a project
         response = self.client.get(
              reverse('Bookmark_Project', args=(self.project1.slug,)),
-                     follow=True) 
-                
+                     follow=True)
+
         bookmarks = Bookmark.objects.filter(user=self.user)
         self.assertEqual(bookmarks.count(),1)
 
         #now unbookmark the same project
         response = self.client.get(
              reverse('Unbookmark_Project', args=(self.project1.slug,)),
-                     follow=True) 
+                     follow=True)
         #this is get request to a project that has a book mark,
         #we should be redirect to the confirmation page.
         self.assertTemplateUsed(response, 'confirm_bookmark_delete.html')
@@ -130,34 +130,32 @@ class ProjectBookmarkingTestCase(TestCase):
         request.'''
         projectCnt = Project.objects.all().count()
         bookmarkCnt = Bookmark.objects.filter(user=self.user).count()
-        
+
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        
+
         #bookmark a project
         response = self.client.get(
              reverse('Bookmark_Project', args=(self.project1.slug,)),
-                     follow=True) 
+                     follow=True)
 
         #we should be re-directed back to the project detail page
         #after a post request
         response = self.client.post(
              reverse('Unbookmark_Project', args=(self.project1.slug,)),
-                     follow=True) 
+                     follow=True)
         self.assertTemplateUsed(response, 'projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project1.prj_nm)
         self.assertContains(response, self.project1.prj_ldr)
-        
+
         bookmarks = Bookmark.objects.filter(user=self.user)
         self.assertEqual(bookmarks.count(),0)
-                
-        
+
+
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
 
         self.user.delete()
-
-

@@ -78,7 +78,7 @@ $(document).ready(function()
 
 {% if formset %}
 
-  <form method="post" action="">
+  <form id="notices" method="post" action="">
   {% csrf_token %}
   {{ formset.management_form }}
   {{ formset.non_form_errors.as_ul }}
