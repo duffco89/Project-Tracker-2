@@ -422,7 +422,21 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
 
 class TestGetMessagesDict(TestCase):
     '''This tests that the function that bundles the notification
-    information into a dictionary works as it should.
+    information into a dictionary works as it should (this test might
+    be a good candidate for mock objects - the setup seems harder than
+    the tests).
+
+    The first test is pretty simple - create a user and a project.
+    Veryify that the messages dictionary contains information about it
+    being submitted, and then approved after the project is approved.
+
+    The second test is to verify that the function works properly when
+    the messages for a give user are not contiguous.  THere was an
+    earlier bug in the code that was caused by an incorrect reference
+    to message.id (rather than message2user.id).  The first test will
+    still pass because there is a one-to-one relationship in this
+    simple case.  The second test creates a many-to-one situation and
+    verifies that the correct messages are still being returned.
 
     '''
 
@@ -433,9 +447,16 @@ class TestGetMessagesDict(TestCase):
         self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
                                  username='jseinfield')
 
-        #now setup employee relationships
+
+        self.user2 = UserFactory(first_name="George", last_name="Costanza",
+                                 username='gcostanza')
+
+
+        #There are no employee relationships.
+        #george has no boss
         #jerry has no boss
         self.employee1 = EmployeeFactory(user=self.user1)
+        self.employee2 = EmployeeFactory(user=self.user2)
 
         #we need a milestone to associate the message with
         self.milestone1 = MilestoneFactory.create(label="Submitted",
@@ -446,9 +467,18 @@ class TestGetMessagesDict(TestCase):
                                                   category='Core', order=2,
                                                   report=False)
 
-        #now create a project with an owner and dba.
+        self.milestone3 = MilestoneFactory.create(label="Notice",
+                                                  category='Core', order=3,
+                                                  report=False)
+
+
+        #now create a project owned by jerry - nothing to do with george
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user1)
+
+        #now create a project owned by george - nothing to do with jerry
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_999",
+                                              owner=self.user2)
 
 
     def test_messages_dict(self):
@@ -484,26 +514,49 @@ class TestGetMessagesDict(TestCase):
         self.assertEqual(msg_dict[1]['msg_id'], messages[1].id)
 
 
-        #print msg_dict
-        #assert 1==0
+    def test_messages_dict_discontiguous_messages(self):
+        '''this test is exactly the same as test_message_dict except that
+        george is sent a bunch of fake messages between jerry's
+        sumbitted and approved messaages.  Jerry should get the same 2
+        messages back regardless of how many other messages have been
+        sent to other users.
 
+        '''
 
+        #get the messages for our user
+        messages = my_messages(self.user1)
+        #get the dictionary which include project, user and message info
+        msg_dict = get_messages_dict(messages)
+        self.assertEqual(len(msg_dict), 1)
 
+        self.assertEqual(msg_dict[0]['user_id'], self.user1.id)
+        self.assertEqual(msg_dict[0]['url'], self.project1.get_absolute_url())
+        self.assertEqual(msg_dict[0]['prj_cd'], self.project1.prj_cd)
+        self.assertEqual(msg_dict[0]['prj_nm'], self.project1.prj_nm)
+        self.assertEqual(msg_dict[0]['msg_id'], messages[0].id)
 
+        #send george a bunch of fake messages
+        for msg in xrange(15):
+            msgtxt = "a fake message - {0}.".format(msg)
+            send_message(msgtxt=msgtxt, recipients=self.user2,
+                         project=self.project2, milestone=self.milestone3)
+        messages = my_messages(self.user2)
+        #verify that george got the fake messages (+1 for his project)
+        self.assertEqual(messages.count(), 15 + 1)
 
+        #approve the project to create a new message
+        self.project1.approve()
 
+        #we should have two messages now
+        messages = my_messages(self.user1)
+        msg_dict = get_messages_dict(messages)
+        self.assertEqual(len(msg_dict), 2)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+        self.assertEqual(msg_dict[0]['user_id'], self.user1.id)
+        self.assertEqual(msg_dict[0]['url'], self.project1.get_absolute_url())
+        self.assertEqual(msg_dict[0]['prj_cd'], self.project1.prj_cd)
+        self.assertEqual(msg_dict[0]['prj_nm'], self.project1.prj_nm)
+        self.assertEqual(msg_dict[0]['msg_id'], messages[0].id)
+        #verify that the msg_id is correct
+        self.assertEqual(msg_dict[1]['msg_id'], messages[1].id)
 
