@@ -20,7 +20,8 @@ from django.utils.safestring import mark_safe
 from itertools import chain
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Fieldset, Field, ButtonHolder
+from crispy_forms.layout import (Submit, Layout, Fieldset, Field, ButtonHolder, 
+                                 Div)
 
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report,
@@ -479,80 +480,78 @@ class ProjectForm(forms.ModelForm):
     leader, start date, end date, database, project type,'''
 
     prj_nm = forms.CharField(
-        label = "Project Name:",
-        required = True,
+        label="Project Name:",
+        required=True,
     )
 
     prj_cd = forms.CharField(
-        label = "Project Code:",
-        max_length = 12,
-        required = True,
+        label="Project Code:",
+        max_length=12,
+        required=True,
     )
 
     prj_ldr = forms.CharField(
-        label = "Project Leader:",
-        required = True,
+        label="Project Leader:",
+        required=True,
     )
 
     comment = forms.CharField(
-        widget = forms.Textarea(),
-        label = "Brief Project Description:",
+        widget=forms.Textarea(),
+        label="Brief Project Description:",
         required=True,
         )
 
     risk = forms.CharField(
-        widget = forms.Textarea(),
-        label = "Risks associated with not running project:",
+        widget=forms.Textarea(),
+        label="Risks associated with not running project:",
         required=False,
         )
 
     prj_date0 = forms.DateField(
-        label = "Start Date:",
-        required = True,
+        label="Start Date:",
+        required=True,
     )
 
     prj_date1 = forms.DateField(
-        label = "End Date:",
-        required = True,
+        label="End Date:",
+        required=True,
     )
 
     project_type = forms.ModelChoiceField(
-        label = "Project Type:",
-        queryset = ProjectType.objects.all(),
-        required = True,
+        label="Project Type:",
+        queryset=ProjectType.objects.all(),
+        required=True,
     )
 
     master_database = forms.ModelChoiceField(
-        label = "Master Database:",
-        queryset = Database.objects.all(),
-        required = True,
+        label="Master Database:",
+        queryset=Database.objects.all(),
+        required=True,
     )
 
     lake = forms.ModelChoiceField(
-        label = "Lake:",
-        queryset = Lake.objects.all(),
-        required = True,
+        label="Lake:",
+        queryset=Lake.objects.all(),
+        required=True,
     )
 
     dba = forms.ModelChoiceField(
-        label = "Data Custodian:",
+        label="Data Custodian:",
         #TODO - change this from superuser to groups__contain='dba'
-        queryset = User.objects.filter(is_superuser=True),
-        required = True,
+        queryset=User.objects.filter(is_superuser=True),
+        required=True,
     )
 
     tags = TagField(
         label="Keywords:",
-        required = False,
+        required=False,
         help_text="<em>(comma separated values)</em>")
-
 
     class Meta:
         model = Project
         fields = ("prj_nm", "prj_ldr", "prj_cd", "prj_date0", "prj_date1",
                   "risk", 'project_type', "master_database", "lake", "comment",
                   "dba", "tags")
-
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -565,26 +564,30 @@ class ProjectForm(forms.ModelForm):
         self.helper.form_class = 'blueForms'
         self.helper.form_method = 'post'
         self.helper.form_action = ''
+        self.helper.add_input(Submit('submit', 'Submit'))
 
         self.helper.layout = Layout(
-        Fieldset(
-                'Project Elements',
-                'prj_nm',
-                'prj_cd',
-                'prj_ldr',
-                'comment',
-                'risk',
-                Field('prj_date0', datadatepicker='datepicker'),
-                Field('prj_date1', datadatepicker='datepicker'),
-                'project_type',
-                'master_database',
-                'lake',
-                'dba',
-                'tags',
-              ),
-            ButtonHolder(
-                Submit('submit', 'Submit')
-            )
+            Div(
+                Fieldset(
+                    'Project Elements',
+                    'prj_nm',
+                    'prj_cd',
+                    'prj_ldr',
+                    'comment',
+                    'risk',
+                    #Field('prj_date0', datadatepicker='datepicker'),
+                    #Field('prj_date1', datadatepicker='datepicker'),
+                    Field('prj_date0', css_class='datepicker'),
+                    Field('prj_date1', css_class='datepicker'),
+                    'project_type',
+                    'master_database',
+                    'lake',
+                    'dba',
+                    'tags',
+                )),
+            #ButtonHolder(
+            #    Submit('submit', 'Submit')
+            #)
          )
 
 
@@ -596,26 +599,29 @@ class ProjectForm(forms.ModelForm):
             self.fields["prj_cd"].widget.attrs['readonly'] = True
 
         if milestones:
-            if self.manager == True:
-                choices = [(x.id, {'label':x.milestone.label,
-                                   'disabled':False})
-                       for x in milestones]
+            if self.manager is True:
+                choices = [(x.id, {'label': x.milestone.label,
+                                   'disabled': False})
+                           for x in milestones]
             else:
-                choices = [(x.id, {'label':x.milestone.label,
-                                  'disabled':x.milestone.protected})
-                       for x in milestones]
+                choices = [(x.id, {'label': x.milestone.label,
+                                   'disabled': x.milestone.protected})
+                           for x in milestones]
 
             # *** NOTE ***
             #completed must be a list of values that match the choices (above)
-            completed = [x.id for x in milestones if x.completed != None]
-            self.fields.update({"milestones":forms.MultipleChoiceField(
-                widget = CheckboxSelectMultipleWithDisabled(),
-                choices=choices,
-                label="",
-                initial = completed,
-                required=False,
+            completed = [x.id for x in milestones if x.completed is not None]
+            self.fields.update(
+                {"milestones": forms.MultipleChoiceField(
+                    widget=CheckboxSelectMultipleWithDisabled(),
+                    choices=choices,
+                    label="",
+                    initial=completed,
+                    required=False,
             ),})
-            self.helper.layout[0].extend([Fieldset('Milestones','milestones')])
+            self.helper.layout[0].extend(
+                [Div(Fieldset('Milestones', 'milestones'),
+                     css_class="row")])
 
 
     ##def clean_Approved(self):

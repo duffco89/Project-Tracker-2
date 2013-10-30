@@ -29,6 +29,7 @@ urlpatterns += patterns('',
                             'django.contrib.auth.views.login',
                             {'template_name': 'auth/login.html'},
                             name='login'),
+
                         url(r'^accounts/logout/$',
                             'pjtk2.views.logout_view',
                             name='logout'),)

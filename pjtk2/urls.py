@@ -11,27 +11,26 @@ sqs = SearchQuerySet().facet('project_type').facet('lake').facet('funding')
 
 urlpatterns = patterns('pjtk2.views',
 
-    url(r'^search/$', FacetedSearchView(
-       form_class=FacetedSearchForm, 
-       searchqueryset=sqs), 
-       name='haystack_search'),
+                       url(r'^search/$', FacetedSearchView(
+                           form_class=FacetedSearchForm,
+                           searchqueryset=sqs),
+                           name='haystack_search'),
 
-    #(r'^search/', include('haystack.urls')),
 
     #CRUD Projects
     url(r'^projects/$', 'project_list', name='ProjectList'),
-    url(r'^projects/approved$', 'approved_projects_list', 
+    url(r'^projects/approved$', 'approved_projects_list',
         name='ApprovedProjectsList'),
 
     #project formset:
     url(r'^approveprojects/$', 'approveprojects', name='ApproveProjects'),
-# url(r'^projectsbytype/(?P<projecttype>.+)$', 'projects_by_type', 
+# url(r'^projectsbytype/(?P<projecttype>.+)$', 'projects_by_type',
 #       name='ProjectsByType'),
-    
+
     url(r'^newproject/$', 'new_project', name='NewProject'),
 
     url((r'^copyproject/'
-          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
+         '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'copy_project', name='CopyProject'),
 
     url((r'^editproject/'
@@ -43,7 +42,7 @@ urlpatterns = patterns('pjtk2.views',
         'project_detail', name='project_detail'),
 
     url(r'^myprojects/$', 'my_projects', name='MyProjects'),
-        
+
 
     url((r'^sisterprojects/'
           '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
@@ -51,13 +50,13 @@ urlpatterns = patterns('pjtk2.views',
 
 ##     url(r'^projects/(?P<year>\d{4})/$',
 ##         'project_by_year', name='ProjectsByYear'),
-## 
+##
 
-    #tagging/keywords                  
-    url(r'^taggedprojects/(?P<tag>.+)/$', 'taggedprojects', 
+    #tagging/keywords
+    url(r'^taggedprojects/(?P<tag>.+)/$', 'taggedprojects',
         name='TaggedProjects'),
 
-    
+
 # Reports and milestones
     url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         'report_milestones', name='Reports'),
@@ -76,11 +75,11 @@ urlpatterns = patterns('pjtk2.views',
     url((r'^reportupload/'
         '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'report_upload', name='ReportUpload'),
-    
+
     url(r'^uploadlist/$', 'uploadlist', name='UploadList'),
 
     #this function is used to download reports and files from project pages
-    url(r'^serve_file/(?P<filename>.+)/$', 'serve_file', name='serve_file'),    
+    url(r'^serve_file/(?P<filename>.+)/$', 'serve_file', name='serve_file'),
 
 
 #bookmarking
@@ -93,5 +92,3 @@ urlpatterns = patterns('pjtk2.views',
           'unbookmark_project', name='Unbookmark_Project'),
 
 )
-
-

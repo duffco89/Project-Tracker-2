@@ -1,0 +1,24 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+
+{% block title  %} {{ block.super }}| Remove Bookmark  {% endblock %}
+
+
+
+{% block content  %}
+
+<div class="container" >
+
+  <h3> Are you sure you want to delete the bookmark for this project?</h3>
+  <br />
+  <h3> {{ project.prj_nm }} (<a href="{{ project.get_absolute_url }}">{{ project.prj_cd }}</a> )  </h3>
+
+  <br />
+  <form method="post", action="">
+    {% csrf_token %}
+    <p><input type="submit" value="Delete bookmark" class="btn btn-default"/></p>
+  </form>
+
+</div>
+
+{% endblock %}

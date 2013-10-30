@@ -154,7 +154,7 @@ class ListFilteredMixin(object):
         #return super(ListFilteredMixin, self).get_queryset()
 
     def get_constructed_filter(self):
-        # We need to store the instantiated FilterSet cause we use it in
+        # We need to store the instantiated FilterSet because we use it in
         # get_queryset and in get_context_data
         if getattr(self, 'constructed_filter', None):
             return self.constructed_filter
@@ -176,7 +176,7 @@ class ProjectList(ListFilteredMixin, ListView):
     # modified to accept tag argument
     queryset = Project.objects.all()
     filter_set = ProjectFilter
-    template_name = "ProjectList.html"
+    template_name = "pjtk2/ProjectList.html"
 
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
@@ -201,17 +201,23 @@ class ApprovedProjectsList(ListView):
 
     #queryset = Project.objects.filter(Approved = True)
     queryset = Project.objects.approved()
-    template_name = "ApprovedProjectList.html"
+    #template_name = "ApprovedProjectList.html"
+    template_name = "pjtk2/ProjectList.html"
 
 
     def get_context_data(self, **kwargs):
         context = super(ApprovedProjectsList, self).get_context_data(**kwargs)
         context['manager'] = is_manager(self.request.user)
+        context['approved'] = True
         return context
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ApprovedProjectsList, self).dispatch(*args, **kwargs)
+
+
+
+
 
 approved_projects_list = ApprovedProjectsList.as_view()
 
@@ -239,7 +245,7 @@ def project_detail(request, slug):
     edit = can_edit(user, project)
     manager = is_manager(user)
 
-    return render_to_response('projectdetail.html',
+    return render_to_response('pjtk2/projectdetail.html',
                               {'milestones': milestones,
                                'Core': core,
                                'Custom': custom,
@@ -367,7 +373,7 @@ def crud_project(request, slug, action='New'):
             proj = Project.objects.get(slug=form.slug)
             return HttpResponseRedirect(proj.get_absolute_url())
         else:
-            return render_to_response('ProjectForm.html',
+            return render_to_response('pjtk2/ProjectForm.html',
                                       {'form': form,
                                        'action': action, 'project': instance},
                                       context_instance=RequestContext(request))
@@ -375,7 +381,7 @@ def crud_project(request, slug, action='New'):
         form = ProjectForm(instance=instance, readonly=readonly,
                            manager=manager, milestones=milestones)
 
-    return render_to_response('ProjectForm.html',
+    return render_to_response('pjtk2/ProjectForm.html',
                               {'form': form,
                                'milestones': milestones,
                                'action': action, 'project': instance},
@@ -435,7 +441,7 @@ def approveprojects(request):
             lastyearsformset.save()
             return HttpResponseRedirect(reverse('ApprovedProjectsList'))
         else:
-            return render_to_response('ApproveProjects.html',
+            return render_to_response('pjtk2/ApproveProjects.html',
                                       {
                                           'year': year,
                                           'thisYearEmpty': this_year_empty,
@@ -450,7 +456,7 @@ def approveprojects(request):
         lastyearsformset = project_formset(queryset=lastyears,
                                            prefix="lastyear")
 
-    return render_to_response('ApproveProjects.html',
+    return render_to_response('pjtk2/ApproveProjects.html',
                               {
                                   'year': year,
                                   'thisYearEmpty': this_year_empty,
@@ -670,7 +676,7 @@ def unbookmark_project(request, slug):
                                 project__pk=project.id).delete()
         return HttpResponseRedirect(project.get_absolute_url())
     else:
-        return render_to_response('confirm_bookmark_delete.html',
+        return render_to_response('pjtk2/confirm_bookmark_delete.html',
                                   { 'project': project },
                                   context_instance=RequestContext(request))
 
@@ -738,7 +744,7 @@ def sisterprojects(request, slug):
             return HttpResponseRedirect(project.get_absolute_url())
     else:
         formset = sister_formset(initial=initial)
-    return render_to_response('SisterProjects.html',
+    return render_to_response('pjtk2/SisterProjects.html',
                               {
                                   'formset': formset,
                                   'project': project,
