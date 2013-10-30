@@ -1,118 +1,113 @@
-{% extends 'base.html' %}
+{% extends 'pjtk2/pjtk2_base.html' %}
 
 {% block content %}
 
-<p> 
-<a href="{% url 'home' %}">Index </a> | 
-<a href="{% url 'ProjectList' %}"> Project List </a> | 
-<a href="{% url 'ApprovedProjectsList' %}">Approved Project List</a> | 
-<a href="{% url 'MyProjects' %}">My Projects</a> |
-<a href="{% url 'haystack_search' %}">New Search</a> |
-</p>
-
+<div class="container" >
 
 <div>
-<h2>Search for Projects</h2>
+  <h3>Search for Projects</h3>
 
-<form class=".form-search" action="." method="get">
-    <input type="text" name="q">
-    <input type="submit" value="Search" />
-</form>
+  <form class=".form-search" action="." method="get">
+    <input type="text" name="q" placeholder = "keywords or phrases">
+    <input type="submit" value="Search" class="btn btn-default"/>
+  </form>
 
 </div>
 
-  {% if query %}
-  <hr />
-  <div>
-<!-- Begin faceting. -->
-    <div style="width:200px;float:left;">
-      <h3 style="margin-top:0px;">Filters:</h3>
+{% if query %}
+<hr />
+<div>
+  <!-- Begin faceting. -->
+  <div style="width:200px;float:left;">
+    <h4 style="margin-top:0px;">Filters:</h4>
 
-        <dl>
-            {% if facets.fields.Lake %}
-                <dt>Lake:</dt>
-                {% for obj in facets.fields.Lake %}
-	            <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Lake_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
-                {% endfor %}
-            {% else %}
-                <dt>No Lake facets.</dt>
-            {% endif %}
-        </dl>
+    <dl>
+      {% if facets.fields.Lake %}
+      <dt>Lake:</dt>
+      {% for obj in facets.fields.Lake %}
+      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Lake_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
+      {% endfor %}
+      {% else %}
+      <dt>No Lake facets.</dt>
+      {% endif %}
+    </dl>
 
-        <dl>
-            {% if facets.fields.ProjectType %}
-                <dt>ProjectType:</dt>
-                {% for pType in facets.fields.ProjectType %}
-	            <dd><a href="{{ request.get_full_path }}&amp;selected_facets=ProjectType_exact:{{ pType.0|urlencode }}">{{ pType.0 }}</a> ({{ pType.1 }})</dd>
-                {% endfor %}
-            {% else %}
-                <dt>No ProjectType facets.</dt>
-            {% endif %}
-        </dl>
+    <dl>
+      {% if facets.fields.ProjectType %}
+      <dt>ProjectType:</dt>
+      {% for pType in facets.fields.ProjectType %}
+      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=ProjectType_exact:{{ pType.0|urlencode }}">{{ pType.0 }}</a> ({{ pType.1 }})</dd>
+      {% endfor %}
+      {% else %}
+      <dt>No ProjectType facets.</dt>
+      {% endif %}
+    </dl>
 
-        <dl>
-            {% if facets.fields.Approved %}
-                <dt>Approved:</dt>
-                {% for obj in facets.fields.Approved %}
-	            <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Approved_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
-                {% endfor %}
-            {% else %}
-                <dt>No Approved facets.</dt>
-            {% endif %}
-        </dl>
-
-
-        <dl>
-            {% if facets.fields.Completed %}
-                <dt>Completed:</dt>
-                {% for obj in facets.fields.Completed %}
-	            <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Completed_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
-                {% endfor %}
-            {% else %}
-                <dt>No Completed facets.</dt>
-            {% endif %}
-        </dl>
+    <dl>
+      {% if facets.fields.Approved %}
+      <dt>Approved:</dt>
+      {% for obj in facets.fields.Approved %}
+      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Approved_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
+      {% endfor %}
+      {% else %}
+      <dt>No Approved facets.</dt>
+      {% endif %}
+    </dl>
 
 
-        <dl>
-            {% if facets.fields.funding %}
-                <dt>Funding:</dt>
-                {% for obj in facets.fields.funding %}
-	            <dd><a href="{{ request.get_full_path }}&amp;selected_facets=funding_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
-                {% endfor %}
-            {% else %}
-                <dt>No Funding facets.</dt>
-            {% endif %}
-        </dl>
+    <dl>
+      {% if facets.fields.Completed %}
+      <dt>Completed:</dt>
+      {% for obj in facets.fields.Completed %}
+      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Completed_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
+      {% endfor %}
+      {% else %}
+      <dt>No Completed facets.</dt>
+      {% endif %}
+    </dl>
 
-    </div>
-    <!-- End faceting -->
+
+    <dl>
+      {% if facets.fields.funding %}
+      <dt>Funding:</dt>
+      {% for obj in facets.fields.funding %}
+      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=funding_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
+      {% endfor %}
+      {% else %}
+      <dt>No Funding facets.</dt>
+      {% endif %}
+    </dl>
+
+  </div>
+  <!-- End faceting -->
 
   <div style="margin-left:200px;">
-  <h3>Results:</h3>
+    <h4>Results:</h4>
 
-  {% for result in page.object_list %}
+    {% for result in page.object_list %}
     <p>
       <a href="{{ result.object.get_absolute_url }}"> {{ result.object.prj_cd }} - {{ result.object.prj_nm }} </a>
     </p>
-   {% empty %}
- 
-   No results found.
- 
-   {% endfor %}</div>
- 
- {% if page.has_previous or page.has_next %}
- <div>{% if page.has_previous %}
- <a href="?q={{ query }}&page={{ page.previous_page_number }}">
- {% endif %}« Previous{% if page.has_previous %}</a>{% endif %}
- |
- {% if page.has_next %}
-   <a href="?q={{ query }}&page={{ page.next_page_number }}">
- {% endif %} Next »{% if page.has_next %}</a>{% endif %}</div>
- {% endif %}</div>
+    {% empty %}
+
+    No results found.
+
+    {% endfor %}</div>
+
+  {% if page.has_previous or page.has_next %}
+  <div>{% if page.has_previous %}
+    <a href="?q={{ query }}&page={{ page.previous_page_number }}">
+      {% endif %}« Previous{% if page.has_previous %}</a>{% endif %}
+    |
+    {% if page.has_next %}
+    <a href="?q={{ query }}&page={{ page.next_page_number }}">
+      {% endif %} Next »{% if page.has_next %}</a>{% endif %}</div>
+  {% endif %}</div>
 
 {% else %}
- 
+
 {% endif %}
+
+</div>
 
 {% endblock %}

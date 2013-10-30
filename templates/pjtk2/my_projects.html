@@ -1,0 +1,241 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+{% block extrahead  %}
+
+<script src="{{ STATIC_URL }}js/jquery-1.9.1.js"></script>
+
+<script src="{{ STATIC_URL }}js/jquery-1.10.2.min.js"></script>
+<!-- bootstrap widget theme -->
+<link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
+<!-- tablesorter plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+<!-- tablesorter widget file - loaded after the plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
+
+
+{% endblock %}
+
+{% block title  %} {{ block.super }}| My Projects  {% endblock %}
+
+{% block content  %}
+
+
+<div class="container" >
+
+  <h3>My Projects Page</h3>
+  <br />
+
+  <ul class="nav nav-tabs" id="myTab" >
+    <li><a href="#bookmarks">Bookmarks</a></li>
+    <li><a href="#notices">Notices</a></li>
+    <li><a href="#submitted">Submitted</a></li>
+    <li><a href="#approved">Approved</a></li>
+    <li><a href="#completed">Completed</a></li>
+  </ul>
+
+  <div id="content" class="tab-content" >
+    <div id="bookmarks" class="tab-pane active" >
+      <h3>Bookmarks</h3>
+      {% if bookmarks %}
+      <table id="myTable" class="tablesorter">
+	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td><td>Project
+	  Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
+	<tbody>
+	  {% for bookmark in bookmarks %}
+	  <tr class="{% cycle row1,row2 %}">
+	    <td>
+	      {{ bookmark.year }}
+	    </td>
+	    <td>
+	      <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
+	    </td>
+	    <td> {{ bookmark.project_type }} </td>
+	    <td>
+	      {{ bookmark.name }}
+	    </td>
+	    {% if boss %}
+	    <td>       {{ bookmark.prj_ldr }} </td>
+	    {% endif %}
+	  </tr>
+	  {% endfor %}
+	</tbody>
+      </table>
+      {% else %}
+      <p><em>You do not have any bookmarked projects </em></p>
+      {% endif%}
+
+    </div> <!-- bookmarks -->
+
+    <div id="notices" class="tab-pane" >
+      <h3>Notifications</h3>
+
+      {% if formset %}
+
+      <form id="notices" method="post" action="">
+	{% csrf_token %}
+	{{ formset.management_form }}
+	{{ formset.non_form_errors.as_ul }}
+	<table id="formset" class="table table-striped form">
+	  {% for form in formset.forms %}
+	  {% if forloop.first %}
+	  <thead><tr>
+	    {% for field in form.visible_fields %}
+	    <th>{{ field.label|capfirst }}</th>
+	    {% endfor %}
+	  </tr></thead>
+	  {% endif %}
+	  <tr class="{% cycle row1,row2 %}">
+	    {% for field in form.visible_fields %}
+	    <td>
+	      {# Include the hidden fields in the form #}
+	      {% if forloop.first %}
+              {% for hidden in form.hidden_fields %}
+              {{ hidden }}
+              {% endfor %}
+	      {% endif %}
+              {{ field.errors.as_ul }}
+              {{ field }}
+	    </td>
+	    {% endfor %}
+	  </tr>
+	  {% endfor %}
+	</table>
+	<hr />
+	<div class="input-group-btn" >
+	  <button class="btn btn-default" type="submit">
+	    <span class="glyphicon glyphicon-trash"></span> Delete Read Messages</button>
+	</div>
+	<!--<input type="submit" name="" value="Delete Read Messages" class="btn btn-default" />
+-->
+      </form>
+      {% else %}
+      <p><em>You do not have any unread notices. </em></p>
+      {% endif %}
+
+    </div> <!-- notices -->
+
+    <div id="submitted" class="tab-pane" >
+
+      <h3>Submitted Projects</h3>
+      {% if submitted %}
+      <table id="myTable" class="tablesorter">
+	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td>
+	  <td>Project Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr>
+	</thead>
+	<tbody>
+	  {% for project in submitted %}
+	  <tr class="{% cycle row1,row2 %}">
+	    <td> {{ project.year }} </td>
+	    <td>
+	      <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+	    </td>
+	    <td> {{ project.ProjectType }} </td>
+	    <td>
+	      {{ project.prj_nm  }}
+	    </td>
+	    {% if boss %}
+	    <td>       {{ project.prj_ldr }} </td>
+	    {% endif %}
+	  </tr>
+	  {% endfor %}
+	</tbody>
+      </table>
+
+      {% else %}
+      <p><em>You do not currently have any submitted projects </em></p>
+      {% endif%}
+
+    </div> <!-- submitted -->
+
+    <div id="approved" class="tab-pane" >
+      <h3>Approved Projects</h3>
+      {% if approved %}
+      <table id="myTable" class="tablesorter">
+	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td>
+	  <td>Project Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr>
+	</thead>
+	<tbody>
+	  {% for project in approved %}
+	  <tr class="{% cycle row1,row2 %}">
+	    <td> {{ project.year }} </td>
+	    <td>
+	      <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+	    </td>
+	    <td> {{ project.ProjectType }} </td>
+	    <td>
+	      {{ project.prj_nm  }}
+	    </td>
+	    {% if boss %}
+	    <td>       {{ project.prj_ldr }} </td>
+	    {% endif %}
+	  </tr>
+	  {% endfor %}
+	</tbody>
+      </table>
+
+      {% else %}
+      <p><em>You do not currently have any approved projects </em></p>
+      {% endif%}
+    </div> <!-- approved -->
+
+    <div id="completed" class="tab-pane" >
+      <h3>Completed Projects</h3>
+      {% if complete %}
+      <table id="myTable" class="tablesorter">
+	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td> <td>Project
+	  Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
+	<tbody>
+	  {% for project in complete %}
+	  <tr class="{% cycle row1,row2 %}">
+	    <td> {{ project.year }} </td>
+	    <td>
+	      <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+	    </td>
+	    <td> {{ project.ProjectType }} </td>
+	    <td>
+	      {{ project.prj_nm  }}
+	    </td>
+	    {% if boss %}
+	    <td>       {{ project.prj_ldr }} </td>
+	    {% endif %}
+	  </tr>
+	  {% endfor %}
+	</tbody>
+      </table>
+      {% else %}
+      <p><em>You do not have any complete projects </em></p>
+      {% endif%}
+    </div> <!-- completed -->
+  </div> <!-- content -->
+</div>  <!-- container -->
+
+
+<script type="text/javascript">
+
+ $(".tablesorter").tablesorter({
+   theme: 'bootstrap',
+   widthFixed: true,
+   showProcessing: true,
+   headerTemplate: '{content} {icon}',
+   widgets: ['zebra', 'uitheme', 'scroller'],
+   widgetOptions: {
+     scroller_height: 300,
+     scroller_barWidth: 17,
+     scroller_jumpToHeader: true,
+     scroller_idPrefix: 's_'
+   }
+ });
+
+</script>
+
+<script type="text/javascript">
+ $('#myTab a').click(function (e) {
+   e.preventDefault()
+   $(this).tab('show')
+ })
+</script>
+
+
+
+
+{% endblock %}

@@ -634,12 +634,12 @@ def my_projects(request):
         if notices_formset.is_valid():
             for form in notices_formset:
                 form.save()
-            redirect_url = reverse('MyProjects') + '#tabs-2'
+            redirect_url = reverse('MyProjects') + '#notices'
             return HttpResponseRedirect(redirect_url)
     else:
         notices_formset = formset(initial=notices)
 
-    template_name = "my_projects.html"
+    template_name = "pjtk2/my_projects.html"
 
     return render_to_response(template_name,
                               {'bookmarks': bookmarks,
