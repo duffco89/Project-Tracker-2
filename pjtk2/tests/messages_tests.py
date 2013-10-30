@@ -6,16 +6,18 @@ send messages when pre_save and post_save signals are emitted by the
 ProjectMilestones table.
 '''
 
+import datetime
+import pytz
+
+
 from django.test import TestCase
 
 from pjtk2.models import *
 from pjtk2.tests.factories import *
+from pjtk2.functions import my_messages
 
-
-from pjtk2.views import get_messages_dict
-
-import datetime
-import pytz
+#from pjtk2.views import get_messages_dict
+from pjtk2.functions import get_messages_dict
 
 
 def print_err(*args):

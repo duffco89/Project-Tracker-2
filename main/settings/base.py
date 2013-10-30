@@ -2,7 +2,8 @@
 
 import os
 
-PROJECT_ROOT =  os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
+PROJECT_ROOT = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), '../..'))
 
 #these are from Kennith Love's best practices
 here = lambda * x: os.path.join(os.path.abspath(os.path.dirname(__file__)), *x)
@@ -17,13 +18,13 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-#username and password: cottrillad, django
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '%s/db/pjtk2.db' % root(),
-    }
-}
+##username and password: cottrillad, django
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': '%s/db/pjtk2.db' % root(),
+#    }
+#}
 
 #print 'database name: %s/db/pjtk2.db' % root()
 
@@ -53,7 +54,7 @@ USE_TZ = True
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = root("uploads/")
-#MEDIA_ROOT = "C:/1work/DropBox/Dropbox/PythonStuff/djcode/pjtk2/uploads/reports/"
+
 #print "MEDIA_ROOT = %s" % MEDIA_ROOT
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
@@ -88,14 +89,6 @@ STATICFILES_DIRS = (
 
 )
 
-## print "MEDIA_ROOT %s" % MEDIA_ROOT
-## print "MEDIA_URL %s" % MEDIA_URL
-## print "ADMIN_MEDIA_PREFIX %s" % ADMIN_MEDIA_PREFIX
-## print "STATIC_URL %s" % STATIC_URL
-## print "STATIC_ROOT %s" % STATIC_ROOT
-## print "STATICFILES_DIRS %s" % STATICFILES_DIRS
-
-
 # List of finder classes that know how to find static files in
 # various locations.
 STATICFILES_FINDERS = (
@@ -106,8 +99,6 @@ STATICFILES_FINDERS = (
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = '0yo*&amp;!557a9o8=+2b_9mrcfc=n$*7vc-hr@b56y^x#&amp;a+pidx@'
-
-
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.static",
@@ -133,7 +124,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-#'main.middleware.LoginRequiredMiddleware',
+    #'main.middleware.LoginRequiredMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
@@ -159,15 +150,14 @@ DJANGO_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
-
 )
 
 THIRDPARTY_APPS = (
-    'django_extensions',
-    'werkzeug_debugger_runserver',
+    #'django_extensions',
+    #'werkzeug_debugger_runserver',
     'south',
     'crispy_forms',
-    'debug_toolbar',
+    #'debug_toolbar',
     'django_filters',
     'taggit',
     'haystack',
@@ -176,9 +166,8 @@ THIRDPARTY_APPS = (
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
-MY_APPS =(
+MY_APPS = (
     'pjtk2',
-    'fts',
     )
 
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
@@ -191,10 +180,10 @@ INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
 ##    },
 ##}
 
-
+eng = 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine'
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
+        'ENGINE': eng,
         'URL': 'http://127.0.0.1:9200/',
         'INDEX_NAME': 'haystack',
     },
@@ -230,18 +219,3 @@ LOGGING = {
     }
 }
 
-##  import socket
-##  STATIC_PORT=8090
-##  STATIC_HOSTADDR = socket.gethostbyname(socket.gethostname())
-##  STATIC_HOST= STATIC_HOSTADDR + ":" + str(STATIC_PORT)
-##  STATIC_URL = 'http://' + STATIC_HOST + STATIC_URL
-##  #STATIC_URL = 'http://127.0.0.1:8000' + STATIC_URL
-
-#print "STATIC_URL: %s" % STATIC_URL
-#print "STATIC_ROOT: %s" % STATIC_ROOT
-#print "ADMIN_MEDIA_PREFIX : %s" % ADMIN_MEDIA_PREFIX
-
-
-def show_toolbar(request):
-    return True
-SHOW_TOOLBAR_CALLBACK = show_toolbar

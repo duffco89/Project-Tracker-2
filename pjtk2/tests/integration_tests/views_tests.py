@@ -11,6 +11,7 @@ from django.test import TestCase
 
 from pjtk2.tests.factories import *
 from pjtk2.views import can_edit
+#from pjtk2.functions import can_edit
 
 
 def setup():

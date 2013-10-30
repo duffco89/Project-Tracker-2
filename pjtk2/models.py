@@ -11,12 +11,12 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
-from pjtk2.functions import get_supervisors
-
 from taggit.managers import TaggableManager
 
 import datetime
 import pytz
+
+from pjtk2.functions import get_supervisors
 
 
 class ProjectsManager(models.Manager):
@@ -615,9 +615,6 @@ class Bookmark(models.Model):
         return self.project.year
 
 
-
-
-
 class Family(models.Model):
     '''Provides a mechanism to ensure that families are unique and
     auto-created.  The relationship between projects and families is
@@ -662,7 +659,7 @@ class Employee(models.Model):
     user = models.ForeignKey(User, unique=True, related_name='employee')
     position = models.CharField(max_length=60)
     role = models.CharField(max_length=30, choices=ROLL_CHOICES,
-                                default='Employee')
+                            default='Employee')
     lake = models.ManyToManyField('Lake')
     supervisor = models.ForeignKey('self',
                                    blank=True,
@@ -690,7 +687,7 @@ class Message(models.Model):
     #"Notification system is now working."
     #"Feature Request/Bug Reporting has been implemented."
     level = models.CharField(max_length=30, choices=LEVEL_CHOICES,
-                                default='info')
+                             default='info')
 
     def __unicode__(self):
         '''return the messsage as it's unicode method.'''
@@ -711,63 +708,8 @@ class Messages2Users(models.Model):
         return "%s - %s" % (self.user, self.msg)
 
 
-class Admin_Milestone(admin.ModelAdmin):
-    '''Admin class for milestones'''
-    list_display = ('label', 'report', 'category', 'protected',)
-
-class Admin_ProjectType(admin.ModelAdmin):
-    '''Admin class for Project Types'''
-    pass
-
-class Admin_Database(admin.ModelAdmin):
-    '''Admin class for databases'''
-    pass
-
-class Admin_Lake(admin.ModelAdmin):
-    '''Admin class for lakes'''
-    pass
-
-class Admin_Project(admin.ModelAdmin):
-    '''Admin class for Projects'''
-    pass
-
-class Admin_Family(admin.ModelAdmin):
-    '''Admin class for familiy table'''
-    pass
-
-class Admin_ProjectSisters(admin.ModelAdmin):
-    '''Admin class for project-sisters table'''
-    pass
-
-class Admin_ProjectMilestones(admin.ModelAdmin):
-    '''Admin class for project - milestones'''
-    list_display = ('project', 'milestone',)
-    list_filter = ('project', 'milestone')
-
-class Admin_Report(admin.ModelAdmin):
-    '''Admin class for reprorts'''
-    list_display = ('current', 'report_path', 'uploaded_on', 'uploaded_by')
-
-class Admin_Employee(admin.ModelAdmin):
-    '''Admin class for Employees'''
-    pass
-
-admin.site.register(Milestone, Admin_Milestone)
-admin.site.register(ProjectType, Admin_ProjectType)
-admin.site.register(Database, Admin_Database)
-admin.site.register(Lake, Admin_Lake)
-admin.site.register(Project, Admin_Project)
-admin.site.register(ProjectMilestones, Admin_ProjectMilestones)
-admin.site.register(Report, Admin_Report)
-admin.site.register(Family, Admin_Family)
-admin.site.register(ProjectSisters, Admin_ProjectSisters)
-admin.site.register(Employee, Admin_Employee)
-
-
 #=====================================
 #    Signals
-
-
 
 # TODO Complete the pre_save signal to ProjectMilestones - send
 # message to appropriate people whenever a record in this table is
@@ -888,14 +830,14 @@ def send_message(msgtxt, recipients, project, milestone):
         Messages2Users.objects.create(user=recipients, msg=message)
 
 
-def my_messages(user, only_unread=True):
-    '''Return a queryset of messages for the user, sorted in reverse
-    chronological order (newest first).  By default, only unread messages
-    are returned, but all messages can be retrieved.'''
-
-    if only_unread:
-        my_msgs = (Messages2Users.objects.filter(user=user,
-                            read__isnull=True).order_by('-created'))
-    else:
-        my_msgs = Messages2Users.objects.filter(user=user).order_by('-created')
-    return(my_msgs)
+##def my_messages(user, only_unread=True):
+##    '''Return a queryset of messages for the user, sorted in reverse
+##    chronological order (newest first).  By default, only unread messages
+##    are returned, but all messages can be retrieved.'''
+##
+##    if only_unread:
+##        my_msgs = (Messages2Users.objects.filter(user=user,
+##                            read__isnull=True).order_by('-created'))
+##    else:
+##        my_msgs = Messages2Users.objects.filter(user=user).order_by('-created')
+##    return(my_msgs)

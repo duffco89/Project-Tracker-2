@@ -20,15 +20,17 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
+from pjtk2.functions import get_minions, my_messages, get_messages_dict
+
 from pjtk2.filters import ProjectFilter
 from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
-                          Bookmark, Employee, my_messages)
+                          Bookmark, Employee)#, my_messages)
 
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm,
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,
                          ReportUploadFormSet, NoticesForm)
 
-from pjtk2.functions import get_minions
+
 
 import datetime
 import pytz
@@ -303,7 +305,7 @@ def edit_project(request, slug):
 
     project = get_object_or_404(Project, slug=slug)
 
-    if can_edit(request.user, project) == False:
+    if can_edit(request.user, project) is False:
         return HttpResponseRedirect(project.get_absolute_url())
 
     return crud_project(request, slug, action='Edit')
@@ -367,7 +369,6 @@ def crud_project(request, slug, action='New'):
         else:
             return render_to_response('ProjectForm.html',
                                       {'form': form,
-                                       #'formset':formset,
                                        'action': action, 'project': instance},
                                       context_instance=RequestContext(request))
     else:
@@ -623,13 +624,8 @@ def my_projects(request):
     formset = formset_factory(NoticesForm, extra=0)
 
     if request.method == 'POST':
-
-        #notices_formset = formset(request.POST,
-        #                          request.FILES, initial=notices)
         notices_formset = formset(request.POST, initial=notices)
         if notices_formset.is_valid():
-            #import pdb; pdb.set_trace()
-            #notices_formset.save()
             for form in notices_formset:
                 form.save()
             redirect_url = reverse('MyProjects') + '#tabs-2'
@@ -679,30 +675,6 @@ def unbookmark_project(request, slug):
                                   context_instance=RequestContext(request))
 
 
-#=====================
-#TODO - this should be moved to utils
-def get_messages_dict(messages):
-    '''given  notification message, pull out the project, url, id and
-    message.  wrap them up in a dict and return it.  The dict is then
-    passed to the notifcation form so that each message can be displayed
-    and marked as read by the user.'''
-
-    initial = []
-
-    for msg in messages:
-        initial.append({
-            'prj_cd': msg.msg.project_milestone.project.prj_cd,
-            'prj_nm': msg.msg.project_milestone.project.prj_nm,
-            'msg': msg.msg.msg,
-            'msg_id': msg.id,
-            'user_id': msg.user.id,
-            'url': msg.msg.project_milestone.project.get_absolute_url(),
-        })
-
-    return initial
-
-
-
 def get_sisters_dict(slug):
     '''given a slug, return a list of dictionaries of projects that
     are (or could be) sisters to the given project.  Values returned
@@ -717,15 +689,19 @@ def get_sisters_dict(slug):
 
     if sisters:
         for proj in sisters:
-            initial.append(dict(sister=True, prj_cd = proj.prj_cd,
-                                slug=proj.slug, prj_nm = proj.prj_nm,
-                                prj_ldr = proj.prj_ldr,
+            initial.append(dict(sister=True,
+                                prj_cd=proj.prj_cd,
+                                slug=proj.slug,
+                                prj_nm=proj.prj_nm,
+                                prj_ldr=proj.prj_ldr,
                                 url=proj.get_absolute_url()))
     if candidates:
         for proj in candidates:
-            initial.append(dict(sister=False, prj_cd = proj.prj_cd,
-                                slug=proj.slug, prj_nm = proj.prj_nm,
-                                prj_ldr = proj.prj_ldr,
+            initial.append(dict(sister=False,
+                                prj_cd=proj.prj_cd,
+                                slug=proj.slug,
+                                prj_nm=proj.prj_nm,
+                                prj_ldr=proj.prj_ldr,
                                 url=proj.get_absolute_url()))
     return initial
 
@@ -740,7 +716,7 @@ def sisterprojects(request, slug):
 
     project = get_object_or_404(Project, slug=slug)
     initial = get_sisters_dict(slug)
-    empty = True if len(initial)==0 else False
+    empty = True if len(initial) == 0 else False
 
     sister_formset = formset_factory(SisterProjectsForm, extra=0)
 
@@ -754,7 +730,7 @@ def sisterprojects(request, slug):
             if cleandata != init:
                 #if all cleandata==False then remove this project from this
                 #family
-                if all(x==False for x in cleandata):
+                if all(x is False for x in cleandata):
                     project.disown()
                 else:
                     for form in formset:
@@ -762,12 +738,13 @@ def sisterprojects(request, slug):
             return HttpResponseRedirect(project.get_absolute_url())
     else:
         formset = sister_formset(initial=initial)
-    return render_to_response('SisterProjects.html', {
-                'formset': formset,
-                'project':project,
-                'empty':empty
-                },
-                context_instance=RequestContext(request))
+    return render_to_response('SisterProjects.html',
+                              {
+                                  'formset': formset,
+                                  'project': project,
+                                  'empty': empty
+                              },
+                              context_instance=RequestContext(request))
 
 
 def uploadlist(request):

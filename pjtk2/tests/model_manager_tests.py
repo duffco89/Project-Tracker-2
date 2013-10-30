@@ -31,7 +31,7 @@ class TestProjectsThisLastYear(TestCase):
         #past, two from last year, two from this year, and two from
         #the future.  Each one of the pair will be inactive and should
         #not be included in the retruned recordsets.
-        self.user = UserFactory.create(first_name='Homer', 
+        self.user = UserFactory.create(first_name='Homer',
                                        last_name = 'Simpson',
                                        username = 'hsimpson')
 
@@ -115,22 +115,22 @@ class TestProjectsThisLastYear(TestCase):
         self.assertQuerysetEqual(prj_manager, shouldbe,
                                  lambda a:a.prj_cd)
 
-            
+
     def tearDown(self):
 
         self.project1.delete()
         self.project2.delete()
-        self.project3.delete()        
-        self.project4.delete()        
-        self.project5.delete()        
-        self.project6.delete()        
-        self.project7.delete()        
-        self.project8.delete()        
+        self.project3.delete()
+        self.project4.delete()
+        self.project5.delete()
+        self.project6.delete()
+        self.project7.delete()
+        self.project8.delete()
         self.user.delete()
 
 
 class TestApprovedCompletedModelManagers(TestCase):
-    
+
 
     def setUp(self):
         '''we will need three projects with easy to rember project codes'''
@@ -138,33 +138,33 @@ class TestApprovedCompletedModelManagers(TestCase):
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
-        
+
         #Add milestones
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=False)
         self.milestone2 = MilestoneFactory.create(label="Completed",
-                                        category = 'Core', order=2, 
+                                        category = 'Core', order=2,
                                              report=False)
         self.milestone3 = MilestoneFactory.create(label="Sign off",
-                                        category = 'Core', order=999, 
+                                        category = 'Core', order=999,
                                              report=False)
 
-        
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
-                                              owner=self.user) 
-        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user)
-        self.project4 = ProjectFactory.create(prj_cd="LHA_IA12_444", 
-                                              owner=self.user) 
-        self.project5 = ProjectFactory.create(prj_cd="LHA_IA12_555", 
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               owner=self.user)
-        self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666", 
+        self.project4 = ProjectFactory.create(prj_cd="LHA_IA12_444",
+                                              owner=self.user)
+        self.project5 = ProjectFactory.create(prj_cd="LHA_IA12_555",
+                                              owner=self.user)
+        self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666",
                                               owner=self.user)
 
-        
+
     def test_ApprovedProjects(self):
         # project 1-4 willb be approved
         self.project1.approve()
@@ -192,21 +192,21 @@ class TestApprovedCompletedModelManagers(TestCase):
 
 
         # projects 5 and 6 have been created but have not been
-        # approved or completed, they should be returned by 
+        # approved or completed, they should be returned by
         #Project.objects.submitted()
         submitted = Project.objects.submitted()
         self.assertEqual(submitted.count(),2)
         shouldbe = [self.project5.prj_cd, self.project6.prj_cd]
         self.assertQuerysetEqual(submitted, shouldbe, lambda a:a.prj_cd)
 
-            
+
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
-        self.project3.delete()        
-        self.project4.delete()        
-        self.project5.delete()        
-        self.project6.delete()        
+        self.project3.delete()
+        self.project4.delete()
+        self.project5.delete()
+        self.project6.delete()
         self.milestone1.delete()
         self.milestone2.delete()
         self.milestone3.delete()
@@ -226,43 +226,43 @@ class TestMilestoneModelManagers(TestCase):
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
-        
+
         self.employee = EmployeeFactory(user=self.user)
 
         #Add milestones
         self.milestone0 = MilestoneFactory.create(label="Submitted",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=False)
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=2, 
+                                             category = 'Core', order=2,
                                              report=False)
         self.milestone2 = MilestoneFactory.create(label="Completed",
-                                        category = 'Core', order=3, 
+                                        category = 'Core', order=3,
                                              report=False)
         self.milestone3 = MilestoneFactory.create(label="Sign off",
-                                        category = 'Core', order=999, 
+                                        category = 'Core', order=999,
                                              report=False)
         #create a project
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
 
-        
+
     def test_ApprovedProjects(self):
         '''The default manager shoul now exclude 'Submitted'.  Submitted is
         available through Milestones.allmilestones.all()'''
 
-        all_milestones = [self.milestone0.label, self.milestone1.label, 
+        all_milestones = [self.milestone0.label, self.milestone1.label,
                           self.milestone2.label, self.milestone3.label]
-        #this one should NOT include 'Submitted' 
+        #this one should NOT include 'Submitted'
         qs = Milestone.objects.all()
         self.assertQuerysetEqual(qs, all_milestones[1:],
                                  lambda a:a.label)
 
-        #this one should include 'Submitted' 
+        #this one should include 'Submitted'
         qs = Milestone.allmilestones.all()
         self.assertQuerysetEqual(qs, all_milestones,
                                  lambda a:a.label)
-            
+
     def tearDown(self):
         self.project1.delete()
         self.milestone0.delete()
@@ -271,4 +271,3 @@ class TestMilestoneModelManagers(TestCase):
         self.milestone3.delete()
         self.employee.delete()
         self.user.delete()
-

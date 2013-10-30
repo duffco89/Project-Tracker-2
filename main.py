@@ -34,11 +34,12 @@ PROJECT_SETTINGS = "main.settings"
 if __name__ == '__main__':
     import cherrypy
     cherrypy.config.update({'server.socket_port': PORT,
-                            'server.socket_host':IP_ADDRESS,
+                            'server.socket_host': IP_ADDRESS,
                             'checker.on': False})
 
     from djangoplugin import DjangoAppPlugin
-    DjangoAppPlugin(cherrypy.engine, settings_module=PROJECT_SETTINGS).subscribe()
+    DjangoAppPlugin(cherrypy.engine,
+                    settings_module=PROJECT_SETTINGS).subscribe()
 
     from ws4py.server.cherrypyserver import WebSocketPlugin
     WebSocketPlugin(cherrypy.engine).subscribe()
