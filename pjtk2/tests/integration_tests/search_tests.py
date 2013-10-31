@@ -41,10 +41,10 @@ class CanViewSearchForm(WebTest):
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed(response, 'search/search.html')
 
-        form = response.form
+        form = response.forms['haystacksearch']
         form['q'] = 'text'
         response = form.submit('submit')
-        
+
         msg= 'No results found.'
 
         self.assertContains(response, msg)
@@ -88,59 +88,66 @@ class CanUseSearchForm(WebTest):
                                               owner=self.user,
                                               project_type = self.ProjType)
 
-
     def test_SearchProjectName(self):
         '''Verify that we can retrieve projects based on project name'''
 
         response = self.app.get(reverse('haystack_search'), user=self.user)
-        form = response.form
+        form = response.forms['haystacksearch']
         form['q'] = 'Parry Sound'
         response = form.submit('submit')
 
         # projects 1 is the only one that contains "Parry Sound" and
         # should be the only one in the response
-        
-        linkstring = '''<a href="{{ self.project1.get_absolute_url }}"> 
-                 {{ self.project1.prj_cd }} - {{ self.project1.prj_nm }} </a>'''
-        #self.assertContains(response, linkstring, html=True)
+        baselink = '''<a href="{0}">{1} - {2}</a>'''
+        linkstring = baselink.format(self.project1.get_absolute_url(),
+                                     self.project1.prj_cd,
+                                     self.project1.prj_nm)
+        self.assertContains(response, linkstring, html=True)
 
-        linkstring = '''<a href="{{ self.project2.get_absolute_url }}"> 
-                 {{ self.project2.prj_cd }} - {{ self.project2.prj_nm }} </a>'''
-        #self.assertNotContains(response, linkstring, html=True)
+        #these projects should NOT be in the response
+        linkstring = baselink.format(self.project2.get_absolute_url(),
+                                     self.project2.prj_cd,
+                                     self.project2.prj_nm)
+        self.assertNotContains(response, linkstring, html=True)
 
-        linkstring = '''<a href="{{ self.project3.get_absolute_url }}"> 
-                 {{ self.project3.prj_cd }} - {{ self.project3.prj_nm }} </a>'''
-        #self.assertNotContains(response, linkstring, html=True)
-
+        linkstring = baselink.format(self.project3.get_absolute_url(),
+                                     self.project3.prj_cd,
+                                     self.project3.prj_nm)
+        self.assertNotContains(response, linkstring, html=True)
 
     def test_SearchProjectDescription(self):
-        '''Verify that we can retrieve projects based word in the project description'''
-        
+        '''Verify that we can retrieve projects based word in the project
+        description'''
+
         response = self.app.get(reverse('haystack_search'), user=self.user)
-        form = response.form
+        form = response.forms['haystacksearch']
         form['q'] = 'Salvelinus'
         response = form.submit('submit')
 
         # projects 2 is the only one that contains "Salvelinus" and
         # should be the only one in the response
-        
-        linkstring = '''<a href="{{ self.project1.get_absolute_url }}"> 
-                 {{ self.project1.prj_cd }} - {{ self.project1.prj_nm }} </a>'''
-        #self.assertNotContains(response, linkstring, html=True)
 
-        linkstring = '''<a href="{{ self.project2.get_absolute_url }}"> 
-                 {{ self.project2.prj_cd }} - {{ self.project2.prj_nm }} </a>'''
-        #self.assertContains(response, linkstring, html=True)
+        baselink = '''<a href="{0}">{1} - {2}</a>'''
+        linkstring = baselink.format(self.project1.get_absolute_url(),
+                                     self.project1.prj_cd,
+                                     self.project1.prj_nm)
+        self.assertNotContains(response, linkstring, html=True)
 
-        linkstring = '''<a href="{{ self.project3.get_absolute_url }}"> 
-                 {{ self.project3.prj_cd }} - {{ self.project3.prj_nm }} </a>'''
-        #self.assertNotContains(response, linkstring, html=True)
+        #these projects should NOT be in the response
+        linkstring = baselink.format(self.project2.get_absolute_url(),
+                                     self.project2.prj_cd,
+                                     self.project2.prj_nm)
+        self.assertContains(response, linkstring, html=True)
 
+        linkstring = baselink.format(self.project3.get_absolute_url(),
+                                     self.project3.prj_cd,
+                                     self.project3.prj_nm)
+        self.assertNotContains(response, linkstring, html=True)
 
     def test_SearchProjectTag(self):
         '''Verify that we can retrieve projects based on project keyword'''
 
-        tags = ['red','blue']
+        tags = ['red', 'blue']
         tags.sort()
         for tag in tags:
             self.project1.tags.add(tag)
@@ -150,22 +157,28 @@ class CanUseSearchForm(WebTest):
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed(response, 'search/search.html')
 
-        form = response.form
+        form = response.forms['haystacksearch']
         form['q'] = 'red'
         response = form.submit('submit')
-        
-        linkstring = '''<a href="{{ self.project1.get_absolute_url }}"> 
-                 {{ self.project1.prj_cd }} - {{ self.project1.prj_nm }} </a>'''
+
+        # projects 1 and have been tagged with 'red'
+        # and should be the response
+        baselink = '''<a href="{0}">{1} - {2}</a>'''
+        linkstring = baselink.format(self.project1.get_absolute_url(),
+                                     self.project1.prj_cd,
+                                     self.project1.prj_nm)
         #self.assertContains(response, linkstring, html=True)
 
-        linkstring = '''<a href="{{ self.project2.get_absolute_url }}"> 
-                 {{ self.project2.prj_cd }} - {{ self.project2.prj_nm }} </a>'''
+        linkstring = baselink.format(self.project2.get_absolute_url(),
+                                     self.project2.prj_cd,
+                                     self.project2.prj_nm)
         #self.assertContains(response, linkstring, html=True)
 
-        linkstring = '''<a href="{{ self.project3.get_absolute_url }}"> 
-                 {{ self.project3.prj_cd }} - {{ self.project3.prj_nm }} </a>'''
+        #these projects should NOT be in the response
+        linkstring = baselink.format(self.project3.get_absolute_url(),
+                                     self.project3.prj_cd,
+                                     self.project3.prj_nm)
         #self.assertNotContains(response, linkstring, html=True)
-
 
     def test_search_project_type(self):
         '''Verify that we can retrieve projects based on project type'''
@@ -174,23 +187,27 @@ class CanUseSearchForm(WebTest):
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed(response, 'search/search.html')
 
-        form = response.form
+        form = response.forms['haystacksearch']
         form['q'] = 'Nearshore'
         response = form.submit('submit')
 
-        # projects 1 and 2 are offshore index projects and should not
+        # projects 1 and 2 are offshore index projects and should NOT
         # be returned, project 3 was a nearshore index and should be.
-        
-        linkstring = '''<a href="{{ self.project1.get_absolute_url }}"> 
-                 {{ self.project1.prj_cd }} - {{ self.project1.prj_nm }} </a>'''
+        baselink = '''<a href="{0}">{1} - {2}</a>'''
+        linkstring = baselink.format(self.project1.get_absolute_url(),
+                                     self.project1.prj_cd,
+                                     self.project1.prj_nm)
         #self.assertNotContains(response, linkstring, html=True)
 
-        linkstring = '''<a href="{{ self.project2.get_absolute_url }}"> 
-                 {{ self.project2.prj_cd }} - {{ self.project2.prj_nm }} </a>'''
+        linkstring = baselink.format(self.project2.get_absolute_url(),
+                                     self.project2.prj_cd,
+                                     self.project2.prj_nm)
         #self.assertNotContains(response, linkstring, html=True)
 
-        linkstring = '''<a href="{{ self.project3.get_absolute_url }}"> 
-                 {{ self.project3.prj_cd }} - {{ self.project3.prj_nm }} </a>'''
+        #this project should be in the response
+        linkstring = baselink.format(self.project3.get_absolute_url(),
+                                     self.project3.prj_cd,
+                                     self.project3.prj_nm)
         #self.assertContains(response, linkstring, html=True)
 
 
@@ -201,4 +218,3 @@ class CanUseSearchForm(WebTest):
         self.project2.delete()
         self.project3.delete()
         self.ProjType.delete()
-

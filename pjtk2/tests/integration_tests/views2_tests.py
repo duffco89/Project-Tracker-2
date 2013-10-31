@@ -150,7 +150,7 @@ class ProjectTaggingTestCase(WebTest):
         self.assertTemplateUsed(response, 'pjtk2/ProjectForm.html')
 
         #get the form and submit it
-        form = response.form
+        form = response.forms['ProjectForm']
         form['tags'] = "blue, green, red, yellow"
         response = form.submit()
 
@@ -176,9 +176,9 @@ class ProjectTaggingTestCase(WebTest):
         #=======================
         #verify that the tags are associated with that project
         tags_back = self.project1.tags.all().order_by("name")
-        self.assertQuerysetEqual(tags_back, tags, lambda a:str(a.name))
+        self.assertQuerysetEqual(tags_back, tags, lambda a: str(a.name))
         tags_back = self.project2.tags.all().order_by("name")
-        self.assertQuerysetEqual(tags_back, tags, lambda a:str(a.name))
+        self.assertQuerysetEqual(tags_back, tags, lambda a: str(a.name))
 
         #load the page associated with tag 1 and verify that it
         #contains records for projectt 1 and 2 (as hyperlinks), but
@@ -188,25 +188,29 @@ class ProjectTaggingTestCase(WebTest):
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed('pjtk2/ProjectList.html')
 
+        print response
+
         msg = "<h1>Projects tagged with '%s'</h1>" % tags[0]
         self.assertContains(response, msg, html=True)
 
+        linkbase= '<a href="{0}">{1}</a>'
+
         #Project 1
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
-                             args = (self.project1.slug,)),
-                                             self.project1.prj_cd)
+        #linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
+        #                     args = (self.project1.slug,)),
+        #                                     self.project1.prj_cd)
+        linkstring = linkbase.format(self.project1.get_absolute_url(),
+                                     self.project1.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 2
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
-                             args = (self.project2.slug,)),
-                                             self.project2.prj_cd)
+        linkstring = linkbase.format(self.project2.get_absolute_url(),
+                                     self.project2.prj_cd)
         self.assertContains(response, linkstring, html=True)
 
         #Project 3
-        linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
-                            args = (self.project3.slug,)),
-                                             self.project3.prj_cd)
+        linkstring = linkbase.format(self.project3.get_absolute_url(),
+                                     self.project3.prj_cd)
         self.assertNotContains(response, linkstring, html=True)
 
         #====================
@@ -730,7 +734,7 @@ class TestProjectDetailForm(WebTest):
                                         args=(self.project1.slug,)),
                                 user=self.user1)
 
-        form = response.form
+        form = response.forms['ProjectForm']
         # grab the values of the check boxes and convert them to
         # another boolean vector
         checked =[x.checked for x in form.fields['milestones']]
@@ -760,10 +764,10 @@ class TestProjectDetailForm(WebTest):
                                         args=(self.project1.slug,)),
                                 user=self.user1)
 
-        form = response.form
+        form = response.forms['ProjectForm']
         # grab the values of the check boxes and convert them to
         # another boolean vector
-        checked =[x.checked for x in form.fields['milestones']]
+        checked = [x.checked for x in form.fields['milestones']]
         #the status of the check boxes should match the status of the
         #completed field
         self.assertListEqual(completed, checked)
@@ -785,7 +789,7 @@ class TestProjectDetailForm(WebTest):
         self.assertTemplateUsed(response, "pjtk2/ProjectForm.html")
         self.assertContains(response, self.project1.prj_cd)
 
-        form = response.form
+        form = response.forms['ProjectForm']
         #none of the milestones have been completed yet so none of the
         # check boxes should be checked:
         checked =[x.checked for x in form.fields['milestones']]
@@ -825,7 +829,7 @@ class TestProjectDetailForm(WebTest):
                                         args=(self.project1.slug,)),
                                 user=self.user2)
 
-        form = response.form
+        form = response.forms['ProjectForm']
         #none of the milestones have been completed yet so none of the
         # check boxes should be checked:
         checked =[x.checked for x in form.fields['milestones']]
@@ -878,7 +882,7 @@ class TestProjectDetailForm(WebTest):
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
                                 user=self.user2)
-        form = response.form
+        form = response.forms['ProjectForm']
         #Oops - the field wasn't completed for this project, and the
         #data isn't scrubbed
         form.fields['milestones'][1].value = None
@@ -898,7 +902,6 @@ class TestProjectDetailForm(WebTest):
                                  lambda a:a.completed!=None)
 
 
-
     def test_protected_milestones_are_disabled_for_users(self):
         '''Homer is a project lead, not a manager, and should not be able to
         update protected milestones. Verify that the check boxes
@@ -913,13 +916,14 @@ class TestProjectDetailForm(WebTest):
         self.assertTemplateUsed(response, "pjtk2/ProjectForm.html")
         self.assertContains(response, self.project1.prj_cd)
 
-        form = response.form
+        form = response.forms['ProjectForm']
 
-        Enabled = [cb.attrs.get('disabled','enabled') for cb in
-                              form.fields['milestones']]
+        Enabled = [cb.attrs.get('disabled', 'enabled') for cb in
+                   form.fields['milestones']]
         #verify that the protected milestones are disabled
         shouldbe = ['disabled', 'enabled', 'enabled', 'enabled', 'disabled']
 
+        print response
         #the lamba function will return True if it has been completed,
         #otherwise false
         self.assertListEqual(Enabled, shouldbe)
@@ -941,10 +945,10 @@ class TestProjectDetailForm(WebTest):
         self.assertTemplateUsed(response, "pjtk2/ProjectForm.html")
         self.assertContains(response, self.project1.prj_cd)
 
-        form = response.form
+        form = response.forms['ProjectForm']
 
-        Enabled = [cb.attrs.get('disabled','enabled') for cb in
-                                      form.fields['milestones']]
+        Enabled = [cb.attrs.get('disabled', 'enabled') for cb in
+                   form.fields['milestones']]
 
         #verify that the protected milestones are disabled
         shouldbe = ['enabled', 'enabled', 'enabled', 'enabled', 'enabled']
@@ -1021,7 +1025,7 @@ class TestCanCopyProject(WebTest):
         response = self.app.get(reverse('CopyProject',
                                         args=(self.project1.slug,)),
                                 user=self.user2)
-        form = response.form
+        form = response.forms['ProjectForm']
 
         new_prj_cd = "LHA_IA13_ZZZ"
         new_prj_nm = "Barney's First Project"

@@ -44,7 +44,6 @@
 	<th>Project Name</th>
       </tr>
     </thead>
-    </tbody>
     {% for project in object_list %}
     <tr>
       <td> {{ project.year }} </td>
@@ -57,8 +56,11 @@
       </td>
     </tr>
     {% endfor %}
-    </tbody>
   </table>
+  {% if manager %}
+        <a href="{% url 'ApproveProjects'  %}">
+	<button type="button" class="btn bnt-default">Update this list</button> </a>
+  {% endif %}
 
   {% else %}
   <p>Sorry no projects available.</p>

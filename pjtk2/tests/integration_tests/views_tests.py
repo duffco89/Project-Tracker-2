@@ -229,7 +229,7 @@ class ProjectDetailownerTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
-        self.assertContains(response, 'Project Detail')
+        #self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
@@ -281,7 +281,7 @@ class ProjectDetailJoeUserTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
-        self.assertContains(response, 'Project Detail')
+        #self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
@@ -339,7 +339,7 @@ class ProjectDetailManagerTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
-        self.assertContains(response, 'Project Detail')
+        #self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
         self.assertContains(response, self.project.prj_ldr)
@@ -409,7 +409,8 @@ class ApprovedProjectListUserTestCase(TestCase):
         response = self.client.get(reverse('ApprovedProjectsList'))
         self.assertEqual(response.status_code, 200)
 
-        self.assertTemplateUsed(response, 'pjtk2/ApprovedProjectList.html')
+        #self.assertTemplateUsed(response, 'pjtk2/ApprovedProjectList.html')
+        self.assertTemplateUsed(response, 'pjtk2/ProjectList.html')
         self.assertContains(response, 'Projects')
         #it should not contain the project that isn't approved
         self.assertNotContains(response, self.project.prj_cd)
@@ -422,8 +423,6 @@ class ApprovedProjectListUserTestCase(TestCase):
         #since this user is not a manager, she should not be able to
         #update the list
         self.assertNotContains(response, "Update this list")
-
-
 
     def test_without_Login(self):
         '''if we try to view page without logging in, we should be
@@ -486,7 +485,8 @@ class ApprovedProjectListManagerTestCase(TestCase):
         response = self.client.get(reverse('ApprovedProjectsList'))
         self.assertEqual(response.status_code, 200)
 
-        self.assertTemplateUsed(response, 'pjtk2/ApprovedProjectList.html')
+        #self.assertTemplateUsed(response, 'pjtk2/ApprovedProjectList.html')
+        self.assertTemplateUsed(response, 'pjtk2/ProjectList.html')
         self.assertContains(response, 'Projects')
         #it should not contain the project that isn't approved
         self.assertNotContains(response, self.project.prj_cd)

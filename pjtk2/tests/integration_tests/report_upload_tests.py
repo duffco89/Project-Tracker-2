@@ -35,23 +35,23 @@ class BasicReportUploadTestCase(WebTest):
 
     def setUp(self):
         #USER
-        self.user = UserFactory.create(username = 'hsimpson',
-                                first_name = 'Homer',
-                                last_name = 'Simpson')
+        self.user = UserFactory.create(username='hsimpson',
+                                       first_name='Homer',
+                                       last_name='Simpson')
 
         #required reports
-        self.rep1 = MilestoneFactory.create(label = "Proposal Presentation",
-                                            category = 'Core', order = 1,
-                                            report = True)
-        self.rep2 = MilestoneFactory.create(label = "Completion Report",
-                                            category = 'Core', order = 2,
-                                            report = True)
-        self.rep3 = MilestoneFactory.create(label = "Summary Report",
-                                            category = 'Core', order = 3,
-                                            report = True)
-        self.rep4 = MilestoneFactory.create(label = "Budget Report",
-                                            category = 'Custom', order = 99,
-                                            report = True)
+        self.rep1 = MilestoneFactory.create(label="Proposal Presentation",
+                                            category='Core', order=1,
+                                            report=True)
+        self.rep2 = MilestoneFactory.create(label="Completion Report",
+                                            category='Core', order=2,
+                                            report=True)
+        self.rep3 = MilestoneFactory.create(label="Summary Report",
+                                            category='Core', order=3,
+                                            report=True)
+        self.rep4 = MilestoneFactory.create(label="Budget Report",
+                                            category='Custom', order=99,
+                                            report=True)
 
         #PROJECTS
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
@@ -64,6 +64,7 @@ class BasicReportUploadTestCase(WebTest):
         #here is fake file that we will upload
         self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
+
         self.mock_file.name = "path/to/some/fake/file.txt"
 
         self.mock_file2 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
@@ -98,7 +99,7 @@ class BasicReportUploadTestCase(WebTest):
         #this project.  It should not be in the response:
         self.assertNotIn(self.rep4.label, response)
 
-        form = response.form
+        form = response.forms['uploadreports']
         #there should be four forms in the formset
         formcnt = len([x for x in form.fields.keys() if
                                x.endswith("-report_path")])
@@ -139,7 +140,7 @@ class BasicReportUploadTestCase(WebTest):
         self.assertIn(self.rep4.label, response)
 
 
-        form = response.form
+        form = response.forms['uploadreports']
         #there should be four forms in the formset
         formcnt = len([x for x in form.fields.keys() if
                        x.endswith("-report_path")])

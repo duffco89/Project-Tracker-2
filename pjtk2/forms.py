@@ -20,7 +20,7 @@ from django.utils.safestring import mark_safe
 from itertools import chain
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (Submit, Layout, Fieldset, Field, ButtonHolder, 
+from crispy_forms.layout import (Submit, Layout, Fieldset, Field, ButtonHolder,
                                  Div)
 
 from taggit.forms import *
@@ -175,8 +175,6 @@ class NoticesForm(forms.Form):
 
     def save(self, *args, **kwargs):
 
-        #import pdb; pdb.set_trace()
-
         if self.cleaned_data['read'] is True:
             now = datetime.datetime.now(pytz.utc)
             msg_id = self.initial['msg_id']
@@ -245,7 +243,6 @@ class ApproveProjectsForm(forms.ModelForm):
 
 
     def save(self, commit=True):
-        #import pdb; pdb.set_trace()
         if self.has_changed:
             if self.cleaned_data['Approved']:
                 self.instance.approve()
@@ -583,13 +580,9 @@ class ProjectForm(forms.ModelForm):
                     'master_database',
                     'lake',
                     'dba',
-                    'tags',
+                    'tags'
                 )),
-            #ButtonHolder(
-            #    Submit('submit', 'Submit')
-            #)
          )
-
 
         super(ProjectForm, self).__init__(*args, **kwargs)
         self.readonly = readonly
@@ -609,7 +602,7 @@ class ProjectForm(forms.ModelForm):
                            for x in milestones]
 
             # *** NOTE ***
-            #completed must be a list of values that match the choices (above)
+            #'completed' must be a list of values that match the choices (above)
             completed = [x.id for x in milestones if x.completed is not None]
             self.fields.update(
                 {"milestones": forms.MultipleChoiceField(
@@ -620,8 +613,12 @@ class ProjectForm(forms.ModelForm):
                     required=False,
             ),})
             self.helper.layout[0].extend(
-                [Div(Fieldset('Milestones', 'milestones'),
-                     css_class="row")])
+                [Div(Fieldset(
+                    'Milestones',
+                    #'milestones'
+                    Field('milestones',
+                          template='pjtk2/_MultipleSelectwDisable.html')
+                ), css_class="row")])
 
 
     ##def clean_Approved(self):
@@ -696,27 +693,26 @@ class SisterProjectsForm(forms.Form):
     '''This project form is used to identify sister projects'''
 
     sister = forms.BooleanField(
-        label = "Sister:",
-        required =False,
+        label="Sister:",
+        required=False,
     )
 
     prj_nm = forms.CharField(
-        widget = ReadOnlyText,
-        label = "Project Name",
-        required =False,
+        widget=ReadOnlyText,
+        label="Project Name",
+        required=False,
     )
 
     slug = forms.CharField(
-        label = "slug",
-        required =False,
+        label="slug",
+        required=False,
     )
 
-
     prj_ldr = forms.CharField(
-        widget = ReadOnlyText,
-        label = "Project Leader",
-        max_length = 80,
-        required = False,
+        widget=ReadOnlyText,
+        label="Project Leader",
+        max_length=80,
+        required=False,
     )
 
     def __init__(self, *args, **kwargs):
@@ -727,18 +723,15 @@ class SisterProjectsForm(forms.Form):
         self.url = kwargs['initial'].get('url', None)
 
         #use a hyperlink widget for the project code
-        self.fields.update({"prj_cd":forms.CharField(
-            widget = HyperlinkWidget(
-                             url = self.url,
-                             text = self.prj_cd),
-            label = "Project Code",
-            max_length = 13,
-            required = False,
-        )
-        ,})
+        self.fields.update({"prj_cd": forms.CharField(
+            widget=HyperlinkWidget(url=self.url,
+                                   text=self.prj_cd),
+            label="Project Code", max_length=13, required=False,
+        )})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['sister','prj_cd', 'prj_nm', 'prj_ldr', 'slug']
+        self.fields.keyOrder = ['sister', 'prj_cd', 'prj_nm',
+                                'prj_ldr', 'slug']
 
 
     def clean_prj_cd(self):
@@ -760,12 +753,12 @@ class SisterProjectsForm(forms.Form):
         slug = self.cleaned_data['slug']
         #1. if sister was true and is now false, remove that
         # project from the family
-        if (self.cleaned_data['sister']==False and
-            self.initial['sister']==True):
+        if (self.cleaned_data['sister'] is False and
+              self.initial['sister'] is True):
             parentProject.delete_sister(slug)
         #2. if sister was false and is now true, add this project to the family.
-        elif (self.cleaned_data['sister']==True and
-            self.initial['sister']==False):
+        elif (self.cleaned_data['sister'] is True and
+              self.initial['sister'] is False):
             parentProject.add_sister(slug)
         #do nothing
         else:

@@ -9,7 +9,7 @@
 <hr />
 
 {% if empty == False %}
-<form method="post" action="">
+<form id="sisterformset" method="post" action="">
   {% csrf_token %}
   {{ formset.management_form }}
   {{ formset.non_form_errors.as_ul }}
