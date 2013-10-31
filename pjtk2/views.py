@@ -522,7 +522,7 @@ def report_milestones(request, slug):
         core = ReportsForm(project=project, reports=reports)
         custom = ReportsForm(project=project, reports=reports, what='Custom')
 
-    return render_to_response('reportform.html',
+    return render_to_response('pjtk2/reportform.html',
                               {'Milestones': milestones,
                                'Core': core,
                                'Custom': custom,
@@ -561,7 +561,7 @@ def report_upload(request, slug):
             return HttpResponseRedirect(project.get_absolute_url())
     else:
         formset = report_formset(initial=reports)
-    return render_to_response('UploadReports.html',
+    return render_to_response('pjtk2/UploadReports.html',
                               {'formset': formset,
                                'project': project},
                               context_instance=RequestContext(request))
@@ -753,23 +753,23 @@ def sisterprojects(request, slug):
                               context_instance=RequestContext(request))
 
 
-def uploadlist(request):
-    '''An example view that illustrates how to handle uploading files.
-    basic, but functional.'''
-    # Handle file upload
-    if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            # Redirect to the document list after POST
-            return HttpResponseRedirect(reverse('pjtk2.views.uploadlist'))
-    else:
-        form = DocumentForm() # A empty, unbound form
-    # Load documents for the list page
-    reports = Report.objects.all()
-    # Render list page with the documents and the form
-    return render_to_response(
-        'upload_example.html',
-        {'reports': reports, 'form': form},
-        context_instance=RequestContext(request)
-    )
+#def uploadlist(request):
+#    '''An example view that illustrates how to handle uploading files.
+#    basic, but functional.'''
+#    # Handle file upload
+#    if request.method == 'POST':
+#        form = DocumentForm(request.POST, request.FILES)
+#        if form.is_valid():
+#            form.save()
+#            # Redirect to the document list after POST
+#            return HttpResponseRedirect(reverse('pjtk2.views.uploadlist'))
+#    else:
+#        form = DocumentForm() # A empty, unbound form
+#    # Load documents for the list page
+#    reports = Report.objects.all()
+#    # Render list page with the documents and the form
+#    return render_to_response(
+#        'upload_example.html',
+#        {'reports': reports, 'form': form},
+#        context_instance=RequestContext(request)
+#    )

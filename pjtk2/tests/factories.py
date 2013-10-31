@@ -6,13 +6,13 @@ from django.template.defaultfilters import slugify
 from pjtk2.models import *
 
 
-class UserFactory(factory.Factory):
+class UserFactory(factory.DjangoModelFactory):
     FACTORY_FOR = User
     first_name = 'John'
     last_name = 'Doe'
     #username = 'johndoe'
-    username = factory.Sequence(lambda n: 'User ' + n)
-    email = 'johndoe@hotmail.com'    
+    username = factory.Sequence(lambda n: 'User {0}'.format(n))
+    email = 'johndoe@hotmail.com'
     #admin = False
     password = 'abc'
 
@@ -29,29 +29,31 @@ class UserFactory(factory.Factory):
         return user
 
 
-class DBA_Factory(factory.Factory):
+class DBA_Factory(factory.DjangoModelFactory):
     FACTORY_FOR = User
     first_name = 'Bill'
     last_name = 'Gates'
     #username = 'billgates'
-    username = factory.Sequence(lambda n: 'DBA' + n)
-    email = 'microsoft@sucks.com'    
+    username = factory.Sequence(lambda n: 'DBA {0}'.format(n))
+    email = 'microsoft@sucks.com'
     is_superuser = True
 
 
-class ManagerFactory(factory.Factory):
+class ManagerFactory(factory.DjangoModelFactory):
     FACTORY_FOR = User
     first_name = 'Boss'
     last_name = 'Hogg'
     username = 'bosshogg'
-    email = 'bosshogg@hotmail.com'    
+    email = 'bosshogg@hotmail.com'
     manager = True
 
-class LakeFactory(factory.Factory):
-    FACTORY_FOR = Lake
-    lake = "lake Huron"
 
-class EmployeeFactory(factory.Factory):
+class LakeFactory(factory.DjangoModelFactory):
+    FACTORY_FOR = Lake
+    lake = "Lake Huron"
+
+
+class EmployeeFactory(factory.DjangoModelFactory):
     FACTORY_FOR = Employee
     user = factory.SubFactory(UserFactory)
     position = 'worker bee'
@@ -59,22 +61,24 @@ class EmployeeFactory(factory.Factory):
     #lake = factory.SubFactory(LakeFactory)
     supervisor = None
 
-class ProjTypeFactory(factory.Factory):
+
+class ProjTypeFactory(factory.DjangoModelFactory):
     FACTORY_FOR = ProjectType
     project_type = "Offshore Index"
 
-class DatabaseFactory(factory.Factory):
+
+class DatabaseFactory(factory.DjangoModelFactory):
     FACTORY_FOR = Database
     master_database = "Offshore Master"
-    path = "C:/Path/to/somedb.mdb"    
+    path = "C:/Path/to/somedb.mdb"
 
 
-class FamilyFactory(factory.Factory):
+class FamilyFactory(factory.DjangoModelFactory):
     FACTORY_FOR = Family
     id = factory.Sequence(lambda n:n)
 
-    
-class ProjectFactory(factory.Factory):
+
+class ProjectFactory(factory.DjangoModelFactory):
     '''year and slug are built by the project save method'''
     FACTORY_FOR = Project
     prj_cd = "LHA_IA12_123"
@@ -91,40 +95,42 @@ class ProjectFactory(factory.Factory):
 
     @factory.lazy_attribute
     def prj_date0(a):
-        datestring = "January 15, 20%s" % a.prj_cd[6:8] 
+        datestring = "January 15, 20%s" % a.prj_cd[6:8]
         prj_date0 = datetime.datetime.strptime(datestring, "%B %d, %Y")
         return(prj_date0)
 
     @factory.lazy_attribute
     def prj_date1(a):
-        datestring = "January 15, 20%s" % a.prj_cd[6:8] 
+        datestring = "January 15, 20%s" % a.prj_cd[6:8]
         prj_date1 = datetime.datetime.strptime(datestring, "%B %d, %Y")
         return(prj_date1)
 
-class ProjectSisters(factory.Factory):
-    FACTORY_FOR = ProjectSisters    
+
+class ProjectSisters(factory.DjangoModelFactory):
+    FACTORY_FOR = ProjectSisters
     family = factory.SubFactory(FamilyFactory)
     project = factory.SubFactory(ProjectFactory)
 
-class MilestoneFactory(factory.Factory):
+
+class MilestoneFactory(factory.DjangoModelFactory):
     FACTORY_FOR = Milestone
     '''Look-up table of reporting milestone'''
     label = "Completion Report"
     category = "Core"
     order = 1
 
-class ProjectMilestonesFactory(factory.Factory):
+
+class ProjectMilestonesFactory(factory.DjangoModelFactory):
     FACTORY_FOR = ProjectMilestones
     '''list of reporting requirements for each project'''
     project = factory.SubFactory(ProjectFactory)
     milestone = factory.SubFactory(MilestoneFactory)
 
-class ReportFactory(factory.Factory):
+
+class ReportFactory(factory.DjangoModelFactory):
     FACTORY_FOR = Report
     current = True
     #projectreport = factory.SubFactory(ProjectMilestonesFactory)
     report_path = "some/fake/file.txt"
     uploaded_by = "Bob"
     report_hash = "1234"
-
-    

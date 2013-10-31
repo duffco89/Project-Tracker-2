@@ -61,7 +61,7 @@ class BookmarkTestCase(WebTest):
         response = self.app.get(reverse('Unbookmark_Project',
                                 args=(self.project.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed(response, 'confirm_bookmark_delete.html')
+        self.assertTemplateUsed(response, 'pjtk2/confirm_bookmark_delete.html')
 
         #==================
         #  DELETE BOOKMARK
@@ -147,7 +147,7 @@ class ProjectTaggingTestCase(WebTest):
         response = self.app.get(reverse('EditProject',
                                 args=(self.project1.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed(response, 'ProjectForm.html')
+        self.assertTemplateUsed(response, 'pjtk2/ProjectForm.html')
 
         #get the form and submit it
         form = response.form
@@ -186,7 +186,7 @@ class ProjectTaggingTestCase(WebTest):
         response = self.app.get(reverse('TaggedProjects',
                                 args=(tags[0],)), user=self.user)
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed('ProjectList.html')
+        self.assertTemplateUsed('pjtk2/ProjectList.html')
 
         msg = "<h1>Projects tagged with '%s'</h1>" % tags[0]
         self.assertContains(response, msg, html=True)
@@ -339,7 +339,7 @@ class UpdateReportsTestCase(WebTest):
                                 user=self.user2)
 
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed("reportform.html")
+        self.assertTemplateUsed("pjtk2/reportform.html")
         self.assertContains(response, "Core Reporting Requirements")
         self.assertContains(response, "Additional Reporting Requirements")
 
@@ -379,7 +379,7 @@ class UpdateReportsTestCase(WebTest):
                                 user=self.user2)
 
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed("reportform.html")
+        self.assertTemplateUsed("pjtk2/reportform.html")
         self.assertContains(response, "Core Reporting Requirements")
         self.assertContains(response, "Additional Reporting Requirements")
 
@@ -418,7 +418,7 @@ class UpdateReportsTestCase(WebTest):
                                 user=self.user2)
 
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed("reportform.html")
+        self.assertTemplateUsed("pjtk2/reportform.html")
         self.assertContains(response, "Core Reporting Requirements")
         self.assertContains(response, "Additional Reporting Requirements")
 
@@ -450,7 +450,7 @@ class UpdateReportsTestCase(WebTest):
                                 user=self.user2)
 
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed("reportform.html")
+        self.assertTemplateUsed("pjtk2/reportform.html")
         self.assertContains(response, "Core Reporting Requirements")
         self.assertContains(response, "Additional Reporting Requirements")
 
@@ -485,7 +485,7 @@ class UpdateReportsTestCase(WebTest):
                                 user=self.user2)
 
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed("reportform.html")
+        self.assertTemplateUsed("pjtk2/reportform.html")
         self.assertContains(response, "Project Milestones")
 
         #get the sub-report that has the check boxes for reports
@@ -579,7 +579,7 @@ class MyProjectViewTestCase(WebTest):
         self.assertTrue(login)
         response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project2.prj_cd)
         #these values should NOT be in the response:
@@ -594,7 +594,7 @@ class MyProjectViewTestCase(WebTest):
         self.assertTrue(login)
         response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project2.prj_cd)
 
@@ -618,7 +618,7 @@ class MyProjectViewTestCase(WebTest):
         self.assertTrue(login)
         response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project2.prj_cd)
         self.assertContains(response, self.project3.prj_cd)
@@ -782,7 +782,7 @@ class TestProjectDetailForm(WebTest):
                                         args=(self.project1.slug,)),
                                 user=self.user1)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "ProjectForm.html")
+        self.assertTemplateUsed(response, "pjtk2/ProjectForm.html")
         self.assertContains(response, self.project1.prj_cd)
 
         form = response.form
@@ -800,7 +800,7 @@ class TestProjectDetailForm(WebTest):
         response = form.submit().follow()
         #we should be re-directed to to the project detail page
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "projectdetail.html")
+        self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
         milestones = self.project1.get_milestones()
 
         #verify that the milestones homer checked off now have values in
@@ -840,7 +840,7 @@ class TestProjectDetailForm(WebTest):
         response = form.submit().follow()
         #we should be re-directed to to the project detail page
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "projectdetail.html")
+        self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
         milestones = self.project1.get_milestones()
 
         #verify that the milestones homer checked off now have values in
@@ -887,7 +887,7 @@ class TestProjectDetailForm(WebTest):
         response = form.submit().follow()
         #we should be re-directed to to the project detail page
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "projectdetail.html")
+        self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
         milestones = self.project1.get_milestones()
 
         #verify that the only milestone completed is now the first one
@@ -910,7 +910,7 @@ class TestProjectDetailForm(WebTest):
                                         args=(self.project1.slug,)),
                                 user=self.user1)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "ProjectForm.html")
+        self.assertTemplateUsed(response, "pjtk2/ProjectForm.html")
         self.assertContains(response, self.project1.prj_cd)
 
         form = response.form
@@ -938,7 +938,7 @@ class TestProjectDetailForm(WebTest):
                                         args=(self.project1.slug,)),
                                 user=self.user2)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "ProjectForm.html")
+        self.assertTemplateUsed(response, "pjtk2/ProjectForm.html")
         self.assertContains(response, self.project1.prj_cd)
 
         form = response.form
@@ -966,7 +966,7 @@ class TestProjectDetailForm(WebTest):
                                         args=(self.project1.slug,)),
                                 user=self.user3).follow()
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "projectdetail.html")
+        self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
 
 
     def tearDown(self):

@@ -64,7 +64,7 @@ class ProjectBookmarkingTestCase(TestCase):
         self.assertTrue(login)
         response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
         self.assertContains(response, 'Bookmarks')
         #self.assertNotContains(response, self.project1.prj_cd)
         #self.assertNotContains(response, self.project2.prj_cd)
@@ -86,7 +86,7 @@ class ProjectBookmarkingTestCase(TestCase):
              reverse('Bookmark_Project', args=(self.project1.slug,)),
                      follow=True)
         #we should be re-directed back to the project detail page
-        self.assertTemplateUsed(response, 'projectdetail.html')
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project1.prj_nm)
@@ -121,7 +121,7 @@ class ProjectBookmarkingTestCase(TestCase):
                      follow=True)
         #this is get request to a project that has a book mark,
         #we should be redirect to the confirmation page.
-        self.assertTemplateUsed(response, 'confirm_bookmark_delete.html')
+        self.assertTemplateUsed(response, 'pjtk2/confirm_bookmark_delete.html')
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, "Delete bookmark")
 
@@ -144,7 +144,7 @@ class ProjectBookmarkingTestCase(TestCase):
         response = self.client.post(
              reverse('Unbookmark_Project', args=(self.project1.slug,)),
                      follow=True)
-        self.assertTemplateUsed(response, 'projectdetail.html')
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
         self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project1.prj_nm)

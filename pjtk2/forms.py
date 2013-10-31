@@ -272,11 +272,11 @@ class ReportsForm(forms.Form):
         assigned = self.milestones[self.what]["assigned"]
 
         self.fields[self.what] = forms.MultipleChoiceField(
-            choices = reports,
-            initial = assigned,
-            label = "",
-            required = False,
-            widget = forms.widgets.CheckboxSelectMultiple(),
+            choices=reports,
+            initial=assigned,
+            label="",
+            required=False,
+            widget=forms.widgets.CheckboxSelectMultiple(),
             )
 
 

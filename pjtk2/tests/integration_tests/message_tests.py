@@ -81,7 +81,7 @@ class MessagesRenderTestCase(WebTest):
         self.assertTrue(login)
         response = self.app.get(reverse('MyProjects'), user=myuser)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
 
         #jerry notices should contain the new project, the project
         #code and the word submitted
@@ -94,7 +94,7 @@ class MessagesRenderTestCase(WebTest):
         response = form.submit().follow()
 
         #the response should NOT contain those elements now
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
         self.assertNotContains(response, self.project1.prj_cd)
         self.assertNotContains(response, self.project1.prj_nm)
 
@@ -111,7 +111,7 @@ class MessagesRenderTestCase(WebTest):
         self.assertTrue(login)
         response = self.app.get(reverse('MyProjects'), user=myuser)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
 
         #George's notices should contain the new project, the project
         #code and the word submitted
@@ -124,7 +124,7 @@ class MessagesRenderTestCase(WebTest):
         response = form.submit().follow()
 
         #the response should NOT contain those elements now
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
         self.assertNotContains(response, self.project1.prj_cd)
         self.assertNotContains(response, self.project1.prj_nm)
 
@@ -142,7 +142,7 @@ class MessagesRenderTestCase(WebTest):
         self.assertTrue(login)
         response = self.app.get(reverse('MyProjects'), user=myuser)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
 
         #Kramer's notices should contain the new project, the project
         #code and the word submitted
@@ -155,7 +155,7 @@ class MessagesRenderTestCase(WebTest):
         response = form.submit().follow()
 
         #the response should NOT contain those elements now
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
         self.assertNotContains(response, self.project1.prj_cd)
         self.assertNotContains(response, self.project1.prj_nm)
 
@@ -169,7 +169,7 @@ class MessagesRenderTestCase(WebTest):
         self.assertTrue(login)
         response = self.app.get(reverse('MyProjects'), user=myuser)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "my_projects.html")
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
         self.assertNotContains(response, self.project1.prj_cd)
         self.assertNotContains(response, self.project1.prj_nm)
 
