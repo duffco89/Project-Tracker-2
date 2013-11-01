@@ -9,14 +9,15 @@ from django.contrib import admin
 
 warnings.simplefilter('error', DeprecationWarning)
 
-from pjtk2.views import HomePageView
+#from pjtk2.views import HomePageView
+from pjtk2.views import project_list
 
 # Uncomment the next two lines to enable the admin:
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
-                       url(r'^$', HomePageView.as_view(), name='home'),
+                       url(r'^$', project_list, name='home'),
                        url(r'^coregonusclupeaformis/admin/',
                            include(admin.site.urls), name='admin'),
                        url(r'^test/', include('pjtk2.urls')),)

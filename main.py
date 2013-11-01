@@ -29,7 +29,7 @@ PORT = 8090
 #IP_ADDRESS = "localhost"
 IP_ADDRESS = "127.0.0.1"
 #IP_ADDRESS = "142.143.160.33"
-PROJECT_SETTINGS = "main.settings"
+PROJECT_SETTINGS = "main.settings.production"
 
 if __name__ == '__main__':
     import cherrypy
