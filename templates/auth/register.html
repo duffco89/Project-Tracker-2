@@ -1,11 +1,11 @@
 {% extends "pjtk2/pjtk2_base.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}New User{% endblock %}
 
 {% block content %}
 
 
-<div id="Login">
+<div id="Register">
   <div class="row">
     <!-- Alignment -->
     <div class="col-sm-offset-4 col-sm-3">
@@ -13,7 +13,7 @@
       <!-- Form itself -->
       <form method="POST" action="" class="well">
 	{% csrf_token %}
-	<legend>Login</legend>
+	<legend>New User Registration</legend>
 
 	{% if form.errors %}
 	<div class="alert alert-danger">
@@ -23,6 +23,7 @@
     	    <li>{{ error|striptags }}</li>
 	    {% endfor %}
 	  </ul>
+
 	</div>
 	{% endif %}
 
@@ -36,24 +37,30 @@
 	  </div>
 	</div>
 
-        <!-- Password -->
+        <!-- Password1 -->
 	<div class="control-group">
           <div class="controls">
 	    <input type="password" class="form-control" placeholder="password"
-		   name="password" id="password" required />
+		   name="password1" id="password1" required />
           </div>
 	</div>
 
+        <!-- Password2 -->
+	<div class="control-group">
+          <div class="controls">
+	    <input type="password" class="form-control" placeholder="password (again)"
+		   name="password2" id="password2" required />
+          </div>
+	</div>
         <div class="row">
-	  <p>Not registered? <a href="{% url 'register' %}" tabindex="-1">Create an account here.</a>
-	    <button type="submit" class="btn btn-primary pull-right">Login</button><br /></p>
+	  <p>Already registered? <a href="{% url 'login' %}" tabindex="-1">login here</a>
+	  <button type="submit" class="btn btn-primary pull-right">Register</button><br /></p>
 	</div>
 
       </form>
     </div>
   </div>
 </div>
-
 
 
 {% endblock %}

@@ -20,20 +20,22 @@ urlpatterns = patterns('',
                        url(r'^$', project_list, name='home'),
                        url(r'^coregonusclupeaformis/admin/',
                            include(admin.site.urls), name='admin'),
-                       url(r'^test/', include('pjtk2.urls')),)
+                       url(r'^accounts/', include('auth.urls')),
+                       url(r'^projects/', include('pjtk2.urls')),
+)
 
 # + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 #login/logout (eventually replace)
-urlpatterns += patterns('',
-                        url(r'^accounts/login/$',
-                            'django.contrib.auth.views.login',
-                            {'template_name': 'auth/login.html'},
-                            name='login'),
-
-                        url(r'^accounts/logout/$',
-                            'pjtk2.views.logout_view',
-                            name='logout'),)
+#urlpatterns += patterns('',
+#                        url(r'^accounts/login/$',
+#                            'django.contrib.auth.views.login',
+#                            {'template_name': 'auth/login.html'},
+#                            name='login'),
+#
+#                        url(r'^accounts/logout/$',
+#                            'pjtk2.views.logout_view',
+#                            name='logout'),)
 
 #urlpatterns += staticfiles_urlpatterns()
 urlpatterns += patterns('',

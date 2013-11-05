@@ -34,7 +34,7 @@ class TestUrls(DemoTestCase):
              {'status_code':200}),
 
             (reverse('logout'),
-             {'status_code':302}),
+             {'status_code':200}),
 
             (reverse('ProjectList'),
              {'status_code': 302}),

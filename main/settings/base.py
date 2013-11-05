@@ -155,19 +155,22 @@ DJANGO_APPS = (
 THIRDPARTY_APPS = (
     #'django_extensions',
     #'werkzeug_debugger_runserver',
-    'south',
+    #'south',
     'crispy_forms',
     #'debug_toolbar',
     'django_filters',
     'taggit',
     'haystack',
     #'pjtk2',
+    'passwords',
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 MY_APPS = (
+    'auth',
     'pjtk2',
+
     )
 
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
@@ -221,5 +224,5 @@ LOGGING = {
 
 CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
-#LOGIN_REDIRECT_URL = '/'
-#LOGIN_URL = '/accounts/login'
+LOGIN_REDIRECT_URL = '/'
+LOGIN_URL = '/accounts/login'

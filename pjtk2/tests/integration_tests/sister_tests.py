@@ -15,17 +15,6 @@ def teardown():
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
 
-class IndexViewTestCase(WebTest):
-    '''verfiy that we can view the site index page'''
-    def test_index(self):
-        response = self.app.get('')
-        assert response.status_int == 200
-        self.assertTemplateUsed(response, 'index.html')
-        assert 'Site Index' in response
-        assert 'Project List' in response
-        assert 'Approved Project List' in response
-        assert 'Approve Projects' in response
-
 
 class SisterFormTestCase(WebTest):
 

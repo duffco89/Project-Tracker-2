@@ -221,12 +221,12 @@ class ApprovedProjectsList(ListView):
 
 approved_projects_list = ApprovedProjectsList.as_view()
 
+#def logout_view(request):
+#    '''log the user out and redirect to the login page.'''
+#    logout(request)
+#    return HttpResponseRedirect(reverse('login'))
 
 
-def logout_view(request):
-    '''log the user out and redirect to the login page.'''
-    logout(request)
-    return HttpResponseRedirect(reverse('login'))
 
 #===========================
 # My application Views

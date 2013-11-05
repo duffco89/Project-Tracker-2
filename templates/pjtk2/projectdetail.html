@@ -6,88 +6,85 @@
 
 <div class="container" >
 
-  <h2>{{ project.prj_nm  }}</h2>
-  <br />
-
   <div class="row" >
     <div class="col-md-5" >
+      <h2>{{ project.prj_nm  }}</h2>
+      <br />
       <table cellspacing="0" class="table">
-	<tr>
+        <tr>
           <td><strong>Project Code:</strong></td>
-	  <td>{{ project.prj_cd }}</td>
-	</tr>
+          <td>{{ project.prj_cd }}</td>
+        </tr>
 
-	<tr>
-	  <td><strong>Project Lead:</strong></td>
-	  <td><a href="#">{{ project.prj_ldr }}</a></td>
-	</tr>
+        <tr>
+          <td><strong>Project Lead:</strong></td>
+          <td><a href="#">{{ project.prj_ldr }}</a></td>
+        </tr>
 
-	<tr>
-	  <td><strong>Project Start:</strong></td>
-	  <td> {{ project.prj_date0 }}</td>
-	</tr>
+        <tr>
+          <td><strong>Project Start:</strong></td>
+          <td> {{ project.prj_date0 }}</td>
+        </tr>
 
-	<tr>
-	  <td><strong>Project End:</strong></td>
-	  <td> {{ project.prj_date1 }}</td>
-	</tr>
+        <tr>
+          <td><strong>Project End:</strong></td>
+          <td> {{ project.prj_date1 }}</td>
+        </tr>
 
-	<tr>
-	  <td><strong>Project Type:</strong></td>
-	  <td> {{ project.ProjectType.project_type }}</td>
-	</tr>
+        <tr>
+          <td><strong>Project Type:</strong></td>
+          <td> {{ project.project_type }}</td>
+        </tr>
 
-	<tr>
-	  <td><strong>Master Database:</strong></td>
-	  <td> 	<a href="#">{{ project.master_database.master_database }}</a> </td>
-	</tr>
+        <tr>
+          <td><strong>Master Database:</strong></td>
+          <td>          <a href="#">{{ project.master_database.master_database }}</a> </td>
+        </tr>
       </table>
 
       <p><strong>Project Description:</strong></p>
 
       <div class="panel panel-default" >
-	<div class="panel-body" >
-	  {% if project.comment %}
-	  <p>{{ project.comment|linebreaks  }} </p>
-	  {% else %}
-	  <p><em>Sorry. No project description has been provided. </em>   </p>
-	  {% endif %}
-	</div>
+        <div class="panel-body" >
+          {% if project.comment %}
+          <p>{{ project.comment|linebreaks  }} </p>
+          {% else %}
+          <p><em>Sorry. No project description has been provided. </em>   </p>
+          {% endif %}
+        </div>
       </div>
 
       <p><strong>keywords:</strong></p>
       <div class="panel panel-default" >
-	<div class="panel-body" >
-	  {% if project.tags.all %}
-	  {% for tag in project.tags.all %}
-	  <a href="{% url 'TaggedProjects' tag.name %}">{{ tag.name }}</a> ,
-	  {% endfor %}
-	  {% else %}
-	  <p><em>No keywords have have been associated with this project. </em>   </p>
-	  {% endif%}
-	</div>
+        <div class="panel-body" >
+          {% if project.tags.all %}
+          {% for tag in project.tags.all %}
+          <a href="{% url 'TaggedProjects' tag.name %}">{{ tag.name }}</a> ,
+          {% endfor %}
+          {% else %}
+          <p><em>No keywords have have been associated with this project. </em>   </p>
+          {% endif%}
+        </div>
       </div>
-
     </div>
     <div class="col-md-7" >
-      <h3>Map Placeholder</h3>
-      <img src="{{ STATIC_URL }}LakeTroutClips.png" style="width: 800px;" />
+      <img src="{{ STATIC_URL }}LakeHuron.png" style="width: 600px;" />
+      <br />
     </div>
-
   </div>
-
+  <br />
   <div class="row" >
     <div class="well" >
       <form>
-	<fieldset>
-	  <legend> Milestones:</legend>
+        <fieldset>
+          <legend> Milestones:</legend>
 
-	  {% for milestone in milestones %}
-	  <input type="checkbox" disabled="disabled"
-		 {% if milestone.completed  %} checked="checked" {% endif %}> {{ milestone.milestone.label }}
-	  {% endfor %}
+          {% for milestone in milestones %}
+          <input type="checkbox" disabled="disabled"
+                 {% if milestone.completed  %} checked="checked" {% endif %}> {{ milestone.milestone.label }}
+          {% endfor %}
 
-	</fieldset>
+        </fieldset>
       </form>
     </div>
   </div>
@@ -97,28 +94,28 @@
 
       {% if edit %}
       <a href="{% url 'EditProject' project.slug %}"
-	 onclick="javascript:window.location=this.href">
-	<button type="button" class="btn bnt-default">Edit Information</button> </a>
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn bnt-default">Edit Information</button> </a>
 
       {% if project.is_approved %}
       <a href="{% url 'SisterProjects' project.slug %}">
-	<button type="button" class="btn bnt-default">Sister Projects</button> </a>
+        <button type="button" class="btn bnt-default">Sister Projects</button> </a>
       {% else %}
       <a href="#"
-	 onclick="javascript:window.location=this.href">
-	<button type="button" class="btn bnt-default">Sister Projects</button> </a>
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn bnt-default">Sister Projects</button> </a>
       {% endif %}
 
       {% endif  %}
       <a href="{% url 'CopyProject' project.slug %}"
-	 onclick="javascript:window.location=this.href">
-	<button type="button" class="btn bnt-default">Copy Project</button> </a>
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn bnt-default">Copy Project</button> </a>
       {% if_bookmarked user project %}
       <a href="{% url 'Unbookmark_Project' project.slug %}" onclick="javascript:window.location=this.href">
-	<button type="button" class="btn bnt-default">Remove Bookmark</button> </a>
+        <button type="button" class="btn bnt-default">Remove Bookmark</button> </a>
       {% else %}
       <a href="{% url 'Bookmark_Project' project.slug %}" onclick="javascript:window.location=this.href">
-	<button type="button" class="btn bnt-default">Bookmark Project</button> </a>
+        <button type="button" class="btn bnt-default">Bookmark Project</button> </a>
       {% endif_bookmarked %}
 
     </div>
@@ -135,7 +132,7 @@
     {% for report in Core  %}
     <tr>
       <td> <input type="checkbox" disabled="disabled"
-		  {% if report.required %} checked="checked" {% endif %}>
+                  {% if report.required %} checked="checked" {% endif %}>
         {{ report.milestone }}
       </td>
 
@@ -168,7 +165,7 @@
     {% for report in Custom  %}
     <tr>
       <td> <input type="checkbox" disabled="disabled"
-		  {% if report.required %} checked="checked" {% endif %}>
+                  {% if report.required %} checked="checked" {% endif %}>
         {{ report.milestone }}
       </td>
 

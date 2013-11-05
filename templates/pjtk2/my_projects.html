@@ -2,9 +2,6 @@
 
 {% block extrahead  %}
 
-<script src="{{ STATIC_URL }}js/jquery-1.9.1.js"></script>
-
-<script src="{{ STATIC_URL }}js/jquery-1.10.2.min.js"></script>
 <!-- bootstrap widget theme -->
 <link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
 <!-- tablesorter plugin -->
@@ -129,7 +126,7 @@
 	    <td>
 	      <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
 	    </td>
-	    <td> {{ project.ProjectType }} </td>
+	    <td> {{ project.project_type }} </td>
 	    <td>
 	      {{ project.prj_nm  }}
 	    </td>
@@ -161,7 +158,7 @@
 	    <td>
 	      <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
 	    </td>
-	    <td> {{ project.ProjectType }} </td>
+	    <td> {{ project.project_type }} </td>
 	    <td>
 	      {{ project.prj_nm  }}
 	    </td>
@@ -191,7 +188,7 @@
 	    <td>
 	      <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
 	    </td>
-	    <td> {{ project.ProjectType }} </td>
+	    <td> {{ project.project_type }} </td>
 	    <td>
 	      {{ project.prj_nm  }}
 	    </td>
@@ -234,7 +231,6 @@
    $(this).tab('show')
  })
 </script>
-
 
 
 
