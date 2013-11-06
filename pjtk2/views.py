@@ -177,7 +177,9 @@ class ProjectList(ListFilteredMixin, ListView):
     queryset = Project.objects.all()
     filter_set = ProjectFilter
     template_name = "pjtk2/ProjectList.html"
+    paginate_by=30
 
+    
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
         the request.'''

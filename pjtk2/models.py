@@ -175,7 +175,8 @@ class Project(models.Model):
     prj_cd = models.CharField("Project Code", max_length=12, unique=True,
                               blank=False)
     prj_nm = models.CharField("Proejct Name", max_length=50, blank=False)
-    prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
+    #prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
+    prj_ldr = models.ForeignKey(User, related_name="Project Lead")    
     comment = models.TextField(blank=False,
                                help_text="General project description.")
     help_str = "Potential risks associated with not running project."

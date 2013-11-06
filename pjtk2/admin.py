@@ -7,7 +7,7 @@ from pjtk2.models import (Milestone, ProjectType, Database, Project,
 
 class Admin_Milestone(admin.ModelAdmin):
     '''Admin class for milestones'''
-    list_display = ('label', 'report', 'category', 'protected',)
+    list_display = ('label', 'order', 'report', 'category', 'protected',)
 
 class Admin_ProjectType(admin.ModelAdmin):
     '''Admin class for Project Types'''

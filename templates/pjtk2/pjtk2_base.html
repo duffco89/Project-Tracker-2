@@ -87,7 +87,12 @@
         </div>
 
           {% if user.is_authenticated %}
-          <p class="navbar-text">Welcome {{ user.username }}! </p>
+          <p class="navbar-text">Welcome 
+            {% if user.first_name %} 
+            {{ user.first_name }}!
+            {% else %} 
+            {{ user.username }}!
+            {% endif %} </p>
           <p class="navbar-text"><a href="{% url 'logout' %}?next=/">Logout</a> </p>
           {% else %}
           <p class="navbar-text"><a href="{% url 'login' %}">Login</a> </p>
