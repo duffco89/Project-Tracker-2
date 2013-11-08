@@ -35,21 +35,36 @@ A. Cottrill
 #===============================================================
 
 import adodbapi
-import sqlite3
 import datetime
+import hashlib
+import os
+#import pdb
+import shutil
+import sqlite3
 import re
-import pdb
-import helper_functions
+
+from helper_functions import *
+
 
 #here is the database we want to append into
 #targdb = "c:/1work/DropBox/Dropbox/PythonStuff/djcode/uglmu/uglmu.db"
 targdb = "C:/1work/Python/djcode/pjtk2/db/pjtk2.db"
+
+# MEDIA_ROOT is where all of the files will be copied to this assumes
+#that your app looks for files in a directory 'uploads' which located
+#at the same level as ~/db (and ~/main, ~/static ~/static_root etc)
+# make sure this matches MEDIA_ROOT in your django settings file
+MEDIA_URL = 'reports'
+MEDIA_ROOT = os.path.abspath(os.path.join(os.path.split(targdb)[0], "../uploads"))
+MEDIA_PATH = os.path.abspath(os.path.join(MEDIA_ROOT, MEDIA_URL))
 
 #here is the source database
 #dbase = r"E:/Project_Tracking_Tables.mdb"
 dbase = "C:/1work/Python/djcode/pjtk2/migration/Project_Tracking_Tables.mdb"
 
 constr = 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0}'.format(dbase)
+
+my_user_id = get_user_id('adam', targdb)
 
 #============================================
 # get the database locations
@@ -339,12 +354,15 @@ print datetime.datetime.now()
 sqlcon.close()
 
 
+#============================================
+#   Project-Milestones
 
 #now for every project we want to insert a record into the core milestones table
 #get the list of milestones:
-            
 
+print "Adding project-milestones..."            
 
+#get all of our milestone ids
 sqlcon = sqlite3.connect(targdb)
 sqlcur = sqlcon.cursor()
 sql = 'select id from pjtk2_milestone where category="Core"'
@@ -354,6 +372,7 @@ sqlcon.close()
 
 milestone_ids = [x[0] for x in result]
 
+#get all of out project id numbers:
 sqlcon = sqlite3.connect(targdb)
 sqlcur = sqlcon.cursor()
 sql = 'select id from pjtk2_project'
@@ -373,210 +392,227 @@ for prj_id in prj_ids:
                 """
     sqlcur.executemany(sql,args)
     sqlcon.commit()
-print "done!!"            
-
-
-            
-            
-
+print "Done adding project-milestones!!"            
 
             
-#======================
+
+            
+#============================================
+#   REPORTS
+
+# reports are a little trickier (completion presentations and summary
+# reports are even more complicated and will be left until last)
+
+# for each report in access tables, use Key_PM to find out which project it is appociated with,  the table that it is in will indicate which milestone it is for
+# here is the psuedo code for the steps involved:
+
+# get milestone_id from milestones where label==ms_access table name
+# get project_id from pjtk2_project where oldkey=Key_PM            
+            
+# begin transaction
+# select id from  pjtk2_projectsmilesones where
+#            milestone_id={0} and project_id={1}
+
+# copy report from Y to ~/medial/reports
+
+# insert record into pjtk2_reports in
+            
+# create record in pjtk2_report_projectreport set
+#            report_id=report_id and project_milestone_id to project_milestone_id
+
+# update pjtk2_projectsmilesones set completed=now() where project 
+
+
+
+#====================================
+# COMPLETION PRESENTATIONS
+          
 # Now for each report table, import it from access, insert it into
 #sqlite and then update the PM_KEY from OldKey to ID
 
 #project completion presentations:
+milestone_label = "Project Completion Pres."
+milestone_id = get_milestone_id(milestone_label, targdb)
+
+print "Starting to migrage {0}s (milestone_id = {1})".format(milestone_label,
+                                                           milestone_id)
+
 sql = """SELECT Proj_Comp_Pres.Key_PM, Proj_Comp_Pres.Report
-FROM Proj_Comp_Pres WHERE (((Proj_Comp_Pres.Report) Is Not Null))"""
-mdbconn = adodbapi.connect(constr)
-mdbcur = mdbconn.cursor()
-mdbcur.execute(sql)
-result = mdbcur.fetchall()
-mdbcur.close()
+     FROM Proj_Comp_Pres WHERE (((Proj_Comp_Pres.Report) Is Not Null))"""
 
-# verify that we got what we thought
-for item in result[:5]:
-    print item
-print "Record Count = %s" % result.numberOfRows
-
-Key_PM = [x[0] for x in result]
-#strip the extra string off of the MS hyperlinks:
-paths = [re.sub(r"\#.*","", str(row[1])) for row in result]
-
-#put the elements to a list of tuples so that they can be appended
-#with executemany
-reportlocs = zip(Key_PM, paths, Key_PM)
+result = msaccess(constr, sql)
+print "{0} {1}s found.".format(result.numberOfRows, milestone_label)
 
 
-InsertReportRecords(reportlocs, "pjtk2_proj_comp_pres", targdb,
-                    "Report", True)
+key_pm = [x['key_pm'] for x in result]
+#strip the extra strings off of the MS hyperlinks:
+paths = [re.sub(r"\#.*","", str(row['report'])) for row in result]
+
+for report in zip(key_pm, paths):
+    migrate_reports(report[0],report[1], milestone_id, user_id=my_user_id,
+                    media_url=MEDIA_URL, media_path=MEDIA_PATH, targdb=targdb)
+
+print "Done migrating {0}.".format(milestone_label)
+
 
 
 #====================================
+# COMPLETION REPORTS
+          
+# Now for each report table, import it from access, insert it into
+#sqlite and then update the PM_KEY from OldKey to ID
+
 #project completion presentations:
-sql = """SELECT Key_PM, Report
-FROM Proj_Completion WHERE (((Report) Is Not Null))"""
-mdbconn = adodbapi.connect(constr)
-mdbcur = mdbconn.cursor()
-mdbcur.execute(sql)
-result = mdbcur.fetchall()
-mdbcur.close()
+milestone_label = "Project Completion Report"
+milestone_id = get_milestone_id(milestone_label, targdb)
 
-# verify that we got what we thought
-for item in result[:5]:
-    print item
+print "Starting to migrage {0}s (milestone_id = {1})".format(milestone_label,
+                                                           milestone_id)
+
+sql = """SELECT Key_PM, Report FROM Proj_Completion
+         WHERE (((Report) Is Not Null))"""
+
+result = msaccess(constr, sql)
 print "Record Count = %s" % result.numberOfRows
 
-Key_PM = [x[0] for x in result]
-#strip the extra string off of the MS hyperlinks:
-paths = [re.sub(r"\#.*","", str(row[1])) for row in result]
-paths = [path.strip() for path in paths]
-#put the elements to a list of tuples so that they can be appended
-#with executemany
-reportlocs = zip(Key_PM, paths, Key_PM)
+key_pm = [x['key_pm'] for x in result]
+#strip the extra strings off of the MS hyperlinks:
+paths = [re.sub(r"\#.*","", str(row['report'])) for row in result]
 
+for report in zip(key_pm, paths):
+    migrate_reports(report[0],report[1], milestone_id, user_id=my_user_id,
+                    media_url=MEDIA_URL, media_path=MEDIA_PATH, targdb=targdb)
 
-InsertReportRecords(reportlocs, "pjtk2_proj_comp_pres",
-                    targdb, "Report", True)
+print "Done migrating {0}.".format(milestone_label)
 
 
 #====================================
-#project descriptions:
-reportTable = "pjtk2_proj_description"
-sql = """SELECT Key_PM, Report
-FROM Proj_Descriptions WHERE (((Report) Is Not Null))"""
-mdbconn = adodbapi.connect(constr)
-mdbcur = mdbconn.cursor()
-mdbcur.execute(sql)
-result = mdbcur.fetchall()
-mdbcur.close()
+#  PROJECT DESCRIPTIONS
 
-# verify that we got what we thought
-for item in result[:5]:
-    print item
-print "Record Count = %s" % result.numberOfRows
+milestone_label = "Project Description"
+milestone_id = get_milestone_id(milestone_label, targdb)
 
-Key_PM = [x[0] for x in result]
-#strip the extra string off of the MS hyperlinks:
-paths = [re.sub(r"\#.*","", str(row[1])) for row in result]
-paths = [path.strip() for path in paths]
-#put the elements to a list of tuples so that they can be appended
-#with executemany
-reportlocs = zip(Key_PM, paths, Key_PM)
+print "Starting to migrage {0}s (milestone_id = {1})".format(milestone_label,
+                                                           milestone_id)
 
-#insert the reports into sqlite:
-#sqlcon=sqlite3.connect(targdb)
-#sqlcur=sqlcon.cursor()
+sql = """SELECT Key_PM, Report FROM Proj_Descriptions
+         WHERE (((Report) Is Not Null))"""
 
+result = msaccess(constr, sql)
+print "{0} {1}s found.".format(result.numberOfRows, milestone_label)
 
-InsertReportRecords(reportlocs, "pjtk2_proj_description",
-                    targdb, "Report", True)
+key_pm = [x['key_pm'] for x in result]
+#strip the extra strings off of the MS hyperlinks:
+paths = [re.sub(r"\#.*","", str(row['report'])) for row in result]
 
-#====================================
-#project proposal presentations:
-sql = """SELECT Key_PM, Report
-FROM Proj_proposal_pres WHERE (((Report) Is Not Null))"""
-mdbconn = adodbapi.connect(constr)
-mdbcur = mdbconn.cursor()
-mdbcur.execute(sql)
-result = mdbcur.fetchall()
-mdbcur.close()
+for report in zip(key_pm, paths):
+    migrate_reports(report[0],report[1], milestone_id, user_id=my_user_id,
+                    media_url=MEDIA_URL, media_path=MEDIA_PATH, targdb=targdb)
 
-# verify that we got what we thought
-for item in result[:5]:
-    print item
-print "Record Count = %s" % result.numberOfRows
-
-Key_PM = [x[0] for x in result]
-#strip the extra string off of the MS hyperlinks:
-paths = [re.sub(r"\#.*","", str(row[1])) for row in result]
-paths = [path.strip() for path in paths]
-#put the elements to a list of tuples so that they can be appended
-#with executemany
-reportlocs = zip(Key_PM, paths, Key_PM)
-
-
-InsertReportRecords(reportlocs, "pjtk2_proj_proposal_pres",
-                    targdb, "Report", True)
+print "Done migrating {0}.".format(milestone_label)
 
 
 #====================================
-#project proposals:
-sql = """SELECT Key_PM, Report
-FROM Proj_proposals WHERE (((Report) Is Not Null))"""
-mdbconn = adodbapi.connect(constr)
-mdbcur = mdbconn.cursor()
-mdbcur.execute(sql)
-result = mdbcur.fetchall()
-mdbcur.close()
+#  PROJECT PROPOSAL PRESENTATIONS
 
-# verify that we got what we thought
-for item in result[:5]:
-    print item
+milestone_label = "Project Proposal Presentation"
+milestone_id = get_milestone_id(milestone_label, targdb)
+
+print "Starting to migrage {0}s (milestone_id = {1})".format(milestone_label,
+                                                           milestone_id)
+
+sql = """SELECT Key_PM, Report FROM Proj_proposal_pres
+    WHERE (((Report) Is Not Null))"""
+
+result = msaccess(constr, sql)
 print "Record Count = %s" % result.numberOfRows
 
-Key_PM = [x[0] for x in result]
-#strip the extra string off of the MS hyperlinks:
-paths = [re.sub(r"\#.*","", str(row[1])) for row in result]
-paths = [path.strip() for path in paths]
-#put the elements to a list of tuples so that they can be appended
-#with executemany
-reportlocs = zip(Key_PM, paths, Key_PM)
+key_pm = [x['key_pm'] for x in result]
+#strip the extra strings off of the MS hyperlinks:
+paths = [re.sub(r"\#.*","", str(row['report'])) for row in result]
+
+for report in zip(key_pm, paths):
+    migrate_reports(report[0],report[1], milestone_id, user_id=my_user_id,
+                    media_url=MEDIA_URL, media_path=MEDIA_PATH, targdb=targdb)
+
+print "Done migrating {0}.".format(milestone_label)
 
 
-InsertReportRecords(reportlocs, "pjtk2_proj_proposal",
-                    targdb, "Report", True)
+#====================================
+#  PROJECT PROPOSALs
+
+milestone_label = "Project Proposal"
+milestone_id = get_milestone_id(milestone_label, targdb)
+
+print "Starting to migrage {0}s (milestone_id = {1})".format(milestone_label,
+                                                           milestone_id)
+
+sql = """SELECT Key_PM, Report FROM Proj_proposals
+         WHERE (((Report) Is Not Null))"""
+
+result = msaccess(constr, sql)
+print "{0} {1}s found.".format(result.numberOfRows, milestone_label)
+
+
+key_pm = [x['key_pm'] for x in result]
+#strip the extra strings off of the MS hyperlinks:
+paths = [re.sub(r"\#.*","", str(row['report'])) for row in result]
+
+for report in zip(key_pm, paths):
+    migrate_reports(report[0],report[1], milestone_id, user_id=my_user_id,
+                    media_url=MEDIA_URL, media_path=MEDIA_PATH, targdb=targdb)
+
+print "Done migrating {0}.".format(milestone_label)
+
+
+#====================================
+#  FIELD PROTOCOLS
+
+milestone_label = "Field Protocol"
+milestone_id = get_milestone_id(milestone_label, targdb)
+
+print "Migrating {0}s (milestone_id = {1})".format(milestone_label,
+                                                           milestone_id)
+
+sql = """SELECT Key_PM, Report FROM Proj_proposals
+         WHERE (((Report) Is Not Null))"""
+
+result = msaccess(constr, sql)
+print "{0} {1}s found.".format(result.numberOfRows, milestone_label)
+
+key_pm = [x['key_pm'] for x in result]
+#strip the extra strings off of the MS hyperlinks:
+paths = [re.sub(r"\#.*","", str(row['report'])) for row in result]
+
+for report in zip(key_pm, paths):
+    migrate_reports(report[0],report[1], milestone_id, user_id=my_user_id,
+                    media_url=MEDIA_URL, media_path=MEDIA_PATH, targdb=targdb)
+
+print "Done migrating {0}.".format(milestone_label)
 
 
 
 #====================================
-#project Protocols:
-sql = """SELECT Key_PM, Report
-FROM Proj_protocols WHERE (((Report) Is Not Null))"""
-mdbconn = adodbapi.connect(constr)
-mdbcur = mdbconn.cursor()
-mdbcur.execute(sql)
-result = mdbcur.fetchall()
-mdbcur.close()
+#  SUMMARY REPORTS
 
-# verify that we got what we thought
-for item in result[:5]:
-    print item
-print "Record Count = %s" % result.numberOfRows
+milestone_label = "Summary Report"
+milestone_id = get_milestone_id(milestone_label, targdb)
 
-Key_PM = [x[0] for x in result]
-#strip the extra string off of the MS hyperlinks:
-paths = [re.sub(r"\#.*","", str(row[1])) for row in result]
-paths = [path.strip() for path in paths]
-#put the elements to a list of tuples so that they can be appended
-#with executemany
-reportlocs = zip(Key_PM, paths, Key_PM)
+print "Migrating {0}s (milestone_id = {1})".format(milestone_label,
+                                                           milestone_id)
 
-InsertReportRecords(reportlocs, "pjtk2_proj_protocols",
-                    targdb, "Report", True)
+sql = """SELECT Key_PM, Report FROM Proj_summaries
+      WHERE (((Report) Is Not Null))"""
 
-#====================================
-#project Summaries:
-sql = """SELECT Key_PM, Report
-FROM Proj_summaries WHERE (((Report) Is Not Null))"""
-mdbconn = adodbapi.connect(constr)
-mdbcur = mdbconn.cursor()
-mdbcur.execute(sql)
-result = mdbcur.fetchall()
-mdbcur.close()
+result = msaccess(constr, sql)
+print "{0} {1}s found.".format(result.numberOfRows, milestone_label)
 
-# verify that we got what we thought
-for item in result[:5]:
-    print item
-print "Record Count = %s" % result.numberOfRows
+key_pm = [x['key_pm'] for x in result]
+#strip the extra strings off of the MS hyperlinks:
+paths = [re.sub(r"\#.*","", str(row['report'])) for row in result]
 
-Key_PM = [x[0] for x in result]
-#strip the extra string off of the MS hyperlinks:
-paths = [re.sub(r"\#.*","", str(row[1])) for row in result]
-paths = [path.strip() for path in paths]
-#put the elements to a list of tuples so that they can be appended
-#with executemany
-reportlocs = zip(Key_PM, paths, Key_PM)
+for report in zip(key_pm, paths):
+    migrate_reports(report[0],report[1], milestone_id, user_id=my_user_id,
+                    media_url=MEDIA_URL, media_path=MEDIA_PATH, targdb=targdb)
 
-InsertReportRecords(reportlocs, "pjtk2_proj_summaries",
-                    targdb, "Report", True)
+print "Done migrating {0}.".format(milestone_label)

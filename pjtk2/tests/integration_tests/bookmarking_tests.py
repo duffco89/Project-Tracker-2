@@ -40,6 +40,7 @@ class ProjectBookmarkingTestCase(TestCase):
         #self.user = UserFactory()
         self.project1 = ProjectFactory(
             prj_cd="LHA_IA12_222",
+            prj_ldr = self.user,
             owner = self.user)
         self.project2 = ProjectFactory(
             prj_cd = "LHA_IA12_111",
@@ -90,8 +91,10 @@ class ProjectBookmarkingTestCase(TestCase):
         #self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project1.prj_nm)
-        self.assertContains(response, self.project1.prj_ldr)
-
+        prj_ldr = '{0} {1}'.format(self.project1.prj_ldr.first_name,
+                                   self.project1.prj_ldr.last_name,)
+        self.assertContains(response, prj_ldr)
+        
         bookmarks = Bookmark.objects.filter(user=self.user)
         self.assertEqual(bookmarks.count(),1)
         bookmark=bookmarks[0]
@@ -148,7 +151,10 @@ class ProjectBookmarkingTestCase(TestCase):
         #self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project1.prj_cd)
         self.assertContains(response, self.project1.prj_nm)
-        self.assertContains(response, self.project1.prj_ldr)
+        prj_ldr = '{0} {1}'.format(self.project1.prj_ldr.first_name,
+                                   self.project1.prj_ldr.last_name,)
+        self.assertContains(response, prj_ldr)
+
 
         bookmarks = Bookmark.objects.filter(user=self.user)
         self.assertEqual(bookmarks.count(),0)

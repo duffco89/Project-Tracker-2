@@ -1004,7 +1004,7 @@ class TestCanCopyProject(WebTest):
                                        )
 
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
-                                              prj_ldr=self.user1.first_name,
+                                              prj_ldr=self.user1,
                                               owner=self.user1)
 
 
@@ -1035,7 +1035,7 @@ class TestCanCopyProject(WebTest):
 
         #He needs to fill in a number of the important fields:
         form['prj_cd'] = new_prj_cd
-        form['prj_ldr'] = self.user2.first_name
+        form['prj_ldr'] = self.user2.id
         form['prj_nm'] = new_prj_nm
         #make sure that the project dates match the project code and
         #that date0 happens before date1
@@ -1055,7 +1055,7 @@ class TestCanCopyProject(WebTest):
         #self.assertEqual(project.prj_cd, new_prj_cd)
         self.assertEqual(project.slug, slugify(new_prj_cd))
         self.assertEqual(project.prj_nm, new_prj_nm)
-        self.assertEqual(project.prj_ldr, self.user2.first_name)
+        self.assertEqual(project.prj_ldr, self.user2)
         self.assertEqual(project.owner, self.user2)
         self.assertEqual(project.year,'2013')
 

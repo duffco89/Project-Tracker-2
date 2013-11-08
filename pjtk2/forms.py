@@ -430,7 +430,8 @@ class ReportUploadForm(forms.Form):
 
             newReport = Report(
                     report_path = self.cleaned_data['report_path'],
-                    uploaded_by = self.user.username,
+                    #uploaded_by = self.user.username,
+                    uploaded_by = self.user,
                     report_hash = hashlib.sha1(
                         str(self.cleaned_data['report_path'])).hexdigest()
 
@@ -470,6 +471,22 @@ class ReportUploadForm(forms.Form):
                     newReport.projectreport.add(projreport)
 
 
+from django.forms import ModelChoiceField
+
+class UserModelChoiceField(ModelChoiceField):
+    '''a custom model choice widget for user objects.  It will
+    displace user first and last name in list of available choices
+    (rather than their official user name). modified from
+    https://docs.djangoproject.com/en/dev/ref/forms/fields/#modelchoicefield.
+    '''
+    def label_from_instance(self, obj):
+        if obj.first_name:
+            label = "{0} {1}".format(obj.first_name, obj.last_name)
+        else:
+            label = obj.__str__()
+        return label
+
+                    
 class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
     cleaning methods to ensure that project code is valid, dates agree
@@ -487,10 +504,17 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
-    prj_ldr = forms.CharField(
+
+    prj_ldr = UserModelChoiceField(
         label="Project Leader:",
+        queryset=User.objects.filter(is_active=True),
         required=True,
     )
+    
+    #prj_ldr = forms.CharField(
+    #    label="Project Leader:",
+    #    required=True,
+    #)
 
     comment = forms.CharField(
         widget=forms.Textarea(),

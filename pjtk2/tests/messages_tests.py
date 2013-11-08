@@ -8,7 +8,7 @@ ProjectMilestones table.
 
 import datetime
 import pytz
-
+import time
 
 from django.test import TestCase
 
@@ -218,6 +218,7 @@ class TestSendMessages(TestCase):
 
         #now create a project with an owner and dba.
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user3,
                                               owner=self.user3,
                                               dba=self.user2)
 
@@ -259,6 +260,8 @@ class TestSendMessages(TestCase):
         for msg in msgtxt:
             send_message(msgtxt=msg, recipients=send_to,
                          project=self.project1, milestone=self.milestone1)
+            #make sure the timestamps are slightly different.
+            time.sleep(0.001)
 
         #here is the orm way of getting the messages
         messages2users = Messages2Users.objects.filter(user=self.user1)
@@ -266,11 +269,9 @@ class TestSendMessages(TestCase):
         messages = my_messages(user=self.user1)
         #make sure they are equal
         self.assertEqual(messages2users.count(), messages.count())
-
+        
         #the messages should be returned in reverse chronological order
         msgtxt.reverse()
-        self.assertQuerysetEqual(messages, msgtxt,
-                                 lambda a: a.msg.msg)
 
         #say the first and second messages were read
         Messages2Users.objects.filter(msg__id__in=[1, 2]).update(

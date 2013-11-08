@@ -13,7 +13,7 @@ from datetime import datetime
 from django import forms
 from django.db.models.signals import pre_save, post_save
 from django.conf import settings
-from django.core.files.uploadedfile import (SimpleUploadedFile, 
+from django.core.files.uploadedfile import (SimpleUploadedFile,
                                             InMemoryUploadedFile)
 from django.test import TestCase
 
@@ -39,13 +39,17 @@ def teardown():
 class TestApproveProjectForm(TestCase):
 
     def setUp(self):
+
+        self.user = UserFactory(username="hsimpson",
+                                first_name="Homer", last_name="Simpson")
+
         self.milestone = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=False)
         self.proj = ProjectFactory.create(prj_cd="LHA_IA12_123",
-                                          prj_ldr = "Homer Simpson",
+                                          prj_ldr = self.user,
                                           prj_nm = "Homer's Odyssey")
-        
+
     def test_ApproveProjectsForm(self):
         '''verify that the same data comes out as went in'''
         initial = dict(
@@ -93,28 +97,30 @@ class TestApproveProjectForm(TestCase):
     def tearDown(self):
         self.proj.delete()
 
-        
+
 class TestProjectForm(TestCase):
 
     def setUp(self):
         ProjectFactory.create()
+        self.user = UserFactory(username="hsimpson",
+                                first_name="Homer", last_name="Simpson")
         self.dba = DBA_Factory.create()
-                 
+
 
     def test_good_data(self):
-        """All fields contain valid data """        
+        """All fields contain valid data """
         proj = dict(
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
             lake =1,
             tags = "red, blue, green",
-            owner = "Bob Sakamano",
+            owner = self.user.id,
             dba = self.dba.id,
            )
 
@@ -123,7 +129,7 @@ class TestProjectForm(TestCase):
             print "form.errors: %s" % form.errors
         if form.non_field_errors():
             print "form.non_field_errors(): %s" % form.non_field_errors()
-            
+
         self.assertEqual(form.is_valid(), True)
 
 
@@ -134,17 +140,17 @@ class TestProjectForm(TestCase):
         #includes codes form research and other lake units
         goodcodes = ["LHS_IA12_103", "LHA_IA12_103", "LHR_IS12_002",
                     "LHA_IA12_XX3", "LHA_IA12_XXX"]
-        
+
         proj = dict(
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            owner = "Bob Sakamano",
+            owner = self.user.id,
             dba = self.dba.id,
             lake=1
            )
@@ -154,25 +160,25 @@ class TestProjectForm(TestCase):
             form = ProjectForm(data=proj)
             self.assertEqual(form.is_valid(), True)
 
-        
+
     def test_duplicate_project_code(self):
-        """Duplicate Project code"""        
+        """Duplicate Project code"""
         proj = dict(
             prj_cd = "LHA_IA12_123",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            owner = "Bob Sakamano",
+            owner = self.user.id,
             dba = self.dba.id,
             lake=1
            )
 
         form = ProjectForm(data=proj)
-            
+
         errmsg = "Project Code already exists"
         self.assertIn(errmsg, str(form.errors['prj_cd']))
         self.assertEqual(form.is_valid(), False)
@@ -183,17 +189,17 @@ class TestProjectForm(TestCase):
 
         #here are a list of bad, or malformed project codes:
         badcodes = ["LHA_IS12A_110", "LHA_IS12_1103","LHAR_IS12_110", "LHA_IS12_110A"]
-        
+
         proj = dict(
             prj_cd = "LHA_xxx12_103",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            owner = "Bob Sakamano",
+            owner = self.user.id,
             dba = self.dba.id,
             lake=1
            )
@@ -207,8 +213,8 @@ class TestProjectForm(TestCase):
             self.assertEqual(form.is_valid(), False)
 
 
-        
-        
+
+
     def test_malformed_prjcd(self):
         """project code does not match required pattern """
 
@@ -216,19 +222,19 @@ class TestProjectForm(TestCase):
         badcodes = ["LHA_12_103",   "LHA_I12D_103", " LH_IS12_103",
                     "LH2_IA12_103", "L00_IA12_103", "LHA_IS12103",
                     "LHA-IS12_103", "LHA_I12D-103", "A_IS12_1103",
-                    "LHA_IS12_abc", "lha_ID12_103", "LHA_is12_113",                    
+                    "LHA_IS12_abc", "lha_ID12_103", "LHA_is12_113",
                     "LHA_IS1A_110", "LA_IS12_110A", "LH_IS12_110"]
-        
+
         proj = dict(
             prj_cd = "LHA_12_103",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            owner = "Bob Sakamano",
+            owner = self.user.id,
             dba = self.dba.id,
             lake=1,
            )
@@ -241,20 +247,20 @@ class TestProjectForm(TestCase):
             self.assertIn(errmsg, form.errors['prj_cd'])
             self.assertEqual(form.is_valid(), False)
 
-        
+
     def test_wrong_year_in_project_code(self):
         """Year on project code does not agree with start and end dates. """
-        
+
         proj = dict(
             prj_cd = "LHA_IA02_103",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            owner = "Bob Sakamano",
+            owner = self.user.id,
             dba = self.dba.id,
             lake=1
            )
@@ -269,13 +275,13 @@ class TestProjectForm(TestCase):
         proj = dict(
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("August 15, 2012", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            owner = "Bob Sakamano",
+            owner = self.user.id,
             dba = self.dba.id,
             lake=1,
            )
@@ -284,19 +290,19 @@ class TestProjectForm(TestCase):
         errmsg = "Project end date occurs before start date."
         self.assertIn(errmsg, form.non_field_errors())
         self.assertEqual(form.is_valid(), False)
-        
+
     def test_start_end_different_years(self):
         """project start and end date occur in different years """
         proj = dict(
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("March 15, 2011", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            owner = "Bob Sakamano",
+            owner = self.user.id,
            )
 
         form = ProjectForm(data=proj)
@@ -305,17 +311,17 @@ class TestProjectForm(TestCase):
         self.assertEqual(form.is_valid(), False)
 
     def test_start_date_equal_to_end_date(self):
-        """One day project, start date equal to end date. """        
+        """One day project, start date equal to end date. """
         proj = dict(
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
-            prj_ldr = "Bob Sakamano",
+            prj_ldr = self.user.id,
             prj_date0 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),            
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
             master_database = 1,
-            owner = "Bob Sakamano",
+            owner = self.user.id,
             dba = self.dba.id,
             lake=1,
            )
@@ -326,7 +332,7 @@ class TestProjectForm(TestCase):
         if form.non_field_errors():
             print "form.non_field_errors(): %s" % form.non_field_errors()
         self.assertEqual(form.is_valid(), True)
-        
+
 
 
 
@@ -342,9 +348,9 @@ class TestSelectSistersForm(TestCase):
         #PROJECTS
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user)
-        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               owner=self.user)
 
     def test_initial_values(self):
@@ -375,7 +381,7 @@ class TestSelectSistersForm(TestCase):
 
 
 
-        
+
 
     def tearDown(self):
         self.project1.delete()
@@ -402,11 +408,11 @@ class TestReportUploadForm(TestCase):
                                             report = True)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user)
-        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               owner=self.user)
 
         #here is fake file that we will upload
@@ -434,11 +440,12 @@ class TestReportUploadForm(TestCase):
         #this is the data that is returned from the form:
         data = dict(required=True, milestone = self.rep1)
 
-        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name, 
+        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name,
                                                        self.mock_file.read())}
-        form = ReportUploadForm(initial=initial, data=data, project = self.project1,
+        form = ReportUploadForm(initial=initial, data=data,
+                                project = self.project1,
                                 user = self.user, files=file_data)
-    
+
         if form.errors:
             print "form.errors: %s" % form.errors
         if form.non_field_errors():
@@ -455,18 +462,18 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(len(comp),1)
         self.assertEqual(len(outstanding),1)
 
-        self.assertEqual(reports[0].uploaded_by, self.user.username)
-        
+        self.assertEqual(reports[0].uploaded_by, self.user)
+
         filepath = os.path.join(settings.MEDIA_URL,
                                 os.path.split(self.mock_file.name)[1])
         self.assertEqual(str(reports[0].report_path), filepath)
 
         #verify that self.rep2 isnt in the completed list - it isn't done yet:
-        projids = [x['milestone_id'] for x in comp.values()] 
+        projids = [x['milestone_id'] for x in comp.values()]
         self.assertNotIn(self.rep2.id, projids)
 
         #and that self.rep1 isnt in the outstanding list - we just did it.
-        projids = [x['milestone_id'] for x in outstanding.values()] 
+        projids = [x['milestone_id'] for x in outstanding.values()]
         self.assertNotIn(self.rep1.id, projids)
 
         #we have uploaded just one report, make sure that's how many
@@ -480,9 +487,10 @@ class TestReportUploadForm(TestCase):
         #upload report1 to this project (same code as above)
         initial = dict(required=True, milestone = self.rep1, report_path = "")
         data = dict(required=True, milestone = self.rep1)
-        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name, 
+        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name,
                                                        self.mock_file.read())}
-        form = ReportUploadForm(initial=initial, data=data, project = self.project1,
+        form = ReportUploadForm(initial=initial, data=data,
+                                project = self.project1,
                                 user = self.user, files=file_data)
         self.assertEqual(form.is_valid(), True)
         form.save()
@@ -497,9 +505,10 @@ class TestReportUploadForm(TestCase):
         #now upload the file 2 to the same project.  It should be
         #associated with the same type of report so this file should
         #replace the first.
-        file_data = {'report_path': SimpleUploadedFile(self.mock_file2.name, 
+        file_data = {'report_path': SimpleUploadedFile(self.mock_file2.name,
                                                        self.mock_file2.read())}
-        form = ReportUploadForm(initial=initial, data=data, project = self.project1,
+        form = ReportUploadForm(initial=initial, data=data,
+                                project = self.project1,
                                 user = self.user, files=file_data)
         self.assertEqual(form.is_valid(), True)
         form.save()
@@ -512,8 +521,8 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(len(comp),1)
         self.assertEqual(len(outstanding),1)
 
-        self.assertEqual(reports[0].uploaded_by, self.user.username)
-        
+        self.assertEqual(reports[0].uploaded_by, self.user)
+
         filepath = os.path.join(settings.MEDIA_URL,
                                 os.path.split(self.mock_file2.name)[1])
         self.assertEqual(str(reports[0].report_path), filepath)
@@ -529,7 +538,7 @@ class TestReportUploadForm(TestCase):
 
         #set up the sister relationship:
         self.project1.add_sister(self.project2.slug)
-        
+
         #check that we have no completed reports and one outstanding:
         comp = self.project1.get_complete()
         outstanding = self.project1.get_outstanding()
@@ -541,11 +550,11 @@ class TestReportUploadForm(TestCase):
         #this is the data that is returned from the form:
         data = dict(required=True, milestone = self.rep1)
 
-        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name, 
+        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name,
                                                        self.mock_file.read())}
         form = ReportUploadForm(initial=initial, data=data, project = self.project1,
                                 user = self.user, files=file_data)
-    
+
         self.assertEqual(form.is_valid(), True)
 
         form.save()
@@ -559,19 +568,19 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(len(comp),1)
         self.assertEqual(len(outstanding),1)
 
-        self.assertEqual(reports[0].uploaded_by, self.user.username)
+        self.assertEqual(reports[0].uploaded_by, self.user)
 
         filepath = os.path.join(settings.MEDIA_URL,
                                 os.path.split(self.mock_file.name)[1])
         self.assertEqual(str(reports[0].report_path), filepath)
-        
+
         #verify that self.rep2 isnt in the completed list - it isn't done yet:
-        projids = [x['milestone_id'] for x in comp.values()] 
+        projids = [x['milestone_id'] for x in comp.values()]
         self.assertNotIn(self.rep2.id, projids)
 
 
         #and that self.rep1 isnt in the outstanding list - we just did it.
-        projids = [x['milestone_id'] for x in outstanding.values()] 
+        projids = [x['milestone_id'] for x in outstanding.values()]
         self.assertNotIn(self.rep1.id, projids)
 
         #Project 2
@@ -585,19 +594,19 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(len(comp),1)
         self.assertEqual(len(outstanding),1)
 
-        self.assertEqual(reports[0].uploaded_by, self.user.username)
+        self.assertEqual(reports[0].uploaded_by, self.user)
 
         filepath = os.path.join(settings.MEDIA_URL,
                                 os.path.split(self.mock_file.name)[1])
         self.assertEqual(str(reports[0].report_path), filepath)
 
-        
+
         #verify that self.rep2 is not in the completed list - it isn't done yet:
-        projids = [x['milestone_id'] for x in comp.values()] 
+        projids = [x['milestone_id'] for x in comp.values()]
         self.assertNotIn(self.rep2.id, projids)
 
         #and that self.rep1 is not in the outstanding list - we just did it.
-        projids = [x['milestone_id'] for x in outstanding.values()] 
+        projids = [x['milestone_id'] for x in outstanding.values()]
         self.assertNotIn(self.rep1.id, projids)
 
         #we have uploaded just one report, make sure that's how many
@@ -619,13 +628,13 @@ class TestReportUploadForm(TestCase):
         filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
                                 os.path.split(self.mock_file.name)[1])
         try:
-            os.remove(filepath)          
+            os.remove(filepath)
         except:
             pass
 
         filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
                                 os.path.split(self.mock_file2.name)[1])
         try:
-            os.remove(filepath)          
+            os.remove(filepath)
         except:
             pass

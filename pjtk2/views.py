@@ -591,8 +591,16 @@ def serve_file(request, filename):
     filename = os.path.split(filename)[-1]
     response['Content-Disposition'] = 'attachment;filename=%s' % filename
 
+    
     return response
 
+
+    
+    
+    
+    
+    
+    
 
 @login_required
 def my_projects(request):

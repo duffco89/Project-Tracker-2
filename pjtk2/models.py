@@ -309,7 +309,8 @@ class Project(models.Model):
         '''get all of the reports have been assigned to
         this project - no distinction between core or custom reports'''
         return ProjectMilestones.objects.filter(project=self,
-                                                milestone__report=True)
+                                                milestone__report=True
+                                                ).order_by('milestone__order')
 
     def get_uploaded_reports(self):
         '''get all of the CURRENT reports that are associated with this
@@ -322,7 +323,7 @@ class Project(models.Model):
 
     def get_core_assignments(self, all_reports=True):
         '''get all of the core reports have been assigned to this project, if
-        all is true, all assignements are returned, if all_reports
+        'all_reports' is true, all assignements are returned, if 'all_reports'
         is False, only required assignments are returned.
 
         '''
@@ -562,7 +563,8 @@ class Report(models.Model):
     projectreport = models.ManyToManyField('ProjectMilestones')
     report_path = models.FileField(upload_to="reports/")
     uploaded_on = models.DateTimeField(auto_now_add=True)
-    uploaded_by = models.CharField(max_length = 300)
+    #uploaded_by = models.CharField(max_length = 300)
+    uploaded_by = models.ForeignKey(User)
     report_hash = models.CharField(max_length = 300)
 
     def __unicode__(self):

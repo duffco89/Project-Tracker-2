@@ -83,7 +83,8 @@ class ProjectFactory(factory.DjangoModelFactory):
     FACTORY_FOR = Project
     prj_cd = "LHA_IA12_123"
     prj_nm = "Fake Project"
-    prj_ldr = "Bob Sakamano"
+    #prj_ldr = "Bob Sakamano"
+    prj_ldr = factory.SubFactory(UserFactory)    
     comment = "This is a fake project"
     project_type = factory.SubFactory(ProjTypeFactory)
     master_database = factory.SubFactory(DatabaseFactory)
@@ -132,5 +133,6 @@ class ReportFactory(factory.DjangoModelFactory):
     current = True
     #projectreport = factory.SubFactory(ProjectMilestonesFactory)
     report_path = "some/fake/file.txt"
-    uploaded_by = "Bob"
+    #uploaded_by = "Bob"
+    uploaded_by = factory.SubFactory(UserFactory)    
     report_hash = "1234"

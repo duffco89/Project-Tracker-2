@@ -239,7 +239,9 @@ class ProjectDetailownerTestCase(TestCase):
         #self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
-        self.assertContains(response, self.project.prj_ldr)
+        prj_ldr = '{0} {1}'.format(self.project.prj_ldr.first_name,
+                                   self.project.prj_ldr.last_name,)
+        self.assertContains(response, prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
 
@@ -300,7 +302,9 @@ class ProjectDetailJoeUserTestCase(TestCase):
         #self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
-        self.assertContains(response, self.project.prj_ldr)
+        prj_ldr = '{0} {1}'.format(self.project.prj_ldr.first_name,
+                                   self.project.prj_ldr.last_name,)
+        self.assertContains(response, prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
 
@@ -367,7 +371,9 @@ class ProjectDetailManagerTestCase(TestCase):
         #self.assertContains(response, 'Project Detail')
         self.assertContains(response, self.project.prj_cd)
         self.assertContains(response, self.project.prj_nm)
-        self.assertContains(response, self.project.prj_ldr)
+        prj_ldr = '{0} {1}'.format(self.project.prj_ldr.first_name,
+                                   self.project.prj_ldr.last_name,)
+        self.assertContains(response, prj_ldr)        
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
 
