@@ -10,6 +10,18 @@
 <script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
 
 
+<script type="text/javascript">
+  $(document).ready(function() {
+  $('#check-all').on('click', function(){
+    $("input:checkbox").attr('checked', true);
+  });
+  $('#uncheck-all').on('click', function(){
+    $("input:checkbox").attr('checked', false);
+  });
+});
+</script>
+
+
 {% endblock %}
 
 {% block title  %} {{ block.super }}| My Projects  {% endblock %}
@@ -51,7 +63,7 @@
 	      {{ bookmark.name }}
 	    </td>
 	    {% if boss %}
-	    <td>       {{ bookmark.prj_ldr }} </td>
+	    <td>  {{ bookmark.prj_ldr.first_name }} {{ bookmark.prj_ldr.last_name }}</td>
 	    {% endif %}
 	  </tr>
 	  {% endfor %}
@@ -99,6 +111,8 @@
 	</table>
 	<hr />
 	<div class="input-group-btn" >
+        <button type="button" id="check-all" class="btn btn-default">Check All</button>
+        <button type="button" id="uncheck-all" class="btn btn-default">Uncheck All</button>
 	  <button class="btn btn-default" type="submit">
 	    <span class="glyphicon glyphicon-trash"></span> Delete Read Messages</button>
 	</div>
@@ -131,7 +145,7 @@
 	      {{ project.prj_nm  }}
 	    </td>
 	    {% if boss %}
-	    <td>       {{ project.prj_ldr }} </td>
+	    <td>       {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }} </td>
 	    {% endif %}
 	  </tr>
 	  {% endfor %}
@@ -163,7 +177,7 @@
 	      {{ project.prj_nm  }}
 	    </td>
 	    {% if boss %}
-	    <td>       {{ project.prj_ldr }} </td>
+	    <td>    {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }} </td>
 	    {% endif %}
 	  </tr>
 	  {% endfor %}
@@ -193,7 +207,7 @@
 	      {{ project.prj_nm  }}
 	    </td>
 	    {% if boss %}
-	    <td>       {{ project.prj_ldr }} </td>
+	    <td>    {{ project.prj_ldr.first_name }}   {{ project.prj_ldr.last_name }} </td>
 	    {% endif %}
 	  </tr>
 	  {% endfor %}

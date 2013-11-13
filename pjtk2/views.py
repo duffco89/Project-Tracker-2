@@ -30,8 +30,6 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm,
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,
                          ReportUploadFormSet, NoticesForm)
 
-
-
 import datetime
 import pytz
 import mimetypes

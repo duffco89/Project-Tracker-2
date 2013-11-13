@@ -139,7 +139,10 @@ TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
     # Always use forward slashes, even on Windows.
     # Don't forget to use absolute paths, not relative paths.
-    root('templates')
+    root('templates'),
+    root('pjtk2/templates'),
+    root('simple_auth/templates'),    
+
 )
 
 DJANGO_APPS = (
@@ -153,24 +156,18 @@ DJANGO_APPS = (
 )
 
 THIRDPARTY_APPS = (
-    #'django_extensions',
-    #'werkzeug_debugger_runserver',
-    #'south',
     'crispy_forms',
-    #'debug_toolbar',
     'django_filters',
     'taggit',
     'haystack',
-    #'pjtk2',
     'passwords',
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 MY_APPS = (
-    'auth',
+    'simple_auth',
     'pjtk2',
-
     )
 
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS

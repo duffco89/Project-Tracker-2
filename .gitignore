@@ -19,3 +19,6 @@ TAGS
 .pylintrc
 old_static/*
 templates/old*
+*.mdb
+simple_auth/*
+*fly_make*

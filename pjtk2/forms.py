@@ -11,6 +11,7 @@ import hashlib
 from django import forms
 from django.contrib.auth.models import User
 from django.forms.formsets import BaseFormSet
+from django.forms import ModelChoiceField, CharField
 from django.forms.widgets import (CheckboxSelectMultiple,
                                   CheckboxInput, mark_safe)
 from django.utils.encoding import force_unicode
@@ -41,14 +42,42 @@ def make_custom_datefield(fld, **kwargs):
         formfield.widget.attrs.update({'class':'datepicker'})
     return formfield
 
+    
+class UserModelChoiceField(ModelChoiceField):
+    '''a custom model choice widget for user objects.  It will
+    displace user first and last name in list of available choices
+    (rather than their official user name). modified from
+    https://docs.djangoproject.com/en/dev/ref/forms/fields/#modelchoicefield.
+    '''
+    def label_from_instance(self, obj):
+        if obj.first_name:
+            label = "{0} {1}".format(obj.first_name, obj.last_name)
+        else:
+            label = obj.__str__()
+        return label
 
+
+class UserReadOnlyText(forms.TextInput):
+    '''a custom readonly text widget for user objects.  It will
+    displace user first and last name of user if available, otherwise
+    username.
+    '''
+    input_type = 'text'
+    def render(self, name, value, attrs=None):
+        user = User.objects.get(id=value)        
+        if user.first_name:
+            value = "{0} {1}".format(user.first_name, user.last_name)
+        else:
+            value = str(user)
+        return value
+
+        
 class ReadOnlyText(forms.TextInput):
     '''from:
     http://stackoverflow.com/questions/1134085/
                 rendering-a-value-as-text-instead-of-field-inside-a-django-form
     modified to get milestone labels if name starts with 'projectmilestone'
     '''
-
     input_type = 'text'
     def render(self, name, value, attrs=None):
         if name.startswith('projectmilestone'):
@@ -72,9 +101,7 @@ class HyperlinkWidget(forms.Widget):
         output.append('<a href="%s">%s</a>' % (self.url, self.text))
         return mark_safe(u''.join(output))
 
-
-
-
+        
 class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
     """Subclass of Django's checkbox select multiple widget that allows
     disabling checkbox-options.  To disable an option, pass a dict
@@ -169,6 +196,7 @@ class NoticesForm(forms.Form):
             max_length=13,
             required=False)})
 
+        
         #snippet makes sure that Approved appears first
         self.fields.keyOrder = ['read', 'prj_cd', 'prj_nm', 'msg',
                                 'msg_id', 'user_id']
@@ -195,12 +223,11 @@ class ApproveProjectsForm(forms.ModelForm):
         required =False,
     )
 
-    prj_ldr = forms.CharField(
-        widget = ReadOnlyText,
-        label = "Project Leader",
-        max_length = 80,
-        required = False,
-    )
+    #prj_ldr = forms.CharField(
+    #    label = "Project Leader",
+    #    max_length = 80,
+    #    required = False,
+    #)
 
 
     class Meta:
@@ -216,6 +243,17 @@ class ApproveProjectsForm(forms.ModelForm):
             initial = self.instance.is_approved(),
         )
 
+        self.fields["prj_ldr"].widget = forms.HiddenInput()
+
+        self.fields['prj_ldr_label'] = forms.CharField(
+            widget = ReadOnlyText,            
+            label = "Project Leader",
+            required =False,
+            initial = "{0} {1}".format(self.instance.prj_ldr.first_name,
+                                       self.instance.prj_ldr.last_name)
+        )
+
+        
         self.fields.update({"prj_cd":forms.CharField(
             widget = HyperlinkWidget(
                              url = self.instance.get_absolute_url(),
@@ -225,9 +263,10 @@ class ApproveProjectsForm(forms.ModelForm):
             required = False,
         )
         ,})
-
+        
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['Approved','prj_cd', 'prj_nm', 'prj_ldr']
+        self.fields.keyOrder = ['Approved','prj_cd', 'prj_nm', 'prj_ldr_label']
+
 
     def clean_prj_cd(self):
         '''return the original value of prj_cd'''
@@ -241,6 +280,11 @@ class ApproveProjectsForm(forms.ModelForm):
         '''return the original value of prj_ldr'''
         return self.instance.prj_ldr
 
+    def clean_prj_ldr_label(self):
+        '''return the original value of prj_ldr_label none - make sure
+        nothing is returned
+        '''
+        return None
 
     def save(self, commit=True):
         if self.has_changed:
@@ -469,22 +513,6 @@ class ReportUploadForm(forms.Form):
                         oldReport = None
                     #add the m2m relationship for the sister
                     newReport.projectreport.add(projreport)
-
-
-from django.forms import ModelChoiceField
-
-class UserModelChoiceField(ModelChoiceField):
-    '''a custom model choice widget for user objects.  It will
-    displace user first and last name in list of available choices
-    (rather than their official user name). modified from
-    https://docs.djangoproject.com/en/dev/ref/forms/fields/#modelchoicefield.
-    '''
-    def label_from_instance(self, obj):
-        if obj.first_name:
-            label = "{0} {1}".format(obj.first_name, obj.last_name)
-        else:
-            label = obj.__str__()
-        return label
 
                     
 class ProjectForm(forms.ModelForm):

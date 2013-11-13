@@ -1,0 +1,93 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+
+{% block content %}
+
+<div class="container" >
+<h2> Sister projects for: </h2>
+<h3> {{ project.prj_nm }} ({{ project.prj_cd }})</h3>
+<hr />
+
+{% if empty == False %}
+<form id="sisterformset" method="post" action="">
+  {% csrf_token %}
+  {{ formset.management_form }}
+  {{ formset.non_form_errors.as_ul }}
+  <table id="formset" class="table table-striped form">
+    {% for form in formset.forms %}
+    {% if forloop.first %}
+    <thead><tr>
+      {% for field in form.visible_fields %}
+      <th>{{ field.label|capfirst }}</th>
+      {% endfor %}
+    </tr></thead>
+    {% endif %}
+    <tr class="{% cycle row1,row2 %}">
+      {% for field in form.visible_fields %}
+      <td>
+	{# Include the hidden fields in the form #}
+	{% if forloop.first %}
+        {% for hidden in form.hidden_fields %}
+        {{ hidden }}
+        {% endfor %}
+	{% endif %}
+        {{ field.errors.as_ul }}
+        {{ field }}
+      </td>
+      {% endfor %}
+    </tr>
+    {% endfor %}
+  </table>
+  <hr />
+
+  <input type="submit" class="btn btn-default" value="Update Sister Projects" />
+
+</form>
+{% else %}
+<br />
+
+<em> There are currently no comperable projects for
+  {{ project.prj_cd}}. </em>
+
+<br /> <br />
+
+<em> Return to
+  <a href="{{ project.get_absolute_url }}">{{ project.prj_cd }}</a>.</em>
+
+{% endif %}
+
+<br />
+<br />
+
+<hr />
+{% if empty == False %}
+<h4>How to use this form</h4>
+
+<ul>
+
+  <li>To create a family of sister projects to be associated with
+    {{ project.prj_cd }} select one or more of the listed projects.</li>
+
+  <li>To add this project as a new sister to an existing family,
+    access the sisters page from an existing family member and look for
+    this project number in the list of candidates.</li>
+
+  <li>To remove {{ project.prj_cd }} from the family, clear all of the
+    checkboxes and click "Update Sister Projects". </li>
+
+</ul>
+
+{% endif %}
+
+<h4>About sister projects</h4>
+
+<p>Sister project have common presentations and summary reports.  In
+  order for projects to be considered candidates for 'sisterhood'
+  they must be approved, be conducted in the same year and be the
+  same Project Type.  Examples of sister projects include the
+  offshore index program and the small fish survey when parts of the
+  program are conducted by partner agencies.</p>
+
+</div>
+
+{%  endblock %}

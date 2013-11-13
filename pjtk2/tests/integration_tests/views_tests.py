@@ -193,7 +193,7 @@ class LogoutTestCase(TestCase):
 
         #for some reason this behaves differently than the development server
         #the test server does not re-direct back to the login page, 
-        self.assertTemplateUsed(response, 'auth/logged_out.html')        
+        self.assertTemplateUsed(response, 'auth/logout.html')        
 
     def tearDown(self):
         self.user.delete()
@@ -615,28 +615,34 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         #Two projects from this year:
         prj_cd = "LHA_IA%s_111" % str(self.year)[-2:]
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
+                                              prj_ldr=self.user1,
                                               owner=self.user1)
 
         prj_cd = "LHA_IA%s_222" % str(self.year)[-2:]
         self.project2 = ProjectFactory.create(prj_cd=prj_cd,
+                                              prj_nm=self.user1,
                                               owner=self.user1)
         #Two projects from last year:
         prj_cd = "LHA_IA%s_333" % str(self.year-1)[-2:]
         self.project3 = ProjectFactory.create(prj_cd=prj_cd,
+                                              prj_ldr=self.user1,
                                               owner=self.user1)
 
         prj_cd = "LHA_IA%s_444" % str(self.year-1)[-2:]
         self.project4 = ProjectFactory.create(prj_cd=prj_cd,
+                                              prj_ldr=self.user1,
                                               owner=self.user1)
 
         #one project from 3 years ago
         prj_cd = "LHA_IA%s_555" % str(self.year -3)[-2:]
         self.project5 = ProjectFactory.create(prj_cd=prj_cd,
+                                              prj_ldr=self.user1,
                                               owner=self.user1)
 
         #One project from next year (submitted by a keener):
         prj_cd = "LHA_IA%s_666" % str(self.year+1)[-2:]
         self.project6 = ProjectFactory.create(prj_cd=prj_cd,
+                                              prj_ldr=self.user1,
                                               owner=self.user1)
 
 
@@ -809,10 +815,16 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             }
 
         #submit the form
-        response = self.client.post(reverse('ApproveProjects'), form_data)
-
+        response = self.client.post(reverse('ApproveProjects'), form_data,
+                                    follow=True)
+        #print "response = {0}".format(response)
+        
         #they should all be false now:
         thisyear = Project.this_year.all()
+
+        for proj in thisyear:
+            print proj.prj_nm, proj.prj_cd, proj.is_approved()
+        
         self.assertEqual(thisyear.count(),3)
         self.assertQuerysetEqual(thisyear, [False, False, False],
                                  lambda a:a.is_approved())
@@ -873,14 +885,19 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
             'lastyear-0-id':'3',
+            'lastyear-0-prj_ldr':'1',            
             'lastyear-0-Approved': True,
             'lastyear-1-id':'4',
+            'lastyear-0-prj_ldr':'1',                        
             'lastyear-1-Approved': True,
             }
 
         #submit the form
-        response = self.client.post(reverse('ApproveProjects'), form_data)
-
+        response = self.client.post(reverse('ApproveProjects'), form_data,
+                                    follow=True)
+        print response
+        print response.status_code
+        print "dir(response) = {0}".format(dir(response))
         #they should all be false now:
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)

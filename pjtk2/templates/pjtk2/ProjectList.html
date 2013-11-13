@@ -1,0 +1,132 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+{% block extrahead  %}
+
+<script src="{{ STATIC_URL }}js/jquery-1.9.1.js"></script>    
+<script src="{{ STATIC_URL }}js/jquery-1.10.2.min.js"></script>
+<!-- bootstrap widget theme -->
+<link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
+<!-- tablesorter plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+<!-- tablesorter widget file - loaded after the plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
+
+
+
+{% endblock %}
+
+{% block title  %} {{ block.super }}| Projects  {% endblock %}
+
+{% block content  %}
+
+<div class="container" >
+  <h1>{% if approved %} Approved {% endif %} Projects {% if year %}{{ year }}{% endif %}{% if tag %}tagged with '{{ tag }}'{% endif %}</h1>
+
+{% if page_obj %} 
+{% if page_obj.paginator.num_pages > 1 %}  
+<ul class="pager">
+    {% if page_obj.has_previous %}
+    <li class="previous"><a href="?page={{ page_obj.previous_page_number }}">Newer Projects</a></li>
+    {% else %}
+    <li class="previous disabled"><a href="#">Newer Lots</a></li>
+    {% endif %}
+    <span class="page-current">
+       Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+    </span>
+    {% if page_obj.has_next %}
+    <li class="next"><a href="?page={{ page_obj.next_page_number }}">Older Projects</a></li>
+    {% else %}
+    <li class="next disabled"><a href="#">Older Projects</a></li>
+    {% endif %}
+</ul>
+{% else %}
+  <br />
+{% endif %}
+{% endif %}
+
+
+
+  {% if not approved %}
+  <a href="#" onclick="toggle_visibility('filter');">Filter List: </a>
+  <div id="filter" style="display:none">
+    <div style="border: 1px solid #CCCCCC; padding:10px; border-radius: 15px;">
+      <form action="" method="get">
+        {{ filter.form.as_p }}
+        <input value="Apply Filter" type="submit" />
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if object_list %}
+  <table cellspacing="0" class="tablesorter">
+    <thead>
+      <tr>
+        <th>Year</th>
+        <th>Project Code</th>
+        <th>Project Type</th>
+        <th>Project Name</th>
+      </tr>
+    </thead>
+    {% for project in object_list %}
+    <tr>
+      <td> {{ project.year }} </td>
+      <td>
+        <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+      </td>
+      <td> {{ project.project_type }} </td>
+      <td>
+        {{ project.prj_nm  }}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% if manager %}
+        <a href="{% url 'ApproveProjects'  %}">
+        <button type="button" class="btn bnt-default">Update this list</button> </a>
+  {% endif %}
+
+  {% else %}
+  <p>Sorry no projects available.</p>
+  {% endif %}
+
+</div>
+
+
+
+<script type="text/javascript">
+
+ $(".tablesorter").tablesorter({
+   theme: 'bootstrap',
+   widthFixed: true,
+   showProcessing: true,
+   headerTemplate: '{content} {icon}',
+   widgets: ['zebra', 'uitheme', 'scroller'],
+   widgetOptions: {
+     scroller_height: 300,
+     scroller_barWidth: 17,
+     scroller_jumpToHeader: true,
+     scroller_idPrefix: 's_'
+   }
+ });
+
+</script>
+
+
+<script type="text/javascript">
+<!--
+ 
+function toggle_visibility(id) {
+var e = document.getElementById(id);
+if(e.style.display == 'block')
+e.style.display = 'none';
+else
+e.style.display = 'block';
+}
+ 
+//-->
+</script>
+
+
+
+{% endblock %}

@@ -607,8 +607,10 @@ class MyProjectViewTestCase(WebTest):
 
         #these values should be in the response:
         self.assertContains(response, self.project3.prj_cd)
-        self.assertContains(response, self.user.username)
-        self.assertContains(response, self.user2.username)
+        username = "{0} {1}".format(self.user.first_name, self.user.last_name)
+        self.assertContains(response, username)
+        username = "{0} {1}".format(self.user2.first_name, self.user2.last_name)
+        self.assertContains(response, username)
         self.assertContains(response, "Project Lead")
 
 
