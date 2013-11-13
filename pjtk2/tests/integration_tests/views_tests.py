@@ -1073,3 +1073,168 @@ class ChangeReportingRequirementsTestCase2(TestCase):
         self.rep5.delete()
         self.rep4.delete()
         self.user2.delete()
+
+
+class TestTagListView(TestCase):
+    '''associate some tags with some projects and verify that they
+    appear in the tags list
+    '''
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')        
+        
+        
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+                                              owner=self.user)
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+                                              owner=self.user)
+
+        self.project1.tags.add("perch","walleye","whitefish")
+        self.project1.tags.add("perch", "carp")
+        
+    def test_tag_list(self):
+        '''verify that we can add and remove tags to a project'''
+
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        
+        url = reverse('project_tag_list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("pjtk2/project_tag_list.html")
+        self.assertContains(response,
+                            "Keywords associated with one or more projects:")
+
+        self.assertContains(response, "perch")
+        self.assertContains(response, "walleye")
+        self.assertContains(response, "whitefish")
+        self.assertContains(response, "carp")        
+
+
+class ProjectQuickSearch(TestCase):
+    '''The project quick search in the nav bar should return a list of
+    project that contain 'q' in their project code.
+    '''
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')        
+        
+        
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+                                              owner=self.user)
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+                                              owner=self.user)
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA00_000",
+                                              owner=self.user)
+        
+
+    def test_project_quick_search_all(self):
+        '''a quick search pattern that matches all of our projects'''
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        
+        url = reverse('ProjectList_q')
+        response = self.client.get(url, {'q':'LHA'})
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
+        
+        link_base = '<a href="{0}">{1}</a>'
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project1.slug,)), self.project1.prj_cd)
+        self.assertContains(response, linkstring, html=True)
+
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project2.slug,)), self.project2.prj_cd)
+        self.assertContains(response, linkstring, html=True)
+
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project3.slug,)), self.project3.prj_cd)
+        self.assertContains(response, linkstring, html=True)
+
+
+    def test_project_quick_search_all_case_insensitive(self):
+        '''a quick search pattern that matches all of our projects but
+        was submitted in lower case.  All three projects should still
+        be returned.
+        '''
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        
+        url = reverse('ProjectList_q')
+        response = self.client.get(url, {'q':'lha'})
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
+        
+        link_base = '<a href="{0}">{1}</a>' 
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project1.slug,)), self.project1.prj_cd)
+        self.assertContains(response, linkstring, html=True)
+
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project2.slug,)), self.project2.prj_cd)
+        self.assertContains(response, linkstring, html=True)
+
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project3.slug,)), self.project3.prj_cd)
+        self.assertContains(response, linkstring, html=True)
+
+
+    def test_project_quick_search_no_match(self):
+        '''If no matches where found, the repsonse should
+        state:"Sorry, no projects match that criteria."
+
+        '''
+        
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        
+        url = reverse('ProjectList_q')
+        response = self.client.get(url, {'q':'foobar'})
+        self.assertEqual(response.status_code, 200)
+
+        print response
+        self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
+        self.assertContains(response, "Sorry, no projects match that criteria.")
+
+
+    def test_project_quick_search_one_match(self):
+        '''a quick search pattern that matches just one of our
+        projects.  It should be the only one in the response.
+        '''
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        
+        url = reverse('ProjectList_q')
+        response = self.client.get(url, {'q':'000'})
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
+        
+        link_base = '<a href="{0}">{1}</a>' 
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project1.slug,)), self.project1.prj_cd)
+        self.assertNotContains(response, linkstring, html=True)
+
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project2.slug,)), self.project2.prj_cd)
+        self.assertNotContains(response, linkstring, html=True)
+
+        #this one should be there
+        linkstring = link_base.format(reverse('project_detail',
+                         args = (self.project3.slug,)), self.project3.prj_cd)
+        self.assertContains(response, linkstring, html=True)
+
+        

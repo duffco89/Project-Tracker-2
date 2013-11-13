@@ -98,21 +98,19 @@ class CanUseSearchForm(WebTest):
 
         # projects 1 is the only one that contains "Parry Sound" and
         # should be the only one in the response
-        baselink = '''<a href="{0}">{1} - {2}</a>'''
+        baselink = '''<a href="{0}">{1}</a>'''
         linkstring = baselink.format(self.project1.get_absolute_url(),
-                                     self.project1.prj_cd,
-                                     self.project1.prj_nm)
+                                     self.project1.prj_cd)
         self.assertContains(response, linkstring, html=True)
+        self.assertContains(response, self.project1.prj_nm)
 
         #these projects should NOT be in the response
         linkstring = baselink.format(self.project2.get_absolute_url(),
-                                     self.project2.prj_cd,
-                                     self.project2.prj_nm)
+                                     self.project2.prj_cd)
         self.assertNotContains(response, linkstring, html=True)
 
         linkstring = baselink.format(self.project3.get_absolute_url(),
-                                     self.project3.prj_cd,
-                                     self.project3.prj_nm)
+                                     self.project3.prj_cd)
         self.assertNotContains(response, linkstring, html=True)
 
     def test_SearchProjectDescription(self):
@@ -127,21 +125,19 @@ class CanUseSearchForm(WebTest):
         # projects 2 is the only one that contains "Salvelinus" and
         # should be the only one in the response
 
-        baselink = '''<a href="{0}">{1} - {2}</a>'''
+        baselink = '''<a href="{0}">{1}</a>'''
+        linkstring = baselink.format(self.project2.get_absolute_url(),
+                                     self.project2.prj_cd)
+        self.assertContains(response, linkstring, html=True)
+        self.assertContains(response, self.project2.prj_nm)        
+
+        #these projects should NOT be in the response        
         linkstring = baselink.format(self.project1.get_absolute_url(),
-                                     self.project1.prj_cd,
-                                     self.project1.prj_nm)
+                                     self.project1.prj_cd)
         self.assertNotContains(response, linkstring, html=True)
 
-        #these projects should NOT be in the response
-        linkstring = baselink.format(self.project2.get_absolute_url(),
-                                     self.project2.prj_cd,
-                                     self.project2.prj_nm)
-        self.assertContains(response, linkstring, html=True)
-
         linkstring = baselink.format(self.project3.get_absolute_url(),
-                                     self.project3.prj_cd,
-                                     self.project3.prj_nm)
+                                     self.project3.prj_cd)
         self.assertNotContains(response, linkstring, html=True)
 
     def test_SearchProjectTag(self):

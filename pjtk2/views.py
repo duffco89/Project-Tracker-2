@@ -20,6 +20,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
+from taggit.models import Tag
+
 from pjtk2.functions import get_minions, my_messages, get_messages_dict
 
 from pjtk2.filters import ProjectFilter
@@ -176,7 +178,6 @@ class ProjectList(ListFilteredMixin, ListView):
     filter_set = ProjectFilter
     template_name = "pjtk2/ProjectList.html"
     paginate_by=30
-
     
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
@@ -189,11 +190,39 @@ class ProjectList(ListFilteredMixin, ListView):
     def dispatch(self, *args, **kwargs):
         '''Override the dispatch method'''
         return super(ProjectList, self).dispatch(*args, **kwargs)
-
+       
 project_list = ProjectList.as_view()
 
 #subset of projects tagged with tag:
 taggedprojects = ProjectList.as_view()
+
+
+class ProjectList_q(ListView):
+    """ A list view that can be filtered by django-filter """
+    template_name = "pjtk2/ProjectList_Simple.html"
+    paginate_by=30
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        '''Override the dispatch method'''
+        return super(ProjectList_q, self).dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        '''get any additional context information that has been passed in with
+        the request.'''
+        context = super(ProjectList_q, self).get_context_data(**kwargs)
+        context['q'] = self.request.GET.get("q")
+        return context
+        
+    def get_queryset(self):
+        q = self.request.GET.get("q")
+        if q:
+            return Project.objects.filter(prj_cd__icontains=q)
+        else:
+            return Project.objects.all()
+            
+project_list_q = ProjectList_q.as_view()
+
 
 
 class ApprovedProjectsList(ListView):
@@ -760,24 +789,28 @@ def sisterprojects(request, slug):
                               },
                               context_instance=RequestContext(request))
 
+class ProjectTagList(ListView):
+    '''A list of tags associated with one or more projects.
 
-#def uploadlist(request):
-#    '''An example view that illustrates how to handle uploading files.
-#    basic, but functional.'''
-#    # Handle file upload
-#    if request.method == 'POST':
-#        form = DocumentForm(request.POST, request.FILES)
-#        if form.is_valid():
-#            form.save()
-#            # Redirect to the document list after POST
-#            return HttpResponseRedirect(reverse('pjtk2.views.uploadlist'))
-#    else:
-#        form = DocumentForm() # A empty, unbound form
-#    # Load documents for the list page
-#    reports = Report.objects.all()
-#    # Render list page with the documents and the form
-#    return render_to_response(
-#        'upload_example.html',
-#        {'reports': reports, 'form': form},
-#        context_instance=RequestContext(request)
-#    )
+    **Context:**
+
+    ``object_list``
+        a list of :model:`taggit.Tag` objects where that have been
+        associated with one or more projects.
+
+    **Template:**
+
+    :template:`/pjtk2/project_tag_list.html`
+
+    '''
+    
+    queryset = Tag.objects.order_by('name')
+    template_name = "pjtk2/project_tag_list.html"
+
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        '''Override the dispatch method'''
+        return super(ProjectTagList, self).dispatch(*args, **kwargs)
+    
+project_tag_list = ProjectTagList.as_view()
+    

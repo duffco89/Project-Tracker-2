@@ -19,6 +19,7 @@ urlpatterns = patterns('pjtk2.views',
 
     #CRUD Projects
     url(r'^projects/$', 'project_list', name='ProjectList'),
+    url(r'^projects/?q=$', 'project_list_q', name='ProjectList_q'),
     url(r'^projects/approved$', 'approved_projects_list',
         name='ApprovedProjectsList'),
 
@@ -56,6 +57,10 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^taggedprojects/(?P<tag>.+)/$', 'taggedprojects',
         name='TaggedProjects'),
 
+    url(r'^tags/$', 'project_tag_list',
+        name='project_tag_list'),
+
+                       
 
 # Reports and milestones
     url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',

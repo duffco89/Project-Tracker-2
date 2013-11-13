@@ -1,15 +1,28 @@
 {% extends 'pjtk2/pjtk2_base.html' %}
 
+{% block extrahead  %}
+
+<script src="{{ STATIC_URL }}js/jquery-1.9.1.js"></script>    
+<script src="{{ STATIC_URL }}js/jquery-1.10.2.min.js"></script>
+<!-- bootstrap widget theme -->
+<link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
+<!-- tablesorter plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+<!-- tablesorter widget file - loaded after the plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
+
+{% endblock %}
+
+
 {% block content %}
 
 <div class="container" >
-
   <div>   
-    <h3>Search for Projects</h3>
-    <form id="haystacksearch" class=".form-search" action="."
-          method="get">
-      <div class="row">
-        <div class="col-md-8">
+    <div class="row">
+      <div class="col-md-8 col-md-offset-2">
+        <h3>Search for Projects</h3>
+        <form id="haystacksearch" class=".form-search" action="."
+              method="get">
           <div class="input-group">
             <input type="text" class="form-control" name="q" placeholder =
                    "keywords, phrases or project codes">
@@ -19,9 +32,9 @@
               </button>
             </span>
           </div><!-- /input-group -->
-        </div>
+        </form>
       </div>
-    </form>
+    </div>
   </div>
 
 {% if query %}
@@ -32,10 +45,10 @@
     <h4 style="margin-top:0px;">Filters:</h4>
 
     <dl>
-      {% if facets.fields.Lake %}
+      {% if facets.fields.lake %}
       <dt>Lake:</dt>
-      {% for obj in facets.fields.Lake %}
-      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Lake_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
+      {% for obj in facets.fields.lake %}
+      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=lake_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
       {% endfor %}
       {% else %}
       <dt>No Lake facets.</dt>
@@ -43,36 +56,13 @@
     </dl>
 
     <dl>
-      {% if facets.fields.ProjectType %}
-      <dt>ProjectType:</dt>
-      {% for pType in facets.fields.ProjectType %}
-      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=ProjectType_exact:{{ pType.0|urlencode }}">{{ pType.0 }}</a> ({{ pType.1 }})</dd>
+      {% if facets.fields.project_type %}
+      <dt>Project Type:</dt>
+      {% for pType in facets.fields.project_type %}
+      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=project_type_exact:{{ pType.0|urlencode }}">{{ pType.0 }}</a> ({{ pType.1 }})</dd>
       {% endfor %}
       {% else %}
-      <dt>No ProjectType facets.</dt>
-      {% endif %}
-    </dl>
-
-    <dl>
-      {% if facets.fields.Approved %}
-      <dt>Approved:</dt>
-      {% for obj in facets.fields.Approved %}
-      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Approved_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
-      {% endfor %}
-      {% else %}
-      <dt>No Approved facets.</dt>
-      {% endif %}
-    </dl>
-
-
-    <dl>
-      {% if facets.fields.Completed %}
-      <dt>Completed:</dt>
-      {% for obj in facets.fields.Completed %}
-      <dd><a href="{{ request.get_full_path }}&amp;selected_facets=Completed_exact:{{ obj.0|urlencode }}">{{ obj.0 }}</a> ({{ obj.1 }})</dd>
-      {% endfor %}
-      {% else %}
-      <dt>No Completed facets.</dt>
+      <dt>No Project Type facets.</dt>
       {% endif %}
     </dl>
 
@@ -94,30 +84,76 @@
   <div style="margin-left:200px;">
     <h4>Results:</h4>
 
-    {% for result in page.object_list %}
-    <p>
-      <a href="{{ result.object.get_absolute_url }}"> {{ result.object.prj_cd }} - {{ result.object.prj_nm }} </a>
-    </p>
-    {% empty %}
+    {% if page.object_list %}
+
+    <table cellspacing="0" class="tablesorter">
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Project Code</th>
+          <th>Project Type</th>
+          <th>Project Name</th>
+        </tr>
+      </thead>
+      {% for result in page.object_list %}
+      <tr>
+        <td> {{ result.object.year }} </td>
+        <td>
+          <a href="{{ result.object.get_absolute_url }}"> {{ result.object.prj_cd }}</a>
+        </td>
+        <td> {{ result.object.project_type }} </td>
+        <td>
+          {{ result.object.prj_nm  }}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    {% else %}
 
     No results found.
 
-    {% endfor %}</div>
+    {% endif %}
 
   {% if page.has_previous or page.has_next %}
-  <div>{% if page.has_previous %}
-    <a href="?q={{ query }}&page={{ page.previous_page_number }}">
-      {% endif %}« Previous{% if page.has_previous %}</a>{% endif %}
-    |
-    {% if page.has_next %}
-    <a href="?q={{ query }}&page={{ page.next_page_number }}">
-      {% endif %} Next »{% if page.has_next %}</a>{% endif %}</div>
-  {% endif %}</div>
-
-{% else %}
+      <ul class="pager">
+        {% if page.has_previous %}
+        <li class="previous"><a href="?q={{ query }}&page={{ page.previous_page_number }}">Newer Projects</a></li>
+        {% else %}
+        <li class="previous disabled"><a href="#">Newer Lots</a></li>
+        {% endif %}
+        <span class="page-current">
+          Page {{ page.number }} of {{ page.paginator.num_pages }}.
+        </span>
+        {% if page.has_next %}
+        <li class="next"><a href="?q={{ query }}&page={{ page.next_page_number }}">Next</a></li>
+        {% else %}
+        <li class="next disabled"><a href="#">Next</a></li>
+        {% endif %}
+      </ul>  
+    {% endif %}
 
 {% endif %}
 
 </div>
+
+<script type="text/javascript">
+
+ $(".tablesorter").tablesorter({
+   theme: 'bootstrap',
+   widthFixed: true,
+   showProcessing: true,
+   headerTemplate: '{content} {icon}',
+   widgets: ['zebra', 'uitheme', 'scroller'],
+   widgetOptions: {
+     scroller_height: 300,
+     scroller_barWidth: 17,
+     scroller_jumpToHeader: true,
+     scroller_idPrefix: 's_'
+   }
+ });
+
+</script>
+
 
 {% endblock %}

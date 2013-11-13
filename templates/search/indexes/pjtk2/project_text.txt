@@ -1,9 +1,7 @@
 {{ object.name }}
 {{ object.code }}
 {{ object.description }}
-{{ object.Approved }}
-{{ object.SignOff }}
-{{ object.ProjectType }}
-{{ object.YEAR }}
+{{ object.project_type }}
+{{ object.year }}
 
 {% for tag in object.tags.all %} {{ tag.name }} {% endfor %}

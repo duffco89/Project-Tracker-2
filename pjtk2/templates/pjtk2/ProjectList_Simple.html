@@ -20,7 +20,7 @@
 {% block content  %}
 
 <div class="container" >
-  <h1>{% if approved %} Approved {% endif %} Projects {% if year %}{{ year }}{% endif %}{% if tag %}tagged with '{{ tag }}'{% endif %}</h1>
+  <h1>Projects with '{{ q }}' in their project code:</h1>
 
 {% if page_obj %} 
 {% if page_obj.paginator.num_pages > 1 %}  
@@ -44,16 +44,6 @@
 {% endif %}
 {% endif %}
 
-
-
-  {% if not approved %}
-  <a href="#" onclick="toggle_visibility('filter');">Filter List: </a>
-  <div id="filter" style="display:none">
-    <div style="border: 1px solid #CCCCCC; padding:10px; border-radius: 15px;">
-       {% crispy filter.form %}
-    </div>
-  </div>
-  {% endif %}
 
   {% if object_list %}
   <table cellspacing="0" class="tablesorter">
@@ -84,7 +74,7 @@
   {% endif %}
 
   {% else %}
-  <p>Sorry no projects available.</p>
+  <p>Sorry, no projects match that criteria.</p>
   {% endif %}
 
 </div>
@@ -109,20 +99,6 @@
 
 </script>
 
-
-<script type="text/javascript">
-<!--
- 
-function toggle_visibility(id) {
-var e = document.getElementById(id);
-if(e.style.display == 'block')
-e.style.display = 'none';
-else
-e.style.display = 'block';
-}
- 
-//-->
-</script>
 
 
 

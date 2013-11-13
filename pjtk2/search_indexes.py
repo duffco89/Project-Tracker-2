@@ -3,7 +3,7 @@ from haystack import indexes
 from pjtk2.models import Project
 
 
-class ProejctIndex(indexes.SearchIndex, indexes.Indexable):
+class ProjectIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
 
     #author = indexes.CharField(model_attr='user')

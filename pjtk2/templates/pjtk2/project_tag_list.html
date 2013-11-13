@@ -1,0 +1,24 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+{% block title  %} {{ block.super }}| Projects  {% endblock %}
+
+{% block content  %}
+
+<div class="container" >
+
+<h2>Keywords associated with one or more projects:</h2>
+<br />
+
+
+<table class="table">
+  {% for object in object_list %}
+    {% cycle '<tr>' '' '' '' %}
+      <td> <a href="{% url 'TaggedProjects'  object.name  %}">{{ object.name }} </td>
+    {% cycle '' '' '' '</tr>' %}
+  {% endfor %}
+</table>
+
+
+</div>
+
+{% endblock %}
