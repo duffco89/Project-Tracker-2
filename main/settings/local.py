@@ -2,12 +2,23 @@ from main.settings.base import *
 
 
 #username and password: cottrillad, django
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': '%s/db/pjtk2.db' % root(),
+#    }
+#}
+
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': '%s/db/pjtk2.db' % root(),
-    }
+         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+         'NAME': 'pjtk2',
+         'USER': 'adam',
+         'PASSWORD': 'django',
+     }
 }
+
 
 
 MIDDLEWARE_CLASSES += (   

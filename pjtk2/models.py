@@ -11,6 +11,8 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
 
+from django.contrib.gis.db import models
+
 from taggit.managers import TaggableManager
 
 import datetime
@@ -174,7 +176,7 @@ class Project(models.Model):
     prj_date1 = models.DateField("End Date", blank=False)
     prj_cd = models.CharField("Project Code", max_length=12, unique=True,
                               blank=False)
-    prj_nm = models.CharField("Proejct Name", max_length=60, blank=False)
+    prj_nm = models.CharField("Project Name", max_length=60, blank=False)
     #prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
     prj_ldr = models.ForeignKey(User, related_name="Project Lead")    
     comment = models.TextField(blank=False,
@@ -534,6 +536,31 @@ class Project(models.Model):
             self.initialize_milestones()
 
 
+    def get_sample_points(self):
+        '''get the coordinates of sample points associated with this
+        project.  Returns a list of tuples.  Each tuple contains the
+        sample id, dd_lat and dd_lon
+
+        '''
+        points = SamplePoint.objects.filter(project__id=self.id).values_list(
+            'sam', 'geom')
+
+        return points
+
+            
+
+            
+class SamplePoint(models.Model):
+    '''A class to hold the sampling locations of a project.  In most
+    cases, a samplePoint instance represents a net in the water, but
+    can have different meaning for different projects.
+    '''
+    project = models.ForeignKey('Project')
+    sam  = models.CharField(max_length=30, null=True, blank=True)
+    geom = models.PointField(srid=4326,
+                             help_text='Represented as (longitude, latitude)')
+
+            
 class ProjectMilestones(models.Model):
     '''list of reporting requirements for each project'''
     #aka - project milestones

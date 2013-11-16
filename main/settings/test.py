@@ -11,12 +11,24 @@ from main.settings.base import *
 INSTALLED_APPS += ('django_nose',)
 #INSTALLED_APPS.append('django_jasmine')
 
+##DATABASES = {
+##    "default": {
+##        "ENGINE": "django.db.backends.sqlite3",
+##        "NAME": ":memory:",
+##    }
+##}
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": ":memory:",
-    }
+    'default': {
+         'ENGINE': 'django.contrib.gis.db.backends.postgis',
+         'NAME': 'pjtk2',
+         'USER': 'adam',
+         'PASSWORD': 'django',
+     }
 }
+
+
+
 
 PASSWORD_HASHERS = (
     'django.contrib.auth.hashers.MD5PasswordHasher',

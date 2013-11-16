@@ -22,7 +22,6 @@ A. Cottrill
 
 '''
 
-
 import csv
 import django_settings
 from django.contrib.auth.models import User
@@ -55,9 +54,22 @@ for user in users:
             )
     new_user.save()
 
+
+# steve Admin
+steve = User(username='steve',
+                first_name='Steve',
+                last_name='currie',
+                password=make_password('uglmu'),
+                is_active=True,
+                is_staff=True,
+             is_superuser=True
+            )
+steve.save()
+    
+    
 #so that we know we're done   
 print "Done!"
-    
+
 #check:
 all_users = User.objects.all()
 for user in all_users[:6]:

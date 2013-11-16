@@ -184,7 +184,6 @@ with open(csv_file, 'rb') as csvfile:
 print employees[:5]
 
 
-
 for employee in employees:
     boss_id = get_user_id(employee[0])
     minion_id = get_user_id(employee[1])
@@ -355,6 +354,14 @@ sqlcon.close()
 
 
 #============================================
+# to reload all of the reports in project tracker
+# run the commands:
+#   clear_upload_dir(MEDIA_PATH)
+#   drop_report_tables(targdb)
+# then from a command prompt (with venv active run syncdb)
+# then exececute the code from this point down.
+
+#============================================
 #   Project-Milestones
 
 #now for every project we want to insert a record into the core milestones table
@@ -387,11 +394,24 @@ for prj_id in prj_ids:
     sqlcon=sqlite3.connect(targdb)
     sqlcur=sqlcon.cursor()
     args = [(prj_id, x) for x in milestone_ids]            
-    sql = """insert into pjtk2_projectmilestones (project_id, milestone_id, required)
-                values (?,?,1)
-                """
+    sql = """insert into pjtk2_projectmilestones (project_id, milestone_id, 
+                required) values (?,?,1)"""
     sqlcur.executemany(sql,args)
     sqlcon.commit()
+
+#update 'submitted' milestone for each project - if there in project
+#tracker, they must have been submitted!
+milestone_id = get_milestone_id('Submitted', targdb)
+now = datetime.datetime.utcnow()
+
+sqlcon=sqlite3.connect(targdb)
+sqlcur=sqlcon.cursor()
+
+sql = """update pjtk2_projectmilestones set completed=?
+         where milestone_id=?"""
+sqlcur.execute(sql, (now, milestone_id))
+sqlcon.commit()
+
 print "Done adding project-milestones!!"            
 
             
@@ -574,7 +594,7 @@ milestone_id = get_milestone_id(milestone_label, targdb)
 print "Migrating {0}s (milestone_id = {1})".format(milestone_label,
                                                            milestone_id)
 
-sql = """SELECT Key_PM, Report FROM Proj_proposals
+sql = """SELECT Key_PM, Report FROM Proj_Protocols
          WHERE (((Report) Is Not Null))"""
 
 result = msaccess(constr, sql)

@@ -2,6 +2,12 @@
 
 {% load pjtk2_tags %}
 
+{% block extrahead %}
+    {{ map.media }}
+{% endblock %}
+
+
+
 {% block content %}
 
 <div class="container" >
@@ -68,7 +74,11 @@
       </div>
     </div>
     <div class="col-md-7" >
-      <img src="{{ STATIC_URL }}LakeHuron.png" style="width: 600px;" />
+      {% if map %}
+        {{ map }}
+      {% else %}
+        <img src="{{ STATIC_URL }}LakeHuron.png" style="width: 600px;"/>
+      {% endif %}
       <br />
     </div>
   </div>

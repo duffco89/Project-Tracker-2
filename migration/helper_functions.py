@@ -27,65 +27,65 @@ import re
 #===============================================================
 # Helper functions:
 
-def InsertReportRecords(records, reportTable, targdb, fldName= "Report",
-                        commit=False):
-    """A function to insert the records into the report Table in the
-    target (django) database.  The columns in 'records' should
-    correspond to 'Key_PM' and 'Report'.  The functions also resets
-    the forgien keys to associate reports with their orginal project.
-    New primary keys are autmatically assiged to each record.  This
-    funciton create a temporary field to hold the old key, joins on
-    the old key in project master list, updates the forgien key in the
-    report table and then deletes the temporary field.
-
-    records -
-    reportTable - 
-    targdb -
-    fldName -
-    commit - 
-
-    """
-
-    try:
-        sqlcon=sqlite3.connect(targdb)
-        sqlcur=sqlcon.cursor()
-
-        sql = '''ALTER TABLE %s ADD COLUMN OldKey INT;''' % reportTable
-        sqlcur.execute(sql)
-
-        #here is the sql to append project tracker data into sqlite:
-        sql = """INSERT INTO %s ("Key_PM_id", "%s", "OldKey")
-            VALUES (?,?,?);""" % (reportTable, fldName)
-        sqlcur.executemany(sql, records)
-
-
-        sql = """UPDATE %s SET OldKey=Key_PM_id;""" % reportTable
-        sqlcur.execute(sql)
-
-        sql = """UPDATE %s SET Key_PM_id = (SELECT id FROM
-                 pjtk2_proj_masterlist WHERE
-                 pjtk2_proj_masterlist.OldKey =
-                 %s.OldKey);""" % (reportTable,reportTable)
-        sqlcur.execute(sql)
-
-
-
-        if commit:
-            sqlcon.commit()
-
-    except sqlite3.Error, e:
-        if sqlcon:
-            sqlcon.rollback()
-
-        print "Error %s:" % e.args[0]
-
-
-    finally:
-        if sqlcon:
-            sqlcon.close()
-
-#===============================================================
-
+## def InsertReportRecords(records, reportTable, targdb, fldName= "Report",
+##                         commit=False):
+##     """A function to insert the records into the report Table in the
+##     target (django) database.  The columns in 'records' should
+##     correspond to 'Key_PM' and 'Report'.  The functions also resets
+##     the forgien keys to associate reports with their orginal project.
+##     New primary keys are autmatically assiged to each record.  This
+##     funciton create a temporary field to hold the old key, joins on
+##     the old key in project master list, updates the forgien key in the
+##     report table and then deletes the temporary field.
+## 
+##     records -
+##     reportTable - 
+##     targdb -
+##     fldName -
+##     commit - 
+## 
+##     """
+## 
+##     try:
+##         sqlcon=sqlite3.connect(targdb)
+##         sqlcur=sqlcon.cursor()
+## 
+##         sql = '''ALTER TABLE %s ADD COLUMN OldKey INT;''' % reportTable
+##         sqlcur.execute(sql)
+## 
+##         #here is the sql to append project tracker data into sqlite:
+##         sql = """INSERT INTO %s ("Key_PM_id", "%s", "OldKey")
+##             VALUES (?,?,?);""" % (reportTable, fldName)
+##         sqlcur.executemany(sql, records)
+## 
+## 
+##         sql = """UPDATE %s SET OldKey=Key_PM_id;""" % reportTable
+##         sqlcur.execute(sql)
+## 
+##         sql = """UPDATE %s SET Key_PM_id = (SELECT id FROM
+##                  pjtk2_proj_masterlist WHERE
+##                  pjtk2_proj_masterlist.OldKey =
+##                  %s.OldKey);""" % (reportTable,reportTable)
+##         sqlcur.execute(sql)
+## 
+## 
+## 
+##         if commit:
+##             sqlcon.commit()
+## 
+##     except sqlite3.Error, e:
+##         if sqlcon:
+##             sqlcon.rollback()
+## 
+##         print "Error %s:" % e.args[0]
+## 
+## 
+##     finally:
+##         if sqlcon:
+##             sqlcon.close()
+## 
+## #===============================================================
+## 
 
 
 def msaccess(constr, sql):

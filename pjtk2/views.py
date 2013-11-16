@@ -20,6 +20,8 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
+from olwidget.widgets import InfoMap
+
 from taggit.models import Tag
 
 from pjtk2.functions import get_minions, my_messages, get_messages_dict
@@ -36,6 +38,31 @@ import datetime
 import pytz
 import mimetypes
 import os
+
+
+
+def get_map(points):
+    """
+
+    Arguments:
+    - `points`:
+    """
+    if len(points)>0:
+        pts = [[x[1],x[0]] for x in points]
+        map = InfoMap(
+            pts,
+            {'default_lat': 45,
+            'default_lon': -82.0,
+            'default_zoom':7,
+            'zoom_to_data_extent':False,
+            'map_div_style': {'width': '700px', 'height': '600px'},
+            }
+            )
+    else:
+        map=None
+    return map
+
+
 
 
 def group_required(*group_names):
@@ -274,13 +301,17 @@ def project_detail(request, slug):
     edit = can_edit(user, project)
     manager = is_manager(user)
 
+    sample_points = project.get_sample_points()
+    map = get_map(sample_points)
+    
     return render_to_response('pjtk2/projectdetail.html',
                               {'milestones': milestones,
                                'Core': core,
                                'Custom': custom,
                                'project': project,
                                'edit': edit,
-                               'manager': manager
+                               'manager': manager,
+                               'map': map
                                },
                               context_instance=RequestContext(request))
 

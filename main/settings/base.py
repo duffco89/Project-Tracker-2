@@ -153,6 +153,7 @@ DJANGO_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
+    'django.contrib.gis',    
 )
 
 THIRDPARTY_APPS = (
@@ -161,6 +162,7 @@ THIRDPARTY_APPS = (
     'taggit',
     'haystack',
     'passwords',
+    'olwidget',            
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG
