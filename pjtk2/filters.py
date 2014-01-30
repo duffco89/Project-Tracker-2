@@ -1,8 +1,6 @@
 from django import forms
 from django.db import models
 import django_filters
-from pjtk2.models import Project, ProjectType
-
 
 from pjtk2.models import Project, ProjectType, Lake
 

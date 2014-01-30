@@ -674,7 +674,8 @@ class TestModelBookmarks(TestCase):
         bookmark = Bookmark.objects.create(user=self.user2, 
                                            project=self.project)
         watchers = bookmark.get_watchers()
-        self.assertEqual(watchers,[self.user2, self.user])
+
+        self.assertEqual(watchers.sort(), [self.user, self.user2].sort())
 
 
     def tearDown(self):

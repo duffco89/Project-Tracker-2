@@ -90,10 +90,11 @@ class MilestoneManager(models.Manager):
 class Milestone(models.Model):
     '''Look-up table of reporting milestone and their attributes.  Not all
     milestones will have a report associated with them.  Keeping
-    milesstones in a separate tamles allows us to dynamically add and
-    remove milesstones associated with individual projects or project
+    milestones in a separate tables allows us to dynamically add and
+    remove milestones associated with individual projects or project
     types (field projects vs synthesis projects).
-    protected is used to limit who can update various milestones.
+
+    Protected is used to limit who can update various milestones.
     '''
 
     #(database, display)
@@ -295,7 +296,7 @@ class Project(models.Model):
         return ret
 
     def get_milestones(self, required=True):
-        '''get all of the milestone events have been assigned to
+        '''get all of the milestone events that have been assigned to
         this project - (these are just milestone events where report==False)'''
         if required is True:
             return ProjectMilestones.objects.filter(project=self,
@@ -733,6 +734,9 @@ class Messages2Users(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     read = models.DateTimeField(blank=True, null=True)
 
+    class Meta:
+        unique_together = ("user", "msg",)
+
     def __unicode__(self):
         '''return the messsage as it's unicode method.'''
         return "%s - %s" % (self.user, self.msg)
@@ -860,14 +864,3 @@ def send_message(msgtxt, recipients, project, milestone):
         Messages2Users.objects.create(user=recipients, msg=message)
 
 
-##def my_messages(user, only_unread=True):
-##    '''Return a queryset of messages for the user, sorted in reverse
-##    chronological order (newest first).  By default, only unread messages
-##    are returned, but all messages can be retrieved.'''
-##
-##    if only_unread:
-##        my_msgs = (Messages2Users.objects.filter(user=user,
-##                            read__isnull=True).order_by('-created'))
-##    else:
-##        my_msgs = Messages2Users.objects.filter(user=user).order_by('-created')
-##    return(my_msgs)

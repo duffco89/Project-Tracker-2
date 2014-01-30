@@ -24,19 +24,42 @@ def get_minions(employee):
     return ret
 
 
-def my_messages(user, only_unread=True):
+def my_messages(user, all=False):
     '''Return a queryset of messages for the user, sorted in reverse
     chronological order (newest first).  By default, only unread messages
     are returned, but all messages can be retrieved.'''
 
     from pjtk2.models import Messages2Users
 
-    if only_unread:
+    if all:
+        my_msgs = Messages2Users.objects.filter(user=user).order_by('-created')
+    else:
         my_msgs = (Messages2Users.objects.filter(user=user,
                             read__isnull=True).order_by('-created'))
-    else:
-        my_msgs = Messages2Users.objects.filter(user=user).order_by('-created')
     return(my_msgs)
+
+
+def mark_message_as_read(user, message):
+    """A message is marked as read if the field [read] contains a time
+    stamp. So, create some messages, verify that they aren't read,
+    mark two as read and verify that they have a time stamp.
+    
+    Arguments:
+    - `user`: a user model object
+    - `message`:a message model object
+    """
+    from pjtk2.models import Messages2Users
+    import datetime
+    import pytz
+
+    #try:
+    msg2user = Messages2Users.objects.get(user=user, msg=message)
+    msg2user.read = datetime.datetime.now(pytz.utc)
+    msg2user.save()
+    #except:
+    #    pass
+        #TODO - add logging here - if we get an error write it out to
+        #a log file.
 
 
 def get_messages_dict(messages):
