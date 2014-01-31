@@ -257,7 +257,7 @@ class SisterFormTestCase(WebTest):
 
     def test_add_remove_sisters(self):
         '''this test will test the whole process.  We will log into
-        the lister list, click on a sister, submit the form, return to
+        the sister list, click on a sister, submit the form, return to
         the sister page, verify that the sister is selected, unselect
         it and re-sumbit the form.  Finally retrun to the list of
         sisters and verify that no sisters are selected.'''
@@ -283,6 +283,7 @@ class SisterFormTestCase(WebTest):
 
         #check one of the boxes and submit the form,
         form.fields['form-0-sister'][0].value = 'on'
+        
         form.submit()
 
         proj = Project.objects.get(slug=self.project1.slug)

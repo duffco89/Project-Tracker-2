@@ -260,7 +260,8 @@ class TestMilestoneModel(TestCase):
         # automatically associated with a new project, and verify that
         # the custom report is not when the project is created.
                 
-        myreports = ProjectMilestones.objects.filter(project=self.project,milestone__report=True)
+        myreports = ProjectMilestones.objects.filter(project=self.project,
+                                                     milestone__report=True)
         self.assertEqual(myreports.count(), 3)
 
         outstanding = self.project.get_outstanding()
@@ -332,7 +333,10 @@ class TestMilestoneModel(TestCase):
         print "dict.custom = %s" % dict['Custom']
 
         core = dict['Core']
-        self.assertEqual(core['assigned'],[1,2,3])
+
+        should_be = [self.core1.id, self.core2.id, self.core3.id]
+        self.assertEqual(core['assigned'], should_be)
+
         reports = [str(x[1]) for x in core['milestones']]
         self.assertEqual(reports,[self.core1.label, 
                                       self.core2.label, 

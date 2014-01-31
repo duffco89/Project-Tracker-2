@@ -473,10 +473,10 @@ class Project(models.Model):
         if self.is_approved():
             try:
                 candidates = Project.objects.approved().filter(
-                                      project_type=self.project_type,
-                                      year = self.year,
-                                      projectsisters__isnull=True).exclude(
-                                      slug=self.slug)
+                    project_type=self.project_type,
+                    year = self.year,
+                    projectsisters__isnull=True).exclude(
+                        slug=self.slug).order_by('slug')
             except Project.DoesNotExist:
                 candidates = []
         else:

@@ -17,6 +17,7 @@ main/whoosh*
 db/*
 coverage/*
 fixtures/*
+*flycheck*
 TAGS
 .pylintrc
 old_static/*
