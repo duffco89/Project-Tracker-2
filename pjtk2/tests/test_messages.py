@@ -16,8 +16,8 @@ from pjtk2.models import *
 from pjtk2.tests.factories import *
 from pjtk2.functions import my_messages
 
-#from pjtk2.views import get_messages_dict
-from pjtk2.functions import get_messages_dict, mark_message_as_read
+from pjtk2.views import get_messages_dict
+#from pjtk2.functions import get_messages_dict, mark_message_as_read
 
 
 def print_err(*args):
@@ -73,10 +73,14 @@ class TestMarkMessages(TestCase):
             print "msg = %s [%s] (%s)" % (msg, msg.id, msg.read)
 
 
-        for message in messages[:2]:
-            msg2user = Messages2Users.objects.get(user=self.user1, msg=message)
-            msg2user.read = datetime.datetime.now(pytz.utc)
-            msg2user.save()
+        #for message in messages[:2]:
+        #    msg2user = Messages2Users.objects.get(user=self.user1, 
+        #                                          message=message)
+        #    msg2user.read = datetime.datetime.now(pytz.utc)
+        #    msg2user.save()
+
+        messages[0].mark_as_read()
+        messages[1].mark_as_read()
 
         #mark_message_as_read(message=messages[0], user=self.user1)
         #mark_message_as_read(message=messages[1], user=self.user1)
@@ -85,7 +89,7 @@ class TestMarkMessages(TestCase):
         foo = Messages2Users.objects.filter(user=self.user1)
 
         for bar in foo:
-            print "bar.msg = %s, bar.read=%s" % (bar.msg, bar.read)
+            print "bar.msg = %s, bar.read=%s" % (bar.message, bar.read)
 
         messages = my_messages(user=self.user1)
         self.assertEqual(messages.count(), 2)
@@ -253,170 +257,170 @@ class TestBuildRecipientsList(TestCase):
         self.user7.delete()
 
 
-##class TestSendMessages(TestCase):
-##    '''Some simple tests to verify that the functions associated with the
-##    messaging system function as expected.  send_messages should be able
-##    to send a simple message to a number of recipients.  my_messages()
-##    should be able to retrieve both read and unread messages for a
-##    particular user.
-##    '''
-##
-##    def setUp(self):
-##        '''Set up a fairly complicated employee heirachy with 6 employees'''
-##
-##        self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
-##                                 username='jseinfield')
-##
-##        self.user2 = UserFactory(first_name="George", last_name="Costanza",
-##                                 username='gcostanza')
-##
-##        self.user3 = UserFactory(first_name="Cosmo", last_name="Kramer",
-##                                 username='ckramer')
-##        self.user4 = UserFactory(first_name="Elaine", last_name="Benis",
-##                                 username='ebenis')
-##
-##        #now setup employee relationships
-##        #jerry has no boss
-##        self.employee1 = EmployeeFactory(user=self.user1)
-##        #George works for Jerry and will be our dba
-##        self.employee2 = EmployeeFactory(user=self.user2,
-##                                         supervisor=self.employee1)
-##        #Kramer works for Jerry
-##        self.employee3 = EmployeeFactory(user=self.user3,
-##                                         supervisor=self.employee1)
-##        #Elaine works for Kramer
-##        self.employee4 = EmployeeFactory(user=self.user4,
-##                                         supervisor=self.employee3)
-##
-##        #we need a milestone to associate the message with
-##        self.milestone1 = MilestoneFactory.create(label="Approved",
-##                                                  category='Core', order=1,
-##                                                  report=False)
-##
-##        #now create a project with an owner and dba.
-##        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
-##                                              prj_ldr=self.user3,
-##                                              owner=self.user3,
-##                                              dba=self.user2)
-##
-##    def test_send_messages(self):
-##        '''Verify that we can send a simple message to several people.'''
-##
-##        #make sure the tables are empty
-##        messages = Message.objects.all().count()
-##        self.assertEqual(messages, 0)
-##
-##        messages2users = Messages2Users.objects.all().count()
-##        self.assertEqual(messages, 0)
-##
-##        #build the list of recipients
-##        send_to = [self.user1, self.user2, self.user3]
-##        msgtxt = "a fake message."
-##
-##        send_message(msgtxt=msgtxt, recipients=send_to,
-##                     project=self.project1, milestone=self.milestone1)
-##
-##        #verify that the message is in the message table
-##        messages = Message.objects.all()
-##        self.assertEqual(messages.count(), 1)
-##        self.assertEqual(messages[0].msg, msgtxt)
-##
-##        #verify that there is a record in message2user for each recipient
-##        messages2users = Messages2Users.objects.all()
-##        self.assertEqual(messages2users.count(), 3)
-##
-##
-##    def test_my_messages(self):
-##
-##        '''verify that the my_messages function can retrieve both read and
-##        unread messages associated with a user.'''
-##
-##        send_to = [self.user1]
-##        #verify that we're starting out without any messages
-##        messages = my_messages(user=self.user1)
-##        self.assertEqual(messages.count(), 0)
-##
-##        msgtxt = ["the first message.", "the second message.",
-##                  "the third message.", "the fourth message."]
-##
-##        for msg in msgtxt:
-##            send_message(msgtxt=msg, recipients=send_to,
-##                         project=self.project1, milestone=self.milestone1)
-##            #make sure the timestamps are slightly different.
-##            time.sleep(0.001)
-##
-##        #here is the orm way of getting the messages
-##        messages2users = Messages2Users.objects.filter(user=self.user1)
-##        #here is my function
-##        messages = my_messages(user=self.user1)
-##        #make sure they are equal
-##        self.assertEqual(messages2users.count(), messages.count())
-##        
-##        #the messages should be returned in reverse chronological order
-##        msgtxt.reverse()
-##
-##        #say the first and second messages were read
-##        msg_ids = [x.id for x in messages[:2]]
-##        print "msg_ids = %s" % msg_ids
-##
-##
-##        print "messages[0] = %s" % messages[0]
-##        print "messages[0].id = %s" % messages[0].id
-##        print "self.user1.id = %s" % self.user1.id
-##
-##        msg2users = Messages2Users.objects.all()
-##        for msg in msg2users:
-##            print "msg = %s(%s) sent to %s (id=%s)" % (
-##                msg, msg.id, msg.user, msg.user.id)
-##
-##
-##        now = datetime.datetime.now(pytz.utc)
-##
-##        Messages2Users.objects.filter(msg__id__in=msg_ids,
-##                                      user=self.user1).update(
-##                                          read=now)
-##        #mark_message_as_read(user=self.user1, message=messages[0])
-##        #mark_message_as_read(user=self.user1, message=messages[1])
-##
-##        #now when we call messages we should only see the unread messages
-##        messages = my_messages(user=self.user1)
-##
-##        for msg in messages:
-##            print "msg = %s [%s] (%s)" % (msg, msg.id, msg.read)
-##            #print "msg = %s" % msg
-##
-##
-##        #make sure the expect number are returned
-##        self.assertEqual(messages.count(), 2)
-##        #the unread messages should be returned in reverse chronological order
-##        self.assertQuerysetEqual(messages, msgtxt[:2],
-##                                 lambda a: a.msg.msg)
-##
-##        #if we pass in the all=True, we should get them all
-##        messages = my_messages(user=self.user1, all=True)
-##
-##        #make sure it returns the number of records we think it does
-##        self.assertEqual(messages.count(), 4)
-##        #the messages should be returned in reverse chronological order
-##        self.assertQuerysetEqual(messages, msgtxt,
-##                                 lambda a: a.msg.msg)
-##
-##    def tearDown(self):
-##        self.project1.delete()
-##        self.milestone1.delete()
-##
-##        self.employee1.delete()
-##        self.employee2.delete()
-##        self.employee3.delete()
-##        self.employee4.delete()
-##
-##        self.user1.delete()
-##        self.user2.delete()
-##        self.user3.delete()
-##        self.user4.delete()
-##
-##
-##
+class TestSendMessages(TestCase):
+    '''Some simple tests to verify that the functions associated with the
+    messaging system function as expected.  send_messages should be able
+    to send a simple message to a number of recipients.  my_messages()
+    should be able to retrieve both read and unread messages for a
+    particular user.
+    '''
+
+    def setUp(self):
+        '''Set up a fairly complicated employee heirachy with 6 employees'''
+
+        self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
+                                 username='jseinfield')
+
+        self.user2 = UserFactory(first_name="George", last_name="Costanza",
+                                 username='gcostanza')
+
+        self.user3 = UserFactory(first_name="Cosmo", last_name="Kramer",
+                                 username='ckramer')
+        self.user4 = UserFactory(first_name="Elaine", last_name="Benis",
+                                 username='ebenis')
+
+        #now setup employee relationships
+        #jerry has no boss
+        self.employee1 = EmployeeFactory(user=self.user1)
+        #George works for Jerry and will be our dba
+        self.employee2 = EmployeeFactory(user=self.user2,
+                                         supervisor=self.employee1)
+        #Kramer works for Jerry
+        self.employee3 = EmployeeFactory(user=self.user3,
+                                         supervisor=self.employee1)
+        #Elaine works for Kramer
+        self.employee4 = EmployeeFactory(user=self.user4,
+                                         supervisor=self.employee3)
+
+        #we need a milestone to associate the message with
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                                  category='Core', order=1,
+                                                  report=False)
+
+        #now create a project with an owner and dba.
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user3,
+                                              owner=self.user3,
+                                              dba=self.user2)
+
+    def test_send_messages(self):
+        '''Verify that we can send a simple message to several people.'''
+
+        #make sure the tables are empty
+        messages = Message.objects.all().count()
+        self.assertEqual(messages, 0)
+
+        messages2users = Messages2Users.objects.all().count()
+        self.assertEqual(messages, 0)
+
+        #build the list of recipients
+        send_to = [self.user1, self.user2, self.user3]
+        msgtxt = "a fake message."
+
+        send_message(msgtxt=msgtxt, recipients=send_to,
+                     project=self.project1, milestone=self.milestone1)
+
+        #verify that the message is in the message table
+        messages = Message.objects.all()
+        self.assertEqual(messages.count(), 1)
+        self.assertEqual(messages[0].msgtxt, msgtxt)
+
+        #verify that there is a record in message2user for each recipient
+        messages2users = Messages2Users.objects.all()
+        self.assertEqual(messages2users.count(), 3)
+
+
+    def test_my_messages(self):
+
+        '''verify that the my_messages function can retrieve both read and
+        unread messages associated with a user.'''
+
+        send_to = [self.user1]
+        #verify that we're starting out without any messages
+        messages = my_messages(user=self.user1)
+        self.assertEqual(messages.count(), 0)
+
+        msgtxt = ["the first message.", "the second message.",
+                  "the third message.", "the fourth message."]
+
+        for msg in msgtxt:
+            send_message(msgtxt=msg, recipients=send_to,
+                         project=self.project1, milestone=self.milestone1)
+            #make sure the timestamps are slightly different.
+            time.sleep(0.001)
+
+        #here is the orm way of getting the messages
+        messages2users = Messages2Users.objects.filter(user=self.user1)
+        #here is my function
+        messages = my_messages(user=self.user1)
+        #make sure they are equal
+        self.assertEqual(messages2users.count(), messages.count())
+        
+        #the messages should be returned in reverse chronological order
+        msgtxt.reverse()
+
+        #say the first and second messages were read
+        msg_ids = [x.id for x in messages[:2]]
+        print "msg_ids = %s" % msg_ids
+
+
+        print "messages[0] = %s" % messages[0]
+        print "messages[0].id = %s" % messages[0].id
+        print "self.user1.id = %s" % self.user1.id
+
+        msg2users = Messages2Users.objects.all()
+        for msg in msg2users:
+            print "msg = %s(%s) sent to %s (id=%s)" % (
+                msg, msg.id, msg.user, msg.user.id)
+
+
+        now = datetime.datetime.now(pytz.utc)
+
+        Messages2Users.objects.filter(message__id__in=msg_ids,
+                                      user=self.user1).update(
+                                          read=now)
+        #mark_message_as_read(user=self.user1, message=messages[0])
+        #mark_message_as_read(user=self.user1, message=messages[1])
+
+        #now when we call messages we should only see the unread messages
+        messages = my_messages(user=self.user1)
+
+        for msg in messages:
+            print "msg = %s [%s] (%s)" % (msg, msg.id, msg.read)
+            #print "msg = %s" % msg
+
+
+        #make sure the expect number are returned
+        self.assertEqual(messages.count(), 2)
+        #the unread messages should be returned in reverse chronological order
+        self.assertQuerysetEqual(messages, msgtxt[:2],
+                                 lambda a: a.msg.msg)
+
+        #if we pass in the all=True, we should get them all
+        messages = my_messages(user=self.user1, all=True)
+
+        #make sure it returns the number of records we think it does
+        self.assertEqual(messages.count(), 4)
+        #the messages should be returned in reverse chronological order
+        self.assertQuerysetEqual(messages, msgtxt,
+                                 lambda a: a.msg.msg)
+
+    def tearDown(self):
+        self.project1.delete()
+        self.milestone1.delete()
+
+        self.employee1.delete()
+        self.employee2.delete()
+        self.employee3.delete()
+        self.employee4.delete()
+
+        self.user1.delete()
+        self.user2.delete()
+        self.user3.delete()
+        self.user4.delete()
+
+
+
 
 class TestSendNoticeWhenProjectMilestonesChange(TestCase):
     '''Verify that when project milestones are updated, messages are sent
@@ -488,8 +492,8 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
 
         #check on of the users to verify that they message they
         #recieve is what you think it should be:
-        self.assertEqual(Georges_msgs[0].msg.msg, 'Approved')
-        self.assertEqual(Georges_msgs[1].msg.msg, 'Submitted')
+        self.assertEqual(Georges_msgs[0].message.msgtxt, 'Approved')
+        self.assertEqual(Georges_msgs[1].message.msgtxt, 'Submitted')
 
     def test_send_message_project_unapproved(self):
         '''If a project is approved and subsquently un-approved, the project
@@ -503,16 +507,16 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
         Georges_msgs = my_messages(self.user2)
 
         for msg in Georges_msgs:
-            print msg.msg
+            print msg.message
 
         self.assertEqual(Georges_msgs.count(), 3)
 
         #check on of the users to verify that they message they
         #recieve is what you think it should be:
         msgtxt = "The milestone 'Approved' has been revoked"
-        self.assertEqual(Georges_msgs[0].msg.msg, msgtxt)
-        self.assertEqual(Georges_msgs[1].msg.msg, 'Approved')
-        self.assertEqual(Georges_msgs[2].msg.msg, 'Submitted')
+        self.assertEqual(Georges_msgs[0].message.msgtxt, msgtxt)
+        self.assertEqual(Georges_msgs[1].message.msgtxt, 'Approved')
+        self.assertEqual(Georges_msgs[2].message.msgtxt, 'Submitted')
 
     def tearDown(self):
 

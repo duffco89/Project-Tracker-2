@@ -705,24 +705,27 @@ class Message(models.Model):
     '''A table to hold all of our messages and which project and milestone
     they were associated with.'''
     #(database, display)
-    LEVEL_CHOICES = {
-        ('info', 'Info'),
-        ('actionrequired', 'Action Required'),
-    }
+    distribution_list = models.ManyToManyField(User, through='Messages2Users')
 
-    msg = models.CharField(max_length=100)
+    msgtxt = models.CharField(max_length=100)
     project_milestone = models.ForeignKey(ProjectMilestones)
     #these two fields will allow us to keep track of why messages were sent:
 
     #we will need a project 'admin' to send announcements
     #"Notification system is now working."
     #"Feature Request/Bug Reporting has been implemented."
+
+    LEVEL_CHOICES = {
+        ('info', 'Info'),
+        ('actionrequired', 'Action Required'),
+    }
+
     level = models.CharField(max_length=30, choices=LEVEL_CHOICES,
                              default='info')
 
     def __unicode__(self):
         '''return the messsage as it's unicode method.'''
-        return self.msg
+        return self.msgtxt
 
 
 class Messages2Users(models.Model):
@@ -730,16 +733,85 @@ class Messages2Users(models.Model):
     they were create and when they were read.'''
 
     user = models.ForeignKey(User)
-    msg = models.ForeignKey(Message)
+    message = models.ForeignKey(Message)
     created = models.DateTimeField(auto_now_add=True)
     read = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        unique_together = ("user", "msg",)
+        unique_together = ("user", "message",)
 
     def __unicode__(self):
         '''return the messsage as it's unicode method.'''
-        return "%s - %s" % (self.user, self.msg)
+        return "%s - %s" % (self.user, self.message)
+
+    def mark_as_read(self):
+        self.now = datetime.datetime.now(pytz.utc)
+        self.save() 
+
+
+#=========================
+#   Message functions
+
+def build_msg_recipients(project, level=None, dba=True, ops=True):
+    '''A function to complile the list of recipients for messages
+
+    project - a project instance
+    level - an integer indicating how high up the employee hierarchy the
+             message should propegate (not yet implemented)
+    dba - should the project's dba be notified too?
+    ops - should the designated operations coordinator(s) be nofitied
+             (also not yet implemented)
+    The function returns a list of unique user instances.
+    '''
+
+    prj_owner = project.owner
+    prj_owner = Employee.objects.get(user__username=prj_owner)
+    recipients = get_supervisors(prj_owner)
+    #convert the employees to user objects
+    recipients = [x.user for x in recipients]
+
+    if level and level < len(recipients):
+        #trim the list of supervisors here (if appropriate)
+        recipients = recipients[:-(level-1)]
+    #Find out who is watching this project and add them to the list too
+    bookmarks = Bookmark.objects.filter(project=project)
+    if bookmarks.exists():
+        for watcher in bookmarks:
+            recipients.append(watcher.user)
+    #send notice to dba too
+    if dba:
+        recipients.append(project.dba)
+    if ops:
+        #recipients.append(project.ops)
+        pass
+    #remove any duplicates
+    recipients = list(set(recipients))
+    return(recipients)
+
+
+def send_message(msgtxt, recipients, project, milestone):
+    '''Create a record in the message database and send it to each user in
+    recipients by appending a record to Messages2Users for each one.'''
+
+    #if the Project Milestone doesn't exist for this project and
+    #milestone create it
+    prjms, created = ProjectMilestones.objects.get_or_create(project=project,
+                                            milestone=milestone)
+
+    #create a message object using the message text and the project-milestone
+    message = Message.objects.create(msgtxt=msgtxt, project_milestone=prjms)
+    #then loop through the list of recipients and add one record to
+    #Messages2Users for each one:
+    try:
+        for recipient in recipients:
+            #user = User.objects.get(Employee=emp)
+            #Messages2Users.objects.create(user=recipient, msg=message)
+            msg4u = Messages2Users(user=recipient, message=message)
+            msg4u.save()
+    except TypeError:
+        #Messages2Users.objects.create(user=recipients, msg=message)
+        msg4u = Messages2Users(user=recipients, message=message)
+        msg4u.save()
 
 
 #=====================================
@@ -800,67 +872,5 @@ def send_notice_project_submitted(sender, instance, **kwargs):
                     milestone=instance.milestone)
 
 
-
-
-
-#=========================
-#   Message functions
-
-def build_msg_recipients(project, level=None, dba=True, ops=True):
-    '''A function to complile the list of recipients for messages
-
-    project - a project instance
-    level - an integer indicating how high up the employee hierarchy the
-             message should propegate (not yet implemented)
-    dba - should the project's dba be notified too?
-    ops - should the designated operations coordinator(s) be nofitied
-             (also not yet implemented)
-    The function returns a list of unique user instances.
-    '''
-
-    prj_owner = project.owner
-    prj_owner = Employee.objects.get(user__username=prj_owner)
-    recipients = get_supervisors(prj_owner)
-    #convert the employees to user objects
-    recipients = [x.user for x in recipients]
-
-    if level and level < len(recipients):
-        #trim the list of supervisors here (if appropriate)
-        recipients = recipients[:-(level-1)]
-    #Find out who is watching this project and add them to the list too
-    bookmarks = Bookmark.objects.filter(project=project)
-    if bookmarks.exists():
-        for watcher in bookmarks:
-            recipients.append(watcher.user)
-    #send notice to dba too
-    if dba:
-        recipients.append(project.dba)
-    if ops:
-        #recipients.append(project.ops)
-        pass
-    #remove any duplicates
-    recipients = list(set(recipients))
-    return(recipients)
-
-
-def send_message(msgtxt, recipients, project, milestone):
-    '''Create a record in the message database and send it to each user in
-    recipients by appending a record to Messages2Users for each one.'''
-
-    #if the Project Milestone doesn't exist for this project and
-    #milestone create it
-    prjms, created = ProjectMilestones.objects.get_or_create(project=project,
-                                            milestone=milestone)
-
-    #create a message object using the message text and the project-milestone
-    message = Message.objects.create(msg=msgtxt, project_milestone=prjms)
-    #then loop through the list of recipients and add one record to
-    #Messages2Users for each one:
-    try:
-        for recipient in recipients:
-            #user = User.objects.get(Employee=emp)
-            Messages2Users.objects.create(user=recipient, msg=message)
-    except TypeError:
-        Messages2Users.objects.create(user=recipients, msg=message)
 
 
