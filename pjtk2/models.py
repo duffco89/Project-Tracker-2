@@ -745,8 +745,9 @@ class Messages2Users(models.Model):
         return "%s - %s" % (self.user, self.message)
 
     def mark_as_read(self):
-        self.now = datetime.datetime.now(pytz.utc)
+        self.read = datetime.datetime.now(pytz.utc)
         self.save() 
+
 
 
 #=========================
