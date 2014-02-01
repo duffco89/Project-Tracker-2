@@ -772,13 +772,22 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-TOTAL_FORMS': 3,
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
-            'thisyear-0-id':'6',
+            #'thisyear-0-id':'6',
+            'thisyear-0-id':str(self.project6.id),
             'thisyear-0-Approved': True,
-            'thisyear-1-id':'1',
+            #'thisyear-1-id':'1',
+            'thisyear-1-id':str(self.project1.id),            
             'thisyear-1-Approved': True,
-            'thisyear-2-id':'2',
+            #'thisyear-2-id':'2',
+            'thisyear-2-id':str(self.project2.id),            
             'thisyear-2-Approved': True,
             }
+
+        print "form_data = %s" % form_data
+        print "self.project6.id = %s" % self.project6.id
+        print "self.project2.id = %s" % self.project2.id
+        print "self.project1.id = %s" % self.project1.id
+
 
         #submit the form
         response = self.client.post(reverse('ApproveProjects'), form_data)
@@ -806,11 +815,11 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-TOTAL_FORMS': 3,
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
-            'thisyear-0-id':'6',
+            'thisyear-0-id':str(self.project6.id),
             'thisyear-0-Approved': False,
-            'thisyear-1-id':'1',
+            'thisyear-1-id':str(self.project1.id),
             'thisyear-1-Approved': False,
-            'thisyear-2-id':'2',
+            'thisyear-2-id':str(self.project2.id),
             'thisyear-2-Approved': False,
             }
 
@@ -834,11 +843,11 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-TOTAL_FORMS': 3,
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
-            'thisyear-0-id':'6',
+            'thisyear-0-id':str(self.project6.id),
             'thisyear-0-Approved': False,
-            'thisyear-1-id':'1',
+            'thisyear-1-id':str(self.project1.id),
             'thisyear-1-Approved': True,
-            'thisyear-2-id':'2',
+            'thisyear-2-id':str(self.project2.id),
             'thisyear-2-Approved': False,
             }
 
@@ -884,10 +893,10 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-TOTAL_FORMS': 2,
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
-            'lastyear-0-id':'3',
+            'lastyear-0-id':str(self.project3.id),
             'lastyear-0-prj_ldr':'1',            
             'lastyear-0-Approved': True,
-            'lastyear-1-id':'4',
+            'lastyear-1-id':str(self.project4.id),
             'lastyear-0-prj_ldr':'1',                        
             'lastyear-1-Approved': True,
             }
@@ -924,9 +933,9 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-TOTAL_FORMS': 2,
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
-            'lastyear-0-id':'3',
+            'lastyear-0-id':str(self.project3.id),
             'lastyear-0-Approved': False,
-            'lastyear-1-id':'4',
+            'lastyear-1-id':str(self.project4.id),
             'lastyear-1-Approved': False,
             }
 
@@ -944,9 +953,9 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-TOTAL_FORMS': 2,
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
-            'lastyear-0-id':'3',
+            'lastyear-0-id':str(self.project3.id),
             'lastyear-0-Approved': False,
-            'lastyear-1-id':'4',
+            'lastyear-1-id':str(self.project4.id),
             'lastyear-1-Approved': True,
             }
 

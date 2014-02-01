@@ -675,13 +675,13 @@ class ProjectForm(forms.ModelForm):
                 ), css_class="row")])
 
 
-    ##def clean_Approved(self):
-    ##    '''if this wasn't a manager, reset the Approved value to the
-    ##    original (read only always returns false)'''
-    ##    if not self.manager:
-    ##        return self.instance.Approved
-    ##    else:
-    ##        return self.cleaned_data["Approved"]
+    def clean_Approved(self):
+        '''if this wasn't a manager, reset the Approved value to the
+        original (read only always returns false)'''
+        if not self.manager:
+            return self.instance.Approved
+        else:
+            return self.cleaned_data["Approved"]
 
 
 
