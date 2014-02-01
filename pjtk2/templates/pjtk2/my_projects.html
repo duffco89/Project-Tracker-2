@@ -35,47 +35,16 @@
   <br />
 
   <ul class="nav nav-tabs" id="myTab" >
-    <li><a href="#bookmarks">Bookmarks</a></li>
     <li><a href="#notices">Notices</a></li>
     <li><a href="#submitted">Submitted</a></li>
     <li><a href="#approved">Approved</a></li>
     <li><a href="#completed">Completed</a></li>
+    <li><a href="#bookmarks">Bookmarks</a></li>
   </ul>
 
   <div id="content" class="tab-content" >
-    <div id="bookmarks" class="tab-pane active" >
-      <h3>Bookmarks</h3>
-      {% if bookmarks %}
-      <table id="myTable" class="tablesorter">
-	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td><td>Project
-	  Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
-	<tbody>
-	  {% for bookmark in bookmarks %}
-	  <tr class="{% cycle row1,row2 %}">
-	    <td>
-	      {{ bookmark.year }}
-	    </td>
-	    <td>
-	      <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
-	    </td>
-	    <td> {{ bookmark.project_type }} </td>
-	    <td>
-	      {{ bookmark.name }}
-	    </td>
-	    {% if boss %}
-	    <td>  {{ bookmark.prj_ldr.first_name }} {{ bookmark.prj_ldr.last_name }}</td>
-	    {% endif %}
-	  </tr>
-	  {% endfor %}
-	</tbody>
-      </table>
-      {% else %}
-      <p><em>You do not have any bookmarked projects </em></p>
-      {% endif%}
 
-    </div> <!-- bookmarks -->
-
-    <div id="notices" class="tab-pane" >
+    <div id="notices" class="tab-pane active" >
       <h3>Notifications</h3>
 
       {% if formset %}
@@ -217,6 +186,40 @@
       <p><em>You do not have any complete projects </em></p>
       {% endif%}
     </div> <!-- completed -->
+
+    <div id="bookmarks" class="tab-pane" >
+      <h3>Bookmarks</h3>
+      {% if bookmarks %}
+      <table id="myTable" class="tablesorter">
+	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td><td>Project
+	  Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
+	<tbody>
+	  {% for bookmark in bookmarks %}
+	  <tr class="{% cycle row1,row2 %}">
+	    <td>
+	      {{ bookmark.year }}
+	    </td>
+	    <td>
+	      <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
+	    </td>
+	    <td> {{ bookmark.project_type }} </td>
+	    <td>
+	      {{ bookmark.name }}
+	    </td>
+	    {% if boss %}
+	    <td>  {{ bookmark.prj_ldr.first_name }} {{ bookmark.prj_ldr.last_name }}</td>
+	    {% endif %}
+	  </tr>
+	  {% endfor %}
+	</tbody>
+      </table>
+      {% else %}
+      <p><em>You do not have any bookmarked projects </em></p>
+      {% endif%}
+
+    </div> <!-- bookmarks -->
+
+
   </div> <!-- content -->
 </div>  <!-- container -->
 

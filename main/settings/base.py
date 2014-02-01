@@ -142,6 +142,7 @@ TEMPLATE_DIRS = (
     root('templates'),
     root('pjtk2/templates'),
     root('simple_auth/templates'),    
+    root('tickets/templates'),    
 
 )
 
@@ -168,6 +169,7 @@ THIRDPARTY_APPS = (
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 MY_APPS = (
+    'tickets',
     'simple_auth',
     'pjtk2',
     )

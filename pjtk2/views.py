@@ -205,7 +205,7 @@ class ProjectList(ListFilteredMixin, ListView):
     filter_set = ProjectFilter
     template_name = "pjtk2/ProjectList.html"
     paginate_by=30
-    
+
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
         the request.'''
@@ -217,7 +217,7 @@ class ProjectList(ListFilteredMixin, ListView):
     def dispatch(self, *args, **kwargs):
         '''Override the dispatch method'''
         return super(ProjectList, self).dispatch(*args, **kwargs)
-       
+
 project_list = ProjectList.as_view()
 
 #subset of projects tagged with tag:
@@ -228,7 +228,7 @@ class ProjectList_q(ListView):
     """ A list view that can be filtered by django-filter """
     template_name = "pjtk2/ProjectList_Simple.html"
     paginate_by=30
-    
+
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         '''Override the dispatch method'''
@@ -240,14 +240,14 @@ class ProjectList_q(ListView):
         context = super(ProjectList_q, self).get_context_data(**kwargs)
         context['q'] = self.request.GET.get("q")
         return context
-        
+
     def get_queryset(self):
         q = self.request.GET.get("q")
         if q:
             return Project.objects.filter(prj_cd__icontains=q)
         else:
             return Project.objects.all()
-            
+
 project_list_q = ProjectList_q.as_view()
 
 
@@ -303,7 +303,7 @@ def project_detail(request, slug):
 
     sample_points = project.get_sample_points()
     map = get_map(sample_points)
-    
+
     return render_to_response('pjtk2/projectdetail.html',
                               {'milestones': milestones,
                                'Core': core,
@@ -649,16 +649,16 @@ def serve_file(request, filename):
     filename = os.path.split(filename)[-1]
     response['Content-Disposition'] = 'attachment;filename=%s' % filename
 
-    
+
     return response
 
 
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
 
 @login_required
 def my_projects(request):
@@ -834,7 +834,7 @@ class ProjectTagList(ListView):
     :template:`/pjtk2/project_tag_list.html`
 
     '''
-    
+
     queryset = Tag.objects.order_by('name')
     template_name = "pjtk2/project_tag_list.html"
 
@@ -842,6 +842,6 @@ class ProjectTagList(ListView):
     def dispatch(self, *args, **kwargs):
         '''Override the dispatch method'''
         return super(ProjectTagList, self).dispatch(*args, **kwargs)
-    
+
 project_tag_list = ProjectTagList.as_view()
-    
+

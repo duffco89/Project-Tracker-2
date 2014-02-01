@@ -639,7 +639,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
                                               prj_ldr=self.user1,
                                               owner=self.user1)
 
-        #One project from next year (submitted by a keener):
+        #One project for next year (submitted by a keener):
         prj_cd = "LHA_IA%s_666" % str(self.year+1)[-2:]
         self.project6 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
