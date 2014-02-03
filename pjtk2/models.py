@@ -86,7 +86,6 @@ class MilestoneManager(models.Manager):
                      label='Submitted')
 
 
-
 class Milestone(models.Model):
     '''Look-up table of reporting milestone and their attributes.  Not all
     milestones will have a report associated with them.  Keeping
@@ -739,6 +738,7 @@ class Messages2Users(models.Model):
 
     class Meta:
         unique_together = ("user", "message",)
+        verbose_name_plural = "Messages2Users"
 
     def __unicode__(self):
         '''return the messsage as it's unicode method.'''

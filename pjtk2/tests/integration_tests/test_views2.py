@@ -633,9 +633,6 @@ class MyProjectViewTestCase(WebTest):
         self.assertContains(response, self.project3.prj_cd)
 
 
-
-
-
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
@@ -665,27 +662,10 @@ class TestProjectDetailForm(WebTest):
                                 last_name = 'Gumble',
                                        )
 
-
         #make Mr. Burns the manager:
         managerGrp, created = Group.objects.get_or_create(name='manager')
         self.user2.groups.add(managerGrp)
 
-        ##required reports
-        #self.rep1 = MilestoneFactory.create(label = "Proposal Presentation",
-        #                                    category = 'Core', order = 1,
-        #                                    report=True)
-        #self.rep2 = MilestoneFactory.create(label = "Completion Report",
-        #                                    category = 'Core', order = 2,
-        #                                    report=True)
-        #self.rep3 = MilestoneFactory.create(label = "Summary Report",
-        #                                    category = 'Core', order = 3,
-        #                                    report=True)
-        #self.rep4 = MilestoneFactory.create(label = "Budget Report",
-        #                                    category = 'Custom', order = 99,
-        #                                    report=True)
-        #self.rep5 = MilestoneFactory.create(label = "Creel Summary Statistics",
-        #                                    category = 'Custom', order = 99,
-        #                                    report=True)
 
         #milestones
         self.ms1 = MilestoneFactory.create(label = "Approved", protected=True,
@@ -710,8 +690,6 @@ class TestProjectDetailForm(WebTest):
         #PROJECTS
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user1)
-
-
 
 
     def test_milestones_render_properly_in_form(self):
@@ -934,7 +912,6 @@ class TestProjectDetailForm(WebTest):
         self.assertListEqual(Enabled, shouldbe)
 
 
-
     def test_protected_milestones_are_enabled_for_managers(self):
         '''Mr Burns is a manager, and should be able to
         update protected milestones. Verify that the check boxes
@@ -976,6 +953,91 @@ class TestProjectDetailForm(WebTest):
                                 user=self.user3).follow()
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
+
+
+    def test_status_of_approved_true_unchanged(self):
+        '''This test is intended to verify that the approved status of a
+        project remains unchanged when a project record is updated by
+        a user.  There is currently a bug in this form somewhere that
+        causes a project to be unapproved when a user edits the form
+        (despite the fact that the Approved widget is read only.
+
+        '''
+        #make sure that the project is in fact approved before we start
+        self.project1.approve()
+        self.assertTrue(self.project1.is_approved())
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pjtk2/ProjectForm.html")
+        self.assertContains(response, self.project1.prj_cd)
+
+        form = response.forms['ProjectForm']
+
+        # Homer says that both field work has been completed and the
+        # data scrubbed.
+        form.fields['milestones'][1].value = False
+        form.fields['milestones'][2].value = 'on'
+        form.fields['description']='This is a new description.'
+        response = form.submit().follow()
+
+        #response.showbrowser()
+
+        #make sure that the form is valid and processed properly 
+        #we should be re-directed to to the project detail page
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
+
+        #the project should still be approved - Homer doesn't have
+        #sufficient priveledges to approve or unapprove 
+        self.assertTrue(self.project1.is_approved())
+
+
+    def test_status_of_approved_false_unchanged(self):
+        '''This test is intended to verify that the approved status of a
+        project remains unchanged when a project record is updated by
+        a user.  There is currently a bug in this form somewhere that
+        causes a project to be unapproved when a user edits the form
+        (despite the fact that the Approved widget is read only.
+
+        '''
+        #make sure that the project is in fact approved before we start
+        self.project1.unapprove()
+        self.assertFalse(self.project1.is_approved())
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pjtk2/ProjectForm.html")
+        self.assertContains(response, self.project1.prj_cd)
+
+        form = response.forms['ProjectForm']
+
+        # Homer says that both field work has been completed and the
+        # data scrubbed.
+        form.fields['milestones'][1].value = False
+        form.fields['milestones'][2].value = 'on'
+        form.fields['description']='This is a new description.'
+        response = form.submit().follow()
+
+        #make sure that the form is valid and processed properly 
+        #we should be re-directed to to the project detail page
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
+
+        #the project should still be approved - Homer doesn't have
+        #sufficient priveledges to approve or unapprove projects.
+        self.assertFalse(self.project1.is_approved())
+
+
+
 
 
     def tearDown(self):

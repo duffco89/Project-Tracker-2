@@ -17,9 +17,11 @@ from pjtk2.tests.factories import *
 from pjtk2.functions import my_messages, get_messages_dict
 
 
-
 def print_err(*args):
     sys.stderr.write(' '.join(map(str, args)) + '\n')
+
+
+
 
 
 class TestMarkMessages(TestCase):
@@ -674,6 +676,371 @@ class TestGetMessagesDict(TestCase):
         self.assertEqual(msg_dict[0]['msg_id'], messages[0].id)
         #verify that the msg_id is correct
         self.assertEqual(msg_dict[1]['msg_id'], messages[1].id)
+
+
+
+
+
+
+#==================================
+
+class TestSendMessages(TestCase):
+    '''Some simple tests to verify that the functions associated with the
+    messaging system function as expected.  send_messages should be able
+    to send a simple message to a number of recipients.  
+    '''
+
+    def setUp(self):
+        '''Set up a fairly complicated employee heirachy with 6 employees'''
+
+        self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
+                                 username='jseinfield')
+
+        self.user2 = UserFactory(first_name="George", last_name="Costanza",
+                                 username='gcostanza')
+
+        self.user3 = UserFactory(first_name="Cosmo", last_name="Kramer",
+                                 username='ckramer')
+        self.user4 = UserFactory(first_name="Elaine", last_name="Benis",
+                                 username='ebenis')
+
+        #now setup employee relationships
+        #jerry has no boss
+        self.employee1 = EmployeeFactory(user=self.user1)
+        #George works for Jerry and will be our dba
+        self.employee2 = EmployeeFactory(user=self.user2,
+                                         supervisor=self.employee1)
+        #Kramer works for Jerry
+        self.employee3 = EmployeeFactory(user=self.user3,
+                                         supervisor=self.employee1)
+        #Elaine works for Kramer
+        self.employee4 = EmployeeFactory(user=self.user4,
+                                         supervisor=self.employee3)
+
+        #we need a milestone to associate the message with
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                                  category='Core', order=1,
+                                                  report=False)
+
+        #now create a project with an owner and dba.
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user3,
+                                              owner=self.user3,
+                                              dba=self.user2)
+
+    def test_send_messages(self):
+        '''Verify that we can send a simple message to several people.'''
+
+        #make sure the tables are empty
+        messages = Message.objects.all().count()
+        self.assertEqual(messages, 0)
+
+        messages2users = Messages2Users.objects.all().count()
+        self.assertEqual(messages, 0)
+
+        #build the list of recipients
+        send_to = [self.user1, self.user2, self.user3]
+        msgtxt = "a fake message."
+
+        send_message(msgtxt=msgtxt, recipients=send_to,
+                     project=self.project1, milestone=self.milestone1)
+
+        #verify that the message is in the message table
+        messages = Message.objects.all()
+        self.assertEqual(messages.count(), 1)
+        self.assertEqual(messages[0].msgtxt, msgtxt)
+
+        #verify that there is a record in message2user for each recipient
+        messages2users = Messages2Users.objects.all()
+        self.assertEqual(messages2users.count(), 3)
+
+    def tearDown(self):
+        self.project1.delete()
+        self.milestone1.delete()
+
+        self.employee1.delete()
+        self.employee2.delete()
+        self.employee3.delete()
+        self.employee4.delete()
+
+        self.user1.delete()
+        self.user2.delete()
+        self.user3.delete()
+        self.user4.delete()
+
+
+class TestMyMessages(TestCase):
+    '''The helper function my_messages accepts a user and returns all of
+    the Messages2Users objects associated with that user. my_messages()
+    should be able to retrieve both read and unread messages for a
+    particular user.
+    '''
+
+    def setUp(self):
+        """we will need two users, a project, a project milestone, and four
+        messages.
+
+        """
+        
+        self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
+                                 username='jseinfield')
+
+        self.user2 = UserFactory(first_name="George", last_name="Costanza",
+                                 username='gcostanza')
+
+        #now setup employee relationships
+        #jerry has no boss
+        self.employee1 = EmployeeFactory(user=self.user1)
+        #George works for Jerry and will be our dba
+        self.employee2 = EmployeeFactory(user=self.user2,
+                                         supervisor=self.employee1)
+
+        #we need a milestone to associate the message with
+        self.milestone1 = MilestoneFactory.create(label="Submitted",
+                                                  category='Core', order=1,
+                                                  report=False)
+
+        #now create a project with an owner and dba.
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user1,
+                                              owner=self.user1,
+                                              dba=self.user1)
+
+        pms = self.project1.get_milestones()[0]
+
+        self.msgtxt = ["the first message.", "the second message.",
+                  "the third message.", "the fourth message."]
+
+        now = datetime.datetime.now(pytz.utc)
+        #now = datetime.datetime.utcnow()
+        read = [now, now, None, None]
+        
+        #create 4 messages and 4 message2user objects - two of the
+        #message2user objects will have a time stamp.
+        for txt, ts in zip(self.msgtxt, read):
+            message = Message(msgtxt=txt, project_milestone=pms)
+            message.save()
+            msg4u = Messages2Users(user=self.user1, message=message,
+                                   read=ts) 
+            msg4u.save()
+
+    def test_my_messages_only_unread(self):
+        '''by default, my_messages should only include those messages that
+        have not been read yet (i.e. [read] is null)'''
+
+        msgs = my_messages(self.user1)
+        #self.assertItemsEqual(msgs, self.msgtxt[2:])
+        should_be = self.msgtxt[2:]
+        should_be.reverse()
+        should_be.extend(['Submitted'])
+
+        self.assertQuerysetEqual(msgs, should_be, 
+                                 lambda a: str(a.message.msgtxt))
+        
+    def test_my_messages_all(self):
+        '''We may want to see all of the messages that have been sent to a
+        user, verify that we get them.'''
+
+        msgs = my_messages(self.user1, all=True)
+
+        should_be = self.msgtxt
+        should_be.reverse() 
+        should_be.extend(['Submitted'])
+
+        self.assertQuerysetEqual(msgs, should_be, 
+                                 lambda a: str(a.message.msgtxt))
+
+    def test_my_messages_no_messages(self):
+        '''If there aren't any messages for this user, return an empty list
+        (gracefully)'''
+
+        msgs = my_messages(self.user2)
+        self.assertItemsEqual(msgs, [])
+
+        
+    def tearDown(self):
+        self.project1.delete()
+        self.milestone1.delete()
+
+        self.employee1.delete()
+        self.employee2.delete()
+    
+        self.user1.delete()
+        self.user2.delete()
+
+
+class TestSendNoticeWhenProjectMilestonesChange(TestCase):
+    '''Verify that when project milestones are updated, messages are sent
+    to the project lead, their supervisor and the dba.'''
+
+    def setUp(self):
+        '''for these tests, we need a project, some milestones, a project
+        lead, a supervisor and a dba'''
+
+        self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
+                                 username='jseinfield')
+
+        self.user2 = UserFactory(first_name="George", last_name="Costanza",
+                                 username='gcostanza')
+
+        self.user3 = UserFactory(first_name="Cosmo", last_name="Kramer",
+                                 username='ckramer')
+
+        #now setup employee relationships
+        #jerry has no boss
+        self.employee1 = EmployeeFactory(user=self.user1)
+        #George works for Jerry and will be our dba
+        self.employee2 = EmployeeFactory(user=self.user2,
+                                         supervisor=self.employee1)
+        #Kramer works for Jerry
+        self.employee3 = EmployeeFactory(user=self.user3,
+                                         supervisor=self.employee1)
+
+        #we need a milestone to associate the message with
+        self.milestone1 = MilestoneFactory.create(label="Submitted",
+                                                  category='Core', order=1,
+                                                  report=False)
+
+        self.milestone2 = MilestoneFactory.create(label="Approved",
+                                                  category='Core', order=2,
+                                                  report=False)
+
+        #now create a project with an owner and dba.
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              owner=self.user3,
+                                              dba=self.user2)
+
+    def test_send_message_project_approved(self):
+        '''When Jerry approves the project, Jerry, George and Kramer should
+        all get a message stating that.'''
+
+        Jerrys_msgs = my_messages(self.user1)
+        Georges_msgs = my_messages(self.user2)
+        Kramers_msgs = my_messages(self.user3)
+
+        self.assertEqual(Jerrys_msgs.count(), 1)
+        self.assertEqual(Georges_msgs.count(), 1)
+        self.assertEqual(Kramers_msgs.count(), 1)
+
+        self.project1.approve()
+
+        Jerrys_msgs = my_messages(self.user1)
+        Georges_msgs = my_messages(self.user2)
+        Kramers_msgs = my_messages(self.user3)
+
+        self.assertEqual(Georges_msgs.count(), 2)
+        self.assertEqual(Jerrys_msgs.count(), 2)
+        self.assertEqual(Kramers_msgs.count(), 2)
+
+        #check on of the users to verify that they message they
+        #recieve is what you think it should be:
+        self.assertEqual(Georges_msgs[0].message.msgtxt, 'Approved')
+        self.assertEqual(Georges_msgs[1].message.msgtxt, 'Submitted')
+
+    def test_send_message_project_unapproved(self):
+        '''If a project is approved and subsquently un-approved, the project
+        lead should get a meaningful message for each event.'''
+
+        #approve the project
+        self.project1.approve()
+        #immediately unapprove it
+        self.project1.unapprove()
+
+        Georges_msgs = my_messages(self.user2)
+
+        for msg in Georges_msgs:
+            print msg.message
+
+        self.assertEqual(Georges_msgs.count(), 3)
+
+        #check on of the users to verify that they message they
+        #recieve is what you think it should be:
+        msgtxt = "The milestone 'Approved' has been revoked"
+        self.assertEqual(Georges_msgs[0].message.msgtxt, msgtxt)
+        self.assertEqual(Georges_msgs[1].message.msgtxt, 'Approved')
+        self.assertEqual(Georges_msgs[2].message.msgtxt, 'Submitted')
+
+    def tearDown(self):
+
+        self.project1.delete()
+        self.milestone1.delete()
+        self.milestone2.delete()
+
+        self.employee1.delete()
+        self.employee2.delete()
+        self.employee3.delete()
+
+        self.user1.delete()
+        self.user2.delete()
+        self.user3.delete()
+
+
+class TestSumbittedMessage(TestCase):
+    '''When a project is created, a post-save signal hook should send a
+    submitted message to the submitted employee and their boss.
+    '''
+
+    def setUp(self):
+        '''for these tests, we need a project, some milestones, a project
+        lead, a supervisor and a dba'''
+
+        self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
+                                 username='jseinfield')
+
+
+        self.user2 = UserFactory(first_name="George", last_name="Costanza",
+                                 username='gcostanza')
+
+        #There are no employee relationships.
+        #george has no boss
+        #jerry has no boss
+        self.employee1 = EmployeeFactory(user=self.user1)
+        self.employee2 = EmployeeFactory(user=self.user2, 
+                                         supervisor=self.employee1)
+
+        #we need a milestone to associate the message with
+        self.milestone1 = MilestoneFactory.create(label="Submitted",
+                                                  category='Core', order=1,
+                                                  report=False)
+
+        self.milestone2 = MilestoneFactory.create(label="Approved",
+                                                  category='Core', order=2,
+                                                  report=False)
+
+
+
+    def test_submitted_message(self):
+        """This test verifies that the 'sumbitted' message is sent
+        automatically when a project is created.  Unlike other
+        notices, submitted uses a post save hook.
+
+        """
+
+        #verify that there aren't any messages when we start
+        Jerrys_msgs = my_messages(self.user1)
+        Georges_msgs= my_messages(self.user2)
+
+        self.assertEqual(0,len(Jerrys_msgs))
+        self.assertEqual(0,len(Georges_msgs))
+
+        #now create a project owned by george
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              owner=self.user2)
+
+        
+        #verify that both george and his boss get a notice and that it
+        #contains the word 'submitted'
+        Jerrys_msgs = my_messages(self.user1)
+        Georges_msgs= my_messages(self.user2)
+
+        self.assertEqual(1,len(Jerrys_msgs))
+        self.assertIn( 'Submitted', Jerrys_msgs[0].message.msgtxt)
+
+        self.assertEqual(1,len(Georges_msgs))
+        self.assertIn( 'Submitted', Jerrys_msgs[0].message.msgtxt)
+
+
+
 
 
 

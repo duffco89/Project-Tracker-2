@@ -675,14 +675,13 @@ class ProjectForm(forms.ModelForm):
                 ), css_class="row")])
 
 
-    def clean_Approved(self):
+    def clean_approved(self):
         '''if this wasn't a manager, reset the Approved value to the
         original (read only always returns false)'''
-        if not self.manager:
-            return self.instance.Approved
-        else:
+        if self.manager:
             return self.cleaned_data["Approved"]
-
+        else:
+            return self.instance.Approved
 
 
     def clean_prj_cd(self):
@@ -725,6 +724,17 @@ class ProjectForm(forms.ModelForm):
         start_date = cleaned_data.get('prj_date0')
         end_date = cleaned_data.get('prj_date1')
         project_code = cleaned_data.get('prj_cd')
+
+        #if this is not a manager, the protected fields will not be
+        #included in the cleaned data for the milestones - we need to
+        #add them back in
+        form_ms = cleaned_data.get('milestones')
+        if form_ms:
+            if not self.manager:
+                ms = self.instance.get_milestones()
+                protected_ms = ([unicode(x.id) for x in ms if x.milestone.protected
+                                 and x.completed is not None])
+                cleaned_data['milestones'].extend(protected_ms)
 
         if start_date and end_date and project_code:
 

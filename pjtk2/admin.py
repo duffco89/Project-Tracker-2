@@ -2,12 +2,17 @@ from django.contrib import admin
 
 from pjtk2.models import (Milestone, ProjectType, Database, Project,
                           Report, Lake, Family, Employee, ProjectMilestones,
-                          ProjectSisters)
+                          ProjectSisters, Message, Messages2Users)
 
 
 class Admin_Milestone(admin.ModelAdmin):
     '''Admin class for milestones'''
     list_display = ('label', 'order', 'report', 'category', 'protected',)
+    ordering = ('order',)
+
+    def queryset(self, request):
+         return Milestone.allmilestones
+
 
 class Admin_ProjectType(admin.ModelAdmin):
     '''Admin class for Project Types'''
@@ -46,6 +51,29 @@ class Admin_Employee(admin.ModelAdmin):
     '''Admin class for Employees'''
     pass
 
+
+class Admin_Message(admin.ModelAdmin):
+    '''Admin class for Messages'''
+    list_display = ('msgtxt', 'prj_cd')
+
+    def prj_cd(self, obj):
+        return obj.project_milestone.project.prj_cd
+
+
+class Admin_Messages2Users(admin.ModelAdmin):
+    '''Admin class for Messages2Users'''
+    list_display = ('message', 'user', 'prj_cd', 'milestone')
+    list_filter = ('user', 'message')
+
+    def prj_cd(self, obj):
+        return obj.message.project_milestone.project.prj_cd
+
+    def milestone(self, obj):
+        return obj.message.project_milestone.milestone
+
+
+
+
 admin.site.register(Milestone, Admin_Milestone)
 admin.site.register(ProjectType, Admin_ProjectType)
 admin.site.register(Database, Admin_Database)
@@ -56,4 +84,5 @@ admin.site.register(Report, Admin_Report)
 admin.site.register(Family, Admin_Family)
 admin.site.register(ProjectSisters, Admin_ProjectSisters)
 admin.site.register(Employee, Admin_Employee)
-
+admin.site.register(Message, Admin_Message)
+admin.site.register(Messages2Users, Admin_Messages2Users)
