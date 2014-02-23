@@ -651,6 +651,7 @@ class TestProjectDetailForm(WebTest):
         self.user1 = UserFactory.create(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
+        self.employee = EmployeeFactory(user=self.user1)
 
         self.user2 = UserFactory.create(username = 'mburns',
                                 first_name = 'Burns',

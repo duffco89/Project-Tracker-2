@@ -1,0 +1,6 @@
+((nil . ((virtualenv-workon . "pjtk2")
+         (virtualenv-default-directory . "/home/adam/.virtualenvs")
+         (default-directory . "/home/adam/Documents/djcode/pjtk2")
+         (pytest-global-name . "/home/adam/.virtualenvs/pjtk2/bin/py.test")
+         ))
+)

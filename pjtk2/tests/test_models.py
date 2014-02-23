@@ -10,22 +10,29 @@ import pytz
 import pdb
 import sys
 
+import pytest
+
+@pytest.fixture(scope="module", autouse=True)
+def disconnect_signals():
+    '''disconnect the signals before each test - not needed here'''
+    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+
 def print_err(*args):
     sys.stderr.write(' '.join(map(str,args)) + '\n')
 
 
-def setup():
-    '''disconnect the signals before each test - not needed here'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-
-def teardown():
-    '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-
+#def setup():
+#    '''disconnect the signals before each test - not needed here'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
+#def teardown():
+#    '''re-connecct the signals here.'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
 
 
 class TestProjectApproveUnapproveMethods(TestCase):
-    '''Project instances have been given clas methods to approve,
+    '''Project instances have been given class methods to approve,
     unapprove and sign off.  These tests verify that they work as
     expected.
     '''
@@ -560,7 +567,7 @@ class TestModelSisters(TestCase):
         #self.assertEqual(sisters1[2].prj_cd,"LHA_IA12_333")
 
         FamilyCnt = Family.objects.all().count()
-        self.assertEqual(FamilyCnt,1)
+        self.assertEqual(FamilyCnt, 1)
 
         #there shouldn't be any candidates - there all sisters now
         candidates = self.project1.get_sister_candidates()

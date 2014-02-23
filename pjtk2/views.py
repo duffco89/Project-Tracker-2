@@ -331,8 +331,6 @@ def update_milestones(form_ms, milestones):
 
     '''
 
-    #import pdb; pdb.set_trace()
-
     #convert the list of milestones from the form to a set of integers:
     form_ms = set([int(x) for x in form_ms])
 
@@ -347,8 +345,6 @@ def update_milestones(form_ms, milestones):
     #these ones are now complete:
     added_ms = old_outstanding.intersection(form_ms)
     #ProjectMilestones.objects.filter(id__in=added_ms).update(completed=now)
-
-
 
     #in order to trigger a signal - we need to loop over each project
     #milestone, and mannually save them:

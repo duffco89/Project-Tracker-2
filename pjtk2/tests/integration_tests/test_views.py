@@ -13,15 +13,22 @@ from pjtk2.tests.factories import *
 from pjtk2.views import can_edit
 #from pjtk2.functions import can_edit
 
+import pytest
 
-def setup():
+@pytest.fixture(scope="module", autouse=True)
+def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
-def teardown():
-    '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
+#def setup():
+#    '''disconnect the signals before each test - not needed here'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
+#def teardown():
+#    '''re-connecct the signals here.'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
 
 class TestCanEditFunction(TestCase):
     '''a simple test to verify that the function can_edit() returns a
@@ -205,15 +212,18 @@ class FactoryBoyLoginTestCase(unittest.TestCase):
     '''verify that we can login a user created with factory boy.'''
     def setUp(self):
         self.client = Client()
-        self.user = UserFactory()
+        self.password = "Abcd1234"
+        self.user = UserFactory.create(password=self.password)
 
+    @pytest.mark.django_db()
     def testLogin(self):
-        self.client.login(username=self.user.username, password='abc')
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
 
     def tearDown(self):
-        self.user.delete()
+        pass
+        #self.user.delete()
 
 #================================
 #PROJECT DETAIL VIEWS
@@ -422,6 +432,7 @@ class ApprovedProjectListUserTestCase(TestCase):
         #isn't.  Only the approved one should appear in the list.
         self.client = Client()
         self.user = UserFactory()
+        self.employee = EmployeeFactory(user=self.user)
 
         #create milestones
         self.milestone1 = MilestoneFactory.create(label="Approved",

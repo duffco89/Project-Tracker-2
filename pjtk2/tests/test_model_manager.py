@@ -6,20 +6,27 @@ from django.db.models.signals import pre_save, post_save
 from pjtk2.models import *
 from pjtk2.tests.factories import *
 
+import pytest
 
-def setup():
+@pytest.fixture(scope="module", autouse=True)
+def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
-def teardown():
-    '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-
+#
+#def setup():
+#    '''disconnect the signals before each test - not needed here'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
+#def teardown():
+#    '''re-connecct the signals here.'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
 
 class TestProjectsThisLastYear(TestCase):
-    ''''the Project models manaagers this_year and last_year should only
+    ''''the Project models managers this_year and last_year should only
     return only active project from very specific time periods.  These
-    tests verify that is the case.  Projects.last_year.all() should
+    tests verify that this is the case.  Projects.last_year.all() should
     only return projects from one year ago, while this_year should
     return active projects with year is greater than or equal to the
     current year (ensure that projects submitted ahead of time are

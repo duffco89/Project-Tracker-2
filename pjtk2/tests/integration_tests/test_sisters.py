@@ -4,16 +4,23 @@ from django_webtest import WebTest
 #from testfixtures import compare
 from pjtk2.tests.factories import *
 
+import pytest
 
-def setup():
+@pytest.fixture(scope="module", autouse=True)
+def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
 
-def teardown():
-    '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-
+##def setup():
+##    '''disconnect the signals before each test - not needed here'''
+##    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+##
+##
+##def teardown():
+##    '''re-connecct the signals here.'''
+##    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+##
 
 
 class SisterFormTestCase(WebTest):
