@@ -21,15 +21,6 @@ def print_err(*args):
     sys.stderr.write(' '.join(map(str,args)) + '\n')
 
 
-#def setup():
-#    '''disconnect the signals before each test - not needed here'''
-#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-#
-#def teardown():
-#    '''re-connecct the signals here.'''
-#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-#
-
 
 class TestProjectApproveUnapproveMethods(TestCase):
     '''Project instances have been given class methods to approve,
@@ -912,3 +903,96 @@ class TestEmployeeFunctions(TestCase):
         self.user6.delete()
         
         
+
+
+class TestMilestoneStatus(TestCase):
+    '''This suite of tests are to verify that the project method
+    'milestone_complete' works as expected.  If a milestone has not
+    been assigned to a project it should return None, if a milestone
+    has been assigned but is still incomplete it should return False,
+    and finally if it has been assigned and is complete, it should return true.
+
+    There is also a test that verifies that milestones that have been
+    revoked are returned as incomplete (False).
+
+    '''
+
+    def setUp(self):
+        '''we will need one project with easy to rember project codes'''
+
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+        
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1, 
+                                             report=False)
+        
+        self.milestone2 = MilestoneFactory.create(label="Completed",
+                                        category = 'Core', order=2, 
+                                             report=False)
+        
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+                                              owner=self.user)
+
+    def test_somthing_other_than_milestones(self):
+        '''if we try to pass in something other than a milestone, we should
+        handle it gracefully - return None'''
+
+        #we pass in a non-sensical value, return None
+        self.assertEquals(self.project1.milestone_complete('foobar'), None)
+
+    def test_incomplete_milestones(self):
+        '''If the milestone has been applied to the project but is still
+        incomplete, return False.  This test takes advantage of the
+        fact that all core requirements are automatically added when
+        project is created.
+
+        '''
+        #this milestone hasn't been completed, our function should return false
+        self.assertFalse(self.project1.milestone_complete(self.milestone2))
+
+    def test_complete_milestones(self):
+        '''If the milestone has been applied to the project and has been
+        completed, return True'''
+
+        #verify that our function returns False before we start
+        self.assertFalse(self.project1.milestone_complete(self.milestone1))
+        #use the project approve method to satisfy that milestone
+        self.project1.approve()
+        #verify that our function returns True now
+        self.assertTrue(self.project1.milestone_complete(self.milestone1))
+
+    def test_unassigned_milestones(self):
+        '''an assigned milestone should return None'''
+
+        #this is a new milestone, it won't be associated with this
+        #project.  If we pass it into our method, we should get back
+        #None.
+        new_milestone = MilestoneFactory.create(label="UnAssigned Milestone",
+                                        category = 'Core', order=999, 
+                                             report=False)
+
+        self.assertEqual(self.project1.milestone_complete(new_milestone), 
+                         None)
+
+    def test_revoked_milestones(self):
+        '''a milestone that was satisfied, but then revoked by manager should
+        be incomplete again'''
+
+        #verify that it's not complete first
+        self.assertFalse(self.project1.milestone_complete(self.milestone1))
+        self.project1.approve()
+        #now it is
+        self.assertTrue(self.project1.milestone_complete(self.milestone1))
+        #oh-oh it's been revoked!
+        self.project1.unapprove()
+        #our function should now return false
+        self.assertFalse(self.project1.milestone_complete(self.milestone1))
+
+    def tearDown(self):
+
+        self.project1.delete()
+        self.milestone1.delete()
+        self.milestone2.delete()
+        self.user.delete()

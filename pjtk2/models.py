@@ -404,6 +404,36 @@ class Project(models.Model):
         return milestones_dict
 
 
+    def milestone_complete(self, milestone):
+        """This is a helper function used in to manage project reporting
+        requirements. It returns True if the milestone has been
+        completed for a project, it returns False if a require element
+        has not been completed, and returns None if the milestone does
+        not exist or was not requested for this project.
+
+        Arguments:
+        - `self`: a project object
+        - `milestone`: a milestone object
+
+        """
+
+        try:
+            pms = ProjectMilestones.objects.get(project=self,
+                                                milestone=milestone)
+            if pms.completed:
+                # - requested, done = True
+                # - not requested, done anyway = True
+                return True
+            elif pms.required:                
+                #-requested, not done = False
+                return False
+            else:
+                #-not requested, not done - None
+                return None
+        except (ProjectMilestones.DoesNotExist, ValueError) as e:
+            return None
+
+
     def initialize_milestones(self):
         '''A function that will add a record into "ProjectMilestones" for
         each of the core reports and milestones for newly created projects'''
@@ -838,7 +868,7 @@ def send_notice_prjms_changed(sender, instance, **kwargs):
         #in this case, there was no original.
         original = None
 
-    #if we found an origincal projectmilestone,
+    #if we found an original projectmilestone,
     if original:
         #find out if 'completed' has changed and whether or not it is now
         #empty and build an appropriate message
