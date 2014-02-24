@@ -19,7 +19,84 @@
     $("input:checkbox").attr('checked', false);
   });
 });
+
+
+ (function ($) {
+   $.fn.rotateTableCellContent = function (options) {
+     /*
+     from http://jsfiddle.net/9pUu4/
+     see: http://stackoverflow.com/questions/716970/
+
+     Version 1.0
+     7/2011
+     Written by David Votrubec (davidjs.com) and
+     Michal Tehnik (@Mictech) for ST-Software.com
+      */
+
+     var cssClass = ((options) ? options.className : false) || "vertical";
+
+     var cellsToRotate = $('.' + cssClass, this);
+
+     var betterCells = [];
+     cellsToRotate.each(function () {
+       var cell = $(this)
+       , newText = cell.text()
+       , height = cell.height()
+       , width = cell.width()
+       , newDiv = $('<div>', { height: width, width: height })
+       , newInnerDiv = $('<div>', { text: newText, 'class': 'rotated' });
+
+       newInnerDiv.css('-webkit-transform-origin', (width / 2) + 'px ' + (width / 2) + 'px');
+       newInnerDiv.css('-moz-transform-origin', (width / 2) + 'px ' + (width / 2) + 'px');
+       newDiv.append(newInnerDiv);
+
+       betterCells.push(newDiv);
+     });
+
+     cellsToRotate.each(function (i) {
+       $(this).html(betterCells[i]);
+     });
+   };
+ })(jQuery);
+
+
+ $(document).ready(function(){
+   $('.mytable').rotateTableCellContent();
+ });
+
+
 </script>
+
+
+<style media="screen" type="text/css">
+
+.icon-red {
+    color: red;
+}
+.icon-green {
+    color: green;
+}
+
+.icon-grey {
+    color: grey;
+}
+
+
+/* Styles for rotateTableCellContent plugin*/
+table div.rotated {
+  -webkit-transform: rotate(270deg);
+  -moz-transform: rotate(270deg);
+  writing-mode:tb-rl;
+  white-space: nowrap;
+
+}
+
+.mytable-header{
+  height: auto;
+}
+
+
+</style>
 
 
 {% endblock %}
@@ -27,7 +104,7 @@
 {% block title  %} {{ block.super }}| My Projects  {% endblock %}
 
 {% block content  %}
-
+{% load pjtk2_tags %}
 
 <div class="container" >
 
@@ -35,47 +112,16 @@
   <br />
 
   <ul class="nav nav-tabs" id="myTab" >
-    <li><a href="#bookmarks">Bookmarks</a></li>
     <li><a href="#notices">Notices</a></li>
     <li><a href="#submitted">Submitted</a></li>
     <li><a href="#approved">Approved</a></li>
     <li><a href="#completed">Completed</a></li>
+    <li><a href="#bookmarks">Bookmarks</a></li>
   </ul>
 
   <div id="content" class="tab-content" >
-    <div id="bookmarks" class="tab-pane active" >
-      <h3>Bookmarks</h3>
-      {% if bookmarks %}
-      <table id="myTable" class="tablesorter">
-	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td><td>Project
-	  Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
-	<tbody>
-	  {% for bookmark in bookmarks %}
-	  <tr class="{% cycle row1,row2 %}">
-	    <td>
-	      {{ bookmark.year }}
-	    </td>
-	    <td>
-	      <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
-	    </td>
-	    <td> {{ bookmark.project_type }} </td>
-	    <td>
-	      {{ bookmark.name }}
-	    </td>
-	    {% if boss %}
-	    <td>  {{ bookmark.prj_ldr.first_name }} {{ bookmark.prj_ldr.last_name }}</td>
-	    {% endif %}
-	  </tr>
-	  {% endfor %}
-	</tbody>
-      </table>
-      {% else %}
-      <p><em>You do not have any bookmarked projects </em></p>
-      {% endif%}
 
-    </div> <!-- bookmarks -->
-
-    <div id="notices" class="tab-pane" >
+    <div id="notices" class="tab-pane active" >
       <h3>Notifications</h3>
 
       {% if formset %}
@@ -161,32 +207,48 @@
     <div id="approved" class="tab-pane" >
       <h3>Approved Projects</h3>
       {% if approved %}
-      <table id="myTable" class="tablesorter">
-	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td>
-	  <td>Project Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr>
-	</thead>
-	<tbody>
-	  {% for project in approved %}
-	  <tr class="{% cycle row1,row2 %}">
-	    <td> {{ project.year }} </td>
-	    <td>
-	      <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
-	    </td>
-	    <td> {{ project.project_type }} </td>
-	    <td>
-	      {{ project.prj_nm  }}
-	    </td>
-	    {% if boss %}
-	    <td>    {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }} </td>
-	    {% endif %}
-	  </tr>
-	  {% endfor %}
-	</tbody>
-      </table>
+
+        <table id="myTable" class="table tablesorter mytable">
+	  <thead style="height: 240px;">
+            <tr>
+              <th>Year</th>
+              <th>Project Code</th>
+              <th>Project Type</th>
+              <th>Project Name</th>
+              {% if boss %}
+              <th>Project Lead</th>
+              {% endif %}
+              
+              {% for report in core_reports %}
+              <th class="vertical"><div><span>{{ report }}</span></div></th>
+              {% endfor %}
+            </tr>
+	  </thead>
+	  <tbody>
+	    {% for project in approved %}
+	    <tr class="{% cycle row1,row2 %}">
+	      <td> {{ project.year }} </td>
+	      <td>
+	        <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+	      </td>
+	      <td> {{ project.project_type }} </td>
+	      <td>
+	        {{ project.prj_nm  }}
+	      </td>
+	      {% if boss %}
+	      <td>    {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }} </td>
+	      {% endif %}
+
+              {{ project | report_status:core_reports }}
+
+	    </tr>
+	    {% endfor %}
+	  </tbody>
+        </table>
 
       {% else %}
       <p><em>You do not currently have any approved projects </em></p>
-      {% endif%}
+      {% endif %}
     </div> <!-- approved -->
 
     <div id="completed" class="tab-pane" >
@@ -217,6 +279,40 @@
       <p><em>You do not have any complete projects </em></p>
       {% endif%}
     </div> <!-- completed -->
+
+    <div id="bookmarks" class="tab-pane" >
+      <h3>Bookmarks</h3>
+      {% if bookmarks %}
+      <table id="myTable" class="tablesorter">
+	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td><td>Project
+	  Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
+	<tbody>
+	  {% for bookmark in bookmarks %}
+	  <tr class="{% cycle row1,row2 %}">
+	    <td>
+	      {{ bookmark.year }}
+	    </td>
+	    <td>
+	      <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
+	    </td>
+	    <td> {{ bookmark.project_type }} </td>
+	    <td>
+	      {{ bookmark.name }}
+	    </td>
+	    {% if boss %}
+	    <td>  {{ bookmark.prj_ldr.first_name }} {{ bookmark.prj_ldr.last_name }}</td>
+	    {% endif %}
+	  </tr>
+	  {% endfor %}
+	</tbody>
+      </table>
+      {% else %}
+      <p><em>You do not have any bookmarked projects </em></p>
+      {% endif%}
+
+    </div> <!-- bookmarks -->
+
+
   </div> <!-- content -->
 </div>  <!-- container -->
 

@@ -106,6 +106,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.debug",
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
+    "django.core.context_processors.request",
     "django.contrib.messages.context_processors.messages",
     )
 
@@ -142,6 +143,7 @@ TEMPLATE_DIRS = (
     root('templates'),
     root('pjtk2/templates'),
     root('simple_auth/templates'),    
+    root('tickets/templates'),    
 
 )
 
@@ -168,6 +170,7 @@ THIRDPARTY_APPS = (
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 MY_APPS = (
+    'tickets',
     'simple_auth',
     'pjtk2',
     )

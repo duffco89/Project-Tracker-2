@@ -23,16 +23,12 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm, SisterProjectsForm,
 from pjtk2.tests.factories import *
 
 
+import pytest
 
-
-def setup():
+@pytest.fixture(scope="module", autouse=True)
+def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-
-def teardown():
-    '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-
 
 
 
@@ -108,6 +104,10 @@ class TestProjectForm(TestCase):
                                 first_name="Homer", last_name="Simpson")
         self.dba = DBA_Factory.create()
 
+        self.ptype = ProjTypeFactory()
+        self.lake = LakeFactory()
+        self.dbase = DatabaseFactory()
+
 
     def test_good_data(self):
         """All fields contain valid data """
@@ -115,12 +115,13 @@ class TestProjectForm(TestCase):
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
+            prj_date0 = datetime.datetime.strptime("January 15, 2012", 
+                                                   "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
-            project_type = 1,
-            master_database = 1,
-            lake =1,
+            project_type = self.ptype.id,
+            master_database = self.dbase.id,
+            lake = self.lake.id,
             tags = "red, blue, green",
             owner = self.user.id,
             dba = self.dba.id,
@@ -147,14 +148,15 @@ class TestProjectForm(TestCase):
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
+            prj_date0 = datetime.datetime.strptime("March 15, 2012", 
+                                                   "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
-            project_type = 1,
-            master_database = 1,
+            project_type = self.ptype.id,
+            master_database = self.dbase.id,
             owner = self.user.id,
             dba = self.dba.id,
-            lake=1
+            lake=self.lake.id
            )
 
         for code in goodcodes:
@@ -169,7 +171,8 @@ class TestProjectForm(TestCase):
             prj_cd = "LHA_IA12_123",
             prj_nm = "Fake Project",
             prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
+            prj_date0 = datetime.datetime.strptime("January 15, 2012", 
+                                                   "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
@@ -190,13 +193,15 @@ class TestProjectForm(TestCase):
         """project code does not match required pattern """
 
         #here are a list of bad, or malformed project codes:
-        badcodes = ["LHA_IS12A_110", "LHA_IS12_1103","LHAR_IS12_110", "LHA_IS12_110A"]
+        badcodes = ["LHA_IS12A_110", "LHA_IS12_1103","LHAR_IS12_110", 
+                    "LHA_IS12_110A"]
 
         proj = dict(
             prj_cd = "LHA_xxx12_103",
             prj_nm = "Fake Project",
             prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
+            prj_date0 = datetime.datetime.strptime("March 15, 2012", 
+                                                   "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
@@ -215,8 +220,6 @@ class TestProjectForm(TestCase):
             self.assertEqual(form.is_valid(), False)
 
 
-
-
     def test_malformed_prjcd(self):
         """project code does not match required pattern """
 
@@ -231,7 +234,8 @@ class TestProjectForm(TestCase):
             prj_cd = "LHA_12_103",
             prj_nm = "Fake Project",
             prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("March 15, 2012", "%B %d, %Y"),
+            prj_date0 = datetime.datetime.strptime("March 15, 2012", 
+                                                   "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
@@ -257,7 +261,8 @@ class TestProjectForm(TestCase):
             prj_cd = "LHA_IA02_103",
             prj_nm = "Fake Project",
             prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("January 15, 2012", "%B %d, %Y"),
+            prj_date0 = datetime.datetime.strptime("January 15, 2012", 
+                                                   "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
@@ -278,7 +283,8 @@ class TestProjectForm(TestCase):
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("August 15, 2012", "%B %d, %Y"),
+            prj_date0 = datetime.datetime.strptime("August 15, 2012", 
+                                                   "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
@@ -299,7 +305,8 @@ class TestProjectForm(TestCase):
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
             prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("March 15, 2011", "%B %d, %Y"),
+            prj_date0 = datetime.datetime.strptime("March 15, 2011", 
+                                                   "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
             project_type = 1,
@@ -313,7 +320,8 @@ class TestProjectForm(TestCase):
         self.assertEqual(form.is_valid(), False)
 
     def test_start_date_equal_to_end_date(self):
-        """One day project, start date equal to end date. """
+        """One day project, start date equal to end date. This should be
+        allowed and form should be valid."""
         proj = dict(
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
@@ -321,11 +329,11 @@ class TestProjectForm(TestCase):
             prj_date0 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
             comment = "This is a fake project",
-            project_type = 1,
-            master_database = 1,
+            project_type = self.ptype.id,
+            master_database = self.dbase.id,
             owner = self.user.id,
             dba = self.dba.id,
-            lake=1,
+            lake=self.lake.id,
            )
 
         form = ProjectForm(data=proj)
@@ -334,7 +342,6 @@ class TestProjectForm(TestCase):
         if form.non_field_errors():
             print "form.non_field_errors(): %s" % form.non_field_errors()
         self.assertEqual(form.is_valid(), True)
-
 
 
 
@@ -382,9 +389,6 @@ class TestSelectSistersForm(TestCase):
         self.assertEqual(form.cleaned_data['prj_ldr'],initial['prj_ldr'])
 
 
-
-
-
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
@@ -425,7 +429,6 @@ class TestReportUploadForm(TestCase):
         self.mock_file2 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
         self.mock_file2.name = "path/to/some/fake/file-2.txt"
-
 
 
     def test_submit_reports(self):
@@ -554,7 +557,8 @@ class TestReportUploadForm(TestCase):
 
         file_data = {'report_path': SimpleUploadedFile(self.mock_file.name,
                                                        self.mock_file.read())}
-        form = ReportUploadForm(initial=initial, data=data, project = self.project1,
+        form = ReportUploadForm(initial=initial, data=data, 
+                                project = self.project1,
                                 user = self.user, files=file_data)
 
         self.assertEqual(form.is_valid(), True)

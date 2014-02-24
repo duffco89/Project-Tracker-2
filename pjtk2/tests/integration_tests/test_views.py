@@ -13,15 +13,22 @@ from pjtk2.tests.factories import *
 from pjtk2.views import can_edit
 #from pjtk2.functions import can_edit
 
+import pytest
 
-def setup():
+@pytest.fixture(scope="module", autouse=True)
+def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
-def teardown():
-    '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
+#def setup():
+#    '''disconnect the signals before each test - not needed here'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
+#def teardown():
+#    '''re-connecct the signals here.'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
 
 class TestCanEditFunction(TestCase):
     '''a simple test to verify that the function can_edit() returns a
@@ -205,15 +212,18 @@ class FactoryBoyLoginTestCase(unittest.TestCase):
     '''verify that we can login a user created with factory boy.'''
     def setUp(self):
         self.client = Client()
-        self.user = UserFactory()
+        self.password = "Abcd1234"
+        self.user = UserFactory.create(password=self.password)
 
+    @pytest.mark.django_db()
     def testLogin(self):
-        self.client.login(username=self.user.username, password='abc')
+        self.client.login(username=self.user.username, password=self.password)
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
 
     def tearDown(self):
-        self.user.delete()
+        pass
+        #self.user.delete()
 
 #================================
 #PROJECT DETAIL VIEWS
@@ -422,6 +432,7 @@ class ApprovedProjectListUserTestCase(TestCase):
         #isn't.  Only the approved one should appear in the list.
         self.client = Client()
         self.user = UserFactory()
+        self.employee = EmployeeFactory(user=self.user)
 
         #create milestones
         self.milestone1 = MilestoneFactory.create(label="Approved",
@@ -639,7 +650,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
                                               prj_ldr=self.user1,
                                               owner=self.user1)
 
-        #One project from next year (submitted by a keener):
+        #One project for next year (submitted by a keener):
         prj_cd = "LHA_IA%s_666" % str(self.year+1)[-2:]
         self.project6 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
@@ -772,13 +783,22 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-TOTAL_FORMS': 3,
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
-            'thisyear-0-id':'6',
+            #'thisyear-0-id':'6',
+            'thisyear-0-id':str(self.project6.id),
             'thisyear-0-Approved': True,
-            'thisyear-1-id':'1',
+            #'thisyear-1-id':'1',
+            'thisyear-1-id':str(self.project1.id),            
             'thisyear-1-Approved': True,
-            'thisyear-2-id':'2',
+            #'thisyear-2-id':'2',
+            'thisyear-2-id':str(self.project2.id),            
             'thisyear-2-Approved': True,
             }
+
+        print "form_data = %s" % form_data
+        print "self.project6.id = %s" % self.project6.id
+        print "self.project2.id = %s" % self.project2.id
+        print "self.project1.id = %s" % self.project1.id
+
 
         #submit the form
         response = self.client.post(reverse('ApproveProjects'), form_data)
@@ -806,11 +826,11 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-TOTAL_FORMS': 3,
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
-            'thisyear-0-id':'6',
+            'thisyear-0-id':str(self.project6.id),
             'thisyear-0-Approved': False,
-            'thisyear-1-id':'1',
+            'thisyear-1-id':str(self.project1.id),
             'thisyear-1-Approved': False,
-            'thisyear-2-id':'2',
+            'thisyear-2-id':str(self.project2.id),
             'thisyear-2-Approved': False,
             }
 
@@ -834,11 +854,11 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-TOTAL_FORMS': 3,
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
-            'thisyear-0-id':'6',
+            'thisyear-0-id':str(self.project6.id),
             'thisyear-0-Approved': False,
-            'thisyear-1-id':'1',
+            'thisyear-1-id':str(self.project1.id),
             'thisyear-1-Approved': True,
-            'thisyear-2-id':'2',
+            'thisyear-2-id':str(self.project2.id),
             'thisyear-2-Approved': False,
             }
 
@@ -884,10 +904,10 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-TOTAL_FORMS': 2,
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
-            'lastyear-0-id':'3',
+            'lastyear-0-id':str(self.project3.id),
             'lastyear-0-prj_ldr':'1',            
             'lastyear-0-Approved': True,
-            'lastyear-1-id':'4',
+            'lastyear-1-id':str(self.project4.id),
             'lastyear-0-prj_ldr':'1',                        
             'lastyear-1-Approved': True,
             }
@@ -924,9 +944,9 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-TOTAL_FORMS': 2,
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
-            'lastyear-0-id':'3',
+            'lastyear-0-id':str(self.project3.id),
             'lastyear-0-Approved': False,
-            'lastyear-1-id':'4',
+            'lastyear-1-id':str(self.project4.id),
             'lastyear-1-Approved': False,
             }
 
@@ -944,9 +964,9 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-TOTAL_FORMS': 2,
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
-            'lastyear-0-id':'3',
+            'lastyear-0-id':str(self.project3.id),
             'lastyear-0-Approved': False,
-            'lastyear-1-id':'4',
+            'lastyear-1-id':str(self.project4.id),
             'lastyear-1-Approved': True,
             }
 

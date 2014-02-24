@@ -450,6 +450,8 @@ class ReportUploadForm(forms.Form):
         for them too.
         '''
 
+        now = datetime.datetime.now(pytz.utc)
+
         if ('report_path' in self.changed_data and
                           self.cleaned_data['report_path']):
 
@@ -483,7 +485,10 @@ class ReportUploadForm(forms.Form):
             newReport.save()
             #add the m2m record for this projectreport
             newReport.projectreport.add(projectreport)
-
+            
+            projectreport.completed = now
+            projectreport.save()
+            
             #if this a presentation or summary report, see if
             #this project has any sister projects.  If so, add an m2m
             #for each one so this document is associated with them
@@ -513,7 +518,8 @@ class ReportUploadForm(forms.Form):
                         oldReport = None
                     #add the m2m relationship for the sister
                     newReport.projectreport.add(projreport)
-
+                    projectreport.completed = now
+                    projectreport.save()
                     
 class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
@@ -675,14 +681,13 @@ class ProjectForm(forms.ModelForm):
                 ), css_class="row")])
 
 
-    ##def clean_Approved(self):
-    ##    '''if this wasn't a manager, reset the Approved value to the
-    ##    original (read only always returns false)'''
-    ##    if not self.manager:
-    ##        return self.instance.Approved
-    ##    else:
-    ##        return self.cleaned_data["Approved"]
-
+    def clean_approved(self):
+        '''if this wasn't a manager, reset the Approved value to the
+        original (read only always returns false)'''
+        if self.manager:
+            return self.cleaned_data["Approved"]
+        else:
+            return self.instance.Approved
 
 
     def clean_prj_cd(self):
@@ -725,6 +730,17 @@ class ProjectForm(forms.ModelForm):
         start_date = cleaned_data.get('prj_date0')
         end_date = cleaned_data.get('prj_date1')
         project_code = cleaned_data.get('prj_cd')
+
+        #if this is not a manager, the protected fields will not be
+        #included in the cleaned data for the milestones - we need to
+        #add them back in
+        form_ms = cleaned_data.get('milestones')
+        if form_ms:
+            if not self.manager:
+                ms = self.instance.get_milestones()
+                protected_ms = ([unicode(x.id) for x in ms if x.milestone.protected
+                                 and x.completed is not None])
+                cleaned_data['milestones'].extend(protected_ms)
 
         if start_date and end_date and project_code:
 

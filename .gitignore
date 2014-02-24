@@ -1,10 +1,12 @@
 *~
+*#*
 venv/*
 elastic*
 pjtk2/static/admin/*
 pjtk2/static/js/*
 pjtk2/static/css/*
 pjtk2/static/img/*
+tickets/*
 static/*
 admin2/*
 admin/*
@@ -15,6 +17,8 @@ main/whoosh*
 *.pyr
 db/*
 coverage/*
+fixtures/*
+*flycheck*
 TAGS
 .pylintrc
 old_static/*
@@ -26,3 +30,4 @@ simple_auth/*
 fixtures/*
 migration/error.log
 migration/data/archive.zip
+.dir-locals.el

@@ -13,4 +13,3 @@ python manage.py dumpdata --indent 4  --settings=main.settings.local pjtk2.Lake 
 python manage.py dumpdata --indent 4  --settings=main.settings.local pjtk2.Project > fixtures/project.json
 
 python manage.py dumpdata --indent 4  --settings=main.settings.local pjtk2.ProjectMilestones > fixtures/projectmilestones.json
-

@@ -86,7 +86,6 @@ class MilestoneManager(models.Manager):
                      label='Submitted')
 
 
-
 class Milestone(models.Model):
     '''Look-up table of reporting milestone and their attributes.  Not all
     milestones will have a report associated with them.  Keeping
@@ -405,6 +404,36 @@ class Project(models.Model):
         return milestones_dict
 
 
+    def milestone_complete(self, milestone):
+        """This is a helper function used in to manage project reporting
+        requirements. It returns True if the milestone has been
+        completed for a project, it returns False if a require element
+        has not been completed, and returns None if the milestone does
+        not exist or was not requested for this project.
+
+        Arguments:
+        - `self`: a project object
+        - `milestone`: a milestone object
+
+        """
+
+        try:
+            pms = ProjectMilestones.objects.get(project=self,
+                                                milestone=milestone)
+            if pms.completed:
+                # - requested, done = True
+                # - not requested, done anyway = True
+                return True
+            elif pms.required:                
+                #-requested, not done = False
+                return False
+            else:
+                #-not requested, not done - None
+                return None
+        except (ProjectMilestones.DoesNotExist, ValueError) as e:
+            return None
+
+
     def initialize_milestones(self):
         '''A function that will add a record into "ProjectMilestones" for
         each of the core reports and milestones for newly created projects'''
@@ -473,10 +502,10 @@ class Project(models.Model):
         if self.is_approved():
             try:
                 candidates = Project.objects.approved().filter(
-                                      project_type=self.project_type,
-                                      year = self.year,
-                                      projectsisters__isnull=True).exclude(
-                                      slug=self.slug)
+                    project_type=self.project_type,
+                    year = self.year,
+                    projectsisters__isnull=True).exclude(
+                        slug=self.slug).order_by('slug')
             except Project.DoesNotExist:
                 candidates = []
         else:
@@ -705,24 +734,27 @@ class Message(models.Model):
     '''A table to hold all of our messages and which project and milestone
     they were associated with.'''
     #(database, display)
-    LEVEL_CHOICES = {
-        ('info', 'Info'),
-        ('actionrequired', 'Action Required'),
-    }
+    distribution_list = models.ManyToManyField(User, through='Messages2Users')
 
-    msg = models.CharField(max_length=100)
+    msgtxt = models.CharField(max_length=100)
     project_milestone = models.ForeignKey(ProjectMilestones)
     #these two fields will allow us to keep track of why messages were sent:
 
     #we will need a project 'admin' to send announcements
     #"Notification system is now working."
     #"Feature Request/Bug Reporting has been implemented."
+
+    LEVEL_CHOICES = {
+        ('info', 'Info'),
+        ('actionrequired', 'Action Required'),
+    }
+
     level = models.CharField(max_length=30, choices=LEVEL_CHOICES,
                              default='info')
 
     def __unicode__(self):
         '''return the messsage as it's unicode method.'''
-        return self.msg
+        return self.msgtxt
 
 
 class Messages2Users(models.Model):
@@ -730,76 +762,21 @@ class Messages2Users(models.Model):
     they were create and when they were read.'''
 
     user = models.ForeignKey(User)
-    msg = models.ForeignKey(Message)
+    message = models.ForeignKey(Message)
     created = models.DateTimeField(auto_now_add=True)
     read = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        unique_together = ("user", "msg",)
+        unique_together = ("user", "message",)
+        verbose_name_plural = "Messages2Users"
 
     def __unicode__(self):
         '''return the messsage as it's unicode method.'''
-        return "%s - %s" % (self.user, self.msg)
+        return "%s - %s" % (self.user, self.message)
 
-
-#=====================================
-#    Signals
-
-# TODO Complete the pre_save signal to ProjectMilestones - send
-# message to appropriate people whenever a record in this table is
-# added or updated.
-
-@receiver(pre_save, sender=ProjectMilestones)
-def send_notice_prjms_changed(sender, instance, **kwargs):
-    '''If the status of a milestone has changed, send a message to the
-    project lead, their supervisor, the data custodian (and perhaps
-    someday, the operations team).  Note that 'submitted' milestone
-    need to be handled using a post_save signal.
-    '''
-
-    msgtxt = ""
-
-    try:
-        original = ProjectMilestones.objects.get(pk=instance.pk)
-    except ProjectMilestones.DoesNotExist:
-        #in this case, there was no original.
-        original = None
-
-    #if we found an origincal projectmilestone,
-    if original:
-        #find out if 'completed' has changed and whether or not it is now
-        #empty and build an appropriate message
-        if instance.completed != original.completed and instance.completed:
-            #this milestone has been satisfied
-            msgtxt = instance.milestone.label
-
-        elif instance.completed != original.completed and original.completed:
-            #this milestone has been 'un-approved'
-            msgtxt = ("The milestone '%s' has been revoked"
-                    %  instance.milestone.label)
-    if msgtxt:
-        #build the list of people we will be sending the message to
-        recipients = build_msg_recipients(instance.project)
-        send_message(msgtxt, recipients, project=instance.project,
-                    milestone=instance.milestone)
-
-#pre_save.connect(send_notice_prjms_changed, sender=ProjectMilestones)
-
-@receiver(post_save, sender=ProjectMilestones)
-def send_notice_project_submitted(sender, instance, **kwargs):
-    '''If the status of a milestone has changed, send a message to the
-    project lead, their supervisor, the data custodian (and perhaps
-    someday, the operations team).  Note that 'submitted' milestone
-    need to be handled using a post_save signal.
-    '''
-
-    if instance.milestone.label == 'Submitted':
-        msgtxt = 'Submitted'
-        recipients = build_msg_recipients(instance.project)
-        send_message(msgtxt, recipients, project=instance.project,
-                    milestone=instance.milestone)
-
-
+    def mark_as_read(self):
+        self.read = datetime.datetime.now(pytz.utc)
+        self.save() 
 
 
 
@@ -853,14 +830,78 @@ def send_message(msgtxt, recipients, project, milestone):
                                             milestone=milestone)
 
     #create a message object using the message text and the project-milestone
-    message = Message.objects.create(msg=msgtxt, project_milestone=prjms)
+    message = Message.objects.create(msgtxt=msgtxt, project_milestone=prjms)
     #then loop through the list of recipients and add one record to
     #Messages2Users for each one:
     try:
         for recipient in recipients:
             #user = User.objects.get(Employee=emp)
-            Messages2Users.objects.create(user=recipient, msg=message)
+            #Messages2Users.objects.create(user=recipient, msg=message)
+            msg4u = Messages2Users(user=recipient, message=message)
+            msg4u.save()
     except TypeError:
-        Messages2Users.objects.create(user=recipients, msg=message)
+        #Messages2Users.objects.create(user=recipients, msg=message)
+        msg4u = Messages2Users(user=recipients, message=message)
+        msg4u.save()
+
+
+#=====================================
+#    Signals
+
+# TODO Complete the pre_save signal to ProjectMilestones - send
+# message to appropriate people whenever a record in this table is
+# added or updated.
+
+@receiver(pre_save, sender=ProjectMilestones)
+def send_notice_prjms_changed(sender, instance, **kwargs):
+    '''If the status of a milestone has changed, send a message to the
+    project lead, their supervisor, the data custodian (and perhaps
+    someday, the operations team).  Note that 'submitted' milestone
+    need to be handled using a post_save signal.
+    '''
+
+    msgtxt = ""
+
+    try:
+        original = ProjectMilestones.objects.get(pk=instance.pk)
+    except ProjectMilestones.DoesNotExist:
+        #in this case, there was no original.
+        original = None
+
+    #if we found an original projectmilestone,
+    if original:
+        #find out if 'completed' has changed and whether or not it is now
+        #empty and build an appropriate message
+        if instance.completed != original.completed and instance.completed:
+            #this milestone has been satisfied
+            msgtxt = instance.milestone.label
+
+        elif instance.completed != original.completed and original.completed:
+            #this milestone has been 'un-approved'
+            msgtxt = ("The milestone '%s' has been revoked"
+                    %  instance.milestone.label)
+    if msgtxt:
+        #build the list of people we will be sending the message to
+        recipients = build_msg_recipients(instance.project)
+        send_message(msgtxt, recipients, project=instance.project,
+                    milestone=instance.milestone)
+
+#pre_save.connect(send_notice_prjms_changed, sender=ProjectMilestones)
+
+@receiver(post_save, sender=ProjectMilestones)
+def send_notice_project_submitted(sender, instance, **kwargs):
+    '''If the status of a milestone has changed, send a message to the
+    project lead, their supervisor, the data custodian (and perhaps
+    someday, the operations team).  Note that 'submitted' milestone
+    need to be handled using a post_save signal.
+    '''
+
+    if instance.milestone.label == 'Submitted':
+        msgtxt = 'Submitted'
+        recipients = build_msg_recipients(instance.project)
+        send_message(msgtxt, recipients, project=instance.project,
+                    milestone=instance.milestone)
+
+
 
 

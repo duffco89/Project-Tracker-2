@@ -18,14 +18,21 @@ from pjtk2.models import ProjectMilestones
 from pjtk2.tests.factories import *
 
 
-def setup():
+import pytest
+
+@pytest.fixture(scope="module", autouse=True)
+def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
-def teardown():
-    '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-
+#def setup():
+#    '''disconnect the signals before each test - not needed here'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
+#def teardown():
+#    '''re-connecct the signals here.'''
+#    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+#
 
 class BasicReportUploadTestCase(WebTest):
     '''NOTE - actual file upload tests moved to the bottom of the is
@@ -536,7 +543,7 @@ class TestActualFileUpload(TestCase):
 
         self.assertQuerysetEqual(
             pr,[self.project1.prj_cd, self.project2.prj_cd],
-            lambda a:a.project.prj_cd
+            lambda a:a.project.prj_cd, ordered=False
             )
 
         self.assertEqual(pr[0].milestone, self.rep0)
@@ -572,7 +579,7 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(pr.count(),2)
         self.assertQuerysetEqual(
             pr,[self.project1.prj_cd, self.project2.prj_cd],
-            lambda a:a.project.prj_cd
+            lambda a:a.project.prj_cd, ordered=False
             )
 
         self.assertEqual(pr[0].milestone, self.rep2)

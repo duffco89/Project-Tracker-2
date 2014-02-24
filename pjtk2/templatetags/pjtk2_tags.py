@@ -1,6 +1,13 @@
 from django import template
 from pjtk2.models import Project, Bookmark
 
+from django.template.defaultfilters import stringfilter
+#from django.contrib.auth import user
+from django.utils.safestring import mark_safe
+
+register = template.Library()
+
+
 def do_if_Bookmarked(parser, token):
     '''modified from PracticalDjangoProjects (page 193)'''
     bits = token.contents.split()
@@ -40,3 +47,27 @@ class IfBookmarkedNode(template.Node):
         
 register = template.Library()
 register.tag("if_bookmarked", do_if_Bookmarked)
+
+
+
+@register.filter
+def report_status(project, reports):
+    '''    '''
+
+    html = ""
+
+    #import pdb; pdb.set_trace()
+
+    for report in reports:
+        status = project.milestone_complete(report)
+        if status == False:
+            glyph = '<span class="glyphicon glyphicon-question-sign icon-red"></span>'
+        elif status==True:
+            glyph = '<span class="glyphicon glyphicon-ok icon-green"></span>'
+        else:
+            glyph = '<span class="glyphicon glyphicon-minus icon-grey"></span>'
+
+        html += "<td>{0}</td>\n".format(glyph)
+
+    return mark_safe(html)
+

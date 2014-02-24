@@ -39,45 +39,25 @@ def my_messages(user, all=False):
     return(my_msgs)
 
 
-def mark_message_as_read(user, message):
-    """A message is marked as read if the field [read] contains a time
-    stamp. So, create some messages, verify that they aren't read,
-    mark two as read and verify that they have a time stamp.
-    
-    Arguments:
-    - `user`: a user model object
-    - `message`:a message model object
-    """
-    from pjtk2.models import Messages2Users
-    import datetime
-    import pytz
-
-    #try:
-    msg2user = Messages2Users.objects.get(user=user, msg=message)
-    msg2user.read = datetime.datetime.now(pytz.utc)
-    msg2user.save()
-    #except:
-    #    pass
-        #TODO - add logging here - if we get an error write it out to
-        #a log file.
-
-
 def get_messages_dict(messages):
     '''given  notification message, pull out the project, url, id and
     message.  wrap them up in a dict and return it.  The dict is then
     passed to the notifcation form so that each message can be displayed
-    and marked as read by the user.'''
+    and marked as read by the user.
+
+    messages is a list of Messages2Users objects
+'''
 
     initial = []
 
     for msg in messages:
         initial.append({
-            'prj_cd': msg.msg.project_milestone.project.prj_cd,
-            'prj_nm': msg.msg.project_milestone.project.prj_nm,
-            'msg': msg.msg.msg,
+            'prj_cd': msg.message.project_milestone.project.prj_cd,
+            'prj_nm': msg.message.project_milestone.project.prj_nm,
+            'msg': msg.message.msgtxt,
             'msg_id': msg.id,
             'user_id': msg.user.id,
-            'url': msg.msg.project_milestone.project.get_absolute_url(),
+            'url': msg.message.project_milestone.project.get_absolute_url(),
         })
 
     return initial
