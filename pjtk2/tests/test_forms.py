@@ -23,13 +23,13 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm, SisterProjectsForm,
 from pjtk2.tests.factories import *
 
 
-def setup():
+import pytest
+
+@pytest.fixture(scope="module", autouse=True)
+def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
-def teardown():
-    '''re-connecct the signals here.'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
 
 class TestApproveProjectForm(TestCase):

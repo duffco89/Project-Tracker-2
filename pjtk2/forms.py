@@ -450,6 +450,8 @@ class ReportUploadForm(forms.Form):
         for them too.
         '''
 
+        now = datetime.datetime.now(pytz.utc)
+
         if ('report_path' in self.changed_data and
                           self.cleaned_data['report_path']):
 
@@ -483,7 +485,10 @@ class ReportUploadForm(forms.Form):
             newReport.save()
             #add the m2m record for this projectreport
             newReport.projectreport.add(projectreport)
-
+            
+            projectreport.completed = now
+            projectreport.save()
+            
             #if this a presentation or summary report, see if
             #this project has any sister projects.  If so, add an m2m
             #for each one so this document is associated with them
@@ -513,7 +518,8 @@ class ReportUploadForm(forms.Form):
                         oldReport = None
                     #add the m2m relationship for the sister
                     newReport.projectreport.add(projreport)
-
+                    projectreport.completed = now
+                    projectreport.save()
                     
 class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including

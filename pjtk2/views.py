@@ -670,6 +670,8 @@ def my_projects(request):
 
     user = User.objects.get(username__exact=request.user)
 
+    core_reports = Milestone.objects.filter(category='Core', report=True)
+
     #make sure that the user exists - otherwise redirect them to a
     #help page
     try:
@@ -716,7 +718,8 @@ def my_projects(request):
                                'complete': complete,
                                'approved': approved,
                                'submitted': submitted,
-                               'boss': boss},
+                               'boss': boss,
+                               'core_reports':core_reports},
                               context_instance=RequestContext(request))
 
 

@@ -16,12 +16,19 @@ from pjtk2.models import *
 from pjtk2.tests.factories import *
 from pjtk2.functions import my_messages, get_messages_dict
 
+from django.db.models.signals import pre_save, post_save
+
+import pytest
+
+@pytest.fixture(scope="module", autouse=True)
+def connect_signals():
+    '''make sure to connect the signals before each test - they are needed
+    here'''
+    pre_save.connect(send_notice_prjms_changed, sender=ProjectMilestones)
+
 
 def print_err(*args):
     sys.stderr.write(' '.join(map(str, args)) + '\n')
-
-
-
 
 
 class TestMarkMessages(TestCase):
@@ -912,7 +919,7 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
 
     def test_send_message_project_approved(self):
         '''When Jerry approves the project, Jerry, George and Kramer should
-        all get a message stating that.'''
+        all get a message stating that it has been approved.'''
 
         Jerrys_msgs = my_messages(self.user1)
         Georges_msgs = my_messages(self.user2)
@@ -927,6 +934,10 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
         Jerrys_msgs = my_messages(self.user1)
         Georges_msgs = my_messages(self.user2)
         Kramers_msgs = my_messages(self.user3)
+
+        for msg in Georges_msgs:
+            print "msg = %s" % msg
+
 
         self.assertEqual(Georges_msgs.count(), 2)
         self.assertEqual(Jerrys_msgs.count(), 2)
