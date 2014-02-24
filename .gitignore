@@ -22,3 +22,7 @@ templates/old*
 *.mdb
 simple_auth/*
 *fly_make*
+.dir-locals.el
+fixtures/*
+migration/error.log
+migration/data/archive.zip

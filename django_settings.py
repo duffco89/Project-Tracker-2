@@ -1,5 +1,5 @@
 '''=============================================================
- c:/1work/Python/djcode/fsis2/django_settings.py
+o c:/1work/Python/djcode/fsis2/django_settings.py
  Created: 06 Sep 2013 12:11:42
 
  DESCRIPTION:

@@ -162,7 +162,7 @@ THIRDPARTY_APPS = (
     'taggit',
     'haystack',
     'passwords',
-    'olwidget',            
+    'olwidget',
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG
