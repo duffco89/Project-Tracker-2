@@ -77,6 +77,13 @@ urlpatterns = patterns('pjtk2.views',
 #       'project_milestones', name='ProjectMilestones'),
 
 
+   url((r'^delete_report/'
+        '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/'
+        '(?P<pk>\d+)/$'), 
+        view='delete_report', 
+        name='delete_report'),
+
+
     url((r'^reportupload/'
         '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'report_upload', name='ReportUpload'),

@@ -38,6 +38,17 @@ class DBA_Factory(factory.DjangoModelFactory):
     email = 'microsoft@sucks.com'
     is_superuser = True
 
+    @classmethod
+    def _prepare(cls, create, **kwargs):
+        password = kwargs.pop('password', None)
+        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
+        if password:
+            user.set_password(password)
+            if create:
+                user.save()
+        return user
+
+
 
 class ManagerFactory(factory.DjangoModelFactory):
     FACTORY_FOR = User
@@ -122,8 +133,6 @@ class MilestoneFactory(factory.DjangoModelFactory):
     order = 1
 
 
-
-
 class ProjectMilestonesFactory(factory.DjangoModelFactory):
     FACTORY_FOR = ProjectMilestones
     '''list of reporting requirements for each project'''
@@ -139,3 +148,17 @@ class ReportFactory(factory.DjangoModelFactory):
     #uploaded_by = "Bob"
     uploaded_by = factory.SubFactory(UserFactory)    
     report_hash = "1234"
+
+    #@factory.post_generation
+    #def projectreport(self, create, extracted, **kwargs):
+    #    if not create:
+    #        # Simple build, do nothing.
+    #        return
+    #
+    #    if extracted:
+    #        try:
+    #            for pmst in extracted:
+    #                self.projectmilestones.add(pmst)
+    #        except TypeError:
+    #            self.projectmilestones.add(extracted)
+
