@@ -104,6 +104,7 @@ class Milestone(models.Model):
     }
 
     label = models.CharField(max_length=50, unique=True)
+    label_abbrev = models.CharField(max_length=50, unique=True)
     category = models.CharField(max_length=30, choices=MILESTONE_CHOICES,
                                 default='Custom')
     report = models.BooleanField(default=False)
@@ -114,7 +115,7 @@ class Milestone(models.Model):
     allmilestones = models.Manager()
 
     class Meta:
-        verbose_name = "Milestones List"
+        verbose_name = "Milestone List"
         verbose_name_plural = "Milestones List"
         ordering = ['-report', 'order']
 

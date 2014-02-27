@@ -51,12 +51,14 @@ register.tag("if_bookmarked", do_if_Bookmarked)
 
 
 @register.filter
-def report_status(project, reports):
-    '''    '''
+def milestone_status(project, reports):
+    ''' The milestone_status template tag takes a project and a list of core
+    reports and returns glyph icons for completed, missing, and not required
+    milestones.  Each glyph is wrapped in table data elements so that they
+    can be directly integrated into summary report table.
+    '''
 
     html = ""
-
-    #import pdb; pdb.set_trace()
 
     for report in reports:
         status = project.milestone_complete(report)
