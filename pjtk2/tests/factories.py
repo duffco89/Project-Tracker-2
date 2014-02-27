@@ -117,8 +117,11 @@ class MilestoneFactory(factory.DjangoModelFactory):
     FACTORY_FOR = Milestone
     '''Look-up table of reporting milestone'''
     label = "Completion Report"
+    label_abbrev = factory.Sequence(lambda n: 'milestone {0}'.format(n))
     category = "Core"
     order = 1
+
+
 
 
 class ProjectMilestonesFactory(factory.DjangoModelFactory):
