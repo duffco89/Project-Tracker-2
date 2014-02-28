@@ -24,12 +24,16 @@ def print_err(*args):
 
 class TestProjectApproveUnapproveMethods(TestCase):
     '''Project instances have been given class methods to approve,
-    unapprove and sign off.  These tests verify that they work as
+    rove and sign off.  These tests verify that they work as
     expected.
     '''
 
     def setUp(self):
         '''we will need three projects with easy to rember project codes'''
+
+        import os
+        print "os.environ['DJANGO_SETTINGS_MODULE'] = %s" % os.environ['DJANGO_SETTINGS_MODULE']
+
 
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
