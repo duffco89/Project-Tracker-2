@@ -268,13 +268,25 @@ class Project(models.Model):
         #have been met! - can't signoff on a project that wasn't
         #approved or compelted.
         now = datetime.datetime.now(pytz.utc)
-        try:
-            lbl = 'Sign off'
-            ProjectMilestones.objects.filter(project=self,
-                                             milestone__label=lbl).update(
-                                                completed=now)
-        except ProjectMilestones.DoesNotExist:
-            pass
+        milestone= Milestone.objects.get(label__iexact='Sign Off')
+        prjms, created= ProjectMilestones.objects.get_or_create(
+                project=self, milestone=milestone)
+        
+        prjms.completed = now
+        prjms.save()
+
+
+    def is_complete(self):
+        '''Is the current project completed (ie. signoff=True)?  Returns true
+        if it is, otherwise false.
+        '''
+        completed = ProjectMilestones.objects.get(project=self,
+                                                  milestone__label__iexact='Sign Off')
+        if completed.completed is not None:
+            return(True)
+        else:
+            return(False)
+
 
     def project_suffix(self):
         '''return the prject suffix for the given project'''

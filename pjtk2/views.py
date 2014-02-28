@@ -530,6 +530,38 @@ def approveprojects(request):
 
 @login_required
 @group_required('manager')
+def approve_project(request, slug):
+    '''A quick little view that will allow managers to approve projects
+    from the project detail page.'''
+
+    project = get_object_or_404(Project, slug=slug)
+    project.approve()
+    project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+def unapprove_project(request, slug):
+    '''A quick little view that will allow managers to unapprove projects
+    from the project detail page.'''
+
+    project = Project.objects.get(slug=slug)
+    project.unapprove()
+    project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+
+@login_required
+@group_required('manager')
+def signoff_project(request, slug):
+    '''A quick little view that will allow managers to signoff projects
+    from the project detail page.'''
+    project = Project.objects.get(slug=slug)
+    project.signoff()
+    project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+
+@login_required
+@group_required('manager')
 def report_milestones(request, slug):
     '''This function will render a form of requested reporting
     requirements for each project.  Used by managers to update
