@@ -105,28 +105,63 @@
       {% if edit %}
       <a href="{% url 'EditProject' project.slug %}"
          onclick="javascript:window.location=this.href">
-        <button type="button" class="btn bnt-default">Edit Information</button> </a>
+        <button type="button" class="btn btn-default">Edit Information</button> </a>
 
       {% if project.is_approved %}
       <a href="{% url 'SisterProjects' project.slug %}">
-        <button type="button" class="btn bnt-default">Sister Projects</button> </a>
+        <button type="button" class="btn btn-default">Sister Projects</button> </a>
       {% else %}
       <a href="#"
          onclick="javascript:window.location=this.href">
-        <button type="button" class="btn bnt-default">Sister Projects</button> </a>
+        <button type="button" class="btn btn-default" disabled="disabled">Sister Projects</button> </a>
       {% endif %}
 
       {% endif  %}
       <a href="{% url 'CopyProject' project.slug %}"
          onclick="javascript:window.location=this.href">
-        <button type="button" class="btn bnt-default">Copy Project</button> </a>
+        <button type="button" class="btn btn-default">Copy Project</button> </a>
       {% if_bookmarked user project %}
-      <a href="{% url 'Unbookmark_Project' project.slug %}" onclick="javascript:window.location=this.href">
-        <button type="button" class="btn bnt-default">Remove Bookmark</button> </a>
+      <a href="{% url 'Unbookmark_Project' project.slug %}" 
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-default">Remove Bookmark</button> </a>
       {% else %}
-      <a href="{% url 'Bookmark_Project' project.slug %}" onclick="javascript:window.location=this.href">
-        <button type="button" class="btn bnt-default">Bookmark Project</button> </a>
+      <a href="{% url 'Bookmark_Project' project.slug %}" 
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-default">Bookmark Project</button> </a>
       {% endif_bookmarked %}
+
+      {% if edit %}
+      <a href="{% url 'ReportUpload' project.slug %}" 
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-info">Upload Reports</button> </a>
+      {% endif %}
+
+
+      {% if manager %}
+      <a href="{% url 'Reports' project.slug %}"
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-primary">Change Reporting Requirements</button> </a>
+      {% if project.is_approved %}
+      <a href="{% url 'unapprove_project' project.slug %}"
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-primary">Unapprove</button> </a>
+      {% else %}
+      <a href="{% url 'approve_project' project.slug %}"
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-primary">Approve</button> </a>
+      {% endif %}
+
+      {% if not project.is_complete %}
+      <a href="{% url 'signoff_project' project.slug %}"
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-success">Sign Off</button> </a>
+      {% endif %}
+
+
+      
+
+      {% endif %}
+
 
     </div>
   </div>
@@ -137,76 +172,120 @@
   <br />
   <h4>Core Reporting Requirements:</h4>
 
-  {% if Core %}
-  <table class="table table-striped">
-    {% for report in Core  %}
-    <tr>
-      <td> <input type="checkbox" disabled="disabled"
-                  {% if report.required %} checked="checked" {% endif %}>
-        {{ report.milestone }}
-      </td>
+  <div class="panel well" >
+    {% if Core %}
+    <table class="table table-striped">
+      {% for report in Core  %}
+      <tr>
+        <td> <input type="checkbox" disabled="disabled"
+                    {% if report.required %} checked="checked" {% endif %}>
+          {{ report.milestone }}
+        </td>
 
-      {% if report.filepath %}
-      <td><a href="{% url 'serve_file' report.filepath %}">{{ report.filepath }}</a></td>
-      {% else %}
-      {% if report.required %}
-      <td><div class="na"><em> Report not available yet. </em></div><td>
+        {% if report.report %}
+        <td><a href="{% url 'serve_file' report.report %}">{{ report.report }}</a></td>
+        {% if edit %}
+        <td>
+          <a href="{% url 'delete_report' slug=project.slug pk=report.report.id %}">
+            <button type="button" class="btn btn-danger btn-sm">
+              <span class="glyphicon glyphicon-remove"></span>
+            </button>
+          </a>
+        </td>  
         {% else %}
-        <td><div class="na"><em> Not requested. </em></div></td>
+        <td>
+          <button type="button" class="btn btn-default btn-sm" disabled="disabled">
+            <span class="glyphicon glyphicon-remove"></span> 
+          </button>
         {% endif %}
-        {% endif %}
-    </tr>
-    {% endfor %}
-  </table>
-  {% else %}
-  <p><em>No reporting requirements associated with this project. </em></p>
-  {% endif %}
 
+          {% else %}
+          {% if report.required %}
+          <td>
+            <div class="na"><em> Report not available yet. </em></div>
+          </td>
+          {% else %}
+          <td><div class="na"><em> Not requested. </em></div></td>
+          {% endif %}        
+          <td>
+            <button type="button" class="btn btn-default btn-sm" disabled="disabled">
+              <span class="glyphicon glyphicon-remove"></span> 
+            </button>
+          </td>
+          {% endif %}
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p><em>No reporting requirements associated with this project. </em></p>
+    {% endif %}
+  </div> 
 
-  <h4>Associated Files:</h4>
-  <em>This feature has not been implemented yet. </em>
   <br />
   <br />
-
 
   <h4>Additional Reporting Requirements:</h4>
-  {% if Custom %}
-  <table class="table table-striped">
-    {% for report in Custom  %}
-    <tr>
-      <td> <input type="checkbox" disabled="disabled"
-                  {% if report.required %} checked="checked" {% endif %}>
-        {{ report.milestone }}
-      </td>
+  <div class="panel well">
+    {% if Custom %}
+    <table class="table table-striped">
+      {% for report in Custom  %}
+      <tr>
+        <td> <input type="checkbox" disabled="disabled"
+                    {% if report.required %} checked="checked" {% endif %}>
+          {{ report.milestone }}
+        </td>
+        {% if report.report %}
 
-      {% if report.filepath %}
-      <td><a href="{% url 'serve_file' report.filepath %}">{{ report.filepath }}</a></td>
-      {% else %}
-      {% if report.required %}
-      <td><div class="na"><em> Report not available yet. </em></div><td>
+        <td><a href="{% url 'serve_file' report.report %}">{{ report.report }}</a></td>
+        {% if edit %}
+        <td>
+          <a href="{% url 'delete_report' slug=project.slug pk=report.report.id %}">
+            <button type="button" class="btn btn-danger btn-sm">
+              <span class="glyphicon glyphicon-remove"></span>
+            </button>
+          </a>
+        </td>  
         {% else %}
-        <td><div class="na"><em> Not requested. </em></div></td>
-        {% endif %}
-        {% endif %}
-    </tr>
-    {% endfor %}
-  </table class="table table-striped">
-  {% else %}
-  <p><em>No additonal reporting requirements associated with this project. </em></p>
-  {% endif %}
+        <td>
+          <button type="button" class="btn btn-default btn-sm" disabled="disabled">
+            <span class="glyphicon glyphicon-remove"></span> 
+          </button>
+          {% endif %}
+
+          {% else %}
+          {% if report.required %}
+          <td>
+            <div class="na"><em> Report not available yet. </em></div>
+          </td>
+          {% else %}
+          <td><div class="na"><em> Not requested. </em></div></td>
+          {% endif %}        
+          <td>
+            <button type="button" class="btn btn-default btn-sm" disabled="disabled">
+              <span class="glyphicon glyphicon-remove"></span> 
+            </button>
+          </td>
+          {% endif %}
+      </tr>
+
+      {% endfor %}
+    </table>
+    {% else %}
+    <p><em>No additonal reporting requirements associated with this project. </em></p>
+    {% endif %}
+  </div>
+
+  <br />
+
+  <h4>Associated Files:</h4>
+  <div class="panel well" >
+    <em>This feature has not been implemented yet. </em>
+  </div> 
+  <br />
 
   <br />
   <br />
-  {% if edit %}
-  <a href="{% url 'ReportUpload' project.slug %}" onclick="javascript:window.location=this.href">
-    <button type="button" class="btn bnt-default">Upload Reports</button> </a>
-  {% endif %}
 
-  {% if manager %}
-  <a href="{% url 'Reports' project.slug %}"
-     onclick="javascript:window.location=this.href">
-    <button type="button" class="btn bnt-default">Change Reporting Requirements</button> </a>
-  {% endif %}
 
 </div>
 

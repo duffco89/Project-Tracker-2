@@ -104,6 +104,7 @@ class Milestone(models.Model):
     }
 
     label = models.CharField(max_length=50, unique=True)
+    label_abbrev = models.CharField(max_length=50, unique=True)
     category = models.CharField(max_length=30, choices=MILESTONE_CHOICES,
                                 default='Custom')
     report = models.BooleanField(default=False)
@@ -114,7 +115,7 @@ class Milestone(models.Model):
     allmilestones = models.Manager()
 
     class Meta:
-        verbose_name = "Milestones List"
+        verbose_name = "Milestone List"
         verbose_name_plural = "Milestones List"
         ordering = ['-report', 'order']
 
@@ -267,13 +268,25 @@ class Project(models.Model):
         #have been met! - can't signoff on a project that wasn't
         #approved or compelted.
         now = datetime.datetime.now(pytz.utc)
-        try:
-            lbl = 'Sign off'
-            ProjectMilestones.objects.filter(project=self,
-                                             milestone__label=lbl).update(
-                                                completed=now)
-        except ProjectMilestones.DoesNotExist:
-            pass
+        milestone= Milestone.objects.get(label__iexact='Sign Off')
+        prjms, created= ProjectMilestones.objects.get_or_create(
+                project=self, milestone=milestone)
+        
+        prjms.completed = now
+        prjms.save()
+
+
+    def is_complete(self):
+        '''Is the current project completed (ie. signoff=True)?  Returns true
+        if it is, otherwise false.
+        '''
+        completed = ProjectMilestones.objects.get(project=self,
+                                                  milestone__label__iexact='Sign Off')
+        if completed.completed is not None:
+            return(True)
+        else:
+            return(False)
+
 
     def project_suffix(self):
         '''return the prject suffix for the given project'''
@@ -492,6 +505,15 @@ class Project(models.Model):
             sisters = []
         return sisters
 
+    def has_sister(self):
+        '''a simple little helper function - returns True if this project has
+        one or more sisters, False otherwise.  Used in templates to
+        issue warnings about cascading effects on other projects.
+        '''
+        if len(self.get_sisters()):
+            return(True)
+        else:
+            return(False)
 
     def get_sister_candidates(self):
         '''return a querset of projects that could be sisters to this

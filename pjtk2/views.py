@@ -95,12 +95,11 @@ def can_edit(user, project):
     project owner, a manager or a superuser.'''
     canedit = ((user.groups.filter(name='manager').count() > 0) or
                (user.is_superuser) or
-               (user.username == project.owner.username))
+               (user == project.owner))
     if canedit:
-        canedit = True
-    else:
-        canedit = False
-    return(canedit)
+        return(True)
+    else:        
+        return(False)
 
 
 def get_assignments_with_paths(slug, core=True):
@@ -120,10 +119,10 @@ def get_assignments_with_paths(slug, core=True):
     assign_dicts = []
     for assignment in assignments:
         try:
-            filepath = Report.objects.get(projectreport=assignment,
+            report = Report.objects.get(projectreport=assignment,
                                           current=True)
         except Report.DoesNotExist:
-            filepath = None
+            report = None
         required = assignment.required
         milestone = assignment.milestone
         category = assignment.milestone.category
@@ -131,7 +130,7 @@ def get_assignments_with_paths(slug, core=True):
             required=required,
             category=category,
             milestone=milestone,
-            filepath=filepath
+            report=report
         ))
     return assign_dicts
 
@@ -303,6 +302,8 @@ def project_detail(request, slug):
 
     sample_points = project.get_sample_points()
     map = get_map(sample_points)
+
+    #import pdb; pdb.set_trace()
 
     return render_to_response('pjtk2/projectdetail.html',
                               {'milestones': milestones,
@@ -529,6 +530,38 @@ def approveprojects(request):
 
 @login_required
 @group_required('manager')
+def approve_project(request, slug):
+    '''A quick little view that will allow managers to approve projects
+    from the project detail page.'''
+
+    project = get_object_or_404(Project, slug=slug)
+    project.approve()
+    project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+def unapprove_project(request, slug):
+    '''A quick little view that will allow managers to unapprove projects
+    from the project detail page.'''
+
+    project = Project.objects.get(slug=slug)
+    project.unapprove()
+    project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+
+@login_required
+@group_required('manager')
+def signoff_project(request, slug):
+    '''A quick little view that will allow managers to signoff projects
+    from the project detail page.'''
+    project = Project.objects.get(slug=slug)
+    project.signoff()
+    project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+
+@login_required
+@group_required('manager')
 def report_milestones(request, slug):
     '''This function will render a form of requested reporting
     requirements for each project.  Used by managers to update
@@ -626,6 +659,42 @@ def report_upload(request, slug):
                               {'formset': formset,
                                'project': project},
                               context_instance=RequestContext(request))
+@login_required
+def delete_report(request, slug, pk):
+    """this view removes a report from the project detail page.  For the
+    user, it will appear as though the report has been deleted.  In
+    reality, the report is simply updated so that it is not longer
+    rendered and available on the project detail page but it will
+    still exist on the file system.
+
+    If this is a get request, redirect to a confirmation page.  If it
+    is a post, update the projectmilestone and redirect back to the
+    project detail page.
+
+    Arguments:
+    - `request`:
+    - `slug`:
+    - `pk`:
+
+    """
+    report = get_object_or_404(Report, id=pk)
+    project = get_object_or_404(Project, slug=slug)
+
+
+    if not can_edit(request.user, project):
+        return HttpResponseRedirect(project.get_absolute_url())
+
+    if request.method == 'POST':
+        report.delete()
+        return HttpResponseRedirect(project.get_absolute_url())
+    else:
+        return render_to_response('pjtk2/confirm_report_delete.html',
+                                  { 'report': report,
+                                    'project': project},
+                                  context_instance=RequestContext(request))
+    
+
+
 
 
 def serve_file(request, filename):

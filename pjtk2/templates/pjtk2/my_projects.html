@@ -61,7 +61,7 @@
 
 
  $(document).ready(function(){
-   $('.mytable').rotateTableCellContent();
+   $('.rotated-header').rotateTableCellContent();
  });
 
 
@@ -91,8 +91,8 @@ table div.rotated {
 
 }
 
-.mytable-header{
-  height: auto;
+.rotated-header{
+   height: 150px;
 }
 
 
@@ -133,7 +133,8 @@ table div.rotated {
 	<table id="formset" class="table table-striped form">
 	  {% for form in formset.forms %}
 	  {% if forloop.first %}
-	  <thead><tr>
+	  <thead>
+            <tr>
 	    {% for field in form.visible_fields %}
 	    <th>{{ field.label|capfirst }}</th>
 	    {% endfor %}
@@ -175,9 +176,20 @@ table div.rotated {
 
       <h3>Submitted Projects</h3>
       {% if submitted %}
-      <table id="myTable" class="tablesorter">
-	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td>
-	  <td>Project Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr>
+      <table id="myTable" class="table tablesorter rotated-header">
+	<thead class="rotated-header">
+          <tr>
+            <th>Year</th>
+            <th>Project Code</th> 
+            <th>Project Type</th>
+	    <th>Project Name</th>
+            {% if boss %}
+            <th>Project Lead</th>
+            {% endif %}              
+            {% for report in core_reports %}
+            <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
+            {% endfor %}
+          </tr>
 	</thead>
 	<tbody>
 	  {% for project in submitted %}
@@ -193,6 +205,7 @@ table div.rotated {
 	    {% if boss %}
 	    <td>       {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }} </td>
 	    {% endif %}
+            {{ project | milestone_status:core_reports }}            
 	  </tr>
 	  {% endfor %}
 	</tbody>
@@ -208,8 +221,8 @@ table div.rotated {
       <h3>Approved Projects</h3>
       {% if approved %}
 
-        <table id="myTable" class="table tablesorter mytable">
-	  <thead style="height: 240px;">
+        <table id="myTable" class="table tablesorter rotated-header">
+	  <thead class="rotated-header">
             <tr>
               <th>Year</th>
               <th>Project Code</th>
@@ -220,7 +233,7 @@ table div.rotated {
               {% endif %}
               
               {% for report in core_reports %}
-              <th class="vertical"><div><span>{{ report }}</span></div></th>
+              <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
               {% endfor %}
             </tr>
 	  </thead>
@@ -239,7 +252,7 @@ table div.rotated {
 	      <td>    {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }} </td>
 	      {% endif %}
 
-              {{ project | report_status:core_reports }}
+              {{ project | milestone_status:core_reports }}
 
 	    </tr>
 	    {% endfor %}
@@ -254,9 +267,21 @@ table div.rotated {
     <div id="completed" class="tab-pane" >
       <h3>Completed Projects</h3>
       {% if complete %}
-      <table id="myTable" class="tablesorter">
-	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td> <td>Project
-	  Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
+      <table id="myTable" class="table tablesorter rotated-header">
+	<thead class="rotated-header">
+          <tr>
+            <th>Year</th>
+            <th>Project Code</th> 
+            <th>Project Type</th> 
+            <th>Project Name</th>
+            {% if boss %}
+            <th>Project Lead</th>
+            {% endif %}
+            {% for report in core_reports %}
+            <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
+            {% endfor %}
+          </tr>              
+        </thead>
 	<tbody>
 	  {% for project in complete %}
 	  <tr class="{% cycle row1,row2 %}">
@@ -271,6 +296,7 @@ table div.rotated {
 	    {% if boss %}
 	    <td>    {{ project.prj_ldr.first_name }}   {{ project.prj_ldr.last_name }} </td>
 	    {% endif %}
+            {{ project | milestone_status:core_reports }}	  	  
 	  </tr>
 	  {% endfor %}
 	</tbody>
@@ -283,9 +309,18 @@ table div.rotated {
     <div id="bookmarks" class="tab-pane" >
       <h3>Bookmarks</h3>
       {% if bookmarks %}
-      <table id="myTable" class="tablesorter">
-	<thead><tr><td>Year</td><td>Project Code</td> <td>Project Type</td><td>Project
-	  Name</td>{% if boss %}<td>Project Lead</td>{% endif %}</tr></thead>
+      <table id="myTable" class="table tablesorter rotated-header">
+	<thead>
+          <tr>
+            <th>Year</th>
+            <th>Project Code</th> 
+            <th>Project Type</th>
+            <th>Project Name</th>
+            {% if boss %}
+            <th>Project Lead</th>
+            {% endif %}
+          </tr>
+        </thead>
 	<tbody>
 	  {% for bookmark in bookmarks %}
 	  <tr class="{% cycle row1,row2 %}">
@@ -302,6 +337,7 @@ table div.rotated {
 	    {% if boss %}
 	    <td>  {{ bookmark.prj_ldr.first_name }} {{ bookmark.prj_ldr.last_name }}</td>
 	    {% endif %}
+
 	  </tr>
 	  {% endfor %}
 	</tbody>

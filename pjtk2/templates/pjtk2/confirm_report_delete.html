@@ -1,0 +1,48 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+
+{% block title  %} {{ block.super }}| Delete Report  {% endblock %}
+
+
+
+{% block content  %}
+
+<div class="container" >
+
+  <h3>Project: {{ project.prj_nm }} (<a href="{{ project.get_absolute_url }}">{{ project.prj_cd  }}</a>)  </h3>
+  <br />
+  <div class="alert alert-warning">
+    <h4> Are you sure you want to permanently delete this report?</h4>
+    <br />
+    <ul>
+      <li><h4>"{{ report }}"</h4></li>
+    </ul>
+  </div>
+
+  <br />
+
+  {% if project.has_sister %}
+
+  <div class="alert alert-danger">
+    <h4>This projects has sister projects that could be affected by deleting this report!</h4>
+    <p>The sister projects are:</p>
+    <ul>
+      {% for sister in project.get_sisters %}
+      <li> {{ sister.prj_nm }} (<a href="{{ sister.get_absolute_url }}">{{ sister.prj_cd  }}</a>) </li>
+      {% endfor %}
+    </ul>
+
+  </div>
+
+  {% endif %}
+
+  <hr />
+
+  <form method="post", action="">
+    {% csrf_token %}
+    <p><input type="submit" value="Delete Report" class="btn btn-default"/></p>
+  </form>
+
+</div>
+
+{% endblock %}

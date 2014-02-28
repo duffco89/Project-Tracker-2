@@ -28,6 +28,21 @@ urlpatterns = patterns('pjtk2.views',
 # url(r'^projectsbytype/(?P<projecttype>.+)$', 'projects_by_type',
 #       name='ProjectsByType'),
 
+
+    url((r'^approve_project/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
+        'approve_project', name='approve_project'),
+    url((r'^unapprove_project/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
+        'unapprove_project', name='unapprove_project'),
+
+    url((r'^signoff_project/'
+          '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
+        'signoff_project', name='signoff_project'),
+
+
+
+
     url(r'^newproject/$', 'new_project', name='NewProject'),
 
     url((r'^copyproject/'
@@ -75,6 +90,13 @@ urlpatterns = patterns('pjtk2.views',
 
 #url(r'^(?P<slug>[A-Z]{3}_[A-Z]{2}\d{2}_([A-Z]|\d){3})/$',
 #       'project_milestones', name='ProjectMilestones'),
+
+
+   url((r'^delete_report/'
+        '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/'
+        '(?P<pk>\d+)/$'), 
+        view='delete_report', 
+        name='delete_report'),
 
 
     url((r'^reportupload/'
