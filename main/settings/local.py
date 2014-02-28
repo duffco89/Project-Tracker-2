@@ -1,5 +1,6 @@
 from main.settings.base import *
 
+ALLOWED_HOSTS = ['*']
 
 #username and password: cottrillad, django
 #DATABASES = {

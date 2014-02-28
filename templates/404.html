@@ -1,22 +1,15 @@
-{% extends "base.html" %}
-{% load i18n %}
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
-{% block title %}Page not found{% endblock %}
+<head>
+ <title>Page unavailable</title>
+</head>
 
-{% block content %}
-<h1>Page not found</h1>
+<body>
+ <h1>404 Page Not Found</h1>
 
-{% if messages %}
-<ul class="messages">
-    {% for message in messages %}
-    <li>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% else %}
+ <p>Sorry, but the requested page could not be found.</p>
+</body>
 
-<p>Sorry, but the requested page could not be found.</p>
-
-{% endif %}
-
-
-{% endblock %}
+</html>

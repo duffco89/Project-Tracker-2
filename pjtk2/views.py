@@ -648,6 +648,7 @@ def delete_report(request, slug, pk):
     report = get_object_or_404(Report, id=pk)
     project = get_object_or_404(Project, slug=slug)
 
+
     if not can_edit(request.user, project):
         return HttpResponseRedirect(project.get_absolute_url())
 

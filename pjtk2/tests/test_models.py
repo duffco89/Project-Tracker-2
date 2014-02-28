@@ -609,6 +609,19 @@ class TestModelSisters(TestCase):
             lambda a:a.prj_cd
             )
 
+    def test_has_sisters(self):
+        """has_sisters() is a simple method of project objects.  Returns True
+        if the object has one or more sisters, false otherwise.
+        
+        """
+        #make project 1 and 2 sisters:
+        self.project1.add_sister(self.project2.slug)
+
+        self.assertTrue(self.project1.has_sister())
+        self.assertTrue(self.project2.has_sister())
+        #number three should not have any sisters
+        self.assertFalse(self.project3.has_sister())        
+
 
     def tearDown(self):
         self.project1.delete()

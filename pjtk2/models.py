@@ -493,6 +493,15 @@ class Project(models.Model):
             sisters = []
         return sisters
 
+    def has_sister(self):
+        '''a simple little helper function - returns True if this project has
+        one or more sisters, False otherwise.  Used in templates to
+        issue warnings about cascading effects on other projects.
+        '''
+        if len(self.get_sisters()):
+            return(True)
+        else:
+            return(False)
 
     def get_sister_candidates(self):
         '''return a querset of projects that could be sisters to this
