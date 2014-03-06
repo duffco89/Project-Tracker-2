@@ -666,7 +666,11 @@ class Report(models.Model):
 
 
 def get_associated_file_upload_path(instance, filename):
-    return os.path.join('Associated_Files', instance.project.prj_cd, filename)
+    '''a little helper function used by "upload_to" of associated files.
+    It will save all of the files associated with a project in a project
+    specific directory (named using the project code)
+    '''
+    return os.path.join('associated_files', instance.project.prj_cd, filename)
 
 class AssociatedFile(models.Model):
     '''class for associated files.  Unlike reports, an associated file can

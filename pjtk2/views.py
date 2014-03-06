@@ -762,19 +762,28 @@ def serve_file(request, filename):
     file doesn t actully exist.
     '''
 
-    content_type = mimetypes.guess_type(filename)[0]
+    fname = os.path.join(settings.MEDIA_ROOT, filename)
 
-    #data = open(os.path.join(settings.MEDIA_ROOT,filename),'r').read()
-    #resp = HttpResponse(data, mimetype='application/x-download')
-    #resp = HttpResponse(data, mimetype=content_type)
+    if os.path.isfile(fname):
+    
+        content_type = mimetypes.guess_type(filename)[0]
+    
+        #data = open(os.path.join(settings.MEDIA_ROOT,filename),'r').read()
+        #resp = HttpResponse(data, mimetype='application/x-download')
+        #resp = HttpResponse(data, mimetype=content_type)
+    
+        data = FileWrapper(file(fname, 'rb'))
+        response = HttpResponse(data, mimetype=content_type)
+        filename = os.path.split(filename)[-1]
+        response['Content-Disposition'] = 'attachment;filename=%s' % filename
+    
+        return response
 
-    data = FileWrapper(file(os.path.join(settings.MEDIA_ROOT, filename), 'rb'))
-    response = HttpResponse(data, mimetype=content_type)
-    filename = os.path.split(filename)[-1]
-    response['Content-Disposition'] = 'attachment;filename=%s' % filename
-
-
-    return response
+    else:
+        return render_to_response('pjtk2/MissingFile.html',
+                                  { 'filename': filename},
+                                  context_instance=RequestContext(request))
+        
 
 
 

@@ -275,12 +275,20 @@
     {% endif %}
   </div>
 
-  <br />
 
-  <div><h4>Associated Files:</h4>
+  <hr />
+
+  <div class="row">
+    <div class="col-md-10" >
+    <h4>Associated Files:</h4>
+    </div>
+    {% if edit %}
+    <div class="col-md-2" >
       <a href="{% url 'associated_file_upload' project.slug %}"
          onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-default">Associated Files</button> </a>
+        <button type="button" class="btn btn-primary">Upload Assoc. Files</button> </a>
+    </div>
+    {% endif %}
 
 </div>
   <div class="panel well" >
@@ -289,7 +297,9 @@
     <table class="table table-striped">
       {% for file in project.get_associated_files  %}
       <tr>
+        {% if file.file_path %}
         <td><a href="{% url 'serve_file' file.file_path %}">{{ file.file_path }}</a></td>
+        {% endif %}
         {% if edit %}
         <td>
           <a href="{% url 'delete_associated_file' file.id %}">

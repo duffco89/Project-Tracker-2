@@ -837,7 +837,7 @@ class SisterProjectsForm(forms.Form):
 
 
 class AssociatedFileUploadForm(forms.Form):
-    '''A simple little demo form for testing file uploads'''
+    '''A simple little form for uploading files one at a time.'''
 
     file_path = forms.FileField(
         label = "File",
@@ -853,22 +853,8 @@ class AssociatedFileUploadForm(forms.Form):
 
 
     def save(self):
-        '''see if a report already exists for this projectreport, if
-        so, make sure that it Current flag is set to false
-
-        - populate uploaded by with user name
-
-        - TODO:calculate hash of file (currently calculated on hash of path)
-
-        - TODO:verify that it matches certain criteria (file
-        types/extentions) depending on reporting milestone
-
-        - if this is a presentation or summary report, see if the
-        project has any sister projects, if so, update projectreports
-        for them too.
-        '''
-
-        #now = datetime.datetime.now(pytz.utc)
+        '''fill in the project, user, uploaded time and file hash when we save
+        it.'''
 
         newReport = AssociatedFile(
             project = self.project,
