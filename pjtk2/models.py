@@ -16,6 +16,7 @@ from django.contrib.gis.db import models
 from taggit.managers import TaggableManager
 
 import datetime
+import os
 import pytz
 
 from pjtk2.functions import get_supervisors
@@ -336,6 +337,18 @@ class Project(models.Model):
         return Report.objects.filter(current=True,
                                      projectreport__project=self)
 
+
+    def get_associated_files(self):
+        '''get all of the associated files associated with this project
+        Associated files are not associated with a milesone and are
+        likely to be different for each project..
+
+        '''
+
+        return AssociatedFile.objects.filter(project=self)
+
+
+
     def get_core_assignments(self, all_reports=True):
         '''get all of the core reports have been assigned to this project, if
         'all_reports' is true, all assignements are returned, if 'all_reports'
@@ -640,7 +653,8 @@ class Report(models.Model):
     entries in Project Reports'''
     current = models.BooleanField(default=True)
     projectreport = models.ManyToManyField('ProjectMilestones')
-    report_path = models.FileField(upload_to="reports/")
+    report_path = models.FileField(upload_to="milestone_reports/", 
+                                   max_length=200)
     uploaded_on = models.DateTimeField(auto_now_add=True)
     #uploaded_by = models.CharField(max_length = 300)
     uploaded_by = models.ForeignKey(User)
@@ -649,6 +663,33 @@ class Report(models.Model):
     def __unicode__(self):
         '''Use the file path as the string representation of a report'''
         return str(self.report_path)
+
+
+def get_associated_file_upload_path(instance, filename):
+    return os.path.join('Associated_Files', instance.project.prj_cd, filename)
+
+class AssociatedFile(models.Model):
+    '''class for associated files.  Unlike reports, an associated file can
+    only be linked to a single project
+    '''
+
+    project = models.ForeignKey(Project)
+    file_path = models.FileField(upload_to=get_associated_file_upload_path, 
+                                 max_length=200)
+    current = models.BooleanField(default=True)
+    uploaded_on = models.DateTimeField(auto_now_add=True)
+    #uploaded_by = models.CharField(max_length = 300)
+    uploaded_by = models.ForeignKey(User)
+    hash = models.CharField(max_length = 300)
+
+    def __unicode__(self):
+        '''Use the file path as the string representation of a report'''
+        return str(self.file_path)
+
+    #def get_project_code(self):
+    #    '''return the project code of the project this file is associated
+    #    with.  Used to build upload_to path'''
+    #    pass
 
 
 class Bookmark(models.Model):

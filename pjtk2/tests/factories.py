@@ -162,3 +162,13 @@ class ReportFactory(factory.DjangoModelFactory):
     #        except TypeError:
     #            self.projectmilestones.add(extracted)
 
+
+
+class AssociatedFactory(factory.DjangoModelFactory):
+    FACTORY_FOR = AssociatedFile
+    current = True
+    project = factory.SubFactory(Project)
+    file_path = "some/fake/file.txt"
+    #uploaded_by = "Bob"
+    uploaded_by = factory.SubFactory(UserFactory)    
+    report_hash = "1234"

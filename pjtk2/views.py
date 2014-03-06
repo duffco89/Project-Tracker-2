@@ -28,11 +28,12 @@ from pjtk2.functions import get_minions, my_messages, get_messages_dict
 
 from pjtk2.filters import ProjectFilter
 from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
-                          Bookmark, Employee)#, my_messages)
+                          Bookmark, Employee, AssociatedFile)#, my_messages)
 
-from pjtk2.forms import (ProjectForm, ApproveProjectsForm, DocumentForm,
+from pjtk2.forms import (ProjectForm, ApproveProjectsForm, 
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,
-                         ReportUploadFormSet, NoticesForm)
+                         ReportUploadFormSet, NoticesForm, 
+                         AssociatedFileUploadForm)
 
 import datetime
 import pytz
@@ -694,6 +695,59 @@ def delete_report(request, slug, pk):
                                   context_instance=RequestContext(request))
     
 
+
+@login_required
+def associated_file_upload(request, slug):
+    '''This view will render a formset with filefields that can be used to
+    upload files that will be associated with a specific project.'''
+
+    project = Project.objects.get(slug=slug)
+
+    if request.method == 'POST':
+        form = AssociatedFileUploadForm(request.POST, request.FILES, 
+                                         project=project, user=request.user)
+        if form.is_valid():
+            form.save()
+            #m = ExampleModel.objects.get(pk=course_id)
+            #m.model_pic = form.cleaned_data['image']
+            #m.save()
+            return HttpResponseRedirect(project.get_absolute_url())
+
+    else:
+        return render_to_response('pjtk2/UploadAssociatedFiles.html',
+                                  { 'project': project},
+                                  context_instance=RequestContext(request))
+
+
+
+@login_required
+def delete_associated_file(request, id):
+    """this view deletes an associated file 
+
+    If this is a get request, redirect to a confirmation page.  If it
+    is a post, delete the associated file o
+    project detail page.
+
+    Arguments:
+    - `request`:
+    - `slug`:
+    - `pk`:
+
+    """
+    associated_file = get_object_or_404(AssociatedFile, id=id)
+    project = associated_file.project
+
+    if not can_edit(request.user, project):
+        return HttpResponseRedirect(project.get_absolute_url())
+
+    if request.method == 'POST':
+        associated_file.delete()
+        return HttpResponseRedirect(project.get_absolute_url())
+    else:
+        return render_to_response('pjtk2/confirm_file_delete.html',
+                                  { 'associated_file': associated_file,
+                                    'project': project},
+                                  context_instance=RequestContext(request))
 
 
 

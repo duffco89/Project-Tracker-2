@@ -1,0 +1,22 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+{% block content %}
+
+<div class="container">
+
+<h2> Upload Associated Files </h2>
+
+<h3>{{ project.prj_nm }} ({{ project.prj_cd }})</h3>
+
+<hr />
+
+<form action="{% url 'associated_file_upload' project.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+  <p>
+    <input id="id_file_path" type="file" class="" name="file_path">
+  </p>
+  <input type="submit" value="Submit" />
+</form>
+
+
+</div>
+{% endblock %}

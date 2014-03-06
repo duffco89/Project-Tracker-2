@@ -103,6 +103,17 @@ urlpatterns = patterns('pjtk2.views',
         '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
         'report_upload', name='ReportUpload'),
 
+    url((r'^associatedfileupload/'
+        '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
+        'associated_file_upload', name='associated_file_upload'),
+
+   url((r'^delete_associated_file/'
+        '(?P<id>\d+)/$'), 
+        view='delete_associated_file', 
+        name='delete_associated_file'),
+
+
+
     #url(r'^uploadlist/$', 'uploadlist', name='UploadList'),
 
     #this function is used to download reports and files from project pages
