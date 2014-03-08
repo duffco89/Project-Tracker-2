@@ -59,7 +59,7 @@ class TestAssociatedFileModel(TestCase):
             project = self.project,
             file_path = self.mock_file0.name,
             uploaded_by = self.user,
-            report_hash = 'fake hash'
+            hash = 'fake hash'
         )
 
         #associated_file.save()

@@ -530,6 +530,8 @@ class TestReportUploadForm(TestCase):
 
         filepath = os.path.join(settings.MEDIA_URL,
                                 os.path.split(self.mock_file2.name)[1])
+        print "filepath = %s" % filepath
+
         self.assertEqual(str(reports[0].report_path), filepath)
 
 

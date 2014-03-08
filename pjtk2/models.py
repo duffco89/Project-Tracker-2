@@ -684,7 +684,7 @@ class AssociatedFile(models.Model):
     uploaded_on = models.DateTimeField(auto_now_add=True)
     #uploaded_by = models.CharField(max_length = 300)
     uploaded_by = models.ForeignKey(User)
-    hash = models.CharField(max_length = 300)
+    hash = models.CharField(max_length=300)
 
     def __unicode__(self):
         '''Use the file path as the string representation of a report'''
