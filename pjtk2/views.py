@@ -539,6 +539,8 @@ def approve_project(request, slug):
     project.save()
     return HttpResponseRedirect(project.get_absolute_url())
 
+@login_required
+@group_required('manager')
 def unapprove_project(request, slug):
     '''A quick little view that will allow managers to unapprove projects
     from the project detail page.'''
