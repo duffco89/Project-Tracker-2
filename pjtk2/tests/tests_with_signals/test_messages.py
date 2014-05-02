@@ -776,6 +776,8 @@ class TestSendMessages(TestCase):
         self.user4.delete()
 
 
+
+
 class TestMyMessages(TestCase):
     '''The helper function my_messages accepts a user and returns all of
     the Messages2Users objects associated with that user. my_messages()
@@ -788,7 +790,7 @@ class TestMyMessages(TestCase):
         messages.
 
         """
-        
+    
         self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
                                  username='jseinfield')
 
@@ -846,7 +848,7 @@ class TestMyMessages(TestCase):
         
     def test_my_messages_all(self):
         '''We may want to see all of the messages that have been sent to a
-        user, verify that we get them.'''
+        user, verify that we get them (order does not matter).'''
 
         msgs = my_messages(self.user1, all=True)
 
@@ -855,7 +857,7 @@ class TestMyMessages(TestCase):
         should_be.extend(['Submitted'])
 
         self.assertQuerysetEqual(msgs, should_be, 
-                                 lambda a: str(a.message.msgtxt))
+                                 lambda a: str(a.message.msgtxt), ordered=False)
 
     def test_my_messages_no_messages(self):
         '''If there aren't any messages for this user, return an empty list

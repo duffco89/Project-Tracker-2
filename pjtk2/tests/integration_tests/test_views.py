@@ -869,7 +869,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         thisyear = Project.this_year.all()
         self.assertEqual(thisyear.count(),3)
         self.assertQuerysetEqual(thisyear, [False, True, False],
-                                 lambda a:a.is_approved())
+                                 lambda a:a.is_approved(), ordered=False)
 
 
     def test_projects_for_lastyear_can_be_approved(self):
@@ -977,7 +977,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)
         self.assertQuerysetEqual(lastyear, [False, True],
-                                 lambda a:a.is_approved())
+                                 lambda a:a.is_approved(), ordered=False)
 
 
     def tearDown(self):

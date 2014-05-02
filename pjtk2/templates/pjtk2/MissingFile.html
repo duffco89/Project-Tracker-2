@@ -1,0 +1,24 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+
+{% block title  %} {{ block.super }}| Delete Associated Report  {% endblock %}
+
+
+{% block content  %}
+
+<div class="container" >
+
+
+  <div class="alert alert-warning">
+    <h3>Oops!</h3>  
+
+    <p>This is embarassing.  I can't seem the find a file
+      named "{{ filename }}". It is possible that the file has been moved,
+      renamed or deleted.</p>
+
+    <p>Please notify the system administrator.</p>
+
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+
+{% block title  %} {{ block.super }}| Delete Associated Report  {% endblock %}
+
+
+{% block content  %}
+
+<div class="container" >
+
+  <h3>Project: {{ project.prj_nm }} (<a href="{{ project.get_absolute_url }}">{{ project.prj_cd  }}</a>)  </h3>
+  <br />
+  <div class="alert alert-warning">
+    <h4> Are you sure you want to permanently delete this file?</h4>
+    <br />
+    <ul>
+      <li><h4>"{{ associated_file }}"</h4></li>
+    </ul>
+  </div>
+
+  <br />
+
+  <hr />
+
+  <form method="post", action="">
+    {% csrf_token %}
+    <p><input type="submit" value="Delete File" class="btn btn-default"/></p>
+  </form>
+
+</div>
+
+{% endblock %}

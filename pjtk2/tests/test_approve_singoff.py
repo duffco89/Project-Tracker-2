@@ -3,34 +3,7 @@ import pytest
 from .factories import *
 from pprint import pprint
 
-@pytest.fixture(scope="module", autouse=True)
-def disconnect_signals():
-    '''disconnect the signals before each test - not needed here'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
-
-
-@pytest.fixture(scope='module')
-def user(db):
-    """return a normal user named homer
-    """
-    password = "Abcd1234"
-    homer = UserFactory.create(username = 'hsimpson',
-                        first_name = 'Homer',
-                        last_name = 'Simpson',
-                        password = password)
-    return(homer)
-
-@pytest.fixture(scope='module')
-def project(db, user):
-
-    milestone1 = MilestoneFactory.create(label = "Approved")
-    milestone2 = MilestoneFactory.create(label = "Sign Off")
-
-    project = ProjectFactory.create(prj_cd="LHA_IA12_111",
-                                          owner=user)
-    return(project)
-
-
+from pytest_fixtures import *
 
 @pytest.mark.django_db
 def test_anon_user_cannot_approve_project(client, project):

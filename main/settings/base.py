@@ -62,7 +62,7 @@ MEDIA_ROOT = root("uploads/")
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 #MEDIA_URL = root()
 #MEDIA_URL = 'uploads/'
-MEDIA_URL = 'reports/'
+MEDIA_URL = 'milestone_reports/'
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 
@@ -164,7 +164,7 @@ THIRDPARTY_APPS = (
     'taggit',
     'haystack',
     'passwords',
-    'olwidget',            
+    'olwidget',
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG

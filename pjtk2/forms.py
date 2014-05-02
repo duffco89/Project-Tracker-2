@@ -26,7 +26,8 @@ from crispy_forms.layout import (Submit, Layout, Fieldset, Field, ButtonHolder,
 
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report,
-                          ProjectType, Database, Lake, Messages2Users)
+                          ProjectType, Database, Lake, Messages2Users, 
+                          AssociatedFile)
 
 
 #==================================
@@ -835,7 +836,32 @@ class SisterProjectsForm(forms.Form):
             pass
 
 
-class DocumentForm(forms.ModelForm):
-    '''A simple little demo form for testing file uploads'''
-    class Meta:
-        model = Report
+class AssociatedFileUploadForm(forms.Form):
+    '''A simple little form for uploading files one at a time.'''
+
+    file_path = forms.FileField(
+        label = "File",
+        required =False,
+        )
+
+    def __init__(self, *args, **kwargs):
+        self.project = kwargs.pop('project')
+        self.user = kwargs.pop('user')
+        super(AssociatedFileUploadForm, self).__init__(*args, **kwargs)
+        self.fields["file_path"].widget.attrs['size'] = "40"
+        self.fields["file_path"].widget.attrs['class'] = "fileinput"
+
+
+    def save(self):
+        '''fill in the project, user, uploaded time and file hash when we save
+        it.'''
+
+        newReport = AssociatedFile(
+            project = self.project,
+            file_path = self.cleaned_data['file_path'],
+            uploaded_by = self.user,
+            hash = hashlib.sha1(
+                str(self.cleaned_data['file_path'])).hexdigest()
+            )
+        newReport.save()
+

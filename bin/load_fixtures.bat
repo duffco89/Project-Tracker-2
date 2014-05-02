@@ -13,4 +13,3 @@ python manage.py loaddata --settings=main.settings.local pjtk2.Lake > fixtures/l
 python manage.py loaddata --settings=main.settings.local pjtk2.Project > fixtures/project.json
 
 python manage.py loaddata --settings=main.settings.local pjtk2.ProjectMilestones > fixtures/projectmilestones.json
-
