@@ -52,13 +52,22 @@
 
       <div class="panel panel-default" >
         <div class="panel-body" >
-          {% if project.comment %}
-          <p>{{ project.comment|linebreaks  }} </p>
+          {% if project.comment_html %}
+          <p>{{ project.comment_html|safe  }} </p>
           {% else %}
           <p><em>Sorry. No project description has been provided. </em>   </p>
           {% endif %}
         </div>
       </div>
+
+      {% if project.risk_html %}
+      <p><strong>Risks:</strong></p>
+      <div class="panel panel-default" >
+        <div class="panel-body" >
+          <p>{{ project.risk_html|safe  }} </p>
+        </div>
+      </div>
+      {% endif %}
 
       <p><strong>keywords:</strong></p>
       <div class="panel panel-default" >
@@ -121,17 +130,17 @@
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-default">Copy Project</button> </a>
       {% if_bookmarked user project %}
-      <a href="{% url 'Unbookmark_Project' project.slug %}" 
+      <a href="{% url 'Unbookmark_Project' project.slug %}"
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-default">Remove Bookmark</button> </a>
       {% else %}
-      <a href="{% url 'Bookmark_Project' project.slug %}" 
+      <a href="{% url 'Bookmark_Project' project.slug %}"
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-default">Bookmark Project</button> </a>
       {% endif_bookmarked %}
 
       {% if edit %}
-      <a href="{% url 'ReportUpload' project.slug %}" 
+      <a href="{% url 'ReportUpload' project.slug %}"
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-info">Upload Reports</button> </a>
       {% endif %}
@@ -158,7 +167,7 @@
       {% endif %}
 
 
-      
+
 
       {% endif %}
 
@@ -192,11 +201,11 @@
               <span class="glyphicon glyphicon-remove"></span>
             </button>
           </a>
-        </td>  
+        </td>
         {% else %}
         <td>
           <button type="button" class="btn btn-default btn-sm" disabled="disabled">
-            <span class="glyphicon glyphicon-remove"></span> 
+            <span class="glyphicon glyphicon-remove"></span>
           </button>
         {% endif %}
 
@@ -207,10 +216,10 @@
           </td>
           {% else %}
           <td><div class="na"><em> Not requested. </em></div></td>
-          {% endif %}        
+          {% endif %}
           <td>
             <button type="button" class="btn btn-default btn-sm" disabled="disabled">
-              <span class="glyphicon glyphicon-remove"></span> 
+              <span class="glyphicon glyphicon-remove"></span>
             </button>
           </td>
           {% endif %}
@@ -220,7 +229,7 @@
     {% else %}
     <p><em>No reporting requirements associated with this project. </em></p>
     {% endif %}
-  </div> 
+  </div>
 
   <br />
   <br />
@@ -244,11 +253,11 @@
               <span class="glyphicon glyphicon-remove"></span>
             </button>
           </a>
-        </td>  
+        </td>
         {% else %}
         <td>
           <button type="button" class="btn btn-default btn-sm" disabled="disabled">
-            <span class="glyphicon glyphicon-remove"></span> 
+            <span class="glyphicon glyphicon-remove"></span>
           </button>
           {% endif %}
 
@@ -259,10 +268,10 @@
           </td>
           {% else %}
           <td><div class="na"><em> Not requested. </em></div></td>
-          {% endif %}        
+          {% endif %}
           <td>
             <button type="button" class="btn btn-default btn-sm" disabled="disabled">
-              <span class="glyphicon glyphicon-remove"></span> 
+              <span class="glyphicon glyphicon-remove"></span>
             </button>
           </td>
           {% endif %}
@@ -307,7 +316,7 @@
               <span class="glyphicon glyphicon-remove"></span>
             </button>
           </a>
-        </td>  
+        </td>
         {% endif %}
       </tr>
       {% endfor %}
@@ -317,7 +326,7 @@
     {% endif %}
 
 
-  </div> 
+  </div>
   <br />
 
   <br />
@@ -327,6 +336,3 @@
 </div>
 
 {% endblock %}
-
-
-

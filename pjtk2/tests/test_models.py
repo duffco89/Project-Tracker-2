@@ -38,19 +38,19 @@ class TestProjectApproveUnapproveMethods(TestCase):
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
-        
+
         #Add milestones
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=False)
         self.milestone2 = MilestoneFactory.create(label="Completed",
-                                        category = 'Core', order=2, 
+                                        category = 'Core', order=2,
                                              report=False)
         self.milestone3 = MilestoneFactory.create(label="Sign off",
-                                        category = 'Core', order=999, 
+                                        category = 'Core', order=999,
                                              report=False)
-        
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
 
     def test_approve_unapprove_project(self):
@@ -58,7 +58,7 @@ class TestProjectApproveUnapproveMethods(TestCase):
         #verify that the project milestone for this project is null
         #before we call the method
         milestone = ProjectMilestones.objects.get(
-                             project=self.project1, 
+                             project=self.project1,
                              milestone__label='Approved')
         self.assertIsNone(milestone.completed)
 
@@ -69,7 +69,7 @@ class TestProjectApproveUnapproveMethods(TestCase):
         #close to the current time
         now = datetime.datetime.now(pytz.utc)
         milestone = ProjectMilestones.objects.get(
-                             project=self.project1, 
+                             project=self.project1,
                              milestone__label='Approved')
         completed = milestone.completed
         self.assertIsNotNone(completed)
@@ -80,7 +80,7 @@ class TestProjectApproveUnapproveMethods(TestCase):
         self.project1.unapprove()
         #assert that the value in completed is null
         milestone = ProjectMilestones.objects.get(
-                             project=self.project1, 
+                             project=self.project1,
                              milestone__label='Approved')
         completed = milestone.completed
         self.assertIsNone(completed)
@@ -95,7 +95,7 @@ class TestProjectApproveUnapproveMethods(TestCase):
         #close to the current time
 
         milestone = ProjectMilestones.objects.get(
-                             project=self.project1, 
+                             project=self.project1,
                              milestone__label='Sign off')
         self.assertIsNone(milestone.completed)
 
@@ -107,7 +107,7 @@ class TestProjectApproveUnapproveMethods(TestCase):
         #close to the current time
         now = datetime.datetime.now(pytz.utc)
         milestone = ProjectMilestones.objects.get(
-                             project=self.project1, 
+                             project=self.project1,
                              milestone__label='Sign off')
         completed = milestone.completed
         self.assertIsNotNone(completed)
@@ -130,13 +130,13 @@ class TestProjectModel(TestCase):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
-        #self.employee = EmployeeFactory(user=self.user) 
+        #self.employee = EmployeeFactory(user=self.user)
 
         #define these as strings here so that we can access them later
         #and verify that the returned values match.
         self.commentStr = "This is a fake comment."
         self.ProjectName = "Homer's Odyssey"
-        
+
         #we need to create some models with different years - starting
         #with the current year.
         yr = datetime.datetime.now()
@@ -159,23 +159,23 @@ class TestProjectModel(TestCase):
         """make sure that the string representation of our project is
         what we expect (project name (project code))"""
 
-        should_be = "%s (%s)" % (self.project1.prj_nm, 
+        should_be = "%s (%s)" % (self.project1.prj_nm,
                                  self.project1.prj_cd)
-        self.assertEqual(str(self.project1), should_be)                
+        self.assertEqual(str(self.project1), should_be)
 
 
     def test_project_description(self):
         '''verify that project description is return properly.'''
 
-        self.assertEqual(self.project1.description(), 
-                         self.commentStr)                
+        self.assertEqual(self.project1.description(),
+                         self.commentStr)
 
 
     def test_project_name(self):
         '''verify that project name is return properly.'''
 
-        self.assertEqual(self.project1.name(), 
-                         self.ProjectName)                
+        self.assertEqual(self.project1.name(),
+                         self.ProjectName)
 
 
 
@@ -183,9 +183,9 @@ class TestProjectModel(TestCase):
         '''verify that project suffix is the last three elements of
         the project code'''
 
-        self.assertEqual(len(self.project1.project_suffix()), 3)                
+        self.assertEqual(len(self.project1.project_suffix()), 3)
         should_be = self.project1.prj_cd[-3:]
-        self.assertEqual(self.project1.project_suffix(), should_be)                
+        self.assertEqual(self.project1.project_suffix(), should_be)
 
 
     def test_project_save(self):
@@ -198,8 +198,8 @@ class TestProjectModel(TestCase):
         project.save()
         should_be = prj_cd.lower()
         self.assertEqual(project.slug, should_be)
-        should_be = "20" + prj_cd[6:8]                
-        self.assertEqual(str(project.year), should_be)                
+        should_be = "20" + prj_cd[6:8]
+        self.assertEqual(str(project.year), should_be)
 
 
     def test_projects_this_year(self):
@@ -221,37 +221,132 @@ class TestProjectModel(TestCase):
         self.user.delete()
 
 
-class TestMilestoneModel(TestCase):        
+@pytest.mark.django_db
+def test_project_link_in_comments():
+    """a simple little test to verify that the function replace_links is
+    being called on project save and inserting the correct link into
+    the projects html comment.
+
+    """
+
+    comment_text = """this is similar to project: LHA_IA11_123"""
+
+    project = ProjectFactory(comment=comment_text)
+    project.save()
+
+    link_string = ('<a href="/projects/projectdetail/lha_ia11_123">' +
+                   'LHA_IA11_123</a>')
+    assert link_string in project.comment_html
+
+
+@pytest.mark.django_db
+def test_multiple_project_links_in_comments():
+    """If multiple project codes are passed in, they should all be
+    replaced with hyperlinks.
+
+    """
+    prj1 = "LHA_IA99_999"
+    prj2 = "LHA_XX00_000"
+    prj3 = "LHA_ZZ11_111"
+
+    comment_text = ("this is similar to project: {0}, project: {1}, " +
+                    "and project: {2}").format(prj1, prj2, prj3)
+
+    project = ProjectFactory(comment=comment_text)
+    project.save()
+
+    link_base = ('<a href="/projects/projectdetail/{0}">{1}</a>')
+    link_string = link_base.format(prj1.lower(), prj1.upper())
+    assert link_string in project.comment_html
+
+    link_string = link_base.format(prj2.lower(), prj2.upper())
+    assert link_string in project.comment_html
+
+    link_string = link_base.format(prj2.lower(), prj2.upper())
+    assert link_string in project.comment_html
+
+
+@pytest.mark.django_db
+def test_project_links_case_insensitive():
+    """Verify that project links should be replace regardless of the case
+    of their letters.  Additionally they will be updated to have lower
+    case url and uppercase project code.
+    """
+    prj1 = "lha_ia99_999"  #all lower
+    prj2 = "lha_XX00_000"  #mixed case
+    prj3 = "LHA_ZZ11_111"  #all upper
+
+    comment_text = ("this is similar to project: {0}, project: {1}, " +
+                    "and project: {2}").format(prj1, prj2, prj3)
+
+    project = ProjectFactory(comment=comment_text)
+    project.save()
+
+    link_base = ('<a href="/projects/projectdetail/{0}">{1}</a>')
+    link_string = link_base.format(prj1.lower(), prj1.upper())
+    assert link_string in project.comment_html
+
+    link_string = link_base.format(prj2.lower(), prj2.upper())
+    assert link_string in project.comment_html
+
+    link_string = link_base.format(prj2.lower(), prj2.upper())
+    assert link_string in project.comment_html
+
+
+
+@pytest.mark.django_db
+def test_project_link_in_risk():
+    """a simple little test to verify that the function replace_links is
+    being called on project save and inserting the correct link into
+    the projects html comment.
+
+    """
+
+    risk_text = """this is similar to project: LHA_IA11_999"""
+
+    project = ProjectFactory(risk=risk_text)
+    project.save()
+
+    link_string = ('<a href="/projects/projectdetail/lha_ia11_999">' +
+                   'LHA_IA11_999</a>')
+    assert link_string in project.risk_html
+
+
+
+
+
+
+class TestMilestoneModel(TestCase):
 
     def setUp(self):
 
         self.core1 = MilestoneFactory.create(label="core1",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=True)
         self.core2 = MilestoneFactory.create(label="core2",
-                                        category = 'Core', order=2, 
+                                        category = 'Core', order=2,
                                              report=True)
         self.core3 = MilestoneFactory.create(label="core3",
-                                        category = 'Core', order=3, 
+                                        category = 'Core', order=3,
                                              report=True)
         self.custom = MilestoneFactory.create(label="custom",
-                                        category = 'Custom', order=50, 
+                                        category = 'Custom', order=50,
                                               report=True)
 
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=False)
         self.milestone2 = MilestoneFactory.create(label="Completed",
-                                        category = 'Core', order=2, 
+                                        category = 'Core', order=2,
                                              report=False)
         self.milestone3 = MilestoneFactory.create(label="Signoff",
-                                        category = 'Core', order=999, 
+                                        category = 'Core', order=999,
                                              report=False)
         self.customMS = MilestoneFactory.create(label="Aging",
-                                        category = 'Custom', order=50, 
+                                        category = 'Custom', order=50,
                                               report=False)
 
-                                            
+
         self.project = ProjectFactory.create()
 
 
@@ -261,7 +356,7 @@ class TestMilestoneModel(TestCase):
         # make some fake reports, the three core reports should be
         # automatically associated with a new project, and verify that
         # the custom report is not when the project is created.
-                
+
         myreports = ProjectMilestones.objects.filter(project=self.project,
                                                      milestone__report=True)
         self.assertEqual(myreports.count(), 3)
@@ -274,10 +369,10 @@ class TestMilestoneModel(TestCase):
         assignments = self.project.get_reporting_requirements()
         cnt = assignments.count()
         self.assertEqual(cnt, 3)
-        
+
         self.assertEqual(self.project.get_core_assignments().count(), 3)
         self.assertEqual(self.project.get_custom_assignments().count(), 0)
-        
+
         #we haven't uploaded any reports, so this should be 0
         self.assertEqual(self.project.get_complete().count(), 0)
 
@@ -290,7 +385,7 @@ class TestMilestoneModel(TestCase):
         self.assertEqual(cnt, 3)
         self.assertNotEqual(cnt, 2)
         self.assertNotEqual(cnt, 4)
-        
+
         #verify that the labels of my milestones appear in the correct order
         shouldbe = ['Approved','Completed','Signoff']
 
@@ -300,7 +395,7 @@ class TestMilestoneModel(TestCase):
             )
 
         #add the custom milestone to this project
-        ProjectMilestones.objects.create(project=self.project, 
+        ProjectMilestones.objects.create(project=self.project,
                                          milestone=self.customMS)
         #verify that it appears in the milestone list for this project
         milestones = self.project.get_milestones()
@@ -313,7 +408,7 @@ class TestMilestoneModel(TestCase):
             )
 
         #we changed our mind an aging is no longer required:
-        ProjectMilestones.objects.filter(project=self.project, 
+        ProjectMilestones.objects.filter(project=self.project,
                                          milestone=self.customMS).update(
                                              required=False)
 
@@ -328,7 +423,7 @@ class TestMilestoneModel(TestCase):
 
 
     def test_get_assigment_dicts(self):
-        
+
         #dict = self.project.get_assignment_dicts()
         dict = self.project.get_milestone_dicts()
         print "dict.core = %s" % dict['Core']
@@ -340,8 +435,8 @@ class TestMilestoneModel(TestCase):
         self.assertEqual(core['assigned'], should_be)
 
         reports = [str(x[1]) for x in core['milestones']]
-        self.assertEqual(reports,[self.core1.label, 
-                                      self.core2.label, 
+        self.assertEqual(reports,[self.core1.label,
+                                      self.core2.label,
                                       self.core3.label])
 
         custom = dict['Custom']
@@ -349,32 +444,32 @@ class TestMilestoneModel(TestCase):
         reports = [str(x[1]) for x in custom['milestones']]
         self.assertEqual(reports,[self.custom.label])
 
-    def test_get_assigment_methods_w_custom_report(self): 
+    def test_get_assigment_methods_w_custom_report(self):
 
         '''verify that custom reports are can be added and retrieved
         as expected.'''
 
-        custom1 = MilestoneFactory.create(label="custom1", report=True, 
+        custom1 = MilestoneFactory.create(label="custom1", report=True,
                                           category = 'Custom', order=99)
 
         projectreport = ProjectMilestonesFactory(project=self.project,
                                              milestone=custom1)
-        
+
         self.assertEqual(self.project.get_reporting_requirements().count(), 4)
         self.assertNotEqual(self.project.get_reporting_requirements().count(), 3)
         self.assertNotEqual(self.project.get_reporting_requirements().count(), 5)
-        
+
         self.assertEqual(self.project.get_core_assignments().count(), 3)
         self.assertEqual(self.project.get_custom_assignments().count(), 1)
 
         report = self.project.get_custom_assignments()[0]
         self.assertEqual(report.required, True)
         self.assertEqual(str(report.milestone), 'custom1')
-        
+
         #we haven't uploaded any reports, so this should be 0
         self.assertEqual(self.project.get_complete().count(), 0)
 
-     
+
     def tearDown(self):
 
         self.core1.delete()
@@ -389,8 +484,8 @@ class TestMilestoneModel(TestCase):
 
         self.project.delete()
 
-   
-class TestModelReports(TestCase):        
+
+class TestModelReports(TestCase):
     '''functions to test the models and methods assoicated with reports'''
 
     def setUp(self):
@@ -413,8 +508,8 @@ class TestModelReports(TestCase):
         #create a fake report
         report = ReportFactory(report_path="path\to\fake\file.txt")
         #associate the report with the project reporting requirement
-        report.projectreport.add(self.projectreport) 
-        
+        report.projectreport.add(self.projectreport)
+
     def test_get_reporting_requirementss(self):
         rep = self.project.get_uploaded_reports()
         self.assertEqual(len(rep),1)
@@ -429,12 +524,12 @@ class TestModelReports(TestCase):
 
         #make sure that the project report objects match the attributes of core1 and self.project
         self.assertEqual(comp.values()[0]['required'], self.projectreport.required)
-        self.assertEqual(comp.values()[0]['milestone_id'], 
+        self.assertEqual(comp.values()[0]['milestone_id'],
                          self.projectreport.milestone_id)
-        self.assertEqual(comp.values()[0]['project_id'], self.project.id) 
+        self.assertEqual(comp.values()[0]['project_id'], self.project.id)
 
         #verify that core2 isnt in the completed list - it isn't done yet:
-        projids = [x['milestone_id'] for x in comp.values()] 
+        projids = [x['milestone_id'] for x in comp.values()]
         self.assertNotIn(self.core2.id, projids)
 
     def test_get_outstanding(self):
@@ -445,15 +540,15 @@ class TestModelReports(TestCase):
 
         #make sure that the project report objects match the
         #attributes of core2 and self.project
-        self.assertEqual(missing.values()[0]['required'], 
+        self.assertEqual(missing.values()[0]['required'],
                          self.projectreport.required)
-        self.assertEqual(missing.values()[0]['milestone_id'], 
+        self.assertEqual(missing.values()[0]['milestone_id'],
                          self.core2.id)
-        self.assertEqual(missing.values()[0]['project_id'], self.project.id) 
+        self.assertEqual(missing.values()[0]['project_id'], self.project.id)
 
         #verify that core1 isnt in the missing list - it was completed
         #during setup
-        projids = [x['milestone_id'] for x in missing.values()] 
+        projids = [x['milestone_id'] for x in missing.values()]
         self.assertNotIn(self.core1.id, projids)
 
     def tearDown(self):
@@ -461,7 +556,7 @@ class TestModelReports(TestCase):
         self.projectreport.delete()
 
 
-class TestModelSisters(TestCase):        
+class TestModelSisters(TestCase):
     '''make sure we can add and delete sisters to projects and that
     families are created and cleaned when not needed.'''
 
@@ -471,43 +566,43 @@ class TestModelSisters(TestCase):
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
-        
+
         self.ProjType = ProjTypeFactory()
         self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
-        
+
 
         #create milestones
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=False)
         self.milestone2 = MilestoneFactory.create(label="Sign off",
-                                        category = 'Core', order=999, 
+                                        category = 'Core', order=999,
                                              report=False)
 
         #projects
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user,
                                               project_type = self.ProjType)
 
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", 
-                                              owner=self.user, 
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
-        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", 
-                                              owner=self.user, 
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
-        self.project4 = ProjectFactory.create(prj_cd="LHA_IA12_444", 
-                                              owner=self.user, 
+        self.project4 = ProjectFactory.create(prj_cd="LHA_IA12_444",
+                                              owner=self.user,
                                               project_type = self.ProjType)
 
-        self.project5 = ProjectFactory.create(prj_cd="LHA_IA12_555", 
+        self.project5 = ProjectFactory.create(prj_cd="LHA_IA12_555",
                                               owner=self.user,
                                               project_type = self.ProjType2)
 
-        self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666", 
+        self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666",
                                               owner=self.user,
-                                              project_type = self.ProjType) 
+                                              project_type = self.ProjType)
 
         self.project1.approve()
         self.project2.approve()
@@ -528,7 +623,7 @@ class TestModelSisters(TestCase):
 
         candidates = self.project1.get_sister_candidates()
         self.assertEqual(candidates.count(), 2)
-        
+
         #make project 1 and 2 sisters:
         self.project1.add_sister(self.project2.slug)
 
@@ -568,7 +663,7 @@ class TestModelSisters(TestCase):
         candidates = self.project1.get_sister_candidates()
         self.assertEqual(list(candidates), [])
         self.assertEqual(candidates.count(), 0)
-        
+
         #remove project2 from the family
         self.project1.delete_sister(self.project2.slug)
         self.assertEqual(self.project2.get_sisters(), [])
@@ -577,7 +672,7 @@ class TestModelSisters(TestCase):
         self.assertEqual(self.project1.get_family(), self.project3.get_family())
 
         #delete the last sister and verify that everything is empty
-        self.project1.delete_sister(self.project3.slug)        
+        self.project1.delete_sister(self.project3.slug)
         self.assertEqual(self.project1.get_sisters(), [])
         self.assertEqual(self.project1.get_family(), None)
         self.assertEqual(self.project2.get_sisters(), [])
@@ -595,7 +690,7 @@ class TestModelSisters(TestCase):
         #make sure that the family table is empty
         FamilyCnt = Family.objects.all().count()
         self.assertEqual(FamilyCnt,0)
-        
+
         #make project 1 and 2 sisters:
         self.project1.add_sister(self.project2.slug)
 
@@ -616,7 +711,7 @@ class TestModelSisters(TestCase):
     def test_has_sisters(self):
         """has_sisters() is a simple method of project objects.  Returns True
         if the object has one or more sisters, false otherwise.
-        
+
         """
         #make project 1 and 2 sisters:
         self.project1.add_sister(self.project2.slug)
@@ -624,24 +719,24 @@ class TestModelSisters(TestCase):
         self.assertTrue(self.project1.has_sister())
         self.assertTrue(self.project2.has_sister())
         #number three should not have any sisters
-        self.assertFalse(self.project3.has_sister())        
+        self.assertFalse(self.project3.has_sister())
 
 
     def tearDown(self):
         self.project1.delete()
         self.project2.delete()
-        self.project3.delete()        
-        self.project4.delete()        
-        self.project5.delete()        
-        self.project6.delete()        
+        self.project3.delete()
+        self.project4.delete()
+        self.project5.delete()
+        self.project6.delete()
         self.ProjType.delete()
         self.ProjType2.delete()
         self.milestone1.delete()
         self.milestone2.delete()
         self.user.delete()
-        
 
-class TestModelBookmarks(TestCase):        
+
+class TestModelBookmarks(TestCase):
     '''Verify that the bookmark objects return the data in the
     expected format.'''
 
@@ -659,7 +754,7 @@ class TestModelBookmarks(TestCase):
 
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
-        self.project = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+        self.project = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               project_type = self.ProjType)
 
     def test_BookmarkAttributes(self):
@@ -668,7 +763,7 @@ class TestModelBookmarks(TestCase):
                                            project=self.project)
 
         self.assertEqual(bookmark.get_project_code(), self.project.prj_cd)
-        self.assertEqual(bookmark.get_project_url(), 
+        self.assertEqual(bookmark.get_project_url(),
                          self.project.get_absolute_url())
         self.assertEqual(bookmark.year(), self.project.year)
         self.assertEqual(str(bookmark), str(self.project))
@@ -684,13 +779,13 @@ class TestModelBookmarks(TestCase):
         '''
 
         #homer bookmarks this project
-        bookmark = Bookmark.objects.create(user=self.user, 
+        bookmark = Bookmark.objects.create(user=self.user,
                                            project=self.project)
         watchers = bookmark.get_watchers()
         self.assertEqual(watchers[0],self.user)
 
         #Mr Burns bookmarks this project too
-        bookmark = Bookmark.objects.create(user=self.user2, 
+        bookmark = Bookmark.objects.create(user=self.user2,
                                            project=self.project)
         watchers = bookmark.get_watchers()
 
@@ -704,7 +799,7 @@ class TestModelBookmarks(TestCase):
         self.user2.delete()
 
 
-class TestProjectTagging(TestCase):        
+class TestProjectTagging(TestCase):
     '''make sure we can add and delete tags, and retrieve all projects
     associated with a given tag.'''
 
@@ -713,10 +808,10 @@ class TestProjectTagging(TestCase):
 
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
-                                last_name = 'Simpson')        
-        
-        
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+                                last_name = 'Simpson')
+
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
         self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user)
@@ -728,13 +823,13 @@ class TestProjectTagging(TestCase):
         self.assertEqual(len(self.project1.tags.all()),0)
         self.project1.tags.add("perch","walleye","whitefish")
         self.assertEqual(len(self.project1.tags.all()),3)
-        
+
         tags = self.project1.tags.all()
         for tag in tags:
             self.assertTrue(str(tag) in ["perch","walleye","whitefish"])
         #assert 3==0
 
-        self.project1.tags.remove("perch") 
+        self.project1.tags.remove("perch")
         tags = self.project1.tags.all()
         self.assertEqual(tags.count(),2)
         for tag in tags:
@@ -779,7 +874,7 @@ class TestProjectTagging(TestCase):
 
 
 class TestEmployeeFunctions(TestCase):
-    
+
     def setUp(self):
 
         self.user1 = UserFactory(first_name = "Jerry", last_name="Seinfield",
@@ -802,17 +897,17 @@ class TestEmployeeFunctions(TestCase):
         #now setup employee relationships
 
         self.employee1 = EmployeeFactory(user=self.user1)
-        self.employee2 = EmployeeFactory(user=self.user2, 
+        self.employee2 = EmployeeFactory(user=self.user2,
                                          supervisor=self.employee1)
-        self.employee3 = EmployeeFactory(user=self.user3, 
+        self.employee3 = EmployeeFactory(user=self.user3,
                                          supervisor=self.employee1)
-        self.employee4 = EmployeeFactory(user=self.user4, 
+        self.employee4 = EmployeeFactory(user=self.user4,
                                          supervisor=self.employee3)
-        self.employee5 = EmployeeFactory(user=self.user5, 
+        self.employee5 = EmployeeFactory(user=self.user5,
                                          supervisor=self.employee3)
-        self.employee6 = EmployeeFactory(user=self.user6, 
+        self.employee6 = EmployeeFactory(user=self.user6,
                                          supervisor=self.employee5)
-        
+
         #Jerry is everyone's boss
         #Jerry's direct reports are George and Kramer
         #Elaine reports to Kramer
@@ -820,7 +915,7 @@ class TestEmployeeFunctions(TestCase):
         #Newman reports to Banya
 
     def test_get_supervisors(self):
-        
+
         #for Jerry, get supervisors will return just him
         bosses = get_supervisors(self.employee1)
         shouldbe = [self.employee1]
@@ -835,7 +930,7 @@ class TestEmployeeFunctions(TestCase):
         shouldbe = [unicode(x) for x in shouldbe]
         self.assertListEqual(bosses, shouldbe)
 
-        #for Kramer get_supervisor will return he and Jerry        
+        #for Kramer get_supervisor will return he and Jerry
         bosses = get_supervisors(self.employee3)
         shouldbe = [self.employee3, self.employee1]
         bosses = [unicode(x) for x in bosses]
@@ -858,14 +953,14 @@ class TestEmployeeFunctions(TestCase):
 
         #for Newman get_supervisor will return he, Banya, Kramer and Jerry
         bosses = get_supervisors(self.employee6)
-        shouldbe = [self.employee6, self.employee5, self.employee3, 
+        shouldbe = [self.employee6, self.employee5, self.employee3,
                     self.employee1]
         bosses = [unicode(x) for x in bosses]
         shouldbe = [unicode(x) for x in shouldbe]
         self.assertEquals(bosses, shouldbe)
 
     def test_get_minions(self):
-        
+
         # George, Elaine and Newman don't have anyone working for
         # them, so get_minions shouldn't return anyone but them for
         # George, get_minions will return just him
@@ -887,7 +982,7 @@ class TestEmployeeFunctions(TestCase):
         # supervises Newman get_minions(Kramer) should return all four
         # employees.
         minions = get_minions(self.employee3)
-        shouldbe = [self.employee3, self.employee4, self.employee5, 
+        shouldbe = [self.employee3, self.employee4, self.employee5,
                     self.employee6]
         minions = [unicode(x) for x in minions]
         shouldbe = [unicode(x) for x in shouldbe]
@@ -896,13 +991,13 @@ class TestEmployeeFunctions(TestCase):
         # Jerry supervises everyone either directly or indirectly
         # get_minions(Jerry) should return all employees.
         minions = get_minions(self.employee1)
-        shouldbe = [self.employee1, self.employee2, self.employee3, 
+        shouldbe = [self.employee1, self.employee2, self.employee3,
                     self.employee4, self.employee5, self.employee6]
         minions = [unicode(x) for x in minions]
         shouldbe = [unicode(x) for x in shouldbe]
         self.assertListEqual(minions, shouldbe)
 
-            
+
     def tearDown(self):
 
         self.employee1.delete()
@@ -918,8 +1013,8 @@ class TestEmployeeFunctions(TestCase):
         self.user4.delete()
         self.user5.delete()
         self.user6.delete()
-        
-        
+
+
 
 
 class TestMilestoneStatus(TestCase):
@@ -940,16 +1035,16 @@ class TestMilestoneStatus(TestCase):
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
-        
+
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1, 
+                                             category = 'Core', order=1,
                                              report=False)
-        
+
         self.milestone2 = MilestoneFactory.create(label="Completed",
-                                        category = 'Core', order=2, 
+                                        category = 'Core', order=2,
                                              report=False)
-        
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
 
     def test_somthing_other_than_milestones(self):
@@ -987,10 +1082,10 @@ class TestMilestoneStatus(TestCase):
         #project.  If we pass it into our method, we should get back
         #None.
         new_milestone = MilestoneFactory.create(label="UnAssigned Milestone",
-                                        category = 'Core', order=999, 
+                                        category = 'Core', order=999,
                                              report=False)
 
-        self.assertEqual(self.project1.milestone_complete(new_milestone), 
+        self.assertEqual(self.project1.milestone_complete(new_milestone),
                          None)
 
     def test_revoked_milestones(self):

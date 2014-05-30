@@ -231,3 +231,7 @@ LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login'
 
 POSTGIS_VERSION = ( 2, 1 )
+
+LINK_PATTERNS = [{'pattern':
+                  r'project: ?([a-zA-Z]{3}\_[a-zA-Z]{2}\d{2}\_[a-zA-Z0-9]{3})',
+                  'url': r'<a href="/projects/projectdetail/{0}">{1}</a>'}]

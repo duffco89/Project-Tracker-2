@@ -95,8 +95,9 @@ class ProjectFactory(factory.DjangoModelFactory):
     prj_cd = "LHA_IA12_123"
     prj_nm = "Fake Project"
     #prj_ldr = "Bob Sakamano"
-    prj_ldr = factory.SubFactory(UserFactory)    
+    prj_ldr = factory.SubFactory(UserFactory)
     comment = "This is a fake project"
+    risk = "none"
     project_type = factory.SubFactory(ProjTypeFactory)
     master_database = factory.SubFactory(DatabaseFactory)
     owner = factory.SubFactory(UserFactory)
@@ -146,7 +147,7 @@ class ReportFactory(factory.DjangoModelFactory):
     #projectreport = factory.SubFactory(ProjectMilestonesFactory)
     report_path = "some/fake/file.txt"
     #uploaded_by = "Bob"
-    uploaded_by = factory.SubFactory(UserFactory)    
+    uploaded_by = factory.SubFactory(UserFactory)
     report_hash = "1234"
 
     #@factory.post_generation
@@ -170,5 +171,5 @@ class AssociatedFactory(factory.DjangoModelFactory):
     project = factory.SubFactory(Project)
     file_path = "some/fake/file.txt"
     #uploaded_by = "Bob"
-    uploaded_by = factory.SubFactory(UserFactory)    
+    uploaded_by = factory.SubFactory(UserFactory)
     report_hash = "1234"

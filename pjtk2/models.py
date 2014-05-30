@@ -3,6 +3,7 @@
 # E1120 - No value passed for parameter 'cls' in function call
 #pylint: disable=E1101, E1120
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib import admin
 from django.core.urlresolvers import reverse
@@ -10,16 +11,22 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
-
 from django.contrib.gis.db import models
-
 from taggit.managers import TaggableManager
+
+from markdown2 import markdown
 
 import datetime
 import os
 import pytz
 
-from pjtk2.functions import get_supervisors
+from pjtk2.functions import get_supervisors, replace_links
+
+
+
+
+
+LINK_PATTERNS = getattr(settings, "LINK_PATTERNS", None)
 
 
 class ProjectsManager(models.Manager):
@@ -180,12 +187,17 @@ class Project(models.Model):
                               blank=False)
     prj_nm = models.CharField("Project Name", max_length=60, blank=False)
     #prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
-    prj_ldr = models.ForeignKey(User, related_name="Project Lead")    
+    prj_ldr = models.ForeignKey(User, related_name="Project Lead")
     comment = models.TextField(blank=False,
+                               help_text="General project description.")
+    comment_html = models.TextField(blank=True, null=True,
                                help_text="General project description.")
     help_str = "Potential risks associated with not running project."
     risk = models.TextField("Risk", null=True, blank=True,
                             help_text=help_str)
+    risk_html = models.TextField("Risk", null=True, blank=True,
+                            help_text=help_str)
+
     master_database = models.ForeignKey("Database", null=True, blank=True)
     project_type = models.ForeignKey("ProjectType", null=True, blank=True)
 
@@ -227,7 +239,7 @@ class Project(models.Model):
                                                   milestone__label='Approved')
             prjms.completed = now
             #save sends pre_save signal
-            prjms.save() 
+            prjms.save()
         except ProjectMilestones.DoesNotExist:
             #create it if it doesn't exist
             milestone = Milestone.objects.get(label='Approved')
@@ -247,7 +259,7 @@ class Project(models.Model):
                                                   milestone__label='Approved')
             prjms.completed = None
             #save sends pre_save signal
-            prjms.save() 
+            prjms.save()
 
         except ProjectMilestones.DoesNotExist:
             pass
@@ -272,7 +284,7 @@ class Project(models.Model):
         milestone= Milestone.objects.get(label__iexact='Sign Off')
         prjms, created= ProjectMilestones.objects.get_or_create(
                 project=self, milestone=milestone)
-        
+
         prjms.completed = now
         prjms.save()
 
@@ -450,7 +462,7 @@ class Project(models.Model):
                 # - requested, done = True
                 # - not requested, done anyway = True
                 return True
-            elif pms.required:                
+            elif pms.required:
                 #-requested, not done = False
                 return False
             else:
@@ -596,9 +608,21 @@ class Project(models.Model):
             self.slug = slugify(self.prj_cd)
             self.year = self.prj_date0.year
             new = True
+
+        if self.comment:
+            self.comment_html = markdown(self.comment)
+            self.comment_html = replace_links(self.comment_html,
+                                              link_patterns=LINK_PATTERNS)
+        if self.risk:
+            self.risk_html = markdown(self.risk)
+            self.risk_html = replace_links(self.risk_html,
+                                              link_patterns=LINK_PATTERNS)
+
         super(Project, self).save( *args, **kwargs)
         if new:
             self.initialize_milestones()
+
+
 
 
     def get_sample_points(self):
@@ -612,7 +636,7 @@ class Project(models.Model):
 
         return points
 
-            
+
 class SamplePoint(models.Model):
     '''A class to hold the sampling locations of a project.  In most
     cases, a samplePoint instance represents a net in the water, but
@@ -623,7 +647,7 @@ class SamplePoint(models.Model):
     geom = models.PointField(srid=4326,
                              help_text='Represented as (longitude, latitude)')
 
-            
+
 class ProjectMilestones(models.Model):
     '''list of reporting requirements for each project'''
     #aka - project milestones
@@ -651,7 +675,7 @@ class Report(models.Model):
     entries in Project Reports'''
     current = models.BooleanField(default=True)
     projectreport = models.ManyToManyField('ProjectMilestones')
-    report_path = models.FileField(upload_to="milestone_reports/", 
+    report_path = models.FileField(upload_to="milestone_reports/",
                                    max_length=200)
     uploaded_on = models.DateTimeField(auto_now_add=True)
     #uploaded_by = models.CharField(max_length = 300)
@@ -676,7 +700,7 @@ class AssociatedFile(models.Model):
     '''
 
     project = models.ForeignKey(Project)
-    file_path = models.FileField(upload_to=get_associated_file_upload_path, 
+    file_path = models.FileField(upload_to=get_associated_file_upload_path,
                                  max_length=200)
     current = models.BooleanField(default=True)
     uploaded_on = models.DateTimeField(auto_now_add=True)
@@ -843,7 +867,7 @@ class Messages2Users(models.Model):
 
     def mark_as_read(self):
         self.read = datetime.datetime.now(pytz.utc)
-        self.save() 
+        self.save()
 
 
 
@@ -968,7 +992,3 @@ def send_notice_project_submitted(sender, instance, **kwargs):
         recipients = build_msg_recipients(instance.project)
         send_message(msgtxt, recipients, project=instance.project,
                     milestone=instance.milestone)
-
-
-
-
