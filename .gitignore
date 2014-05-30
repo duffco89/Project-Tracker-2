@@ -31,3 +31,8 @@ fixtures/*
 migration/error.log
 migration/data/archive.zip
 .dir-locals.el
+migration/*.csv
+migration/*.ldb
+some_fixtures/*
+clear_pjtk2.sql
+migration/sandbox_scripts.sql

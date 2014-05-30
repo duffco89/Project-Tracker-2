@@ -4,6 +4,7 @@ files as expected.'''
 
 
 import os
+import re
 from StringIO import StringIO
 
 from django.conf import settings
@@ -13,10 +14,8 @@ from django.test import TestCase
 from django_webtest import WebTest
 from webtest import Upload
 
-
 from pjtk2.models import ProjectMilestones
 from pjtk2.tests.factories import *
-
 
 import pytest
 
@@ -72,15 +71,15 @@ class BasicReportUploadTestCase(WebTest):
         self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
 
-        self.mock_file.name = "path/to/some/fake/file.txt"
+        self.mock_file.name = "path/to/some/fake/fake_test_file.txt"
 
         self.mock_file2 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
-        self.mock_file2.name = "path/to/some/fake/file-2.txt"
+        self.mock_file2.name = "path/to/some/fake/fake_test_file-2.txt"
 
         self.mock_file3 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
-        self.mock_file3.name = "path/to/some/fake/file-2.txt"
+        self.mock_file3.name = "path/to/some/fake/fake_test_file-3.txt"
 
 
 
@@ -188,6 +187,18 @@ class BasicReportUploadTestCase(WebTest):
         except:
             pass
 
+        #finally, clean out any test files that may have been
+        #duplicates and named slightly differently than the others.
+        media_dir = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL)
+        pattern = r'fake_test_file.*\.txt'
+        files = [f for f in os.listdir(media_dir) if re.match(pattern, f)]
+
+        for fname in files:
+            filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL, fname)
+            try:
+                os.remove(filepath)
+            except:
+                pass
 
 
 class TestActualFileUpload(TestCase):
@@ -225,15 +236,15 @@ class TestActualFileUpload(TestCase):
         #here is fake file that we will upload
         self.mock_file0 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
-        self.mock_file0.name = "path/to/some/fake/file.txt"
+        self.mock_file0.name = "path/to/some/fake/fake_test_file.txt"
 
         self.mock_file1 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
-        self.mock_file1.name = "path/to/some/fake/file-1.txt"
+        self.mock_file1.name = "path/to/some/fake/fake_test_file-1.txt"
 
         self.mock_file2 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
-        self.mock_file2.name = "path/to/some/fake/file-2.txt"
+        self.mock_file2.name = "path/to/some/fake/fake_test_file-2.txt"
 
 
     def test_upload_single_report(self):
@@ -674,7 +685,6 @@ class TestActualFileUpload(TestCase):
         except:
             pass
 
-
         #mock_file2
         filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
                                 os.path.split(self.mock_file2.name)[1])
@@ -682,6 +692,20 @@ class TestActualFileUpload(TestCase):
             os.remove(filepath)
         except:
             pass
+
+        #finally, clean out any test files that may have been
+        #duplicates and named slightly differently than the others.
+        media_dir = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL)
+        pattern = r'fake_test_file.*\.txt'
+        files = [f for f in os.listdir(media_dir) if re.match(pattern, f)]
+
+        for fname in files:
+            filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL, 
+                                    fname)
+            try:
+                os.remove(filepath)
+            except:
+                pass
 
 
 

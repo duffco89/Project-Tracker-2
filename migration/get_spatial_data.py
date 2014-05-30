@@ -1,34 +1,49 @@
-'''
-=============================================================
+'''=============================================================
 c:/1work/Python/djcode/pjtk2/migration/get_spatial_data.py
 Created: 13 Nov 2013 16:19:39
 
-
 DESCRIPTION:
 
-This script complies all of the spatial data from each of our master
+This script compiles all of the spatial data from each of our master
 datasets and imports it into project tracker (pjtk2).  For most
 projects, actual nets set lcoations are returned.  For some projects
-where large numbers of samples occure at the same location, a single
-lat-lon is returned and sample number is not retains.
+where large numbers of samples occured at the same location, a single
+lat-lon is returned and sample number is not retained (e.g. - creels
+and derby sampling).
 
 Database not currently included in this scripts:
 - Sturgeon Master
 - Lake whitefish movement study
 - CWT cooperative collections
+- cormorant work (where is that data any how)
 - other projects and programs I don't know about
 
 To refresh the spatial data in pjtk2 simply run:
 python get_spatial_data.py
 
+Orphans.csv and Omissions.csv are created by this script and
+include lists of projects in project tracker that should have
+data but are not in any of our master databases and a second list of
+projects that are in our master databases but are not yet in tracker.
+
+Finally, this script also contains a chunk of code that updates the
+milestones for projects.  If a project has spatial data, it is assumed
+that it was approved, conducted, scrubbed, aged and merged. If the
+proejct was run prior to 2012, it is also assumed to have been signed
+off. *** NOTE - This is only a work around - while we transition from
+ms access to django.  Once we go live, this chunk of code should be
+removed. ***
+
 
 A. Cottrill
 =============================================================
+
 '''
 
 
-import adodbapi
+#import adodbapi
 import psycopg2
+import pyodbc
 
 PG_USER = 'adam'
 PG_DB = 'pjtk2'
@@ -37,65 +52,65 @@ masters = {
     'offshore': {
         'path': 'Z:/Data Warehouse/Assessment/Index/Offshore/IA_OFFSHORE.mdb',
         'table': 'Offshore_FN121',
-        'sam': 'SAM',                
+        'sam': 'SAM',
         'ddlat': 'dd_lat',
         'ddlon': 'dd_lon',
         'groupby': False,
      },
-                 
+
     'nearshore': {
         'path': 'Z:/Data Warehouse/Assessment/Index/Nearshore/IA_NEARSHORE.mdb',
         'table': 'IA121',
-        'sam': 'SAM',                
+        'sam': 'SAM',
         'ddlat': 'DD_LAT',
         'ddlon': 'DD_LON',
-        'groupby': False,        
+        'groupby': False,
      },
 
-                 
+
     'smallfish': {
         'path': ('Z:/Data Warehouse/Assessment/Index/Nearshore/' +
                  'Small_Fish/COA_Nearshore_Smallfish.mdb'),
         'table': '121',
-        'sam': 'SAM',                
+        'sam': 'SAM',
         'ddlat': 'dd_lat',
         'ddlon': 'dd_lon',
-        'groupby': False,        
+        'groupby': False,
      },
-                        
+
     'fishway': {
         'path': 'Z:\Data Warehouse\Assessment\Fishway\Fishway_Master.mdb',
         'table': 'IM_121',
-        'sam': 'SAM',                
+        'sam': 'SAM',
         'ddlat': 'DD_LAT',
         'ddlon': 'DD_LON',
-        'groupby': True,                
+        'groupby': True,
      },
-                     
+
     ## 'sturgeon': {
     ##     #'path':('Z:/Data Warehouse/Derived Datasets/UNIT PROJECTS/' +
     ##     #        'Sturgeon/Sturgeon Master.mdb'),
-    ## 
+    ##
     ##     'path': ('Z:/Data Warehouse/Derived Datasets/UNIT PROJECTS/Sturgeon/' +
     ##              'SturgeonMasterpriortoLCMupdate01APR2011/Sturgeon Master.mdb'),
     ##     'table': 'Sturgeon_FN121',
-    ##     'sam': 'SAM',                
+    ##     'sam': 'SAM',
     ##     'ddlat': 'dd_lat',
-    ##     'ddlon': 'dd_lon',     
+    ##     'ddlon': 'dd_lon',
     ##  },
 
-                 
+
     'comcatch': {
         'path':('Z:/Data Warehouse/Commercial Fisheries/Catch Sampling/' +
                 'CF_Master.mdb'),
         'table': 'Final_FN121',
-        'sam': 'SAM',                
+        'sam': 'SAM',
         'ddlat': 'DD_LAT',
         'ddlon': 'DD_LON',
-        'groupby': False,                        
+        'groupby': False,
      },
-        
-                 
+
+
     'stocking': {
         'path':('Y:/Information Resources/Dataset_Utilities/FS_Maker/' +
                 'FS_Master.mdb'),
@@ -103,31 +118,31 @@ masters = {
         'sam':  'EVENT',
         'ddlat': 'DD_LAT',
         'ddlon': 'DD_LON',
-        'groupby': False,                        
+        'groupby': False,
      },
-                        
+
     'creel': {
         'path':('Z:/Data Warehouse/Recreational Fisheries/Creel/SC/' +
                 'SC_Master.mdb'),
         'table': 'FINAL_FN121',
-        'sam': 'SAM',                
+        'sam': 'SAM',
         'ddlat': 'DD_LAT',
         'ddlon': 'DD_LON',
-        'groupby': True,                        
+        'groupby': True,
      },
-    
-                 
+
+
     'sportfish':{
         'path':('Z:/Data Warehouse/Recreational Fisheries/Angler Diary/Sf/' +
                 'SF_MASTER.mdb'),
-        'table': 'FN121_MASTER',
-        'sam': 'SAM',        
+        'table': 'FN121',
+        'sam': 'SAM',
         'ddlat': 'DD_LAT',
         'ddlon': 'DD_LON',
-        'groupby': True,                        
+        'groupby': True,
      },
-       
-                 
+
+
     'benthic': {
         'path':('Z:/Data Warehouse/Derived Datasets/UNIT PROJECTS/Benthics/' +
                  'Lake Huron Benthics.mdb'),
@@ -136,10 +151,9 @@ masters = {
         'sam': 'Station ID',
         'ddlat': 'DD Latitude',
         'ddlon': 'DD Longitude',
-        'groupby': False,                        
-     },                        
+        'groupby': False,
+     },
 }
-
 
 
 def build_sql(table, sam, dd_lat, dd_lon, groupby=True):
@@ -152,10 +166,10 @@ def build_sql(table, sam, dd_lat, dd_lon, groupby=True):
         #tablename, dd_lat, dd_lon
         sql = sql_base.format(table, dd_lat, dd_lon)
         return sql
-        
-    else:    
+
+    else:
         sql_base = '''SELECT [PRJ_CD], [{1}], [{2}], [{3}] FROM [{0}]
-        WHERE (((PRJ_CD) Is Not Null) AND (([{1}]) Is Not Null) AND
+           WHERE (((PRJ_CD) Is Not Null) AND (([{1}]) Is Not Null) AND
         (([{2}]) Is Not Null) AND (([{3}]) Is Not Null));'''
         #tablename, sam, dd_lat, dd_lon
         sql = sql_base.format(table, sam, dd_lat, dd_lon)
@@ -166,22 +180,25 @@ def build_sql(table, sam, dd_lat, dd_lon, groupby=True):
 #clean up benthic master
 #NOTE - add projects for CWT fiasco
 # fix fsmaster  - add 'sam'' to functios
-    
+
 
 
 #=============================================
 #  DO IT
 
 samplepoints = []
-    
+
 for db in masters.keys():
 
     dbase = masters[db]
 
-    constr = 'Provider=Microsoft.Jet.OLEDB.4.0; Data Source={0}'
+    constr = r"DRIVER={{Microsoft Access Driver (*.mdb)}};DBQ={0}"
     constr = constr.format(dbase['path'])
 
-    mdbconn = adodbapi.connect(constr)
+    mdbconn = pyodbc.connect(constr)
+    mdbcur = mdbconn.cursor()
+
+
     # create a cursor
     #try the lookup tables first - keep things simple
     mdbcur = mdbconn.cursor()
@@ -189,12 +206,12 @@ for db in masters.keys():
     sql = build_sql(dbase['table'], dbase['sam'], dbase['ddlat'],
                     dbase['ddlon'], dbase['groupby'])
     mdbcur.execute(sql)
-    print "There were {0} records found in {1}".format(mdbcur.rowcount,
-                                                       db)
     result = mdbcur.fetchall()
+    print("There were {0} records found in {1}".format(len(result),
+                                                       db))
 
     mdbconn.close()
- 
+
     if dbase['groupby']:
         for row in result:
             #repeat project code if sam not available
@@ -207,11 +224,13 @@ for db in masters.keys():
 
 
 #==================================
-#    INSERT SPATIAL DATA            
+#    INSERT SPATIAL DATA
 
-constr = "dbname={0} user={1}".format(PG_DB, PG_USER)            
+constr = "dbname={0} user={1}".format(PG_DB, PG_USER)
 pgconn = psycopg2.connect(constr)
 pgcur = pgconn.cursor()
+
+print('Making temporary spatial table...')
 
 sql = """DROP TABLE IF EXISTS spatial_tmp"""
 pgcur.execute(sql)
@@ -220,36 +239,121 @@ sql = """CREATE TABLE spatial_tmp
 (
   id serial NOT NULL,
   prj_cd character(13) NOT NULL,
+  dbase character varying(30),
   sam character varying(30),
   geom geometry(Point,4326) NOT NULL
 )
 """
 pgcur.execute(sql)
 pgconn.commit()
+print('Inserting points into temporary spatial table...')
 
-args = ([{'prj_cd':x[1], 'sam':x[2], 'ddlat':x[3], 'ddlon':x[4]}
+args = ([{'dbase': x[0], 'prj_cd':x[1], 'sam':x[2], 'ddlat':x[3], 'ddlon':x[4]}
          for x in samplepoints])
 
-sql = """INSERT INTO spatial_tmp (prj_cd, sam, geom)
-         VALUES(%(prj_cd)s, %(sam)s,
+sql = """INSERT INTO spatial_tmp (dbase, prj_cd, sam, geom)
+         VALUES(%(dbase)s, %(prj_cd)s, %(sam)s,
          ST_SetSRID(ST_MakePoint(%(ddlon)s, %(ddlat)s), 4326));"""
 
 pgcur.executemany(sql, args)
 pgconn.commit()
 
+#===================
+#check for data missing from masters and data in masters without project here
+print('continue...')
+
+#here are the projects that still have spatial data but can't be found
+#in project list
+sql = ("SELECT DISTINCT sp.dbase, sp.prj_cd FROM spatial_tmp sp " +
+       "WHERE sp.prj_cd NOT IN (SELECT DISTINCT p.prj_cd FROM " +
+       "pjtk2_project p) order by dbase, prj_cd")
+pgcur.execute(sql)
+orphans = pgcur.fetchall()
+fname = 'c:/1work/Python/djcode/pjtk2/migration/orphans.csv'
+with open(fname, 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow([x[0] for x in pgcur.description])
+    writer.writerows(orphans)
+
+#these are projects that have a completion product of some kind but do
+#not appear in the master databases anywhere
+
+sql = """
+SELECT distinct p.year, p.prj_cd, p.prj_nm,
+u.first_name || ' ' || u.last_name as project_lead, p.field_project
+FROM pjtk2_project p
+        join auth_user as u on u.id=p.prj_ldr_id
+  JOIN pjtk2_projectmilestones pms ON p.id = pms.project_id
+        join pjtk2_milestone ms on ms.id=pms.milestone_id
+        where ms.label in ('Summary Report', 'Project Completion Report',
+                          'Project Completion Pres.')
+        and pms.completed is not null
+  and p.prj_cd not in (
+  -- projects with spatial data
+  select distinct prj_cd from spatial_tmp
+)
+order by year desc;
+"""
+pgcur.execute(sql)
+omissions = pgcur.fetchall()
+fname = 'c:/1work/Python/djcode/pjtk2/migration/omissions.csv'
+with open(fname, 'w', newline='') as f:
+    writer = csv.writer(f)
+    writer.writerow([x[0] for x in pgcur.description])
+    writer.writerows(omissions)
+
+
+#=========================
+#Update milestones
+# ** NOTE ** this is a work around - delete this section once project tracker goes live!
+#if there is spatial data, the project must have been completed
+#update all of the milestones for all of the projects in spatial.
+
+sql = """ UPDATE pjtk2_projectmilestones pms2
+          SET completed = NOW()
+          WHERE pms2.id IN (
+          SELECT distinct pms.id
+                  FROM pjtk2_projectmilestones pms
+                    JOIN pjtk2_project p ON pms.project_id = p.id
+                    JOIN pjtk2_milestone ms ON ms.id = pms.milestone_id
+                    JOIN spatial_tmp AS sp ON sp.prj_cd = p.prj_cd
+                  WHERE pms.completed is NULL
+                  AND   p.year::int4 < 2012
+                  AND   ms.report = FALSE);"""
+pgcur.execute(sql)
+# we don't want to sign off on recent projects though - rest the
+# signoff project milestone for those projects
+
+sql = """UPDATE pjtk2_projectmilestones pms2
+           SET completed = NULL
+           WHERE pms2.id IN (
+           SELECT distinct pms.id
+                  FROM pjtk2_projectmilestones pms
+                    JOIN pjtk2_project p ON pms.project_id = p.id
+                    JOIN pjtk2_milestone ms ON ms.id = pms.milestone_id
+                    JOIN spatial_tmp AS sp ON sp.prj_cd = p.prj_cd
+                  WHERE pms.completed is not NULL
+                  AND   p.year::int4 >= 2012
+                  AND ms.label = 'Sign off');"""
+pgcur.execute(sql)
+
+
+# Finally update the spatial data:
+
 #clear out the old data
 sql = """DELETE FROM pjtk2_samplepoint"""
 pgcur.execute(sql)
-
+print('Updating spatial data...')
 #now update pjtk2_samplepoint by joining on project code (don't have
 # to worry about projects without spatial data or projects not in
 # tracker (yet))
 sql = """insert into pjtk2_samplepoint (project_id, sam, geom)
-         select pjtk2_project.id as project_id, sam, geom from spatial_tmp 
+         select pjtk2_project.id as project_id, sam, geom from spatial_tmp
          join pjtk2_project on pjtk2_project.prj_cd=spatial_tmp.prj_cd"""
 pgcur.execute(sql)
 
 #cleanup
+print('Cleaning up...')
 sql = """DROP TABLE spatial_tmp"""
 pgcur.execute(sql)
 pgconn.commit()
@@ -257,7 +361,4 @@ pgconn.commit()
 pgcur.close()
 pgconn.close()
 
-
-
-
-
+print('Done uploading spatial data!!')

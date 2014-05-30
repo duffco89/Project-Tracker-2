@@ -8,7 +8,7 @@ from main.settings.base import *
 
 #USE_TZ = False
 
-INSTALLED_APPS += ('django_nose',)
+#INSTALLED_APPS += ('django_nose',)
 #INSTALLED_APPS.append('django_jasmine')
 
 ##DATABASES = {
@@ -38,7 +38,7 @@ PASSWORD_HASHERS = (
 #EMAIL_BACKEND = 'django.core.mail.backends.locmem.EmailBackend'
 SOUTH_TESTS_MIGRATE = False
 
-TEST_RUNNER = 'main.testrunner.NoseCoverageTestRunner'
+#TEST_RUNNER = 'main.testrunner.NoseCoverageTestRunner'
 
 COVERAGE_MODULE_EXCLUDES = [
     'tests$', 'settings$', 'urls$', 'locale$',

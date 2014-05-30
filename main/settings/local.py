@@ -29,7 +29,7 @@ MIDDLEWARE_CLASSES += (
 INSTALLED_APPS += (
     'debug_toolbar',
     'django_extensions',
-    'werkzeug_debugger_runserver',
+    #'werkzeug_debugger_runserver',
 
 )
 

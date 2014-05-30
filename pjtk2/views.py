@@ -15,7 +15,7 @@ from django.core.urlresolvers import reverse
 from django.core.servers.basehttp import FileWrapper
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
@@ -765,32 +765,22 @@ def serve_file(request, filename):
     fname = os.path.join(settings.MEDIA_ROOT, filename)
 
     if os.path.isfile(fname):
-    
+   
         content_type = mimetypes.guess_type(filename)[0]
     
-        #data = open(os.path.join(settings.MEDIA_ROOT,filename),'r').read()
-        #resp = HttpResponse(data, mimetype='application/x-download')
-        #resp = HttpResponse(data, mimetype=content_type)
-    
-        data = FileWrapper(file(fname, 'rb'))
-        response = HttpResponse(data, mimetype=content_type)
         filename = os.path.split(filename)[-1]
-        response['Content-Disposition'] = 'attachment;filename=%s' % filename
-    
-        return response
+        wrapper = FileWrapper(file(fname, 'rb'))
+        response = HttpResponse(wrapper, content_type=content_type)
+        response['Content-Disposition'] = (
+            'attachment; filename=%s' % os.path.basename(fname))
+        response['Content-Length'] = os.path.getsize(fname)
 
+        return response
     else:
         return render_to_response('pjtk2/MissingFile.html',
                                   { 'filename': filename},
                                   context_instance=RequestContext(request))
         
-
-
-
-
-
-
-
 
 
 @login_required

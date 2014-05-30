@@ -613,8 +613,6 @@ class Project(models.Model):
         return points
 
             
-
-            
 class SamplePoint(models.Model):
     '''A class to hold the sampling locations of a project.  In most
     cases, a samplePoint instance represents a net in the water, but
@@ -791,6 +789,8 @@ class Employee(models.Model):
     supervisor = models.ForeignKey('self',
                                    blank=True,
                                    null=True)
+    #supervisor = models.ForeignKey(User, unique=False, blank=True, null=True,
+    #                               related_name='supervisor')
 
     def __unicode__(self):
         '''Use the username of the Employee as the string representation'''

@@ -16,13 +16,14 @@ default, the password for all users is 'uglmu'
 
 This script should be run before running ~/migration/GetProjectTrackerData.py
 
-
 A. Cottrill
 =============================================================
 
 '''
 
 import csv
+import os
+
 import django_settings
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
@@ -42,9 +43,8 @@ with open(csv_file, 'rb') as csvfile:
 for user in users:
     if user[3] == '1':
         status = True
-    else :
+    else:
         status = False
-
     new_user = User(username=user[0],
                 first_name=user[1],
                 last_name=user[2],

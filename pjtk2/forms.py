@@ -14,7 +14,7 @@ from django.forms.formsets import BaseFormSet
 from django.forms import ModelChoiceField, CharField
 from django.forms.widgets import (CheckboxSelectMultiple,
                                   CheckboxInput, mark_safe)
-from django.utils.encoding import force_unicode
+#from django.utils.encoding import force_unicode
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
@@ -118,7 +118,8 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
         #output = [u'<ul>']
         output = [u'']
         # Normalize to strings
-        str_values = set([force_unicode(v) for v in value])
+        #str_values = set([force_unicode(v) for v in value])
+        str_values = set([v for v in value])
         for i, (option_value, option_label) in enumerate(chain(self.choices,
                                                                choices)):
             if final_attrs.has_key('disabled'):
@@ -136,9 +137,10 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
                 label_for = ''
             chbox = CheckboxInput(final_attrs,
                                check_test=lambda value: value in str_values)
-            option_value = force_unicode(option_value)
+            #option_value = force_unicode(option_value)
             rendered_cb = chbox.render(name, option_value)
-            option_label = conditional_escape(force_unicode(option_label))
+            #option_label = conditional_escape(force_unicode(option_label))
+            option_label = conditional_escape(option_label)
             output.append(u'<label%s>%s %s</label>'
                           % (label_for, rendered_cb, option_label))
         #output.append(u'</ul>')
@@ -385,8 +387,8 @@ class ReportUploadFormSet(BaseFormSet):
     form so that they can be appended and uploaded properly.
     '''
     def __init__(self, *args, **kwargs):
-        self. project = kwargs.pop('project', None)
-        self. user = kwargs.pop('user', None)
+        self.project = kwargs.pop('project', None)
+        self.user = kwargs.pop('user', None)
         super(ReportUploadFormSet, self).__init__(*args, **kwargs)
 
     def _construct_forms(self):

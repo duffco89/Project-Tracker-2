@@ -142,8 +142,8 @@ TEMPLATE_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     root('templates'),
     root('pjtk2/templates'),
-    root('simple_auth/templates'),    
-    root('tickets/templates'),    
+    root('simple_auth/templates'),
+    root('tickets/templates'),
 
 )
 
@@ -155,7 +155,7 @@ DJANGO_APPS = (
     'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.admin',
-    'django.contrib.gis',    
+    'django.contrib.gis',
 )
 
 THIRDPARTY_APPS = (
@@ -164,6 +164,7 @@ THIRDPARTY_APPS = (
     'taggit',
     'haystack',
     'passwords',
+    'password_reset',
     'olwidget',
     )
 
@@ -228,3 +229,5 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login'
+
+POSTGIS_VERSION = ( 2, 1 )

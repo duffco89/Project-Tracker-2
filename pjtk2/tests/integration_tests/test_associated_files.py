@@ -1,24 +1,29 @@
-'''
-=============================================================
+'''=============================================================
 c:/1work/Python/djcode/pjtk2/pjtk2/tests/integration_tests/test_associated_files.py
 Created: 06 Mar 2014 11:37:43
 
 
 DESCRIPTION:
 
-tests to verify that associated files are uploaded correctly.  They should be saved in a project specific directory that contains the project code.
+tests to verify that associated files are uploaded correctly.  They
+should be saved in a project specific directory that contains the
+project code.
 
 A. Cottrill
 =============================================================
+
 '''
 
 
 import pytest
 from StringIO import StringIO
 from django.test import TestCase
+from django.conf import settings
 
 from pjtk2.tests.factories import *
 from pjtk2.models import AssociatedFile
+
+
 
 @pytest.fixture(scope="module", autouse=True)
 def disconnect_signals():
@@ -121,7 +126,7 @@ class TestActualFileUpload(TestCase):
 
         #verify that the report was added to the Report table:
         associated_files = AssociatedFile.objects.all()
-        self.assertEqual(associated_files.count, 1)
+        self.assertEqual(associated_files.count(), 1)
 
         filepath = os.path.join(settings.MEDIA_URL, self.project.prj_cd,
                                 os.path.split(self.mock_file0.name)[1])
