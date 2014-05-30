@@ -107,7 +107,7 @@ class ProjectListTestCase(TestCase):
         '''if we try to view the page without logging in, we should be
         re-directed to the login page'''
         response = self.client.get(reverse('ProjectList'), follow=True)
-        
+
         self.assertEqual(response.status_code,200)
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('ProjectList'))
@@ -199,8 +199,8 @@ class LogoutTestCase(TestCase):
         #self.assertContains(response,"Password:")
 
         #for some reason this behaves differently than the development server
-        #the test server does not re-direct back to the login page, 
-        self.assertTemplateUsed(response, 'auth/logout.html')        
+        #the test server does not re-direct back to the login page,
+        self.assertTemplateUsed(response, 'auth/logout.html')
 
     def tearDown(self):
         self.user.delete()
@@ -265,11 +265,11 @@ class ProjectDetailownerTestCase(TestCase):
         re-directed to the login page'''
         response = self.client.get(reverse('project_detail',
                                         kwargs={'slug':self.project.slug}), follow=True)
-        self.assertEqual(response.status_code,200)        
+        self.assertEqual(response.status_code,200)
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('project_detail',
                                         kwargs={'slug':self.project.slug}))
-        redirectstring = redirectstring.replace('%2F','/')        
+        redirectstring = redirectstring.replace('%2F','/')
         #self.assertRedirects(response, redirectstring)
 
         #assertRedirect doens't work on windows.
@@ -278,7 +278,7 @@ class ProjectDetailownerTestCase(TestCase):
         #replace encoded slashes with regular slashes
         redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
         self.assertEqual(redirect_chain, redirectstring)
-        
+
 
     def tearDown(self):
         self.project.delete()
@@ -333,7 +333,7 @@ class ProjectDetailJoeUserTestCase(TestCase):
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('project_detail',
                                         kwargs={'slug':self.project.slug}))
-        redirectstring = redirectstring.replace('%2F','/')        
+        redirectstring = redirectstring.replace('%2F','/')
         #self.assertRedirects(response, redirectstring)
 
         #assertRedirect doens't work on windows.
@@ -342,7 +342,7 @@ class ProjectDetailJoeUserTestCase(TestCase):
         #replace encoded slashes with regular slashes
         redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
         self.assertEqual(redirect_chain, redirectstring)
-        
+
 
     def tearDown(self):
         self.project.delete()
@@ -383,7 +383,7 @@ class ProjectDetailManagerTestCase(TestCase):
         self.assertContains(response, self.project.prj_nm)
         prj_ldr = '{0} {1}'.format(self.project.prj_ldr.first_name,
                                    self.project.prj_ldr.last_name,)
-        self.assertContains(response, prj_ldr)        
+        self.assertContains(response, prj_ldr)
         self.assertContains(response, "Milestones")
         self.assertContains(response, "Reporting Requirements")
 
@@ -401,7 +401,7 @@ class ProjectDetailManagerTestCase(TestCase):
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('project_detail',
                                         kwargs={'slug':self.project.slug}))
-        redirectstring = redirectstring.replace('%2F','/')        
+        redirectstring = redirectstring.replace('%2F','/')
         #self.assertRedirects(response, redirectstring)
 
         #assertRedirect doens't work on windows.
@@ -410,7 +410,7 @@ class ProjectDetailManagerTestCase(TestCase):
         #replace encoded slashes with regular slashes
         redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
         self.assertEqual(redirect_chain, redirectstring)
-        
+
 
     def tearDown(self):
         self.project.delete()
@@ -483,7 +483,7 @@ class ApprovedProjectListUserTestCase(TestCase):
         self.assertEqual(response.status_code,200)
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('ApprovedProjectsList'))
-        redirectstring = redirectstring.replace('%2F','/')        
+        redirectstring = redirectstring.replace('%2F','/')
         #self.assertRedirects(response, redirectstring)
 
         #assertRedirect doens't work on windows.
@@ -570,7 +570,7 @@ class ApprovedProjectListManagerTestCase(TestCase):
         self.assertEqual(response.status_code,200)
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('ApprovedProjectsList'))
-        redirectstring = redirectstring.replace('%2F','/')        
+        redirectstring = redirectstring.replace('%2F','/')
         #self.assertRedirects(response, redirectstring)
 
         #assertRedirect doens't work on windows.
@@ -579,7 +579,7 @@ class ApprovedProjectListManagerTestCase(TestCase):
         #replace encoded slashes with regular slashes
         redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
         self.assertEqual(redirect_chain, redirectstring)
-        
+
 
     def tearDown(self):
         self.project.delete()
@@ -674,7 +674,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         self.assertEqual(response.status_code,200)
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('ApproveProjects'))
-        redirectstring = redirectstring.replace('%2F','/')        
+        redirectstring = redirectstring.replace('%2F','/')
         #self.assertRedirects(response, redirectstring)
 
         #assertRedirect doens't work on windows.
@@ -787,10 +787,10 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-0-id':str(self.project6.id),
             'thisyear-0-Approved': True,
             #'thisyear-1-id':'1',
-            'thisyear-1-id':str(self.project1.id),            
+            'thisyear-1-id':str(self.project1.id),
             'thisyear-1-Approved': True,
             #'thisyear-2-id':'2',
-            'thisyear-2-id':str(self.project2.id),            
+            'thisyear-2-id':str(self.project2.id),
             'thisyear-2-Approved': True,
             }
 
@@ -838,13 +838,13 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         response = self.client.post(reverse('ApproveProjects'), form_data,
                                     follow=True)
         #print "response = {0}".format(response)
-        
+
         #they should all be false now:
         thisyear = Project.this_year.all()
 
         for proj in thisyear:
             print proj.prj_nm, proj.prj_cd, proj.is_approved()
-        
+
         self.assertEqual(thisyear.count(),3)
         self.assertQuerysetEqual(thisyear, [False, False, False],
                                  lambda a:a.is_approved())
@@ -905,10 +905,10 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
             'lastyear-0-id':str(self.project3.id),
-            'lastyear-0-prj_ldr':'1',            
+            'lastyear-0-prj_ldr':'1',
             'lastyear-0-Approved': True,
             'lastyear-1-id':str(self.project4.id),
-            'lastyear-0-prj_ldr':'1',                        
+            'lastyear-0-prj_ldr':'1',
             'lastyear-1-Approved': True,
             }
 
@@ -977,7 +977,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)
         self.assertQuerysetEqual(lastyear, [False, True],
-                                 lambda a:a.is_approved())
+                                 lambda a:a.is_approved(), ordered=False)
 
 
     def tearDown(self):
@@ -1104,24 +1104,24 @@ class TestTagListView(TestCase):
 
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
-                                last_name = 'Simpson')        
-        
-        
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+                                last_name = 'Simpson')
+
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
         self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user)
 
         self.project1.tags.add("perch","walleye","whitefish")
         self.project1.tags.add("perch", "carp")
-        
+
     def test_tag_list(self):
         '''verify that we can add and remove tags to a project'''
 
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        
+
         url = reverse('project_tag_list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
@@ -1133,7 +1133,7 @@ class TestTagListView(TestCase):
         self.assertContains(response, "perch")
         self.assertContains(response, "walleye")
         self.assertContains(response, "whitefish")
-        self.assertContains(response, "carp")        
+        self.assertContains(response, "carp")
 
 
 class ProjectQuickSearch(TestCase):
@@ -1145,29 +1145,29 @@ class ProjectQuickSearch(TestCase):
 
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
-                                last_name = 'Simpson')        
-        
-        
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", 
+                                last_name = 'Simpson')
+
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user)
         self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
                                               owner=self.user)
         self.project3 = ProjectFactory.create(prj_cd="LHA_IA00_000",
                                               owner=self.user)
-        
+
 
     def test_project_quick_search_all(self):
         '''a quick search pattern that matches all of our projects'''
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        
+
         url = reverse('ProjectList_q')
         response = self.client.get(url, {'q':'LHA'})
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
-        
+
         link_base = '<a href="{0}">{1}</a>'
         linkstring = link_base.format(reverse('project_detail',
                          args = (self.project1.slug,)), self.project1.prj_cd)
@@ -1190,14 +1190,14 @@ class ProjectQuickSearch(TestCase):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        
+
         url = reverse('ProjectList_q')
         response = self.client.get(url, {'q':'lha'})
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
-        
-        link_base = '<a href="{0}">{1}</a>' 
+
+        link_base = '<a href="{0}">{1}</a>'
         linkstring = link_base.format(reverse('project_detail',
                          args = (self.project1.slug,)), self.project1.prj_cd)
         self.assertContains(response, linkstring, html=True)
@@ -1216,10 +1216,10 @@ class ProjectQuickSearch(TestCase):
         state:"Sorry, no projects match that criteria."
 
         '''
-        
+
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        
+
         url = reverse('ProjectList_q')
         response = self.client.get(url, {'q':'foobar'})
         self.assertEqual(response.status_code, 200)
@@ -1236,14 +1236,14 @@ class ProjectQuickSearch(TestCase):
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
-        
+
         url = reverse('ProjectList_q')
         response = self.client.get(url, {'q':'000'})
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
-        
-        link_base = '<a href="{0}">{1}</a>' 
+
+        link_base = '<a href="{0}">{1}</a>'
         linkstring = link_base.format(reverse('project_detail',
                          args = (self.project1.slug,)), self.project1.prj_cd)
         self.assertNotContains(response, linkstring, html=True)
@@ -1256,5 +1256,3 @@ class ProjectQuickSearch(TestCase):
         linkstring = link_base.format(reverse('project_detail',
                          args = (self.project3.slug,)), self.project3.prj_cd)
         self.assertContains(response, linkstring, html=True)
-
-        
