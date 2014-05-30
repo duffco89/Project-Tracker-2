@@ -14,6 +14,7 @@ from django.forms.formsets import BaseFormSet
 from django.forms import ModelChoiceField, CharField
 from django.forms.widgets import (CheckboxSelectMultiple,
                                   CheckboxInput, mark_safe)
+
 #from django.utils.encoding import force_unicode
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
@@ -26,7 +27,7 @@ from crispy_forms.layout import (Submit, Layout, Fieldset, Field, ButtonHolder,
 
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report,
-                          ProjectType, Database, Lake, Messages2Users, 
+                          ProjectType, Database, Lake, Messages2Users,
                           AssociatedFile)
 
 
@@ -43,7 +44,7 @@ def make_custom_datefield(fld, **kwargs):
         formfield.widget.attrs.update({'class':'datepicker'})
     return formfield
 
-    
+
 class UserModelChoiceField(ModelChoiceField):
     '''a custom model choice widget for user objects.  It will
     displace user first and last name in list of available choices
@@ -65,14 +66,14 @@ class UserReadOnlyText(forms.TextInput):
     '''
     input_type = 'text'
     def render(self, name, value, attrs=None):
-        user = User.objects.get(id=value)        
+        user = User.objects.get(id=value)
         if user.first_name:
             value = "{0} {1}".format(user.first_name, user.last_name)
         else:
             value = str(user)
         return value
 
-        
+
 class ReadOnlyText(forms.TextInput):
     '''from:
     http://stackoverflow.com/questions/1134085/
@@ -102,7 +103,7 @@ class HyperlinkWidget(forms.Widget):
         output.append('<a href="%s">%s</a>' % (self.url, self.text))
         return mark_safe(u''.join(output))
 
-        
+
 class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
     """Subclass of Django's checkbox select multiple widget that allows
     disabling checkbox-options.  To disable an option, pass a dict
@@ -199,7 +200,7 @@ class NoticesForm(forms.Form):
             max_length=13,
             required=False)})
 
-        
+
         #snippet makes sure that Approved appears first
         self.fields.keyOrder = ['read', 'prj_cd', 'prj_nm', 'msg',
                                 'msg_id', 'user_id']
@@ -249,14 +250,14 @@ class ApproveProjectsForm(forms.ModelForm):
         self.fields["prj_ldr"].widget = forms.HiddenInput()
 
         self.fields['prj_ldr_label'] = forms.CharField(
-            widget = ReadOnlyText,            
+            widget = ReadOnlyText,
             label = "Project Leader",
             required =False,
             initial = "{0} {1}".format(self.instance.prj_ldr.first_name,
                                        self.instance.prj_ldr.last_name)
         )
 
-        
+
         self.fields.update({"prj_cd":forms.CharField(
             widget = HyperlinkWidget(
                              url = self.instance.get_absolute_url(),
@@ -266,7 +267,7 @@ class ApproveProjectsForm(forms.ModelForm):
             required = False,
         )
         ,})
-        
+
         #snippet makes sure that Approved appears first
         self.fields.keyOrder = ['Approved','prj_cd', 'prj_nm', 'prj_ldr_label']
 
@@ -488,10 +489,10 @@ class ReportUploadForm(forms.Form):
             newReport.save()
             #add the m2m record for this projectreport
             newReport.projectreport.add(projectreport)
-            
+
             projectreport.completed = now
             projectreport.save()
-            
+
             #if this a presentation or summary report, see if
             #this project has any sister projects.  If so, add an m2m
             #for each one so this document is associated with them
@@ -523,7 +524,7 @@ class ReportUploadForm(forms.Form):
                     newReport.projectreport.add(projreport)
                     projectreport.completed = now
                     projectreport.save()
-                    
+
 class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
     cleaning methods to ensure that project code is valid, dates agree
@@ -547,20 +548,17 @@ class ProjectForm(forms.ModelForm):
         queryset=User.objects.filter(is_active=True),
         required=True,
     )
-    
-    #prj_ldr = forms.CharField(
-    #    label="Project Leader:",
-    #    required=True,
-    #)
 
     comment = forms.CharField(
-        widget=forms.Textarea(),
+        widget=forms.Textarea(
+            attrs={'class': 'input-xxlarge', 'rows': 20, 'cols': 60}),
         label="Brief Project Description:",
         required=True,
         )
 
     risk = forms.CharField(
-        widget=forms.Textarea(),
+        widget=forms.Textarea(
+            attrs={'class': 'input-xxlarge', 'rows': 20, 'cols': 60}),
         label="Risks associated with not running project:",
         required=False,
         )
@@ -568,11 +566,13 @@ class ProjectForm(forms.ModelForm):
     prj_date0 = forms.DateField(
         label="Start Date:",
         required=True,
+        input_formats=["%d/%m/%Y","%Y-%m-%d"],
     )
 
     prj_date1 = forms.DateField(
         label="End Date:",
         required=True,
+        input_formats=["%d/%m/%Y", "%Y-%m-%d"],
     )
 
     project_type = forms.ModelChoiceField(
@@ -866,4 +866,3 @@ class AssociatedFileUploadForm(forms.Form):
                 str(self.cleaned_data['file_path'])).hexdigest()
             )
         newReport.save()
-

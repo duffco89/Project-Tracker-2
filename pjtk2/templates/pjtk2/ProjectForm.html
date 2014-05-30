@@ -4,9 +4,8 @@
 {% block extrahead %}
 
 
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/smoothness/jquery-ui-1.10.4.custom.css"/>
-    <script src="{{ STATIC_URL }}js/jquery-ui-1.10.4.custom.js"></script>
-
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
 
 <style type="text/css">
  #id_prj_cd{width:200px;}
@@ -32,7 +31,7 @@
 
 <script type="text/javascript">
  $(document).ready(function() {
-   $('.dateinput').datepicker({ format: "yyyy/mm/dd" });
+   $('.dateinput').datepicker({ dateFormat: "yy-mm-dd" });
  });
 </script>
 
