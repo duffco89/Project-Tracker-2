@@ -23,10 +23,9 @@ import pytz
 from pjtk2.functions import get_supervisors, replace_links
 
 
-
-
-
 LINK_PATTERNS = getattr(settings, "LINK_PATTERNS", None)
+#for markdown2 (<h1> becomes <h3>)
+DEMOTE_HEADERS = 2
 
 
 class ProjectsManager(models.Manager):
@@ -610,11 +609,13 @@ class Project(models.Model):
             new = True
 
         if self.comment:
-            self.comment_html = markdown(self.comment)
+            self.comment_html = markdown(self.comment, extras={'demote-headers':
+                                                               DEMOTE_HEADERS,})
             self.comment_html = replace_links(self.comment_html,
                                               link_patterns=LINK_PATTERNS)
         if self.risk:
-            self.risk_html = markdown(self.risk)
+            self.risk_html = markdown(self.risk,extras={'demote-headers':
+                                                        DEMOTE_HEADERS,})
             self.risk_html = replace_links(self.risk_html,
                                               link_patterns=LINK_PATTERNS)
 
