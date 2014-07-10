@@ -230,7 +230,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap3'
 LOGIN_REDIRECT_URL = '/'
 LOGIN_URL = '/accounts/login'
 
-POSTGIS_VERSION = ( 2, 1 )
+POSTGIS_VERSION = ( 2, 1, 2 )
 
 LINK_PATTERNS = [{'pattern':
                   r'project: ?([a-zA-Z]{3}\_[a-zA-Z]{2}\d{2}\_[a-zA-Z0-9]{3})',

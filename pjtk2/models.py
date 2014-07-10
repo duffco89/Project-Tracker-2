@@ -28,7 +28,7 @@ LINK_PATTERNS = getattr(settings, "LINK_PATTERNS", None)
 DEMOTE_HEADERS = 2
 
 
-class ProjectsManager(models.Manager):
+class ProjectsManager(models.GeoManager):
     '''two custom extensions to the base manager for project objects to
     return approved and completed projects.'''
 
@@ -647,6 +647,8 @@ class SamplePoint(models.Model):
     sam  = models.CharField(max_length=30, null=True, blank=True)
     geom = models.PointField(srid=4326,
                              help_text='Represented as (longitude, latitude)')
+
+    objects = models.GeoManager()
 
 
 class ProjectMilestones(models.Model):

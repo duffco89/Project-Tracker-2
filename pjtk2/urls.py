@@ -42,7 +42,6 @@ urlpatterns = patterns('pjtk2.views',
 
 
 
-
     url(r'^newproject/$', 'new_project', name='NewProject'),
 
     url((r'^copyproject/'
@@ -75,7 +74,18 @@ urlpatterns = patterns('pjtk2.views',
     url(r'^tags/$', 'project_tag_list',
         name='project_tag_list'),
 
-                       
+
+    #projects by region of interest:
+    url(r'^projects_roi/$', 'find_projects_roi_view', name='find_projects_roi'),
+
+    #projects by management unit:
+    #url(
+    #    regex=r'^projects_managment_unit/(?P<mu>[-A-Za-z0-9]+)$',
+    #    view=find_projects_mu_view,
+    #    name='find_projects_mu'
+    #    ),
+
+
 
 # Reports and milestones
     url(r'^reports/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
@@ -94,8 +104,8 @@ urlpatterns = patterns('pjtk2.views',
 
    url((r'^delete_report/'
         '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/'
-        '(?P<pk>\d+)/$'), 
-        view='delete_report', 
+        '(?P<pk>\d+)/$'),
+        view='delete_report',
         name='delete_report'),
 
 
@@ -108,10 +118,9 @@ urlpatterns = patterns('pjtk2.views',
         'associated_file_upload', name='associated_file_upload'),
 
    url((r'^delete_associated_file/'
-        '(?P<id>\d+)/$'), 
-        view='delete_associated_file', 
+        '(?P<id>\d+)/$'),
+        view='delete_associated_file',
         name='delete_associated_file'),
-
 
 
     #url(r'^uploadlist/$', 'uploadlist', name='UploadList'),

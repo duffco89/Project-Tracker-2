@@ -20,7 +20,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
-from olwidget.widgets import InfoMap
+from olwidget.widgets import InfoMap, InfoLayer, Map
 
 from taggit.models import Tag
 
@@ -28,12 +28,15 @@ from pjtk2.functions import get_minions, my_messages, get_messages_dict
 
 from pjtk2.filters import ProjectFilter
 from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
-                          Bookmark, Employee, AssociatedFile)#, my_messages)
+                          Bookmark, Employee, AssociatedFile,
+                          SamplePoint)#, my_messages)
 
-from pjtk2.forms import (ProjectForm, ApproveProjectsForm, 
+from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
                          ReportsForm, SisterProjectsForm,  ReportUploadForm,
-                         ReportUploadFormSet, NoticesForm, 
-                         AssociatedFileUploadForm)
+                         ReportUploadFormSet, NoticesForm,
+                         AssociatedFileUploadForm, GeoForm)
+
+from pjtk2.spatial_utils import find_roi_projects
 
 import datetime
 import pytz
@@ -42,26 +45,49 @@ import os
 
 
 
-def get_map(points):
+def get_map(points, roi=None):
     """
 
     Arguments:
     - `points`:
     """
+
+    layers = []
+    zoom_to_extent = False
     if len(points)>0:
-        pts = [[x[1],x[0]] for x in points]
-        map = InfoMap(
-            pts,
+        if roi:
+            style = {'overlay_style': {'fill_color': '#0000FF',
+                               'fill_opacity': 0,
+                               'stroke_color':'#0000FF'},
+                     'name':'Region of Interest'}
+            #polygon = InfoLayer([roi,style])
+            polygon =  InfoLayer([[roi.wkt, "Region Of Interest"]] ,style)
+            try:
+                layers.extend(polygon)
+            except TypeError:
+                layers.append(polygon)
+            zoom_to_extent = True
+
+        for pt in points:
+            pt_layer = InfoLayer([[pt[1].wkt, str(pt[0])]],{'name':str(pt[0])})
+            try:
+                layers.extend(pt_layer)
+            except TypeError:
+                layers.append(pt_layer)
+
+        mymap = Map(
+            layers,
             {'default_lat': 45,
             'default_lon': -82.0,
             'default_zoom':7,
-            'zoom_to_data_extent':False,
+            'zoom_to_data_extent': zoom_to_extent,
             'map_div_style': {'width': '700px', 'height': '600px'},
+
             }
             )
     else:
-        map=None
-    return map
+        mymap = empty_map()
+    return mymap
 
 
 
@@ -99,7 +125,7 @@ def can_edit(user, project):
                (user == project.owner))
     if canedit:
         return(True)
-    else:        
+    else:
         return(False)
 
 
@@ -693,7 +719,7 @@ def delete_report(request, slug, pk):
                                   { 'report': report,
                                     'project': project},
                                   context_instance=RequestContext(request))
-    
+
 
 
 @login_required
@@ -704,7 +730,7 @@ def associated_file_upload(request, slug):
     project = Project.objects.get(slug=slug)
 
     if request.method == 'POST':
-        form = AssociatedFileUploadForm(request.POST, request.FILES, 
+        form = AssociatedFileUploadForm(request.POST, request.FILES,
                                          project=project, user=request.user)
         if form.is_valid():
             form.save()
@@ -722,7 +748,7 @@ def associated_file_upload(request, slug):
 
 @login_required
 def delete_associated_file(request, id):
-    """this view deletes an associated file 
+    """this view deletes an associated file
 
     If this is a get request, redirect to a confirmation page.  If it
     is a post, delete the associated file o
@@ -765,9 +791,9 @@ def serve_file(request, filename):
     fname = os.path.join(settings.MEDIA_ROOT, filename)
 
     if os.path.isfile(fname):
-   
+
         content_type = mimetypes.guess_type(filename)[0]
-    
+
         filename = os.path.split(filename)[-1]
         wrapper = FileWrapper(file(fname, 'rb'))
         response = HttpResponse(wrapper, content_type=content_type)
@@ -780,7 +806,7 @@ def serve_file(request, filename):
         return render_to_response('pjtk2/MissingFile.html',
                                   { 'filename': filename},
                                   context_instance=RequestContext(request))
-        
+
 
 
 @login_required
@@ -971,3 +997,40 @@ class ProjectTagList(ListView):
 
 project_tag_list = ProjectTagList.as_view()
 
+
+
+def find_projects_roi_view(request):
+    '''render a map in a form and return a two lists of projects - 1 is
+    list of projects that are completely contained in the polygon, one
+    that overlaps the polygon.'''
+
+    if request.method == 'POST':
+        form = GeoForm(request.POST)
+        if form.is_valid():
+            roi = form.cleaned_data['selection'][0]
+            project_types = form.cleaned_data['project_types']
+
+            projects = find_roi_projects(roi, project_types)
+
+            mymap = get_map(points=projects['map_points'], roi=roi)
+
+            return render_to_response('pjtk2/show_projects_gis.html',
+                              {'map':mymap,
+                               'contained':projects['contained'],
+                               'overlapping':projects['overlapping']},
+                            context_instance = RequestContext(request))
+
+
+            return render_to_response('pjtk2/find_projects_gis.html',
+                              {'form':form,
+                               'contained':projects['contained'],
+                               'overlapping':projects['overlapping'],
+                               },
+                              context_instance=RequestContext(request)
+                )
+    else:
+        form = GeoForm()
+    return render_to_response('pjtk2/find_projects_gis.html',
+                              {'form':form},
+                              context_instance=RequestContext(request)
+        )

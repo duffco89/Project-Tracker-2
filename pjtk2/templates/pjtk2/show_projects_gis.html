@@ -1,0 +1,134 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+<!-- {% block pages %}
+
+
+{% endblock %}
+-->
+
+{% block extrahead %}
+
+{{ map.media }}
+
+<!-- tablesorter plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+<!-- tablesorter widget file - loaded after the plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
+
+
+{% endblock %}
+
+
+{% block content %}
+<div class="container" >
+  <div class="row">
+    <div class="col-md-10 col-md-offset-1">
+      {{ map }}
+    </div>
+  </div>
+
+    <hr />
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="active"><a href="#contained" role="tab" data-toggle="tab">Contained</a></li>
+    <li><a href="#overlapping" role="tab" data-toggle="tab">Overlapping</a></li>
+  </ul>
+
+  <!-- Tab panes -->
+  <div class="tab-content">
+    <div class="tab-pane active" id="contained">
+      {% if contained %}
+      <table cellspacing="0" class="tablesorter">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Project Code</th>
+            <th>Project Type</th>
+            <th>Project Name</th>
+          </tr>
+        </thead>
+        {% for project in contained %}
+        <tr>
+          <td> {{ project.year }} </td>
+          <td>
+            <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+          </td>
+          <td> {{ project.project_type }} </td>
+          <td>
+            {{ project.prj_nm  }}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      {% else %}
+      <h3>No Projects are entirely contained in that region of interest.</h3>
+      {% endif %}
+
+    </div>
+    <div class="tab-pane" id="overlapping">
+
+      {% if overlapping %}
+
+      <table cellspacing="0" class="tablesorter">
+        <thead>
+          <tr>
+            <th>Year</th>
+            <th>Project Code</th>
+            <th>Project Type</th>
+            <th>Project Name</th>
+          </tr>
+        </thead>
+        {% for project in overlapping %}
+        <tr>
+          <td> {{ project.year }} </td>
+          <td>
+            <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+          </td>
+          <td> {{ project.project_type }} </td>
+          <td>
+            {{ project.prj_nm  }}
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+
+      {% else %}
+      <h3>There are no samples in the region of interest.</h3>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+
+  <script  type="text/javascript">
+    $('#myTab a').click(function (e) {
+    e.preventDefault()
+    $(this).tab('show')
+    })
+  </script>
+
+
+<script type="text/javascript">
+
+  $(".tablesorter").tablesorter({
+  theme: 'bootstrap',
+  widthFixed: true,
+  showProcessing: true,
+  headerTemplate: '{content} {icon}',
+  widgets: ['zebra', 'uitheme', 'scroller'],
+  widgetOptions: {
+  scroller_height: 300,
+  scroller_barWidth: 17,
+  scroller_jumpToHeader: true,
+  scroller_idPrefix: 's_'
+  }
+  });
+
+</script>
+
+
+
+{% endblock %}

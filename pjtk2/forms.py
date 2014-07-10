@@ -19,6 +19,8 @@ from django.forms.widgets import (CheckboxSelectMultiple,
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
+from olwidget.fields import MapField, EditableLayerField
+
 from itertools import chain
 
 from crispy_forms.helper import FormHelper
@@ -866,3 +868,46 @@ class AssociatedFileUploadForm(forms.Form):
                 str(self.cleaned_data['file_path'])).hexdigest()
             )
         newReport.save()
+
+
+
+
+class GeoForm(forms.Form):
+    """Load a map centered over Lake Huron. """
+
+    selection = MapField([
+        EditableLayerField({
+            'geometry': 'polygon',
+            'is_collection': False,
+            #'name': 'selection',
+        })],
+
+         options= {
+             'default_lat': 45,
+             'default_lon': -81.7,
+             'default_zoom':7,
+             'map_div_style': {'width': '650px', 'height': '600px'},
+          }
+
+        )
+
+    project_types = forms.ModelMultipleChoiceField(
+        ProjectType.objects.all().order_by('project_type'), required=False,
+        widget=forms.CheckboxSelectMultiple(), label='Project Type')
+
+    #first_year
+    #last_year
+
+##    helper = FormHelper()
+##    helper.form_id = 'FindEventsMap'
+##    helper.form_class = 'blueForms'
+##    helper.form_method = 'post'
+##    helper.form_action = ''
+##    helper.add_input(Submit('submit', 'Submit'))
+##
+##    helper.layout = Layout(
+##        Div(
+##            Div(selection, class_id='col-md-9'),
+##            Div(project_types, class_id='col-md-3'),
+##            class_id='row')
+##    )

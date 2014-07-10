@@ -1,0 +1,60 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+{% block extrahead %}
+
+{{ form.media }}
+
+<!-- tablesorter plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+<!-- tablesorter widget file - loaded after the plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
+
+
+{% endblock %}
+
+{% block title %} Find Project {% endblock %}
+
+{% block content %}
+
+<div class="container" >
+  <div class="row well">
+    <form method="post" id="" action="">{% csrf_token %}
+      <div class="col-md-7">
+        {{ form.selection }}
+      </div>
+      <div class="col-md-5">
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <h4>Select Project Type(s):</h4>
+            <p>(leave blank for all project types)</p>
+            {{ form.project_types }}
+          </div>
+        </div>
+        <a href="{% url 'find_projects_roi' %}" class="btn btn-default">Reset</a>
+        <button type="submit" class="btn  btn-success">Submit</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+
+  $(".tablesorter").tablesorter({
+  theme: 'bootstrap',
+  widthFixed: true,
+  showProcessing: true,
+  headerTemplate: '{content} {icon}',
+  widgets: ['zebra', 'uitheme', 'scroller'],
+  widgetOptions: {
+  scroller_height: 300,
+  scroller_barWidth: 17,
+  scroller_jumpToHeader: true,
+  scroller_idPrefix: 's_'
+  }
+  });
+
+</script>
+
+
+{% endblock %}
