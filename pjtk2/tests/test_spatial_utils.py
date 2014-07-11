@@ -241,22 +241,29 @@ def test_find_project_roi_filter_project_type(roi, four_projects):
 
 
 @pytest.mark.django_db
-def test_find_project_roi_filter_first_year(roi):
+def test_find_project_roi_filter_first_year(roi, four_projects):
     '''If a first year is provided, only projects run since that year
     should be returned'''
-    pass
+
+    projects = find_roi_projects(roi, first_year=2000)
+    prj_cds = [x.prj_cd for x in projects['contained']]
+    assert sorted(prj_cds) == sorted(['LHA_IA00_002','LHA_CF05_555'])
 
 
 @pytest.mark.django_db
-def test_find_project_roi_filter_last_year(roi):
+def test_find_project_roi_filter_last_year(roi, four_projects):
     '''If a last year is provided, only projects run on or before that year
     should be returned'''
-    pass
+    projects = find_roi_projects(roi, last_year=1999)
+    prj_cds = [x.prj_cd for x in projects['contained']]
+    assert sorted(prj_cds) == sorted(['LHA_IA90_002','LHA_CF95_555'])
 
 
 @pytest.mark.django_db
-def test_find_project_roi_filter_first_last_year(roi):
+def test_find_project_roi_filter_first_last_year(roi, four_projects):
     '''If both a first and last year are provided, only projects run
     between those years should be returned
     '''
-    pass
+    projects = find_roi_projects(roi, first_year = 1995, last_year=2000)
+    prj_cds = [x.prj_cd for x in projects['contained']]
+    assert sorted(prj_cds) == sorted(['LHA_CF95_555','LHA_IA00_002'])

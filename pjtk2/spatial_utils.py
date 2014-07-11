@@ -13,6 +13,86 @@ A. Cottrill
 '''
 
 from pjtk2.models import SamplePoint, Project
+from olwidget.widgets import InfoMap, InfoLayer, Map
+
+
+
+def empty_map(map_options=dict()):
+    """Return an empty info map object.  Options is an optional
+    dictionary that control basic attributes of the map - different
+    maps can be returned by diffent users/projects
+
+    """
+
+    lat = map_options.get('lat', 45)
+    lon = map_options.get('lon', -82)
+    zoom = map_options.get('zoom', 7)
+    zoom2extent = map_options.get('zoom2extent', False)
+    height = map_options.get('height', '600px')
+    width = map_options.get('width', '600px')
+
+    mymap = InfoMap(
+        None,
+        {'default_lat': lat,
+         'default_lon': lon,
+         'default_zoom': zoom,
+         'zoom_to_data_extent': zoom2extent,
+         'map_div_style': {'width': width, 'height': height}}
+    )
+    return mymap
+
+
+
+
+def get_map(points, roi=None, map_options={}):
+    """
+
+    Arguments:
+    - `points`:
+    """
+    lat = map_options.get('lat', 45)
+    lon = map_options.get('lon', -82)
+    zoom = map_options.get('zoom', 7)
+    zoom2extent = map_options.get('zoom2extent', False)
+    height = map_options.get('height', '600px')
+    width = map_options.get('width', '600px')
+
+    layers = []
+
+    if len(points)>0:
+        if roi:
+            style = {'overlay_style': {'fill_color': '#0000FF',
+                               'fill_opacity': 0,
+                               'stroke_color':'#0000FF'},
+                     'name':'Region of Interest'}
+            #polygon = InfoLayer([roi,style])
+            polygon =  InfoLayer([[roi.wkt, "Region Of Interest"]] ,style)
+            try:
+                layers.extend(polygon)
+            except TypeError:
+                layers.append(polygon)
+            zoom2extent = True
+
+        for pt in points:
+            pt_layer = InfoLayer([[pt[1].wkt, str(pt[0])]],{'name':str(pt[0])})
+            try:
+                layers.extend(pt_layer)
+            except TypeError:
+                layers.append(pt_layer)
+
+        mymap = Map(
+            layers,
+            {'default_lat': lat,
+             'default_lon': lon,
+             'default_zoom': zoom,
+             'zoom_to_data_extent': zoom2extent,
+             'map_div_style': {'width': width, 'height': height}}
+            )
+    else:
+        mymap = empty_map(map_options)
+    return mymap
+
+
 
 
 def find_roi_projects(roi, project_types=None, first_year=None, last_year=None):
@@ -38,7 +118,7 @@ def find_roi_projects(roi, project_types=None, first_year=None, last_year=None):
                     project__year__gte=first_year)
             if last_year:
                 sample_points=sample_points.filter(
-                    project__year_lte=last_year)
+                    project__year__lte=last_year)
 
             #get list of disticnt project codes
             prj_cds = list(set([x.project.prj_cd for x in sample_points]))

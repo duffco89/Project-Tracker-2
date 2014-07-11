@@ -20,8 +20,6 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
-from olwidget.widgets import InfoMap, InfoLayer, Map
-
 from taggit.models import Tag
 
 from pjtk2.functions import get_minions, my_messages, get_messages_dict
@@ -36,59 +34,12 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
                          ReportUploadFormSet, NoticesForm,
                          AssociatedFileUploadForm, GeoForm)
 
-from pjtk2.spatial_utils import find_roi_projects
+from pjtk2.spatial_utils import find_roi_projects, empty_map, get_map
 
 import datetime
 import pytz
 import mimetypes
 import os
-
-
-
-def get_map(points, roi=None):
-    """
-
-    Arguments:
-    - `points`:
-    """
-
-    layers = []
-    zoom_to_extent = False
-    if len(points)>0:
-        if roi:
-            style = {'overlay_style': {'fill_color': '#0000FF',
-                               'fill_opacity': 0,
-                               'stroke_color':'#0000FF'},
-                     'name':'Region of Interest'}
-            #polygon = InfoLayer([roi,style])
-            polygon =  InfoLayer([[roi.wkt, "Region Of Interest"]] ,style)
-            try:
-                layers.extend(polygon)
-            except TypeError:
-                layers.append(polygon)
-            zoom_to_extent = True
-
-        for pt in points:
-            pt_layer = InfoLayer([[pt[1].wkt, str(pt[0])]],{'name':str(pt[0])})
-            try:
-                layers.extend(pt_layer)
-            except TypeError:
-                layers.append(pt_layer)
-
-        mymap = Map(
-            layers,
-            {'default_lat': 45,
-            'default_lon': -82.0,
-            'default_zoom':7,
-            'zoom_to_data_extent': zoom_to_extent,
-            'map_div_style': {'width': '700px', 'height': '600px'},
-
-            }
-            )
-    else:
-        mymap = empty_map()
-    return mymap
-
 
 
 
@@ -328,9 +279,7 @@ def project_detail(request, slug):
     manager = is_manager(user)
 
     sample_points = project.get_sample_points()
-    map = get_map(sample_points)
-
-    #import pdb; pdb.set_trace()
+    mymap = get_map(sample_points)
 
     return render_to_response('pjtk2/projectdetail.html',
                               {'milestones': milestones,
@@ -339,7 +288,7 @@ def project_detail(request, slug):
                                'project': project,
                                'edit': edit,
                                'manager': manager,
-                               'map': map
+                               'map': mymap
                                },
                               context_instance=RequestContext(request))
 

@@ -109,15 +109,26 @@ class ProjectFactory(factory.DjangoModelFactory):
 
     @factory.lazy_attribute
     def prj_date0(a):
-        datestring = "January 15, 20%s" % a.prj_cd[6:8]
+        yr = a.prj_cd[6:8]
+        year = '19' + yr if int(yr)>50 else '20' + yr
+        datestring = "January 15, {0}".format(year)
         prj_date0 = datetime.datetime.strptime(datestring, "%B %d, %Y")
         return(prj_date0)
 
     @factory.lazy_attribute
     def prj_date1(a):
-        datestring = "January 15, 20%s" % a.prj_cd[6:8]
+        yr = a.prj_cd[6:8]
+        year = '19' + yr if int(yr)>50 else '20' + yr
+        datestring = "January 16, {0}".format(year)
         prj_date1 = datetime.datetime.strptime(datestring, "%B %d, %Y")
         return(prj_date1)
+
+    @factory.lazy_attribute
+    def year(a):
+        'calculate a based on project code'
+        yr = a.prj_cd[6:8]
+        year = '19' + yr if int(yr)>50 else '20' + yr
+        return(year)
 
 
 class ProjectSisters(factory.DjangoModelFactory):
