@@ -21,6 +21,25 @@
     <form method="post" id="" action="">{% csrf_token %}
       <div class="col-md-7">
         {{ form.selection }}
+        <hr />
+        <div class="row" >
+          <div class="panel panel-default">
+            <div class="panel-body">
+              <div class="row" >
+                <div class="col-md-6">
+                  <p>First Year: {{ form.first_year }}</p>
+                </div>
+                <div class="col-md-6">
+                  <p>Last Year: {{ form.last_year }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row" >
+          <a href="{% url 'find_projects_roi' %}" class="btn btn-default">Reset</a>
+          <button type="submit" class="btn  btn-success">Submit</button>
+        </div>
       </div>
       <div class="col-md-5">
         <div class="panel panel-default">
@@ -30,8 +49,6 @@
             {{ form.project_types }}
           </div>
         </div>
-        <a href="{% url 'find_projects_roi' %}" class="btn btn-default">Reset</a>
-        <button type="submit" class="btn  btn-success">Submit</button>
       </div>
     </form>
   </div>

@@ -895,19 +895,5 @@ class GeoForm(forms.Form):
         ProjectType.objects.all().order_by('project_type'), required=False,
         widget=forms.CheckboxSelectMultiple(), label='Project Type')
 
-    #first_year
-    #last_year
-
-##    helper = FormHelper()
-##    helper.form_id = 'FindEventsMap'
-##    helper.form_class = 'blueForms'
-##    helper.form_method = 'post'
-##    helper.form_action = ''
-##    helper.add_input(Submit('submit', 'Submit'))
-##
-##    helper.layout = Layout(
-##        Div(
-##            Div(selection, class_id='col-md-9'),
-##            Div(project_types, class_id='col-md-3'),
-##            class_id='row')
-##    )
+    first_year = forms.IntegerField(required=False)
+    last_year = forms.IntegerField(required=False)

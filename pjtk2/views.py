@@ -958,8 +958,11 @@ def find_projects_roi_view(request):
         if form.is_valid():
             roi = form.cleaned_data['selection'][0]
             project_types = form.cleaned_data['project_types']
+            first_year = form.cleaned_data['first_year']
+            last_year = form.cleaned_data['last_year']
 
-            projects = find_roi_projects(roi, project_types)
+            projects = find_roi_projects(roi, project_types, first_year,
+                                         last_year)
 
             mymap = get_map(points=projects['map_points'], roi=roi)
 

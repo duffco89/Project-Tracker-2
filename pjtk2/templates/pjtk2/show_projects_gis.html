@@ -30,8 +30,8 @@
     <hr />
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
-    <li class="active"><a href="#contained" role="tab" data-toggle="tab">Contained</a></li>
-    <li><a href="#overlapping" role="tab" data-toggle="tab">Overlapping</a></li>
+    <li class="active"><a href="#contained" role="tab" data-toggle="tab">Contained (n={{ contained|length }})</a></li>
+    <li><a href="#overlapping" role="tab" data-toggle="tab">Overlapping (n={{ overlapping|length }}) </a></li>
   </ul>
 
   <!-- Tab panes -->
@@ -62,7 +62,9 @@
       </table>
 
       {% else %}
-      <h3>No Projects are entirely contained in that region of interest.</h3>
+      <br />
+
+        <h3>There are no projects that match that criteria and are entirely contained in that region of interest.</h3>
       {% endif %}
 
     </div>
@@ -94,7 +96,7 @@
       </table>
 
       {% else %}
-      <h3>There are no samples in the region of interest.</h3>
+        <h3>There are no projects that match that criteria and have at least one sample in that region of interest.</h3>
       {% endif %}
 
     </div>
