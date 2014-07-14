@@ -325,7 +325,7 @@ class UpdateReportsTestCase(WebTest):
         response = self.app.get(reverse('Reports',
                                 args=(self.project1.slug,)),
                                 user=self.user1).follow()
-       
+
         self.assertEqual(response.status_int, 301)
 
         #these use to work - now webtest doesn't follow through to the
@@ -988,13 +988,13 @@ class TestProjectDetailForm(WebTest):
 
         #response.showbrowser()
 
-        #make sure that the form is valid and processed properly 
+        #make sure that the form is valid and processed properly
         #we should be re-directed to to the project detail page
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
 
         #the project should still be approved - Homer doesn't have
-        #sufficient priveledges to approve or unapprove 
+        #sufficient priveledges to approve or unapprove
         self.assertTrue(self.project1.is_approved())
 
 
@@ -1028,7 +1028,7 @@ class TestProjectDetailForm(WebTest):
         form.fields['description']='This is a new description.'
         response = form.submit().follow()
 
-        #make sure that the form is valid and processed properly 
+        #make sure that the form is valid and processed properly
         #we should be re-directed to to the project detail page
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
@@ -1036,10 +1036,6 @@ class TestProjectDetailForm(WebTest):
         #the project should still be approved - Homer doesn't have
         #sufficient priveledges to approve or unapprove projects.
         self.assertFalse(self.project1.is_approved())
-
-
-
-
 
     def tearDown(self):
         self.project1.delete()
@@ -1051,6 +1047,7 @@ class TestProjectDetailForm(WebTest):
         self.user3.delete()
         self.user2.delete()
         self.user1.delete()
+
 
 class TestCanCopyProject(WebTest):
     '''verify that the project owner, slug and year are correctly
@@ -1136,6 +1133,102 @@ class TestCanCopyProject(WebTest):
 
 
     def tearDown(self):
+        self.project1.delete()
+        self.user2.delete()
+        self.user1.delete()
+
+
+
+class TestFieldLeader(WebTest):
+    '''Verify that the field lead appears on the project details page for
+    projects with field leads and does not appear on projects witout.
+    Additionally make sure that we can change the project lead using the
+    project detail form..'''
+
+    def setUp(self):
+        #USER
+        self.user1 = UserFactory.create(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'bgumble',
+                                first_name = 'Barney',
+                                last_name = 'Gumble',
+                                       )
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user1,
+                                              field_ldr=self.user2,
+                                              owner=self.user1)
+
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+                                              prj_ldr=self.user1,
+                                              field_ldr=None,
+                                              owner=self.user1)
+
+
+    def test_field_ldr_on_project_detail(self):
+        '''When we view the project detail page, this response should contain
+           the phrase "Field Lead" and the first name and last name of user2.'''
+
+        response = self.app.get(reverse('project_detail',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        self.assertEqual(response.status_int, 200)
+
+        self.assertContains(response, 'Field Lead:')
+        linkstring = '<a href="#">{0} {1}</a></td>'
+        linkstring = linkstring.format(self.user2.first_name,
+                                       self.user2.last_name)
+        self.assertContains(response, linkstring)
+
+
+    def test_NOT_field_ldr_project_detail(self):
+        '''If the project does not have a field lead, the field lead
+           placeholder should not be shown.
+        '''
+
+        response = self.app.get(reverse('project_detail',
+                                        args=(self.project2.slug,)),
+                                user=self.user1)
+        self.assertEqual(response.status_int, 200)
+
+        self.assertNotContains(response, 'Field Lead:')
+        linkstring = '<a href="#">{0} {1}</a></td>'
+        linkstring = linkstring.format(self.user2.first_name,
+                                       self.user2.last_name)
+        self.assertNotContains(response, linkstring)
+
+
+    def test_field_ldr_on_project_form(self):
+        '''We should be able to view the project detail form and change the
+        field lead from user 2 to user1.  When we submit it, we should be
+        re-drect back the project detail page and user2 should not appear on
+        the page.'''
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        #self.assertEqual(response.status_int, 302)
+        self.assertTemplateUsed(response, 'pjtk2/ProjectForm.html')
+
+        #get the form and submit it
+        form = response.forms['ProjectForm']
+        form['field_ldr'] = ''
+        response = form.submit().follow()
+
+        self.assertNotContains(response, 'Field Lead:')
+        linkstring = '<a href="#">{0} {1}</a></td>'
+        linkstring = linkstring.format(self.user2.first_name,
+                                       self.user2.last_name)
+        self.assertNotContains(response, linkstring)
+
+
+    def tearDown(self):
+        self.project2.delete()
         self.project1.delete()
         self.user2.delete()
         self.user1.delete()

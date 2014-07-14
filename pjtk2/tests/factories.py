@@ -97,6 +97,7 @@ class ProjectFactory(factory.DjangoModelFactory):
     prj_nm = "Fake Project"
     #prj_ldr = "Bob Sakamano"
     prj_ldr = factory.SubFactory(UserFactory)
+    field_ldr = factory.SubFactory(UserFactory)
     comment = "This is a fake project"
     risk = "none"
     project_type = factory.SubFactory(ProjTypeFactory)

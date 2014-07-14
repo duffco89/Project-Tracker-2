@@ -187,6 +187,9 @@ class Project(models.Model):
     prj_nm = models.CharField("Project Name", max_length=60, blank=False)
     #prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
     prj_ldr = models.ForeignKey(User, related_name="Project Lead")
+    field_ldr = models.ForeignKey(User, related_name="Field Lead",
+                                  blank=True, null=True)
+
     comment = models.TextField(blank=False,
                                help_text="General project description.")
     comment_html = models.TextField(blank=True, null=True,

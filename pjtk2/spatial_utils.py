@@ -120,6 +120,8 @@ def find_roi_projects(roi, project_types=None, first_year=None, last_year=None):
                 sample_points=sample_points.filter(
                     project__year__lte=last_year)
 
+            sample_points = sample_points.order_by('-project__year')
+
             #get list of disticnt project codes
             prj_cds = list(set([x.project.prj_cd for x in sample_points]))
             #and the points (and their labels) that will be passed to map

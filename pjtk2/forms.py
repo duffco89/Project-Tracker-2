@@ -551,6 +551,14 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
+
+    field_ldr = UserModelChoiceField(
+        label="Field Leader:",
+        queryset=User.objects.filter(is_active=True),
+        required=False,
+    )
+
+
     comment = forms.CharField(
         widget=forms.Textarea(
             attrs={'class': 'input-xxlarge', 'rows': 20, 'cols': 60}),
@@ -609,7 +617,7 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ("prj_nm", "prj_ldr", "prj_cd", "prj_date0", "prj_date1",
+        fields = ("prj_nm", "prj_ldr", "field_ldr", "prj_cd", "prj_date0", "prj_date1",
                   "risk", 'project_type', "master_database", "lake", "comment",
                   "dba", "tags")
 
@@ -633,6 +641,7 @@ class ProjectForm(forms.ModelForm):
                     'prj_nm',
                     'prj_cd',
                     'prj_ldr',
+                    'field_ldr',
                     'comment',
                     'risk',
                     #Field('prj_date0', datadatepicker='datepicker'),
