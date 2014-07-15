@@ -50,6 +50,25 @@
           <td> {{ project.project_type }}</td>
         </tr>
 
+
+        {% if project.total_cost > 0 %}
+        <tr>
+          <td><strong>Salary:</strong></td>
+          <td class="text-right"> {{ project.salary }}</td>
+        </tr>
+        <tr>
+          <td><strong>ODOE:</strong></td>
+          <td class="text-right"> {{ project.odoe }}</td>
+        </tr>
+        <tr>
+          <td><strong>Total Cost:</strong></td>
+          <td class="text-right"> {{ project.total_cost }}</td>
+        </tr>
+
+        {% endif %}
+
+
+
         <tr>
           <td><strong>Master Database:</strong></td>
           <td>          <a href="#">{{ project.master_database.master_database }}</a> </td>

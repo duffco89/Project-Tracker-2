@@ -26,6 +26,7 @@ from itertools import chain
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import (Submit, Layout, Fieldset, Field, ButtonHolder,
                                  Div)
+from crispy_forms.bootstrap import PrependedText
 
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report,
@@ -591,6 +592,9 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
+    salary = forms.IntegerField(required=False)
+    odoe = forms.IntegerField(required=False)
+
     master_database = forms.ModelChoiceField(
         label="Master Database:",
         queryset=Database.objects.all(),
@@ -619,7 +623,7 @@ class ProjectForm(forms.ModelForm):
         model = Project
         fields = ("prj_nm", "prj_ldr", "field_ldr", "prj_cd", "prj_date0", "prj_date1",
                   "risk", 'project_type', "master_database", "lake", "comment",
-                  "dba", "tags")
+                  "dba", "tags", 'salary', 'odoe')
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -651,6 +655,8 @@ class ProjectForm(forms.ModelForm):
                     Field('prj_date1', placeholder = "dd/mm/yyyy",
                           css_class='datepicker'),
                     'project_type',
+                     PrependedText('salary', '$'),
+                     PrependedText('odoe', '$'),
                     'master_database',
                     'lake',
                     'dba',

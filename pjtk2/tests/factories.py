@@ -104,6 +104,8 @@ class ProjectFactory(factory.DjangoModelFactory):
     master_database = factory.SubFactory(DatabaseFactory)
     owner = factory.SubFactory(UserFactory)
     dba = factory.SubFactory(DBA_Factory)
+    salary = None
+    odoe = None
 
     lake = factory.SubFactory(LakeFactory)
 

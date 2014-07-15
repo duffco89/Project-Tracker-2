@@ -91,7 +91,6 @@ class TestApproveProjectForm(TestCase):
         self.assertNotEqual(form.cleaned_data['prj_nm'],initial['prj_nm'])
         #self.assertNotEqual(form.cleaned_data['prj_ldr'],initial['prj_ldr'])
 
-
     def tearDown(self):
         self.proj.delete()
 
@@ -125,6 +124,8 @@ class TestProjectForm(TestCase):
             tags = "red, blue, green",
             owner = self.user.id,
             dba = self.dba.id,
+            odoe = 1000,
+            salary = 1000
            )
 
         form = ProjectForm(data=proj)
@@ -459,6 +460,58 @@ class TestProjectForm(TestCase):
         self.assertIn(errmsg, str(form.errors['prj_date1']))
         self.assertEqual(form.is_valid(), False)
 
+
+    def test_bad_odoe_data(self):
+        """odoe is not a whole number"""
+        proj = dict(
+            prj_cd = "LHA_IA12_103",
+            prj_nm = "Fake Project",
+            prj_ldr = self.user.id,
+            prj_date0 = datetime.datetime.strptime("January 15, 2012",
+                                                   "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
+            comment = "This is a fake project",
+            project_type = self.ptype.id,
+            master_database = self.dbase.id,
+            lake = self.lake.id,
+            tags = "red, blue, green",
+            owner = self.user.id,
+            dba = self.dba.id,
+            odoe = 3.14,
+            salary = 1000
+           )
+
+        form = ProjectForm(data=proj)
+        valid = form.is_valid()
+        errmsg = "Enter a whole number."
+        self.assertIn(errmsg, str(form.errors['odoe']))
+        self.assertEqual(valid, False)
+
+    def test_bad_salary_data(self):
+        """odoe is not a whole number"""
+        proj = dict(
+            prj_cd = "LHA_IA12_103",
+            prj_nm = "Fake Project",
+            prj_ldr = self.user.id,
+            prj_date0 = datetime.datetime.strptime("January 15, 2012",
+                                                   "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
+            comment = "This is a fake project",
+            project_type = self.ptype.id,
+            master_database = self.dbase.id,
+            lake = self.lake.id,
+            tags = "red, blue, green",
+            owner = self.user.id,
+            dba = self.dba.id,
+            odoe = 3000,
+            salary = 'nice try.'
+           )
+
+        form = ProjectForm(data=proj)
+        valid = form.is_valid()
+        errmsg = "Enter a whole number."
+        self.assertIn(errmsg, str(form.errors['salary']))
+        self.assertEqual(valid, False)
 
 
 

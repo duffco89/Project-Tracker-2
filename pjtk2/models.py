@@ -211,8 +211,14 @@ class Project(models.Model):
 
     lake = models.ForeignKey(Lake, default=1)
 
-    total_cost = models.DecimalField("Total Cost", max_digits=8,
+    odoe = models.DecimalField("ODOE", max_digits=8, default=0,
                                      decimal_places=2, null=True, blank=True)
+    salary = models.DecimalField("Salary", max_digits=8, default=0,
+                                     decimal_places=2, null=True, blank=True)
+
+
+    #total_cost = models.DecimalField("Total Cost", max_digits=8,
+    #                                 decimal_places=2, null=True, blank=True)
 
     slug = models.SlugField(blank=True, editable=False)
     tags = TaggableManager()
@@ -639,6 +645,14 @@ class Project(models.Model):
             'sam', 'geom')
 
         return points
+
+
+    def total_cost(self):
+        '''a little helper function to calculate the total cost of a project
+        (sum of salary and odoe)'''
+        salary = self.salary if self.salary is not None else 0
+        odoe = self.odoe if self.odoe is not None else 0
+        return salary + odoe
 
 
 class SamplePoint(models.Model):

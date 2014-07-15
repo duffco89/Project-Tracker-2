@@ -1227,6 +1227,39 @@ class TestFieldLeader(WebTest):
         self.assertNotContains(response, linkstring)
 
 
+    def test_salary_odoe_on_project_form(self):
+        '''The project form should include elements for odoe and salary.  When
+        we submit valid costs, those costs should be associated with the
+        project.'''
+
+        odoe = 1000
+        salary = 3000
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        #self.assertEqual(response.status_int, 302)
+        self.assertTemplateUsed(response, 'pjtk2/ProjectForm.html')
+
+        #get the form and submit it
+        form = response.forms['ProjectForm']
+        form['odoe'] = odoe
+        form['salary'] = salary
+        response = form.submit().follow()
+
+        #
+        proj = Project.objects.get(slug=self.project1.slug)
+        self.assertEqual(proj.odoe, odoe)
+        self.assertEqual(proj.salary, salary)
+        self.assertEqual(proj.total_cost(), odoe + salary)
+
+        self.assertContains(response, "Salary:")
+        self.assertContains(response, "ODOE:")
+        self.assertContains(response, "Total Cost:")
+
     def tearDown(self):
         self.project2.delete()
         self.project1.delete()

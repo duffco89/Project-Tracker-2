@@ -32,8 +32,6 @@ class TestProjectApproveUnapproveMethods(TestCase):
         '''we will need three projects with easy to rember project codes'''
 
         import os
-        print "os.environ['DJANGO_SETTINGS_MODULE'] = %s" % os.environ['DJANGO_SETTINGS_MODULE']
-
 
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
@@ -178,7 +176,6 @@ class TestProjectModel(TestCase):
                          self.ProjectName)
 
 
-
     def test_project_suffix(self):
         '''verify that project suffix is the last three elements of
         the project code'''
@@ -219,6 +216,37 @@ class TestProjectModel(TestCase):
         self.project2.delete()
         self.project3.delete()
         self.user.delete()
+
+
+
+
+
+@pytest.mark.django_db
+def test_project_total_cost():
+    """the total_cost() method should return the sum of salary and odoe
+    """
+
+    project = ProjectFactory.build(salary=1000)
+    assert project.odoe is None
+    assert project.salary == 1000
+    assert project.total_cost() == 1000
+
+    project = ProjectFactory.build(salary=1000, odoe=1000)
+    assert project.odoe == 1000
+    assert project.salary == 1000
+    assert project.total_cost() == 2000
+
+    project = ProjectFactory.build(odoe=1000)
+    assert project.odoe == 1000
+    assert project.salary is None
+    assert project.total_cost() == 1000
+
+    project = ProjectFactory.build()
+    assert project.odoe is None
+    assert project.salary is None
+    assert project.total_cost() == 0
+
+
 
 
 @pytest.mark.django_db
