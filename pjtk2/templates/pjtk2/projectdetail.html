@@ -50,6 +50,12 @@
           <td> {{ project.project_type }}</td>
         </tr>
 
+        {% if project.funding %}
+        <tr>
+          <td><strong>Funding Source:</strong></td>
+          <td> {{ project.get_funding_display }}</td>
+        </tr>
+        {% endif %}
 
         {% if project.total_cost > 0 %}
         <tr>
@@ -66,8 +72,6 @@
         </tr>
 
         {% endif %}
-
-
 
         <tr>
           <td><strong>Master Database:</strong></td>

@@ -12,7 +12,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.forms.formsets import BaseFormSet
 from django.forms import ModelChoiceField, CharField
-from django.forms.widgets import (CheckboxSelectMultiple,
+from django.forms.widgets import (CheckboxSelectMultiple, Select,
                                   CheckboxInput, mark_safe)
 
 #from django.utils.encoding import force_unicode
@@ -545,20 +545,17 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
-
     prj_ldr = UserModelChoiceField(
         label="Project Leader:",
         queryset=User.objects.filter(is_active=True),
         required=True,
     )
 
-
     field_ldr = UserModelChoiceField(
         label="Field Leader:",
         queryset=User.objects.filter(is_active=True),
         required=False,
     )
-
 
     comment = forms.CharField(
         widget=forms.Textarea(
@@ -592,7 +589,13 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
+    funding = forms.CharField(
+        label = 'Funding Source:',
+        widget=Select(choices=Project.FUNDING_CHOICES),
+        required=False)
+
     salary = forms.IntegerField(required=False)
+
     odoe = forms.IntegerField(required=False)
 
     master_database = forms.ModelChoiceField(
@@ -621,9 +624,9 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ("prj_nm", "prj_ldr", "field_ldr", "prj_cd", "prj_date0", "prj_date1",
-                  "risk", 'project_type', "master_database", "lake", "comment",
-                  "dba", "tags", 'salary', 'odoe')
+        fields = ("prj_nm", "prj_ldr", "field_ldr", "prj_cd", "prj_date0",
+                  "prj_date1", "risk", 'project_type', "master_database",
+                  "lake", "comment", "dba", "tags", 'salary', 'odoe', 'funding')
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -648,13 +651,12 @@ class ProjectForm(forms.ModelForm):
                     'field_ldr',
                     'comment',
                     'risk',
-                    #Field('prj_date0', datadatepicker='datepicker'),
-                    #Field('prj_date1', datadatepicker='datepicker'),
                     Field('prj_date0', placeholder = "dd/mm/yyyy",
                           css_class='datepicker'),
                     Field('prj_date1', placeholder = "dd/mm/yyyy",
                           css_class='datepicker'),
                     'project_type',
+                    'funding',
                      PrependedText('salary', '$'),
                      PrependedText('odoe', '$'),
                     'master_database',
@@ -670,6 +672,8 @@ class ProjectForm(forms.ModelForm):
 
         if readonly:
             self.fields["prj_cd"].widget.attrs['readonly'] = True
+            self.fields["prj_ldr"].queryset = User.objects.all()
+            self.fields["field_ldr"].queryset = User.objects.all()
 
         if milestones:
             if self.manager is True:

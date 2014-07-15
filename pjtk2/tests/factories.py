@@ -38,6 +38,7 @@ class DBA_Factory(factory.DjangoModelFactory):
     username = factory.Sequence(lambda n: 'DBA {0}'.format(n))
     email = 'microsoft@sucks.com'
     is_superuser = True
+    is_active = True
 
     @classmethod
     def _prepare(cls, create, **kwargs):

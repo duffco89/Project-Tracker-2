@@ -147,6 +147,6 @@ class TestActualFileUpload(TestCase):
         linkstring= '<a href="%s">%s</a>' % (reverse('serve_file',
                              args = (filepath,)), filepath)
 
-        print "response = %s" % response
+        #print "response = %s" % response
 
         self.assertContains(response, linkstring)

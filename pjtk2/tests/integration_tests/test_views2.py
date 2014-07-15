@@ -1250,7 +1250,6 @@ class TestFieldLeader(WebTest):
         form['salary'] = salary
         response = form.submit().follow()
 
-        #
         proj = Project.objects.get(slug=self.project1.slug)
         self.assertEqual(proj.odoe, odoe)
         self.assertEqual(proj.salary, salary)
@@ -1265,3 +1264,125 @@ class TestFieldLeader(WebTest):
         self.project1.delete()
         self.user2.delete()
         self.user1.delete()
+
+
+
+class TestUserChoiceFilesProjectForm(WebTest):
+    '''If we are editing a project, all users should be available in the
+    list of users to choose from, if we are copying a project, only
+    active users should be listed.
+
+    '''
+
+    def setUp(self):
+        #USERS
+        self.user1 = UserFactory.create(username = 'hsimpson',
+                                        first_name = 'Homer',
+                                        last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'bgumble',
+                                        first_name = 'Barney',
+                                        last_name = 'Gumble',
+                                        is_active=False
+                                       )
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user1,
+                                              owner=self.user1)
+
+
+    def test_edit_project_all_users_project(self):
+        '''If we're editing an existing project, all of our users should be
+        listed in the drop down lists for users.'''
+
+        #barney logs and chooses to copy the existing project
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('EditProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        form = response.forms['ProjectForm']
+
+        #Proejct Leads should include Barney - this could be an old project
+        choices = form['prj_ldr'].options
+        names = [x[2] for x in choices]
+
+        username = '{} {}'.format(self.user2.first_name, self.user2.last_name)
+        assert username in names
+
+        username = '{} {}'.format(self.user1.first_name, self.user1.last_name)
+        assert username in names
+
+        #Field Leads should include Barney - this could be an old project
+        choices = form['field_ldr'].options
+        names = [x[2] for x in choices]
+
+        username = '{} {}'.format(self.user2.first_name, self.user2.last_name)
+        assert username in names
+
+        username = '{} {}'.format(self.user1.first_name, self.user1.last_name)
+        assert username in names
+
+
+    def test_copy_project_all_users_project(self):
+        '''If we're copying an existing project, our users should be
+        limited to only those who are currenly active.'''
+
+        #barney logs and chooses to copy the existing project
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('CopyProject',
+                                        args=(self.project1.slug,)),
+                                user=self.user1)
+        form = response.forms['ProjectForm']
+
+        #Proejct Leads - should not include Barney:
+        choices = form['prj_ldr'].options
+        names = [x[2] for x in choices]
+
+        username = '{} {}'.format(self.user2.first_name, self.user2.last_name)
+        assert username not in names
+
+        username = '{} {}'.format(self.user1.first_name, self.user1.last_name)
+        assert username in names
+
+        #Field Leads - should not include Barney:
+        choices = form['field_ldr'].options
+        names = [x[2] for x in choices]
+
+        username = '{} {}'.format(self.user2.first_name, self.user2.last_name)
+        assert username not in names
+
+        username = '{} {}'.format(self.user1.first_name, self.user1.last_name)
+        assert username in names
+
+
+    def test_new_project_all_users_project(self):
+        '''If we're creating a project from scratch, our users should be
+        limited to only those who are currenly active.'''
+
+        #barney logs and chooses to copy the existing project
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.app.get(reverse('NewProject'), user=self.user1)
+        form = response.forms['ProjectForm']
+
+        #Project Leads - should not include Barney:
+        choices = form['prj_ldr'].options
+        names = [x[2] for x in choices]
+
+        username = '{} {}'.format(self.user2.first_name, self.user2.last_name)
+        assert username not in names
+
+        username = '{} {}'.format(self.user1.first_name, self.user1.last_name)
+        assert username in names
+
+        #Field Leads - should not include Barney:
+        choices = form['field_ldr'].options
+        names = [x[2] for x in choices]
+
+        username = '{} {}'.format(self.user2.first_name, self.user2.last_name)
+        assert username not in names
+
+        username = '{} {}'.format(self.user1.first_name, self.user1.last_name)
+        assert username in names
