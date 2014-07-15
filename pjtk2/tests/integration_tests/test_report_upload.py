@@ -327,7 +327,7 @@ class TestActualFileUpload(TestCase):
         filepath = os.path.split(filepath)[1]
         self.assertEquals(
             response.get('Content-Disposition'),
-            "attachment;filename=%s" % filepath
+            "attachment; filename=%s" % filepath
             )
 
 
@@ -700,7 +700,7 @@ class TestActualFileUpload(TestCase):
         files = [f for f in os.listdir(media_dir) if re.match(pattern, f)]
 
         for fname in files:
-            filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL, 
+            filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
                                     fname)
             try:
                 os.remove(filepath)

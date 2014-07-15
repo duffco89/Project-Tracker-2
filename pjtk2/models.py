@@ -693,17 +693,29 @@ class Report(models.Model):
         return str(self.report_path)
 
 
-def get_associated_file_upload_path(instance, filename):
-    '''a little helper function used by "upload_to" of associated files.
-    It will save all of the files associated with a project in a project
-    specific directory (named using the project code)
-    '''
-    return os.path.join('associated_files', instance.project.prj_cd, filename)
+
+#def get_associated_file_upload_path(instance, filename):
+#    '''a little helper function used by "upload_to" of associated files.
+#    It will save all of the files associated with a project in a project
+#    specific directory (named using the project code)
+#    '''
+#    return os.path.join('associated_files', instance.project.prj_cd, filename)
+
 
 class AssociatedFile(models.Model):
     '''class for associated files.  Unlike reports, an associated file can
     only be linked to a single project
     '''
+
+    def get_associated_file_upload_path(self, filename):
+        '''a little helper function used by "upload_to" of associated files.
+        It will save all of the files associated with a project in a project
+        specific directory (named using the project code)
+        '''
+        val = os.path.join('associated_files',
+                           self.project.prj_cd, filename)
+        return val
+
 
     project = models.ForeignKey(Project)
     file_path = models.FileField(upload_to=get_associated_file_upload_path,
@@ -722,6 +734,8 @@ class AssociatedFile(models.Model):
     #    '''return the project code of the project this file is associated
     #    with.  Used to build upload_to path'''
     #    pass
+
+
 
 
 class Bookmark(models.Model):

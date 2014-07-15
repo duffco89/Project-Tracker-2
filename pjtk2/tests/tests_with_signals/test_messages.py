@@ -56,7 +56,7 @@ class TestMarkMessages(TestCase):
                                               owner=self.user1,
                                               dba=self.user1)
 
-        self.pms = self.project1.get_milestones()[0]        
+        self.pms = self.project1.get_milestones()[0]
 
     def test_mark_messages_as_read(self):
         '''A message is marked as read if the field [read] contains a time
@@ -72,9 +72,9 @@ class TestMarkMessages(TestCase):
         for txt in msgtxt:
             message = Message(msgtxt=txt, project_milestone=self.pms)
             message.save()
-            msg4u = Messages2Users(user=self.user1, message=message) 
+            msg4u = Messages2Users(user=self.user1, message=message)
             msg4u.save()
-            
+
         messages = my_messages(user=self.user1)
         self.assertEqual(messages.count(), 4)
 
@@ -258,7 +258,7 @@ class TestBuildRecipientsList(TestCase):
 class TestSendMessages(TestCase):
     '''Some simple tests to verify that the functions associated with the
     messaging system function as expected.  send_messages should be able
-    to send a simple message to a number of recipients.  
+    to send a simple message to a number of recipients.
     '''
 
     def setUp(self):
@@ -352,7 +352,7 @@ class TestMyMessages(TestCase):
         messages.
 
         """
-        
+
         self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
                                  username='jseinfield')
 
@@ -385,14 +385,14 @@ class TestMyMessages(TestCase):
         now = datetime.datetime.now(pytz.utc)
         #now = datetime.datetime.utcnow()
         read = [now, now, None, None]
-        
+
         #create 4 messages and 4 message2user objects - two of the
         #message2user objects will have a time stamp.
         for txt, ts in zip(self.msgtxt, read):
             message = Message(msgtxt=txt, project_milestone=pms)
             message.save()
             msg4u = Messages2Users(user=self.user1, message=message,
-                                   read=ts) 
+                                   read=ts)
             msg4u.save()
 
     def test_my_messages_only_unread(self):
@@ -405,9 +405,9 @@ class TestMyMessages(TestCase):
         should_be.reverse()
         should_be.extend(['Submitted'])
 
-        self.assertQuerysetEqual(msgs, should_be, 
+        self.assertQuerysetEqual(msgs, should_be,
                                  lambda a: str(a.message.msgtxt))
-        
+
     def test_my_messages_all(self):
         '''We may want to see all of the messages that have been sent to a
         user, verify that we get them.'''
@@ -415,10 +415,10 @@ class TestMyMessages(TestCase):
         msgs = my_messages(self.user1, all=True)
 
         should_be = self.msgtxt
-        should_be.reverse() 
+        should_be.reverse()
         should_be.extend(['Submitted'])
 
-        self.assertQuerysetEqual(msgs, should_be, 
+        self.assertQuerysetEqual(msgs, should_be,
                                  lambda a: str(a.message.msgtxt))
 
     def test_my_messages_no_messages(self):
@@ -428,14 +428,14 @@ class TestMyMessages(TestCase):
         msgs = my_messages(self.user2)
         self.assertItemsEqual(msgs, [])
 
-        
+
     def tearDown(self):
         self.project1.delete()
         self.milestone1.delete()
 
         self.employee1.delete()
         self.employee2.delete()
-    
+
         self.user1.delete()
         self.user2.delete()
 
@@ -694,7 +694,7 @@ class TestGetMessagesDict(TestCase):
 class TestSendMessages(TestCase):
     '''Some simple tests to verify that the functions associated with the
     messaging system function as expected.  send_messages should be able
-    to send a simple message to a number of recipients.  
+    to send a simple message to a number of recipients.
     '''
 
     def setUp(self):
@@ -790,7 +790,7 @@ class TestMyMessages(TestCase):
         messages.
 
         """
-    
+
         self.user1 = UserFactory(first_name="Jerry", last_name="Seinfield",
                                  username='jseinfield')
 
@@ -823,15 +823,30 @@ class TestMyMessages(TestCase):
         now = datetime.datetime.now(pytz.utc)
         #now = datetime.datetime.utcnow()
         read = [now, now, None, None]
-        
+
         #create 4 messages and 4 message2user objects - two of the
         #message2user objects will have a time stamp.
         for txt, ts in zip(self.msgtxt, read):
             message = Message(msgtxt=txt, project_milestone=pms)
             message.save()
             msg4u = Messages2Users(user=self.user1, message=message,
-                                   read=ts) 
+                                   read=ts)
             msg4u.save()
+
+        #we need to update the created field for each of the
+        #message2user objects. Right now, they are too close together
+        #to reliably sort correctly (their timestamps are all the same)
+        created = []
+        yesterday = now - datetime.timedelta(days=1)
+        for x in range(4):
+           created.append(yesterday + datetime.timedelta(minutes=x))
+
+        msgs = Messages2Users.objects.all()
+        for msg,ts in zip(msgs, created):
+            msg.created = ts
+            msg.save()
+
+
 
     def test_my_messages_only_unread(self):
         '''by default, my_messages should only include those messages that
@@ -843,9 +858,15 @@ class TestMyMessages(TestCase):
         should_be.reverse()
         should_be.extend(['Submitted'])
 
-        self.assertQuerysetEqual(msgs, should_be, 
+        for msg in msgs:
+            print(msg, msg.created, msg.read)
+
+        print "dir(msg) = %s" % dir(msg)
+
+
+        self.assertQuerysetEqual(msgs, should_be,
                                  lambda a: str(a.message.msgtxt))
-        
+
     def test_my_messages_all(self):
         '''We may want to see all of the messages that have been sent to a
         user, verify that we get them (order does not matter).'''
@@ -853,10 +874,10 @@ class TestMyMessages(TestCase):
         msgs = my_messages(self.user1, all=True)
 
         should_be = self.msgtxt
-        should_be.reverse() 
+        should_be.reverse()
         should_be.extend(['Submitted'])
 
-        self.assertQuerysetEqual(msgs, should_be, 
+        self.assertQuerysetEqual(msgs, should_be,
                                  lambda a: str(a.message.msgtxt), ordered=False)
 
     def test_my_messages_no_messages(self):
@@ -866,14 +887,14 @@ class TestMyMessages(TestCase):
         msgs = my_messages(self.user2)
         self.assertItemsEqual(msgs, [])
 
-        
+
     def tearDown(self):
         self.project1.delete()
         self.milestone1.delete()
 
         self.employee1.delete()
         self.employee2.delete()
-    
+
         self.user1.delete()
         self.user2.delete()
 
@@ -1008,7 +1029,7 @@ class TestSumbittedMessage(TestCase):
         #george has no boss
         #jerry has no boss
         self.employee1 = EmployeeFactory(user=self.user1)
-        self.employee2 = EmployeeFactory(user=self.user2, 
+        self.employee2 = EmployeeFactory(user=self.user2,
                                          supervisor=self.employee1)
 
         #we need a milestone to associate the message with
@@ -1040,7 +1061,7 @@ class TestSumbittedMessage(TestCase):
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                               owner=self.user2)
 
-        
+
         #verify that both george and his boss get a notice and that it
         #contains the word 'submitted'
         Jerrys_msgs = my_messages(self.user1)
@@ -1051,9 +1072,3 @@ class TestSumbittedMessage(TestCase):
 
         self.assertEqual(1,len(Georges_msgs))
         self.assertIn( 'Submitted', Jerrys_msgs[0].message.msgtxt)
-
-
-
-
-
-

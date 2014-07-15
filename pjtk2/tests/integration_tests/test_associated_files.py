@@ -77,11 +77,11 @@ class TestAssociatedFileModel(TestCase):
 
     def TearDown(self):
         """
-        
+
         Arguments:
         - `self`:
         """
-        
+
 
 
 
@@ -95,7 +95,7 @@ class TestActualFileUpload(TestCase):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
-        self.project = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        self.project = ProjectFactory(prj_cd="LHA_IA12_111",
                                               owner=self.user)
 
         #here is fake file that we will upload
@@ -104,11 +104,12 @@ class TestActualFileUpload(TestCase):
         self.mock_file0.name = "path/to/some/fake/file.txt"
 
 
-
     def test_upload_single_report(self):
         '''verify that a user can upload a simple file, that the file
         is associated with the correct project and has the correct
         report-type.'''
+
+        self.project.save()
 
         login = self.client.login(username=self.user.username, password='abc')
         self.assertTrue(login)
@@ -128,19 +129,24 @@ class TestActualFileUpload(TestCase):
         associated_files = AssociatedFile.objects.all()
         self.assertEqual(associated_files.count(), 1)
 
-        filepath = os.path.join(settings.MEDIA_URL, self.project.prj_cd,
+        filepath = os.path.join('associated_files',
+                                self.project.prj_cd,
                                 os.path.split(self.mock_file0.name)[1])
 
-        self.assertEqual(filepath, associated_files[0].file_path)
+        assoc_file = associated_files[0]
+        fname = os.path.split(self.mock_file0.name)[1]
+        assoc_fname = assoc_file.get_associated_file_upload_path(fname)
 
+        self.assertEqual(filepath, assoc_fname)
 
         #verify that a link to the file is on the project details page
-        url = reverse('project_detail', args = (self.project1.slug,))
+        url = reverse('project_detail', args = (self.project.slug,))
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
         linkstring= '<a href="%s">%s</a>' % (reverse('serve_file',
                              args = (filepath,)), filepath)
 
-        self.assertContains(response, linkstring)
+        print "response = %s" % response
 
+        self.assertContains(response, linkstring)
