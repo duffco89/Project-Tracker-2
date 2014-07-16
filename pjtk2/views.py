@@ -42,6 +42,12 @@ import mimetypes
 import os
 
 
+def get_or_none(model, **kwargs):
+    '''from http://stackoverflow.com/questions/1512059/'''
+    try:
+        return model.objects.get(**kwargs)
+    except model.DoesNotExist:
+        return None
 
 def group_required(*group_names):
     """Requires user membership in at least one of the groups passed in."""
@@ -60,10 +66,12 @@ def group_required(*group_names):
 def is_manager(user):
     '''A simple little function to find out if the current user is a
     manager (or better)'''
-    if user.groups.filter(name='manager').count() > 0 | user.is_superuser:
-        manager = True
-    else:
-        manager = False
+    manager = False
+    if user:
+        if user.groups.filter(name='manager').count() > 0 | user.is_superuser:
+            manager = True
+        #else:
+        #    manager = False
     return(manager)
 
 
@@ -71,9 +79,13 @@ def can_edit(user, project):
     '''Another helper function to see if this user should be allowed
     to edit this project.  In order to edit the use must be either the
     project owner, a manager or a superuser.'''
-    canedit = ((user.groups.filter(name='manager').count() > 0) or
-               (user.is_superuser) or
-               (user == project.owner))
+
+    if user:
+        canedit = ((user.groups.filter(name='manager').count() > 0) or
+                   (user.is_superuser) or
+                   (user == project.owner))
+    else:
+        canedit = False
     if canedit:
         return(True)
     else:
@@ -190,10 +202,10 @@ class ProjectList(ListFilteredMixin, ListView):
         context['tag'] = self.tag
         return context
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        '''Override the dispatch method'''
-        return super(ProjectList, self).dispatch(*args, **kwargs)
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        '''Override the dispatch method'''
+#        return super(ProjectList, self).dispatch(*args, **kwargs)
 
 project_list = ProjectList.as_view()
 
@@ -206,10 +218,10 @@ class ProjectList_q(ListView):
     template_name = "pjtk2/ProjectList_Simple.html"
     paginate_by=30
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        '''Override the dispatch method'''
-        return super(ProjectList_q, self).dispatch(*args, **kwargs)
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        '''Override the dispatch method'''
+#        return super(ProjectList_q, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
@@ -264,7 +276,7 @@ approved_projects_list = ApprovedProjectsList.as_view()
 #===========================
 # My application Views
 
-@login_required
+#@login_required
 def project_detail(request, slug):
     '''View project details.'''
 
@@ -274,7 +286,8 @@ def project_detail(request, slug):
     core = get_assignments_with_paths(slug)
     custom = get_assignments_with_paths(slug, core=False)
 
-    user = User.objects.get(username__exact=request.user)
+    #user = User.objects.get(username__exact=request.user)
+    user = get_or_none(User, username__exact=request.user)
     edit = can_edit(user, project)
     manager = is_manager(user)
 
@@ -939,10 +952,10 @@ class ProjectTagList(ListView):
     queryset = Tag.objects.order_by('name')
     template_name = "pjtk2/project_tag_list.html"
 
-    @method_decorator(login_required)
-    def dispatch(self, *args, **kwargs):
-        '''Override the dispatch method'''
-        return super(ProjectTagList, self).dispatch(*args, **kwargs)
+#    @method_decorator(login_required)
+#    def dispatch(self, *args, **kwargs):
+#        '''Override the dispatch method'''
+#        return super(ProjectTagList, self).dispatch(*args, **kwargs)
 
 project_tag_list = ProjectTagList.as_view()
 

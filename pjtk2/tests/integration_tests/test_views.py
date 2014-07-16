@@ -103,22 +103,27 @@ class ProjectListTestCase(TestCase):
         self.client = Client()
         self.user = UserFactory()
 
-    def test_without_Login(self):
-        '''if we try to view the page without logging in, we should be
-        re-directed to the login page'''
+    def test_without_Login_base_template_contents(self):
+        '''Users who are not logged in should be able to see the proejct list
+        (Note - this was changed on July 16, 2014.  Previous version
+        of pjtk2 required login for all views.)
+        '''
         response = self.client.get(reverse('ProjectList'), follow=True)
 
         self.assertEqual(response.status_code,200)
-        redirectstring = "%s?next=%s" % (reverse('login'),
-                                         reverse('ProjectList'))
-        #self.assertRedirects(response, redirectstring)
+        self.assertTemplateUsed(response, 'pjtk2/ProjectList.html')
+        self.assertContains(response, 'Projects')
 
-        #assertRedirect doens't work on windows.
-        #do it manually - add the test server prefix to redirect string
-        redirectstring = "http://testserver{0}".format(redirectstring)
-        #replace encoded slashes with regular slashes
-        redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
-        self.assertEqual(redirect_chain, redirectstring)
+        #verify that base template is rendered properly:
+        #is should not contain the terms:
+        self.assertNotContains(response, 'New Project')
+        self.assertNotContains(response, 'My Projects')
+        self.assertNotContains(response, 'Approve Projects')
+        self.assertNotContains(response, 'Admin')
+        self.assertNotContains(response, 'Logout')
+        self.assertNotContains(response, 'Welcome')
+
+
 
     def test_bad_Password_Login(self):
         '''verify that the login actually stops someone'''
@@ -261,23 +266,25 @@ class ProjectDetailownerTestCase(TestCase):
         self.assertFalse(response.context['manager'])
 
     def test_without_Login(self):
-        '''if we try to view page without logging in, we should be
-        re-directed to the login page'''
-        response = self.client.get(reverse('project_detail',
-                                        kwargs={'slug':self.project.slug}), follow=True)
-        self.assertEqual(response.status_code,200)
-        redirectstring = "%s?next=%s" % (reverse('login'),
-                                         reverse('project_detail',
-                                        kwargs={'slug':self.project.slug}))
-        redirectstring = redirectstring.replace('%2F','/')
-        #self.assertRedirects(response, redirectstring)
+        '''Users who are not logged in, should be able to see theproject
+        details, but should not see links to edit, copy or bookmark
+        project or create a new one.  (Note - this was changed on July
+        16, 2014.  Previous version of pjtk2 required login for all
+        views.)
 
-        #assertRedirect doens't work on windows.
-        #do it manually - add the test server prefix to redirect string
-        redirectstring = "http://testserver{0}".format(redirectstring)
-        #replace encoded slashes with regular slashes
-        redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
-        self.assertEqual(redirect_chain, redirectstring)
+        '''
+        response = self.client.get(reverse('project_detail',
+                                        kwargs={'slug':self.project.slug}))
+        self.assertEqual(response.status_code,200)
+
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        self.assertNotContains(response, 'Edit Information')
+        self.assertNotContains(response, 'Copy Project')
+        self.assertNotContains(response, 'Sister Projects')
+        self.assertNotContains(response, 'Bookmark Project')
+        self.assertNotContains(response, 'Upload Reports')
+        self.assertNotContains(response, 'Upload Assoc. Files')
 
 
     def tearDown(self):
@@ -322,26 +329,6 @@ class ProjectDetailJoeUserTestCase(TestCase):
         #update milestones.
         self.assertFalse(response.context['edit'])
         self.assertFalse(response.context['manager'])
-
-
-    def test_without_Login(self):
-        '''if we try to view page without logging in, we should be
-        re-directed to the login page'''
-        response = self.client.get(reverse('project_detail',
-                                           kwargs={'slug':self.project.slug}), follow=True)
-        self.assertEqual(response.status_code,200)
-        redirectstring = "%s?next=%s" % (reverse('login'),
-                                         reverse('project_detail',
-                                        kwargs={'slug':self.project.slug}))
-        redirectstring = redirectstring.replace('%2F','/')
-        #self.assertRedirects(response, redirectstring)
-
-        #assertRedirect doens't work on windows.
-        #do it manually - add the test server prefix to redirect string
-        redirectstring = "http://testserver{0}".format(redirectstring)
-        #replace encoded slashes with regular slashes
-        redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
-        self.assertEqual(redirect_chain, redirectstring)
 
 
     def tearDown(self):
@@ -391,26 +378,6 @@ class ProjectDetailManagerTestCase(TestCase):
         #milestones accordingly.
         self.assertTrue(response.context['edit'])
         self.assertTrue(response.context['manager'])
-
-    def test_without_Login(self):
-        '''if we try to view page without logging in, we should be
-        re-directed to the login page'''
-        response = self.client.get(reverse('project_detail',
-                                        kwargs={'slug':self.project.slug}), follow=True)
-        self.assertEqual(response.status_code,200)
-        redirectstring = "%s?next=%s" % (reverse('login'),
-                                         reverse('project_detail',
-                                        kwargs={'slug':self.project.slug}))
-        redirectstring = redirectstring.replace('%2F','/')
-        #self.assertRedirects(response, redirectstring)
-
-        #assertRedirect doens't work on windows.
-        #do it manually - add the test server prefix to redirect string
-        redirectstring = "http://testserver{0}".format(redirectstring)
-        #replace encoded slashes with regular slashes
-        redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
-        self.assertEqual(redirect_chain, redirectstring)
-
 
     def tearDown(self):
         self.project.delete()

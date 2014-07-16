@@ -65,6 +65,7 @@
             <li><a href="{% url 'ProjectList' %}" class="sel">Project Tracker</a></li>
             {% endblock %}
 
+          {% if user.is_authenticated %}
           <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Admin <b class="caret"></b></a>
             <ul class="dropdown-menu">
@@ -80,7 +81,7 @@
 
             </ul>
           </li>
-          </li>
+          {% endif %}
         </ul>
         <div class="col-sm-3">
             <form class="navbar-form navbar-left" role="search" action={% url 'ticket_list' %}>

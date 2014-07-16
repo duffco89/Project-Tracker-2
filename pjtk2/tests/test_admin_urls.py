@@ -25,6 +25,8 @@ class TestUrls(DemoTestCase):
 
         #PROJECT
         self.project = ProjectFactory.create(prj_cd="LHA_IA12_111")
+        self.tag = 'tag'
+        self.project.tags.add(self.tag)
 
     def test_urls(self):
         '''Verify that all of the pages exist.  Can't use template_used
@@ -39,23 +41,44 @@ class TestUrls(DemoTestCase):
              {'status_code':200}),
 
             (reverse('ProjectList'),
-             {'status_code': 302}),
+             {'status_code': 200}),
+
+            (reverse('ProjectList_q'),
+             {'status_code': 200}),
+
+            (reverse('haystack_search'),
+             {'status_code':200}),
+
+            (reverse('project_detail', args=(self.project.slug,)),
+             {'status_code':200}),
+
+            (reverse('TaggedProjects',args=(self.tag,)),
+             {'status_code':200}),
+
+            (reverse('project_tag_list'),
+             {'status_code':200}),
+
+            (reverse('find_projects_roi'),
+             {'status_code':200}),
+
+
+            #the remaining views all require login:
 
             (reverse('NewProject'),
              {'status_code': 302}),
-            
+
             (reverse('CopyProject', args=(self.project.slug,)),
              {'status_code': 302}),
-            
+
             (reverse('EditProject', args=(self.project.slug,)),
              {'status_code': 302}),
-            
-            (reverse('project_detail', args=(self.project.slug,)),
-             {'status_code': 302}),
-            
+
             (reverse('ApproveProjects'),
              {'status_code': 302}),
-            
+
+            (reverse('signoff_project', args=(self.project.slug,)),
+             {'status_code': 302}),
+
             (reverse('MyProjects'),
              {'status_code': 302}),
 
@@ -67,10 +90,6 @@ class TestUrls(DemoTestCase):
 
             (reverse('ReportUpload', args=(self.project.slug,)),
              {'status_code':302}),
-
-            (reverse('haystack_search'),
-             {'status_code':200}),
-
 
             #this doesn't work right now.
             #(reverse('serve_file', kwargs={'filename':""}),
@@ -85,7 +104,7 @@ class TestUrls(DemoTestCase):
 
 
 class TestAdmin(DemoTestCase):
-  
+
     def test_admin(self):
         self.create_user('super', super=True)
         self.login('super')
