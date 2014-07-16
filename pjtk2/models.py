@@ -133,6 +133,7 @@ class Milestone(models.Model):
 class ProjectType(models.Model):
     '''A look-up table to hold project types'''
     project_type = models.CharField(max_length=150)
+    field_component  = models.BooleanField(default=True)
 
     class Meta:
         verbose_name = "Project Type"
@@ -185,11 +186,9 @@ class Project(models.Model):
     prj_cd = models.CharField("Project Code", max_length=12, unique=True,
                               blank=False)
     prj_nm = models.CharField("Project Name", max_length=60, blank=False)
-    #prj_ldr = models.CharField("Project Lead", max_length=40, blank=False)
     prj_ldr = models.ForeignKey(User, related_name="Project Lead")
     field_ldr = models.ForeignKey(User, related_name="Field Lead",
                                   blank=True, null=True)
-
     comment = models.TextField(blank=False,
                                help_text="General project description.")
     comment_html = models.TextField(blank=True, null=True,
@@ -199,27 +198,17 @@ class Project(models.Model):
                             help_text=help_str)
     risk_html = models.TextField("Risk", null=True, blank=True,
                             help_text=help_str)
-
     master_database = models.ForeignKey("Database", null=True, blank=True)
     project_type = models.ForeignKey("ProjectType", null=True, blank=True)
-
-    field_project = models.BooleanField(default=True)
     owner = models.ForeignKey(User, blank=True, related_name="ProjectOwner")
     dba = models.ForeignKey(User, blank=True, related_name="ProjectDBA")
     funding = models.CharField("Funding Source", max_length=30,
                                choices=FUNDING_CHOICES, default="spa")
-
     lake = models.ForeignKey(Lake, default=1)
-
     odoe = models.DecimalField("ODOE", max_digits=8, default=0,
                                      decimal_places=2, null=True, blank=True)
     salary = models.DecimalField("Salary", max_digits=8, default=0,
                                      decimal_places=2, null=True, blank=True)
-
-
-    #total_cost = models.DecimalField("Total Cost", max_digits=8,
-    #                                 decimal_places=2, null=True, blank=True)
-
     slug = models.SlugField(blank=True, editable=False)
     tags = TaggableManager()
 

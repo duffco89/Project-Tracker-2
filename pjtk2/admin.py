@@ -16,7 +16,7 @@ class Admin_Milestone(admin.ModelAdmin):
 
 class Admin_ProjectType(admin.ModelAdmin):
     '''Admin class for Project Types'''
-    pass
+    list_display = ('project_type', 'field_component',)
 
 class Admin_Database(admin.ModelAdmin):
     '''Admin class for databases'''

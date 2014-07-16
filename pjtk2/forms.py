@@ -889,8 +889,6 @@ class AssociatedFileUploadForm(forms.Form):
         newReport.save()
 
 
-
-
 class GeoForm(forms.Form):
     """Load a map centered over Lake Huron. """
 
@@ -911,7 +909,9 @@ class GeoForm(forms.Form):
         )
 
     project_types = forms.ModelMultipleChoiceField(
-        ProjectType.objects.all().order_by('project_type'), required=False,
+        (ProjectType.objects.filter(field_component=True).
+         order_by('project_type')),
+        required=False,
         widget=forms.CheckboxSelectMultiple(), label='Project Type')
 
     first_year = forms.IntegerField(required=False)
