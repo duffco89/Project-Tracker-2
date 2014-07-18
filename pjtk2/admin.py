@@ -49,7 +49,7 @@ class Admin_Report(admin.ModelAdmin):
 
 class Admin_Employee(admin.ModelAdmin):
     '''Admin class for Employees'''
-    pass
+    list_display = ('user', 'position', 'role','get_lakes', 'supervisor')
 
 
 class Admin_Message(admin.ModelAdmin):

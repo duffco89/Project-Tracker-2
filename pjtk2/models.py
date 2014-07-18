@@ -831,6 +831,9 @@ class Employee(models.Model):
         '''Use the username of the Employee as the string representation'''
         return self.user.username
 
+    def get_lakes(self):
+        return ", ".join([l.lake for l in self.lake.all()])
+
 
 class Message(models.Model):
     '''A table to hold all of our messages and which project and milestone
