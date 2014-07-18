@@ -589,3 +589,48 @@ def clear_upload_dir(media_path):
             os.unlink(file_path)
         except Exception as e:
             print(e)
+
+
+
+#def make_user_dict(username, first_name=None, last_name=None, email=None):
+#    '''a little helper function to take django user parameters and return
+#    a dictionary with required elements to add users using sql'''
+#    from datetime import datetime
+#    user_dict = dict(username=username,
+#                     first_name = first_name,
+#                     last_name = last_name,
+#                     email=email,
+#                     now = datetime.now())
+#    return(user_dict)
+#
+#
+#
+#def add_django_user(username, first_name=None, last_name=None, email=None,
+#                    pg_constring):
+#    """
+#
+#    Arguments:
+#    - `username`:
+#    - `first_name`:
+#    - `last_name`:
+#    - email
+#    """
+#
+#    user_id = get_user_id(username, pg_constring)
+#
+#    if user_id:
+#       print("User already exists.")
+#       return(None)
+#    else:
+#
+#        user_dict = make_user_dict(username, first_name, last_name, email)
+#
+#        pg_conn = psycopg2.connect(pg_constring)
+#        pg_cur = pg_conn.cursor()
+#        sql = ('insert into auth_user (is_superuser, username, first_name, '
+#               'last_name, email, is_staff, is active, date_joined) values '
+#               '(False, %(username)s, %(first_name)s, %(last_name)s, '
+#               '%(email)s, True, True, %(now)s)')
+#        pg_cur.execute(sql, user_dict)
+#        pg_conn.commit()
+#        pg.close()

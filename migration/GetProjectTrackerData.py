@@ -56,6 +56,20 @@ import re
 
 from migration.helper_functions import *
 
+#============================================
+# POST GRES connection parameters
+
+#pg connections parameters
+con_pars = {'HOST': 'localhost',
+          'NAME': 'pjtk2',
+          'USER': 'adam',
+          'PASSWORD': 'django'}
+
+pg_constring = ("host='{HOST}' dbname='{NAME}' user='{USER}'" +
+                  " password='{PASSWORD}'")
+pg_constring = pg_constring.format(**con_pars)
+
+
 BASE_DIR = 'c:/1work/Python/djcode/pjtk2/'
 #this version of project track database as some specific queries and
 #table needed to faciliate migration:
@@ -70,19 +84,6 @@ MEDIA_ROOT = os.path.abspath(os.path.join(BASE_DIR, "uploads"))
 MEDIA_PATH = os.path.abspath(os.path.join(MEDIA_ROOT, MEDIA_URL))
 
 MY_USER_ID = get_user_id('cottrillad', pg_constring)
-
-#============================================
-# POST GRES connection parameters
-
-#pg connections parameters
-con_pars = {'HOST': 'localhost',
-          'NAME': 'pjtk2',
-          'USER': 'adam',
-          'PASSWORD': 'django'}
-
-pg_constring = ("host='{HOST}' dbname='{NAME}' user='{USER}'" +
-                  " password='{PASSWORD}'")
-pg_constring = pg_constring.format(**con_pars)
 
 #============================================
 # get the database locations
@@ -155,7 +156,8 @@ mdbconn.close()
 #insert the project types into postgres
 pg_conn = psycopg2.connect(pg_constring)
 pg_cur = pg_conn.cursor()
-sql = """INSERT INTO pjtk2_projecttype ("project_type") VALUES (%s);"""
+sql = ('INSERT INTO pjtk2_projecttype ("project_type", "field_component")'
+       ' VALUES (%s, True)')
 pg_cur.executemany(sql, result)
 pg_conn.commit()
 pg_conn.close()
@@ -200,7 +202,8 @@ pg_conn = psycopg2.connect(pg_constring)
 pg_cur = pg_conn.cursor()
 #pg_cur.execute('SET CONSTRAINTS ALL DEFERRED')
 
-for employee in employees[2:]:
+#for employee in employees[2:]:
+for employee in employees:
     #boss_id = get_user_id(employee[0], pg_constring)
     boss_id = get_boss_id(employee[0], pg_constring)
     minion_id = get_user_id(employee[1], pg_constring)
@@ -217,8 +220,8 @@ pg_conn.close()
 print(datetime.datetime.now())
 
 #now we need to update the dba and managers
-#David McLeish
-user_id = get_user_id('mcleishda', pg_constring)
+#Ken Lacroix
+user_id = get_user_id('lacroixke', pg_constring)
 position = "Lake Manager"
 role = '1'  #manager
 
@@ -238,8 +241,8 @@ sql = sql.format(position, role, user_id)
 update_db(sql, pg_constring)
 
 #Dave Reid
-user_id = get_user_id('reidda', pg_constring)
-position = "Management Supervisor"
+user_id = get_user_id('gonderda', pg_constring)
+position = "a/Management Supervisor"
 role = '1'  #manager
 
 sql = "Update pjtk2_employee set position='{0}', role={1} where user_id={2}"
@@ -323,7 +326,7 @@ PRJ_LDR = [x.PRJ_LDR for x in result]
 COMMENT0 = [x.COMMENT0 for x in result]
 MasterDatabase = [x.MasterDatabase for x in result]
 ProjectType = [x.Project_Type for x in result]
-FieldProject = [x.field_project for x in result]
+#FieldProject = [x.field_project for x in result]
 owner = [x.owner for x in result]
 dba = [x.dba for x in result]
 oldKey = [x.oldKey for x in result]
@@ -343,9 +346,10 @@ pjtype = [get_projtype_id(x, pg_constring) for x in ProjectType]
 masterdb = [get_dbase_id(x, pg_constring) for x in MasterDatabase]
 
 active = [True if x is -1 else False for x in active]
-FieldProject = [True if x is -1 else False for x in FieldProject]
+#FieldProject = [True if x is -1 else False for x in FieldProject]
 
 slug = [x.lower() for x in PRJ_CD]
+
 
 prj_date0 = [x.strftime("%Y-%m-%d") for x in PRJ_DATE0]
 prj_date1 = [x.strftime("%Y-%m-%d") for x in PRJ_DATE1]
@@ -355,7 +359,8 @@ prj_date1 = [x.strftime("%Y-%m-%d") for x in PRJ_DATE1]
 # NOTE - PRJ_CD is duplicated to populate Slug to
 result = zip(active, YEAR, prj_date0, prj_date1, PRJ_CD, PRJ_NM,
              PRJ_LDR, COMMENT0, masterdb, pjtype,
-             FieldProject, owner, dba, oldKey, slug)
+             #FieldProject,
+             owner, dba, oldKey, slug)
 
 #reconnect to the target database and send in the master list
 pg_conn = psycopg2.connect(pg_constring)
@@ -365,9 +370,9 @@ args = result
 #here is the sql to append project tracker data into sqlite:
 sql = """INSERT INTO pjtk2_project (active, year, prj_date0, prj_date1,
       prj_cd, prj_nm, prj_ldr_id, comment, master_database_id,
-      project_type_id, field_project, owner_id, dba_id,funding,
-      lake_id, total_cost, OldKey, slug)
-      VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, 'Base', 1,0.00,%s,%s);"""
+      project_type_id, owner_id, dba_id,funding,
+      lake_id, OldKey, slug)
+      VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s, 'Base', 1,%s,%s);"""
 pg_cur.executemany(sql, args)
 pg_conn.commit()
 pg_conn.close()

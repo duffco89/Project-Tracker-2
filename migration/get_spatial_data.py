@@ -270,7 +270,7 @@ sql = ("SELECT DISTINCT sp.dbase, sp.prj_cd FROM spatial_tmp sp " +
 pgcur.execute(sql)
 orphans = pgcur.fetchall()
 fname = 'c:/1work/Python/djcode/pjtk2/migration/orphans.csv'
-with open(fname, 'w', newline='') as f:
+with open(fname, 'w') as f:
     writer = csv.writer(f)
     writer.writerow([x[0] for x in pgcur.description])
     writer.writerows(orphans)
@@ -278,11 +278,11 @@ with open(fname, 'w', newline='') as f:
 #these are projects that have a completion product of some kind but do
 #not appear in the master databases anywhere
 
-sql = """
-SELECT distinct p.year, p.prj_cd, p.prj_nm,
-u.first_name || ' ' || u.last_name as project_lead, p.field_project
+sql = """SELECT distinct p.year, p.prj_cd, p.prj_nm,
+u.first_name || ' ' || u.last_name as project_lead, prjtype.field_component
 FROM pjtk2_project p
         join auth_user as u on u.id=p.prj_ldr_id
+  join pjtk2_projecttype as prjtype on prjtype.id=p.project_type_id
   JOIN pjtk2_projectmilestones pms ON p.id = pms.project_id
         join pjtk2_milestone ms on ms.id=pms.milestone_id
         where ms.label in ('Summary Report', 'Project Completion Report',
@@ -293,11 +293,13 @@ FROM pjtk2_project p
   select distinct prj_cd from spatial_tmp
 )
 order by year desc;
+
+
 """
 pgcur.execute(sql)
 omissions = pgcur.fetchall()
 fname = 'c:/1work/Python/djcode/pjtk2/migration/omissions.csv'
-with open(fname, 'w', newline='') as f:
+with open(fname, 'w') as f:
     writer = csv.writer(f)
     writer.writerow([x[0] for x in pgcur.description])
     writer.writerows(omissions)
