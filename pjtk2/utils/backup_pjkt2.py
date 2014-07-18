@@ -53,7 +53,8 @@ except IndexError:
     COMPLETE = False
 
 src_dir = 'C:/1work/Python/djcode/pjtk2/uploads'
-trg_dir = 'C:/1work/scrapbook/pjtk2_archive'
+#trg_dir = 'C:/1work/scrapbook/pjtk2_archive'
+trg_dir = 'X:/ScrapBook/pjtk2_archive'
 
 if not os.path.exists(trg_dir):
     os.makedirs(trg_dir)
@@ -210,7 +211,7 @@ if len(associated) > 0:
         dest = os.path.join(trg_dir, fname)
         move_report_file(src, dest, trg_dir)
 
-print("Done copying files")
+print("Done copying files to {}".format(trg_dir))
 msg = "Done Project Tracker II Backup ({})\n".format(TODAY)
 logging.info(msg)
 

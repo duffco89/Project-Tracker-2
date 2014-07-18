@@ -999,3 +999,9 @@ def find_projects_roi_view(request):
                               {'form':form},
                               context_instance=RequestContext(request)
         )
+
+
+def about_view(request):
+    """a view to render the about page."""
+    return render_to_response('pjtk2/about.html',
+                              context_instance=RequestContext(request))

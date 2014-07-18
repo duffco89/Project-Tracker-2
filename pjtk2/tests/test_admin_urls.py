@@ -61,6 +61,9 @@ class TestUrls(DemoTestCase):
             (reverse('find_projects_roi'),
              {'status_code':200}),
 
+            (reverse('about_view'),
+             {'status_code':200}),
+
 
             #the remaining views all require login:
 

@@ -1,0 +1,265 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+{% block title  %} {{ block.super }}| About {% endblock %}
+
+{% block content  %}
+
+
+<div class="container" >
+
+<h2>About Project Tracker II</h2>
+<p>
+ Initially designed as a MS Access application, Project Tracker was
+ developed to effectively manage the reporting requirements
+ of the numerous projects conducted by the UGLMU in an efficient,
+ organized and comprehensive manner. Although the MS Access
+ application was never developed beyond the proof of concept phase, it
+ proved to an extremely effective method of cataloging and archiving a
+ wide range of products and reports.  However the MS Access version
+ had a number of shortcoming that were inherent in the platform and
+ was not developed further.
+</p>
+
+<p>Project Tracker II is the re-incarnation of the original project
+  tracker concept developed in a web-based framework.  This approach
+  addressed many of shortcomings of the original application and
+  makes it relatively easy to implement features that would difficult
+  if not impossible to implement in MS Access.</p>
+
+<p>The purpose of this page is to provide a quick overview of the main
+  features of Project Tracker II and document some of those features
+  that may not be immediately obvious.  Some of the key features in
+  Project Tracker II include:</p>
+
+<ul>
+  <li>sortable, filterable, project lists</li>
+  <li>comprehensive project detail page</li>
+  <li>extensive search capabilities - find project by
+  pre-defined keywords, arbitrary keyword and even by geography</li>
+  <li>'My Projects' view </li>
+  <li>role based permissions and views</li>
+  <li>a notification system</li>
+</ul>
+
+<hr />
+
+<h3>Project Detail Page</h3>
+
+<p>Every project in project tracker has a detail page that provides
+  the basic information about the project as well as an interface to
+  upload and download associated reports.</p>
+
+<p>Typical data elements presented on the detail page include project
+  name, project code, project lead, field lead, start and end date,
+  description and keywords.  Additionally, if the project has
+  associated sample information, the location of the samples will be
+  presented on an interactive map illustrating where the samples were
+  collected.  The bottom part of the details page include sections
+  with links to standard reporting requirements, special reporting
+  requirements (if any), and any associated files.  The associated
+  files often include a zipped up archive of the project working
+  directory and should contain schedules, shapefiles, scripts, and
+  other analysis tools that may be required to re-run the project in
+  the future.</p>
+
+<p>For the general user, the elements on a projects detail page will
+  be entirely read-only.  Only the project owner, manager, or
+  administrator can make changes to project entries or upload
+  reports.</p>
+
+<p>Depending on the roll and associated permission of the logged in
+  user, the project detail page also provides an interface to copy or
+  edit project information, bookmark/unbookmark the project, upload
+  reports, and/or change reporting requirements.</p>
+
+<hr />
+
+  <h3>Finding Projects</h3>
+
+  <p>By default, the home page of
+  <a href="{% url 'index' %}">Project Tracker II</a> is a paginated
+  list of projects presented in reverse chronological order (newest
+  projects first).  Each row in the list represents a single project
+  and provides basic information such as the project code, name, and
+  project type.  Additionally, the project code in each row provides a
+  link to the details page associated with the project. Older projects
+  can be viewed by clicking on the 'Older Projects' button at the top
+  of the list.  The list view can be further filtered by clicking on
+  the 'Filter List' link located on the top right hand corner of the
+  list.  Currently, the available filters include year, project type
+  and lake. </p>
+
+  <h4>Project Code Quick Search</h4>
+
+  <p>At the top of every page in Project Tracker II there is a
+  small search box that contains the words 'Project Code Quick Search'.
+  This box can be used to quickly find all projects with project codes
+  that contain whatever string you submit in this box.  For example,
+  searching for "LHA_SC" will return all sport creel (SC) projects run
+  (or planned) for Lake Huron.</p>
+
+  <h4>By Predefined Keyword</h4>
+
+  <p>Every project in Project Tracker II has at least one keyword or
+  'tag' associated with it. Keywords associated with each project are
+  presented as hyperlinks on the project's detail page.  Additionally,
+  a list
+  of all active keywords can be found in a drop
+  down list in the main title bar of all pages in Project Tracker II
+  (or
+<a href="{% url 'project_tag_list' %}">here</a>.)
+  The hyperlink associated with any keyword will render a view that
+  contains all of the projects that have been associated with that tag. (For
+  example, here are all of the projects associated with
+<a href="{% url 'TaggedProjects' 'gizzard shad' %}">gizzard shad</a>.
+) </p>
+
+<p>Keywords are mandatory for new projects.  Good keywords make it
+  easier to find relevant projects quickly and might include the target
+  species of the project, protocols used (
+  <a href="{% url 'TaggedProjects' 'flin' %}">FLIN</a> ,
+  <a href="{% url 'TaggedProjects' 'estn'%}">ESTN</a> etc)
+  and region or place names
+  (<a href="{% url 'TaggedProjects' 'severn sound' %}">Severn Sound</a>).
+  Keywords are all forced to lower case so 'Lake Trout', 'lake trout'
+  and 'LAKE TROUT' are all converted to 'lake trout' and are thus
+  equivalent.  Keywords should be entered as a list of comma separated
+  values and any keyword phases that contain spaces must be wrapped
+  in quotes.</p>
+
+<p>Keywords for existing projects were populated by calculating the
+  five most commonly caught and sampled fish in the catch counts
+  of each project.  These species specific keywords were then
+  augmented by querying the project name and description for the
+  occurrence of pre-defined keywords based on frequently sampled
+  locations (towns, rivers and bays) and known protocol acronyms.
+  Project leads are encouraged to update their historical project with
+  additional keywords that may have been missed by the automated
+  algorithm.</p>
+
+
+  <h4>By Arbitrary Keyword</h4>
+
+  <p>In addition to predefined keywords, Project Tracker II uses an
+  extremely powerful indexing and searching engine to monitor the
+  contents of both the project description and project name.  This
+  index is automatically updated any time a project record is created
+  or modified. Arbitrary keywords can be searched using the
+  <a href="{% url 'haystack_search' %}">'By Any Keyword'</a>
+  option available in the title bar of all projects in Project
+  Tracker II.  The results of the search are presented in a reverse
+  chronological list that can be further subsetted by project type,
+  lake, and funding source.</p>
+
+  <p>The utility of this feature is directly dependent upon the quality
+  of the project names and description fields.  Project leads are
+  strongly encouraged to provide carefully considered project names
+  and detailed project descriptions.</p>
+
+
+  <h4>By User-defined Region of Interest</h4>
+
+  <p>The database behind Project Tracker II has sophisticated GIS
+  capabilities that can be used to find all of the projects that have
+  at least one sample in an arbitrary region of interest supplied by
+  the user.  The view to find projects by region of interest can be
+  found <a href="{% url 'find_projects_roi' %}">here</a>
+  or accessed from the title bar of every page in Project
+  Tracker II.  The main form on this page contains in interactive map
+  that users can use to delineate the specific region of interest. The
+  tool bar located in the top right hand corner of the map expands to
+  reveal a number of tools - the polygon tool is the one that is used
+  to actually draw the region of interest on the map.  The region of
+  interest can be as simple or as complex as desired, and will appear
+  as a bright pink polygon on the map.</p>
+
+  <p>Submitting the form will return a view that contains another map
+  with all of the sample points in the region of interest and lists of
+  projects that are either wholly contained in the region of interest
+  or have at least one sample in it.</p>
+
+  <p>The spatial form also contains input elements to filter the
+  projects by project-type as well as the earliest and latest year to
+  include in the results.  For performance reasons, it is highly
+  recommended that filters by applied anytime a spatial query is
+  run. Limiting your search to specific project types and years is
+  highly recommended and can substantially improve performance of queries.</p>
+
+  <p>Data included in this view is updated semi-regularly from the
+  master databases maintained by the UGLMU.  Projects that have not
+  been appended into one of those databases will not be included in the
+  results of these spatial queries.</p>
+
+<hr />
+
+  <h3>My Projects</h3>
+
+  <p>One of the largest shortcomings of the original version of project
+  tracker was the difficulty in finding projects associated with a
+  specific project lead, and for project leads, seeing requirements that
+  remained outstanding.  Project Tracker II satisfies this need by
+  creating a 'My Projects' view for each user.  The My Projects view
+  contains tabs for notifications, as well as submitted, approved,
+  completed and bookmarked projects.</p>
+
+  <h4>Notifications</h4>
+
+  <p>The notifications tab contains a simple interface that lists notices
+  that milestones associated with your projects have been completed or
+  have occurred.  Example milestones include project approval, project sign-off,
+  completion of field work, and addition of any associated reports or files. </p>
+
+  <h4>Submitted, Approved and Completed Projects</h4>
+
+  <p>The submitted, approved, and completed tabs provide a quick
+  summary view of your projects and the status of each of the required
+  reporting milestones.</p>
+
+  <h4>Bookmarked Projects</h4>
+
+  <p>Project Tracker II supports bookmarking (or subscribing) to
+  individual projects.  By default, users will not receive notices about
+  projects that they are not associated with, but there are many
+  instances were different users need to know when milestones have
+  occurred for projects run by different project leads.  Bookmarking
+  allows users to subscribe to milestone events associated with other
+  projects and receive notices as the milestones occur.  Any projects
+  that users have bookmarked will appear on this tab.</p>
+
+<hr />
+
+  <h3>Sister Projects</h3>
+
+<p>Sister projects reflect the fact that many of projects run by the
+  UGLMU are closely related to one another and are often summarized
+  and reported as a single entity.  The Lake Huron offshore index
+  program provides a good example of sister projects as the program often
+  consists of 6 to 8 different projects run at different locations
+  around Lake Huron using a common gear and methodology.  The projects
+  have different field protocols (set maps and tables), project
+  descriptions, and completion reports, but are usually reported in a
+  common summary report.  Sister projects streamline the reporting
+  requirement for these projects by associated common summary reports
+  and presentations with multiple projects.  Sister projects can be
+  identified through the detail page for any given project.  In order
+  to be considered eligible as a potential sister, projects must be
+  approved, be run in the same calendar year, and be the same project
+  type.</p>
+
+<hr />
+
+  <h3>Ticket Tracker</h3>
+
+<p> <a href="{% url 'ticket_list' %}" class="sel">TicketTracker</a> is
+  a simple application designed to keep track of tickets representing
+  bug reports or feature requests.  If you find a bug in Project
+  Tracker II or can't find a feature or view that you would really
+  like, please open a ticket in TicketTracker describing the bug (and
+  how to recreate it) or feature you would like to see.  TicketTracker
+  will be monitored periodically to ensure that Project Tracker II
+  continues to function properly and meets the needs of its users.
+</p>
+
+</div>
+
+{% endblock %}
