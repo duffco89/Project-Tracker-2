@@ -97,12 +97,45 @@ class TestProjectsThisLastYear(TestCase):
                                               owner = self.user,
                                               active=False)
 
+    def test_active_projects_only(self):
+        """By default, the project lists should only include projects where
+        active is true - allows us to depreciate projects without deleting
+        them from the database."""
+
+        #active projects include project 1,3,5 and 7.
+        active = [x.prj_cd for x in [self.project1, self.project3,
+                                     self.project5, self.project7]]
+
+        #inactive projects include project 2,4,6, and 8
+        inactive = [x.prj_cd for x in [self.project2, self.project4,
+                                       self.project6, self.project8]]
+
+        self.assertEqual(self.project1.active, True)
+        self.assertEqual(self.project3.active, True)
+        self.assertEqual(self.project5.active, True)
+        self.assertEqual(self.project7.active, True)
+
+        self.assertEqual(self.project2.active, False)
+        self.assertEqual(self.project4.active, False)
+        self.assertEqual(self.project6.active, False)
+        self.assertEqual(self.project8.active, False)
+
+        projects = Project.objects.all()
+        project_codes = [x.prj_cd for x in projects]
+
+        for x in active:
+            self.assertIn(x, project_codes)
+
+        for x in inactive:
+            self.assertNotIn(x, project_codes)
+
+
 
     def test_projects_lastyear(self):
 
         #make sure that the project we think exist do
         all_projects = Project.objects.all().count()
-        self.assertEqual(all_projects,8)
+        self.assertEqual(all_projects, 4)
 
         prj_manager = Project.last_year.all()
         #reverse chronological order
@@ -114,7 +147,7 @@ class TestProjectsThisLastYear(TestCase):
 
         #make sure that the project we think exist do
         all_projects = Project.objects.all().count()
-        self.assertEqual(all_projects,8)
+        self.assertEqual(all_projects, 4)
 
         prj_manager = Project.this_year.all()
         #reverse chronological order

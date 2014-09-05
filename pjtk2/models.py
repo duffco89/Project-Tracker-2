@@ -29,8 +29,12 @@ DEMOTE_HEADERS = 2
 
 
 class ProjectsManager(models.GeoManager):
-    '''two custom extensions to the base manager for project objects to
+    '''Custom extensions to the base manager for project objects to
     return approved and completed projects.'''
+
+    def get_query_set(self):
+        #by default, only return projects that are active:
+        return super(ProjectsManager, self).get_query_set().filter(active=True)
 
     def submitted(self):
         '''return a queryset containing only those projects that have been
