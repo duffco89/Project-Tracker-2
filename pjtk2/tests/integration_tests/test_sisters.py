@@ -290,7 +290,7 @@ class SisterFormTestCase(WebTest):
 
         #check one of the boxes and submit the form,
         form.fields['form-0-sister'][0].value = 'on'
-        
+
         form.submit()
 
         proj = Project.objects.get(slug=self.project1.slug)
@@ -471,68 +471,91 @@ class SisterFormTestCase(WebTest):
         self.user.delete()
 
 
-##class SisterProjectsTestCase(TestCase):
-##    '''Verify that the user can see and update sisters associated with
-##    projects'''
-##
-##
-##    def setUp(self):
-##        '''we will need three projects with easy to rember project codes'''
-##        self.user = UserFactory(username='hsimpson',
-##                                first_name='Homer',
-##                                last_name='Simpson')
-##
-##        #create milestones
-##        self.milestone1 = MilestoneFactory.create(label="Approved",
-##                                             category = 'Core', order=1,
-##                                             report=False)
-##        self.milestone2 = MilestoneFactory.create(label="Sign off",
-##                                        category = 'Core', order=999,
-##                                             report=False)
-##
-##
-##        self.ProjType = ProjTypeFactory()
-##        self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
-##
-##
-##        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
-##                                              owner=self.user,
-##                                              project_type = self.ProjType)
-##
-##        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
-##                                              owner=self.user,
-##                                              project_type = self.ProjType)
-##
-##        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
-##                                              owner=self.user,
-##                                              project_type = self.ProjType)
-##        #don't forget to approve the projects
-##        self.project1.approve()
-##        self.project2.approve()
-##        self.project3.approve()
-##
-##
-##    def test_sisterbtn(self):
-##
-##        login = self.client.login(username=self.user.username, password='abc')
-##        self.assertTrue(login)
-##
-##        url = reverse('SisterProjects', args =(self.project1.slug,))
-##        response = self.client.get(url)
-##        self.assertEqual(response.status_code, 200)
-##        self.assertTemplateUsed(response, 'pjtk2/SisterProjects.html')
-##
-##        linktext = '<a href="%s">%s</a>' % (reverse('project_detail',
-##                                            args =(self.project2.slug,)),
-##                                            self.project2.prj_cd)
-##        self.assertContains(response, linktext)
-##
-##
-##    def tearDown(self):
-##        self.project1.delete()
-##        self.project2.delete()
-##        self.project3.delete()
-##        self.milestone1.delete()
-##        self.milestone2.delete()
-##        self.user.delete()
-##
+class SisterProjectsTestCase(WebTest):
+    '''Verify that the user can see and update sisters associated with
+    projects'''
+
+
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+        self.user = UserFactory(username='hsimpson',
+                                first_name='Homer',
+                                last_name='Simpson')
+
+        #create milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1,
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999,
+                                             report=False)
+
+
+        self.ProjType = ProjTypeFactory()
+        self.ProjType2 = ProjTypeFactory(project_type = "Nearshore Index")
+
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              owner=self.user,
+                                              project_type = self.ProjType)
+
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+                                              owner=self.user,
+                                              project_type = self.ProjType)
+
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
+                                              prj_nm='another fake project',
+                                              owner=self.user,
+                                              project_type = self.ProjType)
+        #don't forget to approve the projects
+        self.project1.approve()
+        self.project2.approve()
+        self.project3.approve()
+
+
+    def test_sisterbtn(self):
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+
+        url = reverse('SisterProjects', args =(self.project1.slug,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/SisterProjects.html')
+
+        linktext = '<a href="%s">%s</a>' % (reverse('project_detail',
+                                            args =(self.project2.slug,)),
+                                            self.project2.prj_cd)
+        self.assertContains(response, linktext)
+
+
+    def test_detail_contains_link_to_sister(self):
+        """if the project has a sister, a link to that sister should appear on
+        the detail page for that project."""
+
+        #set up the sister relationship
+        self.project1.add_sister(self.project2.slug)
+
+        url = reverse('project_detail', args =(self.project1.slug,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+
+        self.assertContains(response, "Sister Projects:")
+        self.assertContains(response, self.project2.prj_nm)
+        linktext = '<a href="%s">%s</a>' % (reverse('project_detail',
+                                            args =(self.project2.slug,)),
+                                            self.project2.prj_cd)
+        self.assertContains(response, linktext)
+
+        self.assertNotContains(response, self.project3.prj_cd)
+        self.assertNotContains(response, self.project3.prj_nm)
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()
+        self.milestone1.delete()
+        self.milestone2.delete()
+        self.user.delete()

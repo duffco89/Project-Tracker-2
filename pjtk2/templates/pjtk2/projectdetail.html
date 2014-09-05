@@ -100,6 +100,17 @@
       </div>
       {% endif %}
 
+      {% if project.has_sister %}
+      <p><strong>Sister Projects:</strong></p>
+      <div class="panel panel-default" >
+        <div class="panel-body" >
+        {% for sister in project.get_sisters %}
+         <p><a href="{{ sister.get_absolute_url  }}">{{ sister.prj_cd }}</a>  - {{ sister.prj_nm }}</p>
+        {% endfor%}
+        </div>
+      </div>
+      {% endif %}
+
       <p><strong>keywords:</strong></p>
       <div class="panel panel-default" >
         <div class="panel-body" >
