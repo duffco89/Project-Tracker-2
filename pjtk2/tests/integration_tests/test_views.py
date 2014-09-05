@@ -1238,3 +1238,139 @@ class ProjectQuickSearch(TestCase):
         linkstring = link_base.format(reverse('project_detail',
                          args = (self.project3.slug,)), self.project3.prj_cd)
         self.assertContains(response, linkstring, html=True)
+
+
+
+class UserProjectList(TestCase):
+    '''The user proejct list should return all of the projects assocaited
+    with a user, including those projects in which they were either
+    the proejct lead or field lead.
+
+    '''
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+
+        self.client = Client()
+
+        self.user1 = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        self.user2 = UserFactory(username = 'mburns',
+                                first_name = 'Monty',
+                                last_name = 'Burns')
+
+        self.user3 = UserFactory(username = 'bgumble',
+                                first_name = 'Barney',
+                                last_name = 'Gumble')
+
+
+
+        self.project1 = ProjectFactory(prj_cd="LHA_IA12_111",
+                                              prj_nm="First Fake Project",
+                                              prj_ldr=self.user1)
+        self.project2 = ProjectFactory(prj_cd="LHA_IA12_222",
+                                              prj_nm="Second Fake Project",
+                                              prj_ldr=self.user1,
+                                              field_ldr=self.user2)
+        self.project3 = ProjectFactory(prj_cd="LHA_IA00_000",
+                                              prj_nm="Third Fake Project",
+                                              prj_ldr=self.user1,
+                                              field_ldr=self.user1)
+
+
+    def test_prj_ldr(self):
+        """Homer was involved in all three projects, if we navigate to his
+        project we should see all three project codes.
+
+        """
+
+        url = reverse('user_project_list',
+                      kwargs={'username':self.user1.username})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("pjtk2/ProjectList.html")
+
+        self.assertContains(response, "{0} {1}".format(
+            self.user1.first_name, self.user1.last_name))
+
+        self.assertContains(response, self.project1.prj_cd)
+        self.assertContains(response, self.project1.prj_nm)
+
+        self.assertContains(response, self.project2.prj_cd)
+        self.assertContains(response, self.project2.prj_nm)
+
+        self.assertContains(response, self.project3.prj_cd)
+        self.assertContains(response, self.project3.prj_nm)
+
+
+    def test_field_ldr(self):
+        """Mr. Burns was involved as field lead for only one project.  It is
+        the only project code that should appear in his project list.
+
+        """
+
+        url = reverse('user_project_list',
+                      kwargs={'username':self.user2.username})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("pjtk2/ProjectList.html")
+
+        self.assertContains(response, "{0} {1}".format(
+            self.user2.first_name, self.user2.last_name))
+
+        #  NOT!!
+        self.assertNotContains(response, self.project1.prj_cd)
+        self.assertNotContains(response, self.project1.prj_nm)
+
+        self.assertContains(response, self.project2.prj_cd)
+        self.assertContains(response, self.project2.prj_nm)
+
+        #  NOT!!
+        self.assertNotContains(response, self.project3.prj_cd)
+        self.assertNotContains(response, self.project3.prj_nm)
+
+
+
+    def test_joe_user(self):
+        """Barney Gumble was not involved in any of hte projects.  The project
+        codes should not appear in his project list and an appropriate message
+        should be displayed.
+
+        """
+        url = reverse('user_project_list',
+                      kwargs={'username':self.user3.username})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        self.assertTemplateUsed("pjtk2/ProjectList.html")
+
+        self.assertContains(response, "{0} {1}".format(
+            self.user3.first_name, self.user3.last_name))
+
+        msg = "Sorry no projects available."
+        self.assertContains(response, msg)
+
+        #  NOT!!
+        self.assertNotContains(response, self.project1.prj_cd)
+        self.assertNotContains(response, self.project1.prj_nm)
+
+        #  NOT!!
+        self.assertNotContains(response, self.project2.prj_cd)
+        self.assertNotContains(response, self.project2.prj_nm)
+
+        #  NOT!!
+        self.assertNotContains(response, self.project3.prj_cd)
+        self.assertNotContains(response, self.project3.prj_nm)
+
+
+
+    def tearDown(self):
+        self.project3.delete()
+        self.project2.delete()
+        self.project1.delete()
+        self.user3.delete()
+        self.user2.delete()
+        self.user1.delete()

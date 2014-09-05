@@ -2,7 +2,7 @@
 {% load crispy_forms_tags %}
 {% block extrahead  %}
 
-<script src="{{ STATIC_URL }}js/jquery-1.9.1.js"></script>    
+<script src="{{ STATIC_URL }}js/jquery-1.9.1.js"></script>
 <script src="{{ STATIC_URL }}js/jquery-1.10.2.min.js"></script>
 <!-- bootstrap widget theme -->
 <link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
@@ -21,10 +21,13 @@
 
 
 <div class="container" >
-  <h1>{% if approved %} Approved {% endif %} Projects {% if year %}{{ year }}{% endif %}{% if tag %}tagged with '{{ tag }}'{% endif %}</h1>
+  <h1>{% if approved %} Approved {% endif %} Projects {% if year %}{{
+  year }}{% endif %}{% if tag %}tagged with '{{ tag }}'{% endif %}
+  {% if prj_ldr %} associated with {{ prj_ldr.first_name }} {{ prj_ldr.last_name }}: {% endif %}</h1>
 
-{% if page_obj %} 
-{% if page_obj.paginator.num_pages > 1 %}  
+
+{% if page_obj %}
+{% if page_obj.paginator.num_pages > 1 %}
 <ul class="pager">
     {% if page_obj.has_previous %}
     <li class="previous"><a href="?page={{ page_obj.previous_page_number }}">Newer Projects</a></li>
@@ -46,6 +49,7 @@
 {% endif %}
 
 
+  {% if object_list %}
 
   {% if not approved %}
   <a href="#" onclick="toggle_visibility('filter');">Filter List: </a>
@@ -56,7 +60,7 @@
   </div>
   {% endif %}
 
-  {% if object_list %}
+
   <table cellspacing="0" class="tablesorter">
     <thead>
       <tr>
@@ -85,7 +89,8 @@
   {% endif %}
 
   {% else %}
-  <p>Sorry no projects available.</p>
+  <br />
+  <h4>Sorry no projects available.</h4>
   {% endif %}
 
 </div>
@@ -113,7 +118,7 @@
 
 <script type="text/javascript">
 <!--
- 
+
 function toggle_visibility(id) {
 var e = document.getElementById(id);
 if(e.style.display == 'block')
@@ -121,7 +126,7 @@ e.style.display = 'none';
 else
 e.style.display = 'block';
 }
- 
+
 //-->
 </script>
 

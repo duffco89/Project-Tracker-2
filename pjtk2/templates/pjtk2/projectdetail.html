@@ -24,14 +24,14 @@
 
         <tr>
           <td><strong>Project Lead:</strong></td>
-          <td><a href="#">{{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a></td>
+          <td><a href="{% url 'user_project_list' project.prj_ldr.username %}">{{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a></td>
         </tr>
 
         {% if project.field_ldr %}
 
         <tr>
           <td><strong>Field Lead:</strong></td>
-          <td><a href="#">{{ project.field_ldr.first_name }} {{ project.field_ldr.last_name }}</a></td>
+          <td><a href="{% url 'user_project_list' project.field_ldr.username %}">{{ project.field_ldr.first_name }} {{ project.field_ldr.last_name }}</a></td>
         </tr>
         {% endif %}
 

@@ -13,12 +13,14 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 from django.core.servers.basehttp import FileWrapper
+from django.db.models import Q
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
 from django.http import Http404, HttpResponseRedirect, HttpResponse, StreamingHttpResponse
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
+
 
 from taggit.models import Tag
 
@@ -162,8 +164,14 @@ class ListFilteredMixin(object):
 
         #==========
         self.tag = self.kwargs.pop('tag', None)
+        self.username = self.kwargs.pop('username', None)
         if self.tag:
             queryset = Project.objects.filter(tags__name__in=[self.tag])
+        elif self.username:
+            #get the projects that involve this user:
+            queryset = Project.objects.filter(
+                Q(prj_ldr__username=self.username) |
+                Q(field_ldr__username=self.username))
         else:
             queryset = Project.objects.all()
         return queryset
@@ -199,19 +207,25 @@ class ProjectList(ListFilteredMixin, ListView):
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
         the request.'''
+
+        try:
+            prj_ldr = User.objects.get(username=self.username)
+        except User.DoesNotExist:
+            prj_ldr = dict(first_name=self.username, last_name="")
+
         context = super(ProjectList, self).get_context_data(**kwargs)
         context['tag'] = self.tag
+        context['prj_ldr'] = prj_ldr
+        #import pdb;pdb.set_trace()
         return context
-
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        '''Override the dispatch method'''
-#        return super(ProjectList, self).dispatch(*args, **kwargs)
 
 project_list = ProjectList.as_view()
 
 #subset of projects tagged with tag:
 taggedprojects = ProjectList.as_view()
+
+#subset of the projects associated with a user:
+user_project_list = ProjectList.as_view()
 
 
 class ProjectList_q(ListView):

@@ -22,6 +22,8 @@ urlpatterns = patterns('pjtk2.views',
 
     #CRUD Projects
     url(r'^projects/$', 'project_list', name='ProjectList'),
+    url(r'^projects/(?P<username>.+)/$',
+        'user_project_list', name='user_project_list'),
     url(r'^projects/?q=$', 'project_list_q', name='ProjectList_q'),
     url(r'^projects/approved$', 'approved_projects_list',
         name='ApprovedProjectsList'),
