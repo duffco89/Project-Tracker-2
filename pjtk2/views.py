@@ -83,13 +83,14 @@ def can_edit(user, project):
     if user:
         canedit = ((user.groups.filter(name='manager').count() > 0) or
                    (user.is_superuser) or
-                   (user == project.owner))
+                   (user == project.owner) or (user == project.field_ldr))
     else:
         canedit = False
+
     if canedit:
-        return(True)
+        return True
     else:
-        return(False)
+        return False
 
 
 def get_assignments_with_paths(slug, core=True):

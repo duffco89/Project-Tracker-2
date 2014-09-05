@@ -61,19 +61,34 @@ class TestCanEditFunction(TestCase):
                                               owner=self.user1)
 
 
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+                                              owner=self.user1,
+                                              field_ldr=self.user3)
+
+
     def test_can_edit_function(self):
         '''Verify that canEdit returns the expected value given our project
-        and each of the three users.'''
+        and each of the three users and their roles.'''
 
         #as project owner, Homer can edit the project
-        self.assertEqual(can_edit(self.user1, self.project1),True)
+        self.assertEqual(can_edit(self.user1, self.project1), True)
         #as a manageer, Mr Burns can edit the project too
-        self.assertEqual(can_edit(self.user2, self.project1),True)
+        self.assertEqual(can_edit(self.user2, self.project1), True)
         #Barney can't edit project
-        self.assertEqual(can_edit(self.user3, self.project1),False)
+        self.assertEqual(can_edit(self.user3, self.project1), False)
+
+        #Project2
+        #as project owner, Homer can edit the project
+        self.assertEqual(can_edit(self.user1, self.project2), True)
+        #as a manageer, Mr Burns can edit the project too
+        self.assertEqual(can_edit(self.user2, self.project2), True)
+        #but Barney Can edit project2 since he is the field leader:
+        self.assertEqual(can_edit(self.user3, self.project2), True)
+
 
     def tearDown(self):
         '''Clean up'''
+        self.project2.delete()
         self.project1.delete()
         self.user3.delete()
         self.user2.delete()
