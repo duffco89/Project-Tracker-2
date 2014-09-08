@@ -208,15 +208,18 @@ class ProjectList(ListFilteredMixin, ListView):
         '''get any additional context information that has been passed in with
         the request.'''
 
-        try:
-            prj_ldr = User.objects.get(username=self.username)
-        except User.DoesNotExist:
-            prj_ldr = dict(first_name=self.username, last_name="")
+        if self.username:
+            try:
+                prj_ldr = User.objects.get(username=self.username)
+            except User.DoesNotExist:
+                prj_ldr = dict(first_name=self.username, last_name="")
+                #prj_ldr = None
+        else:
+            prj_ldr = None
 
         context = super(ProjectList, self).get_context_data(**kwargs)
         context['tag'] = self.tag
         context['prj_ldr'] = prj_ldr
-        #import pdb;pdb.set_trace()
         return context
 
 project_list = ProjectList.as_view()
