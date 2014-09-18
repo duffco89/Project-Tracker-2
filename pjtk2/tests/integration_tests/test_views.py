@@ -158,8 +158,22 @@ class ProjectListTestCase(TestCase):
         self.assertTemplateUsed(response, 'pjtk2/ProjectList.html')
         self.assertContains(response, 'Projects')
 
+    def test_NewProject_on_Login(self):
+        '''if we login with a valid user, the template should contain a link
+        to create a new project.
+        '''
+        self.user.is_staff = True
+        self.user.save()
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('ProjectList'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'New Project')
+        self.assertContains(response, reverse('NewProject'))
+
     def tearDown(self):
         self.user.delete()
+
 
 
 class CreateManagerTestCase(TestCase):

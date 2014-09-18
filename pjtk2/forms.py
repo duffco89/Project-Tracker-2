@@ -672,8 +672,9 @@ class ProjectForm(forms.ModelForm):
 
         if readonly:
             self.fields["prj_cd"].widget.attrs['readonly'] = True
-            self.fields["prj_ldr"].queryset = User.filter(is_active=True)
-            self.fields["field_ldr"].queryset = User.filter(is_active=True)
+            #this is an edit so our project lead could be anyone:
+            self.fields["prj_ldr"].queryset =  User.objects.all()
+            self.fields["field_ldr"].queryset = User.objects.filter()
 
         if milestones:
             if self.manager is True:

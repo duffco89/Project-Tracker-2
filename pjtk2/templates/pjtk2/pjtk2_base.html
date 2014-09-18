@@ -15,7 +15,6 @@
 
     {% block extrahead  %} {% endblock %}
 
-
   </head>
 
   <body>
@@ -59,9 +58,6 @@
               {% if user.is_staff and user.is_authenticated %}
               <li class="divider"></li>
               <li><a href="{% url 'NewProject' %}">New Project</a></li>
-              {% endif %}
-
-              {% if user.is_staff %}
               <li class="divider"></li>
               <li><a href="{% url 'ApproveProjects' %}">Approve Projects</a></li>
               {% endif %}

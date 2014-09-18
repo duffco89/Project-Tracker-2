@@ -1177,8 +1177,10 @@ class TestFieldLeader(WebTest):
         self.assertEqual(response.status_int, 200)
 
         self.assertContains(response, 'Field Lead:')
-        linkstring = '<a href="#">{0} {1}</a></td>'
-        linkstring = linkstring.format(self.user2.first_name,
+        linkstring = '<a href="{0}">{1} {2}</a></td>'
+        linkstring = linkstring.format(reverse('user_project_list',
+                                               args=(self.user2.username,)),
+                                       self.user2.first_name,
                                        self.user2.last_name)
         self.assertContains(response, linkstring)
 
@@ -1194,8 +1196,10 @@ class TestFieldLeader(WebTest):
         self.assertEqual(response.status_int, 200)
 
         self.assertNotContains(response, 'Field Lead:')
-        linkstring = '<a href="#">{0} {1}</a></td>'
-        linkstring = linkstring.format(self.user2.first_name,
+        linkstring = '<a href="{0}">{1} {2}</a></td>'
+        linkstring = linkstring.format(reverse('user_project_list',
+                                               args=(self.user2.username,)),
+                                       self.user2.first_name,
                                        self.user2.last_name)
         self.assertNotContains(response, linkstring)
 
@@ -1278,7 +1282,8 @@ class TestUserChoiceFilesProjectForm(WebTest):
         #USERS
         self.user1 = UserFactory.create(username = 'hsimpson',
                                         first_name = 'Homer',
-                                        last_name = 'Simpson')
+                                        last_name = 'Simpson',
+                                        is_active=True)
 
         self.user2 = UserFactory.create(username = 'bgumble',
                                         first_name = 'Barney',
@@ -1295,7 +1300,7 @@ class TestUserChoiceFilesProjectForm(WebTest):
         '''If we're editing an existing project, all of our users should be
         listed in the drop down lists for users.'''
 
-        #barney logs and chooses to copy the existing project
+        #homer logs in and chooses to EDIT an existing project
         login = self.client.login(username=self.user1.username, password='abc')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
@@ -1303,7 +1308,7 @@ class TestUserChoiceFilesProjectForm(WebTest):
                                 user=self.user1)
         form = response.forms['ProjectForm']
 
-        #Proejct Leads should include Barney - this could be an old project
+        #Project Leads should include Barney - this could be an old project
         choices = form['prj_ldr'].options
         names = [x[2] for x in choices]
 
@@ -1328,7 +1333,7 @@ class TestUserChoiceFilesProjectForm(WebTest):
         '''If we're copying an existing project, our users should be
         limited to only those who are currenly active.'''
 
-        #barney logs and chooses to copy the existing project
+        #homer logs in and chooses to COPY the existing project
         login = self.client.login(username=self.user1.username, password='abc')
         self.assertTrue(login)
         response = self.app.get(reverse('CopyProject',
@@ -1336,7 +1341,7 @@ class TestUserChoiceFilesProjectForm(WebTest):
                                 user=self.user1)
         form = response.forms['ProjectForm']
 
-        #Proejct Leads - should not include Barney:
+        #Project Leads - should NOT include Barney:
         choices = form['prj_ldr'].options
         names = [x[2] for x in choices]
 
