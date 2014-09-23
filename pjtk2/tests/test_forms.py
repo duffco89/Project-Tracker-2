@@ -515,6 +515,84 @@ class TestProjectForm(TestCase):
 
 
 
+    def test_Uppercase_Tag_data(self):
+        """tags should be automatically converted to lower case. We
+        want to make sure that all the projects assocaited with Lake
+        Trout include those with 'LAKE TROUT' and 'lake trout'."""
+
+        tags = ["RED", "Blue", "grEEn"]
+
+        proj = dict(
+            prj_cd = "LHA_IA12_103",
+            prj_nm = "Fake Project",
+            prj_ldr = self.user.id,
+            prj_date0 = datetime.datetime.strptime("January 15, 2012",
+                                                   "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
+            comment = "This is a fake project",
+            project_type = self.ptype.id,
+            master_database = self.dbase.id,
+            lake = self.lake.id,
+            tags = ', '.join(tags),
+            owner = self.user.id,
+            dba = self.dba.id,
+            odoe = 1000,
+            salary = 1000
+           )
+
+        form = ProjectForm(data=proj)
+        form.is_valid()
+        self.assertEqual(form.is_valid(), True)
+        #get the tags
+        form_tags = form.cleaned_data.get('tags')
+        form_tags.sort()
+        #make sure that the tags returned are the lower case versions
+        #of tags submitted
+        should_be = list(set([x.lower() for x in tags]))
+        should_be.sort()
+        #make sure that the tags returned are the lower case versions
+        #of tags submitted
+        self.assertEqual(form_tags, should_be)
+
+
+    def test_Duplicate_Tag_data(self):
+        """duplicate tags should be automatically converted to set of lower
+        case strings."""
+
+        tags = ["RED", "red", "Blue", "grEEn"]
+
+        proj = dict(
+            prj_cd = "LHA_IA12_103",
+            prj_nm = "Fake Project",
+            prj_ldr = self.user.id,
+            prj_date0 = datetime.datetime.strptime("January 15, 2012",
+                                                   "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
+            comment = "This is a fake project",
+            project_type = self.ptype.id,
+            master_database = self.dbase.id,
+            lake = self.lake.id,
+            tags = ', '.join(tags),
+            owner = self.user.id,
+            dba = self.dba.id,
+            odoe = 1000,
+            salary = 1000
+           )
+
+        form = ProjectForm(data=proj)
+        form.is_valid()
+        self.assertEqual(form.is_valid(), True)
+        #get the tags
+        form_tags = form.cleaned_data.get('tags')
+        form_tags.sort()
+        #make sure that the tags returned are the lower case versions
+        #of tags submitted
+        should_be = list(set([x.lower() for x in tags]))
+        should_be.sort()
+
+        self.assertItemsEqual(form_tags, should_be)
+
+
 class TestSelectSistersForm(TestCase):
 
     def setUp(self):

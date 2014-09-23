@@ -745,6 +745,18 @@ class ProjectForm(forms.ModelForm):
             #do nothing, just return the project code as is
             return project_code
 
+    def clean_tags(self):
+        """
+        Force all tags to lowercase.
+        modified from:http://stackoverflow.com/questions/25676952/
+        """
+        tags = self.cleaned_data.get('tags', None)
+        if tags:
+            tags = list(set([t.lower() for t in tags]))
+
+        return tags
+
+
     def clean(self):
         '''make sure that project start and end dates are in the same
         year, and that the start date occurs before the end date.
