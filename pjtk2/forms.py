@@ -594,9 +594,8 @@ class ProjectForm(forms.ModelForm):
         widget=Select(choices=Project.FUNDING_CHOICES),
         required=False)
 
-    salary = forms.IntegerField(required=False)
-
-    odoe = forms.IntegerField(required=False)
+    salary = forms.DecimalField(required=False, decimal_places=2)
+    odoe = forms.DecimalField(required=False, decimal_places=2)
 
     master_database = forms.ModelChoiceField(
         label="Master Database:",
