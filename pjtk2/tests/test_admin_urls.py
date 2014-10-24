@@ -64,9 +64,10 @@ class TestUrls(DemoTestCase):
             (reverse('about_view'),
              {'status_code':200}),
 
+            (reverse('report_desc_view'),
+             {'status_code':200}),
 
             #the remaining views all require login:
-
             (reverse('NewProject'),
              {'status_code': 302}),
 

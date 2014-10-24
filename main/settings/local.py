@@ -14,6 +14,8 @@ ALLOWED_HOSTS = ['*']
 DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'HOST':'***REMOVED***',
+        'PORT':'5432',
          'NAME': 'pjtk2',
          'USER': 'adam',
          'PASSWORD': 'django',

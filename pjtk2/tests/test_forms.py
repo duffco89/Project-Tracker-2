@@ -461,8 +461,8 @@ class TestProjectForm(TestCase):
         self.assertEqual(form.is_valid(), False)
 
 
-    def test_bad_odoe_data(self):
-        """odoe is not a whole number"""
+    def test_odoe_decimal_data(self):
+        """odoe does not need to be an integer"""
         proj = dict(
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
@@ -483,12 +483,10 @@ class TestProjectForm(TestCase):
 
         form = ProjectForm(data=proj)
         valid = form.is_valid()
-        errmsg = "Enter a whole number."
-        self.assertIn(errmsg, str(form.errors['odoe']))
-        self.assertEqual(valid, False)
+        self.assertEqual(valid, True)
 
     def test_bad_salary_data(self):
-        """odoe is not a whole number"""
+        """salary cannot be a string"""
         proj = dict(
             prj_cd = "LHA_IA12_103",
             prj_nm = "Fake Project",
@@ -509,7 +507,7 @@ class TestProjectForm(TestCase):
 
         form = ProjectForm(data=proj)
         valid = form.is_valid()
-        errmsg = "Enter a whole number."
+        errmsg = "Enter a number."
         self.assertIn(errmsg, str(form.errors['salary']))
         self.assertEqual(valid, False)
 

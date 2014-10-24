@@ -1023,3 +1023,9 @@ def about_view(request):
     """a view to render the about page."""
     return render_to_response('pjtk2/about.html',
                               context_instance=RequestContext(request))
+
+def report_desc_view(request):
+    """a view to render the html page that describes each of the project
+    tracker reporting requirements."""
+    return render_to_response('pjtk2/reporting_milestone_descriptions.html',
+                              context_instance=RequestContext(request))

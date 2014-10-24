@@ -1,5 +1,5 @@
 '''=============================================================
-o c:/1work/Python/djcode/fsis2/django_settings.py
+ c:/1work/Python/djcode/fsis2/django_settings.py
  Created: 06 Sep 2013 12:11:42
 
  DESCRIPTION:
@@ -9,7 +9,7 @@ o c:/1work/Python/djcode/fsis2/django_settings.py
  (./manage.py shell), the resultant shell does not work properly on
  windows machine when used inside of emacs.  This script is intended
  to allow you to open a standard python prompt in emacs and then
- import all of your regular django settings and objects.  
+ import all of your regular django settings and objects.
 
  To use it,
  activate an emacs virtualenv -> M-x virtualenv-activate <Return> /venv/
