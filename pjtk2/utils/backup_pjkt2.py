@@ -52,9 +52,9 @@ try:
 except IndexError:
     COMPLETE = False
 
-src_dir = 'C:/1work/Python/djcode/pjtk2/uploads'
-#trg_dir = 'C:/1work/scrapbook/pjtk2_archive'
-trg_dir = 'X:/ScrapBook/pjtk2_archive'
+#src_dir = 'C:/1work/Python/djcode/pjtk2/uploads'
+src_dir = 'C:/1work/djcode/pjtk2/uploads'
+trg_dir = 'Y:/Fisheries Management/Project Tracking/__backup'
 
 if not os.path.exists(trg_dir):
     os.makedirs(trg_dir)
@@ -142,8 +142,10 @@ logging.info('COMPLETE = {}'.format(COMPLETE))
 #=====================================
 #         DATABASE DUMP
 
+os.system("set PGPASSWORD=django")
+
 dump_file = '{0}/pjtk2.sql'.format(trg_dir)
-shell_cmd = 'pg_dump -U adam pjtk2 > {}'.format(dump_file)
+shell_cmd = 'C:/gnu/pgsql/bin/pg_dump -U adam pjtk2 > "{}"'.format(dump_file)
 os.system(shell_cmd)
 print('Done dumping pjtk2 tables to {}'.format(dump_file))
 

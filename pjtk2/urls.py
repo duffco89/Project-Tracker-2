@@ -19,6 +19,9 @@ urlpatterns = patterns('pjtk2.views',
 
 
                        url(r'^about/$', 'about_view', name = 'about_view'),
+                       url(r'^report_descriptions/$',
+                           'report_desc_view',
+                           name = 'report_desc_view'),
 
     #CRUD Projects
     url(r'^projects/$', 'project_list', name='ProjectList'),
