@@ -97,6 +97,24 @@ class MilestoneManager(models.Manager):
                      label='Submitted')
 
 
+class MessageManager(models.Manager):
+    '''We only want messages for projects that continue to be active.
+    '''
+    def get_query_set(self):
+        use_for_related_fields = True
+        return super(MessageManager, self).get_query_set().filter(
+            project_milestone__project__active=True)
+
+
+class Messages2UsersManager(models.Manager):
+    '''We only want messages for projects that continue to be active.
+    '''
+    def get_query_set(self):
+        use_for_related_fields = True
+        return super(Messages2UsersManager, self).get_query_set().filter(
+            message__project_milestone__project__active=True)
+
+
 class Milestone(models.Model):
     '''Look-up table of reporting milestone and their attributes.  Not all
     milestones will have a report associated with them.  Keeping
@@ -661,6 +679,18 @@ class SamplePoint(models.Model):
     objects = models.GeoManager()
 
 
+#class ProjectPoly(models.Model):
+#    '''A class to hold the convex hull derived from the sampling locations
+#    of a project.  Calculated when sample points are uploaded into
+#    project tracker.  Makes spatial queries much faster - query few
+#    polygons instead of lots and lots of individual points.
+#
+#    '''
+#    project = models.ForeignKey('Project')
+#    geom = models.PolygonField(srid=4326)
+#    objects = models.GeoManager()
+
+
 class ProjectMilestones(models.Model):
     '''list of reporting requirements for each project'''
     #aka - project milestones
@@ -861,6 +891,8 @@ class Message(models.Model):
     level = models.CharField(max_length=30, choices=LEVEL_CHOICES,
                              default='info')
 
+    objects = MessageManager()
+
     def __unicode__(self):
         '''return the messsage as it's unicode method.'''
         return self.msgtxt
@@ -874,6 +906,8 @@ class Messages2Users(models.Model):
     message = models.ForeignKey(Message)
     created = models.DateTimeField(auto_now_add=True)
     read = models.DateTimeField(blank=True, null=True)
+
+    objects = Messages2UsersManager()
 
     class Meta:
         unique_together = ("user", "message",)

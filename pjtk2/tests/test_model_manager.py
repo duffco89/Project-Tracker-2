@@ -56,7 +56,7 @@ class TestProjectsThisLastYear(TestCase):
         #in the pastINactive
         prj_cd = "LHA_IA%s_000" % str(yr.year - 5)[-2:]
         self.project2 = ProjectFactory.create(prj_cd=prj_cd,
-                                              owner = self.user,
+                                             owner = self.user,
                                               active=False)
 
         # === LAST YEAR ===
@@ -310,4 +310,66 @@ class TestMilestoneModelManagers(TestCase):
         self.milestone2.delete()
         self.milestone3.delete()
         self.employee.delete()
+        self.user.delete()
+
+
+
+class TestMessageModelManager(TestCase):
+    '''Only messages associated with active projects should be returned by
+    the message and messages2users managers
+    '''
+
+    def setUp(self):
+        '''we will need two projects - one will be active, one will be in
+        active'''
+
+
+        self.user = UserFactory.create(first_name='Homer',
+                                       last_name = 'Simpson',
+                                       username = 'hsimpson')
+
+        self.employee = EmployeeFactory(user=self.user)
+
+        self.milestone = MilestoneFactory.create(label="Submitted",
+                                             category = 'Core', order=1,
+                                             report=False)
+
+        self.project1 = ProjectFactory.create(prj_cd = "LHA_IA12_123",
+                                              owner = self.user,
+                                              active=True)
+
+        self.project2 = ProjectFactory.create(prj_cd = "LHA_IA12_999",
+                                              owner = self.user,
+                                              active=False)
+
+
+    def test_message_manager(self):
+        '''There should only be one message returned by the messages manager -
+        the submitted message for project 1'''
+
+        msgs = Message.objects.all()
+
+        self.assertEqual(msgs.count(),1)
+        self.assertEqual(msgs[0].project_milestone.milestone, self.milestone)
+        self.assertEqual(msgs[0].project_milestone.project, self.project1)
+
+
+    def test_messages2users__manager(self):
+        '''the messages2 users should only return messages associated
+        with the first (active) project, the second (inactive) project
+        should not be returned.'''
+
+        msgs2users = Messages2Users.objects.all()
+
+        prj_cds = [x.message.project_milestone.project.prj_cd for x in
+                  msgs2users]
+
+        self.assertIn(self.project1.prj_cd, prj_cds)
+        self.assertNotIn(self.project2.prj_cd, prj_cds)
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.milestone.delete()
         self.user.delete()
