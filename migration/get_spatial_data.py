@@ -6,7 +6,7 @@ DESCRIPTION:
 
 This script compiles all of the spatial data from each of our master
 datasets and imports it into project tracker (pjtk2).  For most
-projects, actual nets set lcoations are returned.  For some projects
+projects, actual nets set locations are returned.  For some projects
 where large numbers of samples occured at the same location, a single
 lat-lon is returned and sample number is not retained (e.g. - creels
 and derby sampling).
@@ -44,9 +44,13 @@ A. Cottrill
 #import adodbapi
 import psycopg2
 import pyodbc
+import csv
 
 PG_USER = 'adam'
 PG_DB = 'pjtk2'
+
+PG_HOST = '142.143.160.56'
+#PG_HOST = '127.0.0.1'
 
 masters = {
     'offshore': {
@@ -226,7 +230,8 @@ for db in masters.keys():
 #==================================
 #    INSERT SPATIAL DATA
 
-constr = "dbname={0} user={1}".format(PG_DB, PG_USER)
+#constr = "dbname={0} user={1}".format(PG_DB, PG_USER)
+constr = "host={0} dbname={1} user={2}".format(PG_HOST, PG_DB, PG_USER)
 pgconn = psycopg2.connect(constr)
 pgcur = pgconn.cursor()
 
@@ -278,24 +283,32 @@ with open(fname, 'w') as f:
 #these are projects that have a completion product of some kind but do
 #not appear in the master databases anywhere
 
-sql = """SELECT distinct p.year, p.prj_cd, p.prj_nm,
-u.first_name || ' ' || u.last_name as project_lead, prjtype.field_component
+sql = """
+-- approved, active, field projects in project tracker that do not have spatial
+-- data associated with them
+SELECT DISTINCT p.year,
+       p.prj_cd,
+       p.prj_nm,
+       u.first_name || ' ' || u.last_name AS project_lead,
+       prjtype.field_component
 FROM pjtk2_project p
-        join auth_user as u on u.id=p.prj_ldr_id
-  join pjtk2_projecttype as prjtype on prjtype.id=p.project_type_id
+  JOIN auth_user AS u ON u.id = p.prj_ldr_id
+  JOIN pjtk2_projecttype AS prjtype ON prjtype.id = p.project_type_id
   JOIN pjtk2_projectmilestones pms ON p.id = pms.project_id
-        join pjtk2_milestone ms on ms.id=pms.milestone_id
-        where ms.label in ('Summary Report', 'Project Completion Report',
-                          'Project Completion Pres.')
-        and pms.completed is not null
-  and p.prj_cd not in (
-  -- projects with spatial data
-  select distinct prj_cd from spatial_tmp
-)
-order by year desc;
+  JOIN pjtk2_milestone ms ON ms.id = pms.milestone_id
+WHERE
+ms.label = 'Field Work Conducted'
+AND   field_component IS TRUE
+AND   p.active IS TRUE
+--and pms.completed is not null
+AND   p.prj_cd NOT IN (
+-- projects with spatial data
+SELECT DISTINCT prj_cd FROM spatial_tmp)
+ORDER BY p.year DESC;
 
 
 """
+
 pgcur.execute(sql)
 omissions = pgcur.fetchall()
 fname = 'c:/1work/Python/djcode/pjtk2/migration/omissions.csv'
@@ -306,40 +319,40 @@ with open(fname, 'w') as f:
 
 
 #=========================
-#Update milestones
-# ** NOTE ** this is a work around - delete this section once project tracker goes live!
-#if there is spatial data, the project must have been completed
-#update all of the milestones for all of the projects in spatial.
-
-sql = """ UPDATE pjtk2_projectmilestones pms2
-          SET completed = NOW()
-          WHERE pms2.id IN (
-          SELECT distinct pms.id
-                  FROM pjtk2_projectmilestones pms
-                    JOIN pjtk2_project p ON pms.project_id = p.id
-                    JOIN pjtk2_milestone ms ON ms.id = pms.milestone_id
-                    JOIN spatial_tmp AS sp ON sp.prj_cd = p.prj_cd
-                  WHERE pms.completed is NULL
-                  AND   p.year::int4 < 2012
-                  AND   ms.report = FALSE);"""
-pgcur.execute(sql)
-# we don't want to sign off on recent projects though - rest the
-# signoff project milestone for those projects
-
-sql = """UPDATE pjtk2_projectmilestones pms2
-           SET completed = NULL
-           WHERE pms2.id IN (
-           SELECT distinct pms.id
-                  FROM pjtk2_projectmilestones pms
-                    JOIN pjtk2_project p ON pms.project_id = p.id
-                    JOIN pjtk2_milestone ms ON ms.id = pms.milestone_id
-                    JOIN spatial_tmp AS sp ON sp.prj_cd = p.prj_cd
-                  WHERE pms.completed is not NULL
-                  AND   p.year::int4 >= 2012
-                  AND ms.label = 'Sign off');"""
-pgcur.execute(sql)
-
-
+###Update milestones
+### ** NOTE ** this is a work around - delete this section once project tracker goes live!
+###if there is spatial data, the project must have been completed
+###update all of the milestones for all of the projects in spatial.
+##
+##sql = """ UPDATE pjtk2_projectmilestones pms2
+##          SET completed = NOW()
+##          WHERE pms2.id IN (
+##          SELECT distinct pms.id
+##                  FROM pjtk2_projectmilestones pms
+##                    JOIN pjtk2_project p ON pms.project_id = p.id
+##                    JOIN pjtk2_milestone ms ON ms.id = pms.milestone_id
+##                    JOIN spatial_tmp AS sp ON sp.prj_cd = p.prj_cd
+##                  WHERE pms.completed is NULL
+##                  AND   p.year::int4 < 2012
+##                  AND   ms.report = FALSE);"""
+##pgcur.execute(sql)
+### we don't want to sign off on recent projects though - rest the
+### signoff project milestone for those projects
+##
+##sql = """UPDATE pjtk2_projectmilestones pms2
+##           SET completed = NULL
+##           WHERE pms2.id IN (
+##           SELECT distinct pms.id
+##                  FROM pjtk2_projectmilestones pms
+##                    JOIN pjtk2_project p ON pms.project_id = p.id
+##                    JOIN pjtk2_milestone ms ON ms.id = pms.milestone_id
+##                    JOIN spatial_tmp AS sp ON sp.prj_cd = p.prj_cd
+##                  WHERE pms.completed is not NULL
+##                  AND   p.year::int4 >= 2012
+##                  AND ms.label = 'Sign off');"""
+##pgcur.execute(sql)
+##
+##
 # Finally update the spatial data:
 
 #clear out the old data
