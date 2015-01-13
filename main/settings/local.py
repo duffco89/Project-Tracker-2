@@ -2,20 +2,10 @@ from main.settings.base import *
 
 ALLOWED_HOSTS = ['*']
 
-#username and password: cottrillad, django
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': '%s/db/pjtk2.db' % root(),
-#    }
-#}
-
 
 DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'HOST':'***REMOVED***',
-        'PORT':'5432',
          'NAME': 'pjtk2',
          'USER': 'adam',
          'PASSWORD': 'django',

@@ -31,7 +31,7 @@ class ProjectFilter(django_filters.FilterSet):
         model = Project
         #fields = ['year', 'project_type', 'lake', 'funding']
         fields = ['year', 'project_type', 'lake']
-    
+
     def __init__(self, *args, **kwargs):
         #from https://github.com/alex/django-filter/issues/29
         super(ProjectFilter, self).__init__(*args, **kwargs)
@@ -42,7 +42,6 @@ class ProjectFilter(django_filters.FilterSet):
         #
         #self.filters['lake'].extra.update(
         #    {'empty_label': 'All Sources'})
-
 
         # this will grab all the fk ids that are in use
         fk_counts = Project.objects.values_list('project_type').order_by(
@@ -58,7 +57,7 @@ class ProjectFilter(django_filters.FilterSet):
         #self._form.helper.form_tag = False
         self._form.helper.form_style = 'inline'
         self._form.helper.form_method = 'get'
-        self._form.helper.form_action = ''        
+        self._form.helper.form_action = ''
 
         self._form.fields.update({"year": forms.ChoiceField(
             label="Year:", choices=get_year_choices(),
