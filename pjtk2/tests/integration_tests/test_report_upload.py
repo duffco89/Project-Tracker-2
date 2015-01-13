@@ -52,7 +52,7 @@ class BasicReportUploadTestCase(WebTest):
         self.rep2 = MilestoneFactory.create(label="Completion Report",
                                             category='Core', order=2,
                                             report=True)
-        self.rep3 = MilestoneFactory.create(label="Summary Report",
+        self.rep3 = MilestoneFactory.create(label="Summary Report", shared=True,
                                             category='Core', order=3,
                                             report=True)
         self.rep4 = MilestoneFactory.create(label="Budget Report",
@@ -211,14 +211,16 @@ class TestActualFileUpload(TestCase):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
-        #required reports
+        #required reports (rep0 and rep2 are shared)
         self.rep0 = MilestoneFactory.create(label = "Proposal Presentation",
+                                            shared=True,
                                             category = 'Core', order = 1,
                                             report = True)
         self.rep1 = MilestoneFactory.create(label = "Completion Report",
                                             category = 'Core', order = 2,
                                             report = True)
         self.rep2 = MilestoneFactory.create(label = "Summary Report",
+                                            shared=True,
                                             category = 'Core', order = 3,
                                             report = True)
         self.rep3 = MilestoneFactory.create(label = "Budget Report",
