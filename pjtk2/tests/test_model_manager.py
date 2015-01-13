@@ -274,11 +274,13 @@ class TestMilestoneModelManagers(TestCase):
                                              category = 'Core', order=1,
                                              report=False)
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=2,
-                                             report=False)
+                                                  shared=True,
+                                                  category = 'Core', order=2,
+                                                  report=False)
         self.milestone2 = MilestoneFactory.create(label="Completed",
-                                        category = 'Core', order=3,
-                                             report=False)
+                                                  shared=True,
+                                                  category = 'Core', order=3,
+                                                  report=False)
         self.milestone3 = MilestoneFactory.create(label="Sign off",
                                         category = 'Core', order=999,
                                              report=False)
@@ -303,6 +305,18 @@ class TestMilestoneModelManagers(TestCase):
         self.assertQuerysetEqual(qs, all_milestones,
                                  lambda a:a.label)
 
+
+    def test_SharedMilestones(self):
+        '''the milestone manager has a shared() method.  This test verifies that
+        only shared Milestone are returned by Milestone.objects.shared()'''
+
+        #get the shared milestones
+        shared = Milestone.objects.shared()
+        #we should only have the two that we created with 'shared=True'
+        shouldbe = [self.milestone1.label, self.milestone2.label,]
+
+        self.assertQuerysetEqual(shared, shouldbe, lambda a:a.label)
+
     def tearDown(self):
         self.project1.delete()
         self.milestone0.delete()
@@ -314,14 +328,14 @@ class TestMilestoneModelManagers(TestCase):
 
 
 
-class TestMessageModelManager(TestCase):
+class TestMessageModelManagers(TestCase):
     '''Only messages associated with active projects should be returned by
     the message and messages2users managers
     '''
 
     def setUp(self):
         '''we will need two projects - one will be active, one will be in
-        active'''
+        active.  Only one milestone is needed.'''
 
 
         self.user = UserFactory.create(first_name='Homer',
@@ -354,7 +368,7 @@ class TestMessageModelManager(TestCase):
         self.assertEqual(msgs[0].project_milestone.project, self.project1)
 
 
-    def test_messages2users__manager(self):
+    def test_messages2users_manager(self):
         '''the messages2 users should only return messages associated
         with the first (active) project, the second (inactive) project
         should not be returned.'''

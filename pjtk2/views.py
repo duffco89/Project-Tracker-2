@@ -1,4 +1,3 @@
-
 # E1101 - Class 'whatever' has no 'something' member
 # E1120 - No value passed for parameter 'cls' in function call
 #pylint: disable=E1101, E1120

@@ -505,12 +505,14 @@ class ReportUploadForm(forms.Form):
             #existing files?
 
             sisters = self.project.get_sisters()
-            #TODO: change reporting milestone model to include
-            #"Copy2Sisters" flag - then this list could be refactored
-            #to dynamic query
-            common = str(self.clean_milestone()) in ["Proposal Presentation",
-                                                "Completetion Presentation",
-                                                "Summary Report",]
+
+            shared_milestones = Milestone.objects.shared()
+            shared_labels = [x.label for x in shared_milestones]
+
+            #common = str(self.clean_milestone()) in ["Proposal Presentation",
+            #                                    "Completetion Presentation",
+            #                                    "Summary Report",]
+            common = str(self.clean_milestone()) in shared_labels
 
             if sisters and common:
                 for sister in sisters:

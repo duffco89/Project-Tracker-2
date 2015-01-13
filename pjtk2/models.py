@@ -91,6 +91,13 @@ class MilestoneManager(models.Manager):
     This manager will auto-matically remove it from the returned
     recordsets.
     '''
+
+    def shared(self):
+        '''return only those milestones that are shared among sister
+        projects'''
+        return super(MilestoneManager, self).get_query_set().filter(
+                     shared=True)
+
     def get_query_set(self):
         use_for_related_fields = True
         return super(MilestoneManager, self).get_query_set().exclude(
@@ -137,6 +144,8 @@ class Milestone(models.Model):
     category = models.CharField(max_length=30, choices=MILESTONE_CHOICES,
                                 default='Custom')
     report = models.BooleanField(default=False)
+    #should this milestone be shared among sister projects?
+    shared = models.BooleanField(default=False)
     protected = models.BooleanField(default=False)
     order = models.FloatField(default=99)
 
@@ -150,6 +159,8 @@ class Milestone(models.Model):
 
     def __unicode__(self):
         return self.label
+
+
 
 
 class ProjectType(models.Model):
