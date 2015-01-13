@@ -126,7 +126,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     #'main.middleware.LoginRequiredMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'pagination.middleware.PaginationMiddleware',
 )
 
 
@@ -165,6 +165,7 @@ THIRDPARTY_APPS = (
     'haystack',
     'passwords',
     'password_reset',
+    'pagination',
     'olwidget',
     )
 

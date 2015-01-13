@@ -25,6 +25,7 @@ django-filter>=0.7
 django-haystack>=2.1.0
 django-olwidget>=0.61.0
 django-passwords>=0.2.0
+django-pagination>=1.0.7
 django-taggit>=0.10
 django-webtest>=1.7.5
 #django-werkzeug-debugger-runserver>=0.2

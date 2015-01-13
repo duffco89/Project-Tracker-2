@@ -151,7 +151,7 @@ class ListFilteredMixin(object):
                 "'filter_set' or an implementation of 'get_filter()'")
 
     def get_filter_set_kwargs(self):
-        """ Returns the keyword arguments for instanciating the filterset."""
+        """ Returns the keyword arguments for instantiating the filterset."""
         return {
             'data': self.request.GET,
             'queryset': self.get_base_queryset(),
@@ -162,8 +162,9 @@ class ListFilteredMixin(object):
         after applying the FilterSet """
 
         #==========
-        self.tag = self.kwargs.pop('tag', None)
-        self.username = self.kwargs.pop('username', None)
+        self.tag = self.kwargs.get('tag', None)
+        self.username = self.kwargs.get('username', None)
+
         if self.tag:
             queryset = Project.objects.filter(tags__name__in=[self.tag])
         elif self.username:
@@ -201,7 +202,6 @@ class ProjectList(ListFilteredMixin, ListView):
     queryset = Project.objects.all()
     filter_set = ProjectFilter
     template_name = "pjtk2/ProjectList.html"
-    paginate_by=30
 
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
@@ -233,12 +233,6 @@ user_project_list = ProjectList.as_view()
 class ProjectList_q(ListView):
     """ A list view that can be filtered by django-filter """
     template_name = "pjtk2/ProjectList_Simple.html"
-    paginate_by=30
-
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        '''Override the dispatch method'''
-#        return super(ProjectList_q, self).dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
@@ -257,15 +251,12 @@ class ProjectList_q(ListView):
 project_list_q = ProjectList_q.as_view()
 
 
-
-class ApprovedProjectsList(ListView):
+class ApprovedProjectsList(ListFilteredMixin, ListView):
     '''A CBV that will render a list of currently approved project'''
 
-    #queryset = Project.objects.filter(Approved = True)
     queryset = Project.objects.approved()
-    #template_name = "ApprovedProjectList.html"
+    filter_set = ProjectFilter
     template_name = "pjtk2/ProjectList.html"
-
 
     def get_context_data(self, **kwargs):
         context = super(ApprovedProjectsList, self).get_context_data(**kwargs)
@@ -273,21 +264,15 @@ class ApprovedProjectsList(ListView):
         context['approved'] = True
         return context
 
+    def get_base_queryset(self):
+        '''Start with just approved projects'''
+        return Project.objects.approved()
+
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):
         return super(ApprovedProjectsList, self).dispatch(*args, **kwargs)
 
-
-
-
-
 approved_projects_list = ApprovedProjectsList.as_view()
-
-#def logout_view(request):
-#    '''log the user out and redirect to the login page.'''
-#    logout(request)
-#    return HttpResponseRedirect(reverse('login'))
-
 
 
 #===========================
