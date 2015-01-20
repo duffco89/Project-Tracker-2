@@ -1,7 +1,5 @@
 from django.contrib import admin
 
-from django.contrib.auth import User
-
 from pjtk2.models import (Milestone, ProjectType, Database, Project,
                           Report, Lake, Family, Employee, ProjectMilestones,
                           ProjectSisters, Message, Messages2Users)

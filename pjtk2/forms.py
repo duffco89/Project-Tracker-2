@@ -587,7 +587,7 @@ class ProjectForm(forms.ModelForm):
 
     project_type = forms.ModelChoiceField(
         label="Project Type:",
-        queryset=ProjectType.objects.all(),
+        queryset=ProjectType.objects.all().order_by('project_type'),
         required=True,
     )
 
