@@ -67,9 +67,10 @@ class ProjectFilter(django_filters.FilterSet):
             label="Lake:", queryset=Lake.objects.all(),
             required=False)})
 
-        #self._form.fields.update({"project_type": forms.ModelChoiceField(
-        #    label="Project Type:", queryset=ProjectType.objects.all(),
-        #    required=False)})
+        self._form.fields.update({"project_type": forms.ModelChoiceField(
+            label="Project Type:",
+            queryset=ProjectType.objects.all().order_by('project_type'),
+            required=False)})
 
         self._form.helper.add_input(Submit('submit', 'Apply Filter'))
         self._form.helper.layout = Layout(
