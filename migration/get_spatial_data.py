@@ -91,17 +91,21 @@ masters = {
         'groupby': True,
      },
 
-    ## 'sturgeon': {
-    ##     #'path':('Z:/Data Warehouse/Derived Datasets/UNIT PROJECTS/' +
-    ##     #        'Sturgeon/Sturgeon Master.mdb'),
-    ##
-    ##     'path': ('Z:/Data Warehouse/Derived Datasets/UNIT PROJECTS/Sturgeon/' +
-    ##              'SturgeonMasterpriortoLCMupdate01APR2011/Sturgeon Master.mdb'),
-    ##     'table': 'Sturgeon_FN121',
-    ##     'sam': 'SAM',
-    ##     'ddlat': 'dd_lat',
-    ##     'ddlon': 'dd_lon',
-    ##  },
+     'sturgeon': {
+         #'path':('Z:/Data Warehouse/Derived Datasets/UNIT PROJECTS/' +
+         #        'Sturgeon/Sturgeon Master.mdb'),
+
+         #'path': ('Z:/Data Warehouse/Derived Datasets/UNIT PROJECTS/Sturgeon/' +
+         #         'SturgeonMasterpriortoLCMupdate01APR2011/Sturgeon Master.mdb'),
+
+         'path': ('Z:/Data Warehouse/Assessment/Index/Sturgeon/' +
+                  'SturgeonMaster.mdb'),
+         'table': 'Sturgeon_FN121',
+         'sam': 'SAM',
+         'ddlat': 'dd_lat',
+         'ddlon': 'dd_lon',
+        'groupby': False,
+      },
 
 
     'comcatch': {
