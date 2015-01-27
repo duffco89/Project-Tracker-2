@@ -801,13 +801,14 @@ def my_projects(request):
     if len(employees) > 1:
         boss = True
 
-    #I don't like how this takes three queries:
+    #get the submitted, approved and completed projects from the last five years
+    this_year = datetime.datetime.now(pytz.utc).year
     submitted = Project.objects.submitted().filter(
-        owner__username__in=employees)
+        owner__username__in=employees).filter(year__gte=this_year-5)
     approved = Project.objects.approved().filter(
-        owner__username__in=employees)
+        owner__username__in=employees).filter(year__gte=this_year-5)
     complete = Project.objects.completed().filter(
-        owner__username__in=employees)
+        owner__username__in=employees).filter(year__gte=this_year-5)
 
     notices = get_messages_dict(my_messages(user))
     formset = formset_factory(NoticesForm, extra=0)
