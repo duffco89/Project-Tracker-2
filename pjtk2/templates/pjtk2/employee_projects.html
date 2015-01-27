@@ -11,14 +11,6 @@
 
 
 <script type="text/javascript">
-  $(document).ready(function() {
-  $('#check-all').on('click', function(){
-    $("input:checkbox").attr('checked', true);
-  });
-  $('#uncheck-all').on('click', function(){
-    $("input:checkbox").attr('checked', false);
-  });
-});
 
 
  (function ($) {
@@ -61,7 +53,8 @@
 
 
  $(document).ready(function(){
-   $('.rotated-header').rotateTableCellContent();
+      $('.rotated-header').rotateTableCellContent();
+      $('#myTab a:first').tab('show')
  });
 
 
@@ -101,76 +94,31 @@ table div.rotated {
 
 {% endblock %}
 
-{% block title  %} {{ block.super }}| My Projects  {% endblock %}
+{% block title  %} {{ block.super }}| {{ label }}'s Projects {% endblock %}
 
 {% block content  %}
 {% load pjtk2_tags %}
 
 <div class="container" >
 
-  <h3>My Projects Page</h3>
+  <div class="row" >
+    <div class="col-md-10">
+      <h3> {{ label }} Projects</h3>
+    </div>
+    <div class="col-md-2">
+      <br />
+      <button type="button" class="btn btn-success" disabled="disabled">Download xls</button>
+    </div>
+  </div>
   <br />
 
   <ul class="nav nav-tabs" id="myTab" >
-    <li><a href="#notices">Notices</a></li>
     <li><a href="#submitted">Submitted</a></li>
     <li><a href="#approved">Approved</a></li>
     <li><a href="#completed">Completed</a></li>
-    <li><a href="#bookmarks">Bookmarks</a></li>
   </ul>
 
   <div id="content" class="tab-content" >
-
-    <div id="notices" class="tab-pane active" >
-      <h3>Notifications</h3>
-
-      {% if formset %}
-
-      <form id="notices" method="post" action="">
-        {% csrf_token %}
-        {{ formset.management_form }}
-        {{ formset.non_form_errors.as_ul }}
-        <table id="formset" class="table table-striped form">
-          {% for form in formset.forms %}
-          {% if forloop.first %}
-          <thead>
-            <tr>
-            {% for field in form.visible_fields %}
-            <th>{{ field.label|capfirst }}</th>
-            {% endfor %}
-          </tr></thead>
-          {% endif %}
-          <tr class="{% cycle row1,row2 %}">
-            {% for field in form.visible_fields %}
-            <td>
-              {# Include the hidden fields in the form #}
-              {% if forloop.first %}
-              {% for hidden in form.hidden_fields %}
-              {{ hidden }}
-              {% endfor %}
-              {% endif %}
-              {{ field.errors.as_ul }}
-              {{ field }}
-            </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </table>
-        <hr />
-        <div class="input-group-btn" >
-        <button type="button" id="check-all" class="btn btn-default">Check All</button>
-        <button type="button" id="uncheck-all" class="btn btn-default">Uncheck All</button>
-          <button class="btn btn-default" type="submit">
-            <span class="glyphicon glyphicon-trash"></span> Delete Read Messages</button>
-        </div>
-        <!--<input type="submit" name="" value="Delete Read Messages" class="btn btn-default" />
--->
-      </form>
-      {% else %}
-      <p><em>You do not have any unread notices. </em></p>
-      {% endif %}
-
-    </div> <!-- notices -->
 
     <div id="submitted" class="tab-pane" >
 
@@ -183,9 +131,6 @@ table div.rotated {
             <th>Project Code</th>
             <th>Project Type</th>
             <th>Project Name</th>
-            {% if boss %}
-            <th>Project Lead</th>
-            {% endif %}
             {% for report in core_reports %}
             <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
             {% endfor %}
@@ -202,12 +147,6 @@ table div.rotated {
             <td>
               {{ project.prj_nm  }}
             </td>
-            {% if boss %}
-            <td>
-              <a href="{% url 'EmployeeProjects' project.prj_ldr.username %}">
-                {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a> </td>
-
-            {% endif %}
             {{ project | milestone_status:core_reports }}
           </tr>
           {% endfor %}
@@ -224,45 +163,35 @@ table div.rotated {
       <h3>Approved Projects</h3>
       {% if approved %}
 
-        <table id="myTable" class="table tablesorter rotated-header">
-          <thead class="rotated-header">
-            <tr>
-              <th>Year</th>
-              <th>Project Code</th>
-              <th>Project Type</th>
-              <th>Project Name</th>
-              {% if boss %}
-              <th>Project Lead</th>
-              {% endif %}
-
-              {% for report in core_reports %}
-              <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
-              {% endfor %}
-            </tr>
-          </thead>
-          <tbody>
-            {% for project in approved %}
-            <tr class="{% cycle row1,row2 %}">
-              <td> {{ project.year }} </td>
-              <td>
-                <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
-              </td>
-              <td> {{ project.project_type }} </td>
-              <td>
-                {{ project.prj_nm  }}
-              </td>
-              {% if boss %}
-            <td>
-              <a href="{% url 'EmployeeProjects' project.prj_ldr.username %}">
-                {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a> </td>
-              {% endif %}
-
-              {{ project | milestone_status:core_reports }}
-
-            </tr>
+      <table id="myTable" class="table tablesorter rotated-header">
+        <thead class="rotated-header">
+          <tr>
+            <th>Year</th>
+            <th>Project Code</th>
+            <th>Project Type</th>
+            <th>Project Name</th>
+            {% for report in core_reports %}
+            <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
             {% endfor %}
-          </tbody>
-        </table>
+          </tr>
+        </thead>
+        <tbody>
+          {% for project in approved %}
+          <tr class="{% cycle row1,row2 %}">
+            <td> {{ project.year }} </td>
+            <td>
+              <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+            </td>
+            <td> {{ project.project_type }} </td>
+            <td>
+              {{ project.prj_nm  }}
+            </td>
+            {{ project | milestone_status:core_reports }}
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
 
       {% else %}
       <p><em>You do not currently have any approved projects </em></p>
@@ -279,9 +208,6 @@ table div.rotated {
             <th>Project Code</th>
             <th>Project Type</th>
             <th>Project Name</th>
-            {% if boss %}
-            <th>Project Lead</th>
-            {% endif %}
             {% for report in core_reports %}
             <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
             {% endfor %}
@@ -298,11 +224,6 @@ table div.rotated {
             <td>
               {{ project.prj_nm  }}
             </td>
-            {% if boss %}
-            <td>
-              <a href="{% url 'EmployeeProjects' project.prj_ldr.username %}">
-                {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a> </td>
-            {% endif %}
             {{ project | milestone_status:core_reports }}
           </tr>
           {% endfor %}
@@ -312,49 +233,6 @@ table div.rotated {
       <p><em>You do not have any complete projects </em></p>
       {% endif%}
     </div> <!-- completed -->
-
-    <div id="bookmarks" class="tab-pane" >
-      <h3>Bookmarks</h3>
-      {% if bookmarks %}
-      <table id="myTable" class="table tablesorter rotated-header">
-        <thead>
-          <tr>
-            <th>Year</th>
-            <th>Project Code</th>
-            <th>Project Type</th>
-            <th>Project Name</th>
-            {% if boss %}
-            <th>Project Lead</th>
-            {% endif %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for bookmark in bookmarks %}
-          <tr class="{% cycle row1,row2 %}">
-            <td>
-              {{ bookmark.year }}
-            </td>
-            <td>
-              <a href="{{ bookmark.get_project_url }}">{{ bookmark.get_project_code }}</a>
-            </td>
-            <td> {{ bookmark.project_type }} </td>
-            <td>
-              {{ bookmark.name }}
-            </td>
-            {% if boss %}
-            <td>  {{ bookmark.prj_ldr.first_name }} {{ bookmark.prj_ldr.last_name }}</td>
-            {% endif %}
-
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p><em>You do not have any bookmarked projects </em></p>
-      {% endif%}
-
-    </div> <!-- bookmarks -->
-
 
   </div> <!-- content -->
 </div>  <!-- container -->

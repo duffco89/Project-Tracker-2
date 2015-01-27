@@ -836,6 +836,60 @@ def my_projects(request):
                               context_instance=RequestContext(request))
 
 
+
+@login_required
+def employee_projects(request, employee_name):
+    '''a view accessible only by managers that presents the projects and
+    milestone status of projects associated with a specific employee.
+    Essentially allows managers to filter their projects view.
+    '''
+    #get the employee user object
+    my_employee = get_object_or_404(User, username=employee_name)
+    user = User.objects.get(username__exact=request.user)
+
+    #if I am not a manager or in the list of supervisors associated
+    #with this employee, return me to my projects page
+    if is_manager(user) is False:
+        redirect_url = reverse('MyProjects')
+        return HttpResponseRedirect(redirect_url)
+
+
+    #if I am the employees supervisor - get their projects and
+    #associated milestones:
+
+    core_reports = Milestone.objects.filter(category='Core', report=True)
+
+    #get the submitted, approved and completed projects from the last five years
+    this_year = datetime.datetime.now(pytz.utc).year
+    submitted = Project.objects.submitted().filter(
+        owner__username=my_employee).filter(year__gte=this_year-5)
+    approved = Project.objects.approved().filter(
+        owner__username=my_employee).filter(year__gte=this_year-5)
+    complete = Project.objects.completed().filter(
+        owner__username=my_employee).filter(year__gte=this_year-5)
+
+    template_name = "pjtk2/employee_projects.html"
+
+    #create a label that will be the possessive form of the employees
+    #first and last name
+    label = ' '.join([my_employee.first_name, my_employee.last_name])
+    if label[-1]=='s':
+        label=label + "'"
+    else:
+        label=label + "'s"
+
+    return render_to_response(template_name,
+                              {'employee': my_employee,
+                               'label':label,
+                               'complete': complete,
+                               'approved': approved,
+                               'submitted': submitted,
+                               'core_reports':core_reports},
+                              context_instance=RequestContext(request))
+
+
+
+
 #=====================
 #Bookmark views
 @login_required

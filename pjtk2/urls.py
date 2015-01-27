@@ -66,6 +66,8 @@ urlpatterns = patterns('pjtk2.views',
 
     url(r'^myprojects/$', 'my_projects', name='MyProjects'),
 
+    url(r'^employeeprojects/(?P<employee_name>.+)$', 'employee_projects',
+        name='EmployeeProjects'),
 
     url((r'^sisterprojects/'
           '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'),
