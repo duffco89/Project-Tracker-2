@@ -526,7 +526,7 @@ class UpdateReportsTestCase(WebTest):
         self.user2.delete()
 
 class MyProjectViewTestCase(WebTest):
-    '''Verify that the managers see projecs of their reports in the list
+    '''Verify that the managers see projects of their reports in the list
     of 'MyProjects'.  Emplyees will be able to see their projects but
     not their supervisors.  When the supervisors view MyProjects, they
     will have a column 'Project Leader'and will be able to see
@@ -613,6 +613,11 @@ class MyProjectViewTestCase(WebTest):
         self.assertContains(response, username)
         self.assertContains(response, "Project Lead")
 
+        #the response should contain a link to homer's projects:
+        url = reverse('EmployeeProjects',
+                      kwargs={'employee_name':self.user.username},)
+        self.assertContains(response, url)
+
 
     def test_myprojects_submitted_approved_complete(self):
         '''Verify that projects appear on "My Projects" even if they are
@@ -640,6 +645,142 @@ class MyProjectViewTestCase(WebTest):
         self.ProjType.delete()
         self.user.delete()
         self.user2.delete()
+
+
+
+class EmployeeProjectsTestCase(WebTest):
+    '''
+
+    '''
+
+    def setUp(self):
+        '''create two employees, one supervises the other. Additionally,
+        create 3 projects, one run by the supervisor, 2 by the employee.'''
+
+        #self.client = Client()
+
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'mburns',
+                                first_name = 'Burns',
+                                last_name = 'Montgomery',
+                                       )
+
+        managerGrp, created = Group.objects.get_or_create(name='manager')
+        self.user2.groups.add(managerGrp)
+
+        #mr. burns is an employee without a boss
+        self.employee2 = EmployeeFactory(user=self.user2)
+        #make mr. burns homer's boss
+        self.employee = EmployeeFactory(user=self.user,
+                                        supervisor=self.employee2)
+
+        self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
+
+        #we need approved and sign off milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1,
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999,
+                                             report=False)
+
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user,
+                                              owner=self.user,
+                                              project_type = self.ProjType)
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+                                              prj_ldr=self.user,
+                                              owner=self.user,
+                                              project_type = self.ProjType)
+        #this one is run by mr. burns
+        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
+                                              prj_ldr=self.user2,
+                                              owner=self.user2,
+                                              project_type = self.ProjType)
+
+    def test_manager_sees_employee_projects(self):
+        """WHen a manager logs into an employees project list, they should see
+        a list of project run by that employee. The response should also
+        include the employees name, but should not include projects that
+        employee did not run.
+
+        Arguments:
+        - `self`:
+
+        """
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('EmployeeProjects',
+                      kwargs={'employee_name':self.user.username},)
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pjtk2/employee_projects.html")
+
+        self.assertContains(response, self.project1.prj_cd)
+        self.assertContains(response, self.project2.prj_cd)
+
+        #these values should be in the response:
+        self.assertNotContains(response, self.project3.prj_cd)
+
+        print(response)
+
+        label=" ".join([self.user.first_name,self.user.last_name])
+        #label= label + "'s"
+        self.assertContains(response, label)
+
+        #Monty Burns should not appear anywhere in the response
+        label=" ".join([self.user2.first_name,self.user2.last_name])
+        self.assertNotContains(response, label)
+
+
+    def test_employee_redirected_from_employee_projects(self):
+        """An employee who is not a manager should be redirected back to his
+        own project list if they try to access an employee list.
+
+        Arguments:
+        - `self`:
+        """
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('EmployeeProjects',
+                      kwargs={'employee_name':self.user.username},)
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pjtk2/my_projects.html")
+
+
+    def test_user_redirected_from_employee_projects(self):
+        """An anonymous should be redirected back to the login page
+        if they are not logged already
+
+        Arguments:
+        - `self`:
+        """
+        url = reverse('EmployeeProjects',
+                      kwargs={'employee_name':self.user.username},)
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "auth/login.html")
+
+
+    def tearDown(self):
+        self.project1.delete()
+        self.project2.delete()
+        self.project3.delete()
+        self.ProjType.delete()
+        self.user.delete()
+        self.user2.delete()
+
+
+
+
+
 
 
 

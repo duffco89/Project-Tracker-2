@@ -23,6 +23,7 @@ class TestUrls(DemoTestCase):
 
     def setUp(self):
 
+        self.user = UserFactory()
         #PROJECT
         self.project = ProjectFactory.create(prj_cd="LHA_IA12_111")
         self.tag = 'tag'
@@ -85,6 +86,11 @@ class TestUrls(DemoTestCase):
 
             (reverse('MyProjects'),
              {'status_code': 302}),
+
+            (reverse('EmployeeProjects',
+                     kwargs={'employee_name':self.user.username}),
+             {'status_code': 302}),
+
 
             (reverse('Bookmark_Project', args=(self.project.slug,)),
              {'status_code': 302}),
