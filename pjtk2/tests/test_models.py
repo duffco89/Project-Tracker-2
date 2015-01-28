@@ -1136,3 +1136,66 @@ class TestMilestoneStatus(TestCase):
         self.milestone1.delete()
         self.milestone2.delete()
         self.user.delete()
+
+
+
+class TestProjectStatus(TestCase):
+    '''The status of a project must be one of: 'Submitted', 'Ongoing',
+        'Cancelled' or 'Complete'
+        Submitted - not approved
+        Ongoing - approved, but not cancelled or signed off
+        Cancelled - cancelled==True
+        Complete - signoff==True
+
+    We need to verify that project.status returns the correct values.
+
+    '''
+
+    def setUp(self):
+        '''we will need three projects with easy to rember project codes'''
+
+
+        self.user = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        #Add milestones
+        self.milestone1 = MilestoneFactory.create(label="Approved",
+                                             category = 'Core', order=1,
+                                             report=False)
+        self.milestone2 = MilestoneFactory.create(label="Sign off",
+                                        category = 'Core', order=999,
+                                             report=False)
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              owner=self.user)
+
+    def test_status_submitted(self):
+        """if a project has been submitted, but has not been approved,
+        cancelled or signed off, it should be submitted.
+        """
+        self.assertEqual(self.project1.status(), 'Submitted')
+
+
+    def test_status_ongoing(self):
+        """if a project has been submitted, but has not been approved,
+        cancelled or signed off, it should be submitted.
+        """
+        self.project1.approve()
+        self.assertEqual(self.project1.status(), 'Ongoing')
+
+    def test_status_cancelled(self):
+        """if a project has been submitted, but has not been approved,
+        cancelled or signed off, it should be submitted.
+        """
+        self.project1.approve()
+        self.project1.cancelled = True
+        self.project1.save()
+        self.assertEqual(self.project1.status(), 'Cancelled')
+
+    def test_status_complete(self):
+        """if a project has been submitted, but has not been approved,
+        cancelled or signed off, it should be submitted.
+        """
+        self.project1.approve()
+        self.project1.signoff()
+        self.assertEqual(self.project1.status(), 'Complete')

@@ -388,7 +388,6 @@ class CancelProjectTestCase(TestCase):
         self.owner = UserFactory()
         self.project = ProjectFactory(owner = self.owner)
 
-
     def test_manager_can_cancel_project(self):
         """A manager should be able to access the cancel project url and
         successfully cancel a project.
@@ -408,7 +407,8 @@ class CancelProjectTestCase(TestCase):
         #it should be cancelled now:
         proj = Project.objects.get(slug=self.project.slug)
         self.assertTrue(proj.cancelled)
-
+        #make sure that who cancelled the project is recorded too
+        self.assertEqual(proj.cancelled_by, self.user)
 
 
     def test_user_cannot_cancel_project(self):
