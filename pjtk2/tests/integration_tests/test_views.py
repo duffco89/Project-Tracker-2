@@ -366,6 +366,285 @@ class ProjectDetailJoeUserTestCase(TestCase):
         self.user.delete()
 
 
+class CancelProjectTestCase(TestCase):
+    '''verify that a manager can see a project and be able to both
+    edit the record and update milestones.'''
+
+    def setUp(self):
+        self.client = Client()
+        self.user = UserFactory(username = 'gcostansa',
+                                first_name = 'George',
+                                last_name = 'Costansa')
+
+        self.user1 = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        #make george the manager:
+        managerGrp, created = Group.objects.get_or_create(name='manager')
+        self.user.groups.add(managerGrp)
+
+        #now create a project using a different user
+        self.owner = UserFactory()
+        self.project = ProjectFactory(owner = self.owner)
+
+
+    def test_manager_can_cancel_project(self):
+        """A manager should be able to access the cancel project url and
+        successfully cancel a project.
+        """
+        #make sure the project isn't cancelled to start with
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertFalse(proj.cancelled)
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('cancel_project',
+                                           kwargs={'slug':self.project.slug}),
+                                   follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+        #it should be cancelled now:
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.cancelled)
+
+
+
+    def test_user_cannot_cancel_project(self):
+        """A regular user cannot access the cancel project url and should be
+        re-directed to project detail page.
+
+        """
+        #make sure the project isn't cancelled to start with
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertFalse(proj.cancelled)
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('cancel_project',
+                                           kwargs={'slug':self.project.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+        #it still should not be cancelled :
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertFalse(proj.cancelled)
+
+
+    def test_anonuser_cannot_cancel_project(self):
+        """An anonmous user cannot access the cancel project url and should be
+        re-directed to loggin-page.
+
+        """
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertFalse(proj.cancelled)
+
+        #login = self.client.login(username=self.user1.username, password='abc')
+        #self.assertTrue(login)
+        response = self.client.get(reverse('cancel_project',
+                                           kwargs={'slug':self.project.slug}),
+                                   follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'auth/login.html')
+        #it still should not be cancelled :
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertFalse(proj.cancelled)
+
+    def tearDown(self):
+        self.project.delete()
+        self.user1.delete()
+        self.user.delete()
+
+
+class TestDetailPageCancelledProjects(TestCase):
+    '''there are a number of requirements associated with cancelled projects:
+
+    + a canceled project will have a warning on its detail page
+    + a project must be approved to be canceled (un-approved projects will not display cancel button)
+    + the cancel button on will not render when regular user sees page
+    + the cancel button will be disabled if the project is already cancelled.
+    '''
+
+    def setUp(self):
+        #USERS
+        self.user1 = UserFactory.create(username = 'hsimpson',
+                                        first_name = 'Homer',
+                                        last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'bgumble',
+                                        first_name = 'Barney',
+                                        last_name = 'Gumble',
+                                       )
+
+        self.ms1 = MilestoneFactory.create(label = "Approved", protected=True,
+                                            category = 'Core', order = 1,
+                                           report=False)
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user1,
+                                              owner=self.user1)
+
+        #make Barney is the manager:
+        managerGrp, created = Group.objects.get_or_create(name='manager')
+        self.user2.groups.add(managerGrp)
+
+        self.message = "This project was cancelled."
+
+        self.ApproveBtn = ('<button type="button" ' +
+                           'class="btn btn-primary">Approve</button>')
+
+        self.CancelBtn = ('<button type="button" ' +
+                          'class="btn btn-danger">Cancel</button>')
+
+        self.DisabledCancelBtn = ('<button type="button" ' +
+                                  'class="btn btn-danger"' +
+                                  ' disabled="disabled">Cancel</button>')
+
+
+
+    def test_no_cancel_btn_unapproved_projects(self):
+        """If the manager views an un-approved project, there will not be a
+        cancelled button or cancelled notification.
+
+        """
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        #the project is neither approved or canceled:
+        self.assertFalse(self.project1.is_approved())
+        self.assertFalse(self.project1.cancelled)
+
+        #we should be able to approve it, but can't cancel it yet
+        self.assertContains(response, self.ApproveBtn)
+        self.assertNotContains(response, self.CancelBtn)
+        self.assertNotContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, 'Unapprove')
+        self.assertNotContains(response, self.message)
+
+
+    def test_cancel_btn_approved_projects(self):
+        """When A manager views the detail of an approved project, the page
+        should not contain a 'Approve' or 'UnApprove' button but
+        should contain a Cancel button.  no warning message should
+        appear.
+
+        """
+        self.project1.approve()
+
+        #the project should now be approved (but not cancelled yet)
+        self.assertTrue(self.project1.is_approved())
+        self.assertFalse(self.project1.cancelled)
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        self.assertNotContains(response, self.ApproveBtn)
+        self.assertContains(response, self.CancelBtn)
+        self.assertNotContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, 'Unapprove')
+        self.assertNotContains(response, self.message)
+
+
+    def test_notice_and_disabled_cancel_btn_cancelled_projects(self):
+        """When A manager views the detail of a cancelled project, the page
+        should contain a warning message and the cancel button should
+        be disabled.
+        """
+
+        self.project1.approve()
+        self.project1.cancelled=True
+        self.project1.save()
+
+        #the project should now be approved (but not cancelled yet)
+        self.assertTrue(self.project1.is_approved())
+        self.assertTrue(self.project1.cancelled)
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        self.assertNotContains(response, self.ApproveBtn)
+        self.assertNotContains(response, self.CancelBtn)
+        self.assertContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, 'Unapprove')
+        self.assertContains(response, self.message)
+
+    def test_no_cancel_btn_regular_user(self):
+        """If a regular user views an approved project page, that has not been
+        cancelled, they will not see the cancel project button or the
+        message.  The button should only be available to managers.
+        """
+
+        self.project1.approve()
+
+        #the project should now be approved (but not cancelled yet)
+        self.assertTrue(self.project1.is_approved())
+        self.assertFalse(self.project1.cancelled)
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        #it should not contain any buttons or cancelled messages:
+        self.assertNotContains(response, self.ApproveBtn)
+        self.assertNotContains(response, self.CancelBtn)
+        self.assertNotContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, 'Unapprove')
+        self.assertNotContains(response, self.message)
+
+
+    def test_cancel_message_regular_user(self):
+        """If a regular user views the detail page for a project that was
+        cancelled, the page will include an appropriate message.
+        """
+
+        self.project1.approve()
+        self.project1.cancelled=True
+        self.project1.save()
+
+        #the project should now be approved (but not cancelled yet)
+        self.assertTrue(self.project1.is_approved())
+        self.assertTrue(self.project1.cancelled)
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        #it should not contain any buttons:
+        self.assertNotContains(response, self.ApproveBtn)
+        self.assertNotContains(response, self.CancelBtn)
+        self.assertNotContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, 'Unapprove')
+        # it should contain basic message:
+        self.assertContains(response, self.message)
+
+
+
 
 class ProjectDetailManagerTestCase(TestCase):
     '''verify that a manager can see a project and be able to both

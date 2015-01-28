@@ -213,6 +213,9 @@ class Project(models.Model):
     }
 
     active  = models.BooleanField(default=True)
+    cancelled  = models.BooleanField(default=False)
+    cancelled_by  = models.ForeignKey(User, related_name="Cancelled By",
+                                  blank=True, null=True)
     year = models.CharField("Year", max_length=4, blank=True, editable=False)
     prj_date0 = models.DateField("Start Date", blank=False)
     prj_date1 = models.DateField("End Date", blank=False)

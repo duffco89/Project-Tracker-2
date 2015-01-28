@@ -14,6 +14,11 @@
     <div class="col-md-5" >
       <h2>{{ project.prj_nm  }}</h2>
       <br />
+
+      {% if project.cancelled %}
+      <div class="alert alert-danger" role="alert"> This project was cancelled.</div>
+      {% endif %}
+
       <table cellspacing="0" class="table">
         <tr>
           <td><strong>Project Code:</strong></td>
@@ -192,10 +197,14 @@
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-primary">Change Reporting Requirements</button> </a>
       {% if project.is_approved %}
-      <a href="{% url 'unapprove_project' project.slug %}"
-         onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-primary">Unapprove</button> </a>
-      {% else %}
+          {% if project.cancelled %}
+          <a href="#" onclick="javascript:window.location=this.href">
+            <button type="button" class="btn btn-danger" disabled="disabled">Cancel</button> </a>
+          {% else %}
+          <a href="{% url 'cancel_project' project.slug %}" onclick="javascript:window.location=this.href">
+            <button type="button" class="btn btn-danger">Cancel</button> </a>
+          {% endif %}
+          {% else %}
       <a href="{% url 'approve_project' project.slug %}"
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-primary">Approve</button> </a>
