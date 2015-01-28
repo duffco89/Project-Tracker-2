@@ -115,6 +115,7 @@ table div.rotated {
     <li><a href="#notices">Notices</a></li>
     <li><a href="#submitted">Submitted</a></li>
     <li><a href="#approved">Approved</a></li>
+    <li><a href="#cancelled">Cancelled</a></li>
     <li><a href="#completed">Completed</a></li>
     <li><a href="#bookmarks">Bookmarks</a></li>
   </ul>
@@ -181,8 +182,8 @@ table div.rotated {
           <tr>
             <th>Year</th>
             <th>Project Code</th>
-            <th>Project Type</th>
             <th>Project Name</th>
+            <th>Project Type</th>
             {% if boss %}
             <th>Project Lead</th>
             {% endif %}
@@ -229,8 +230,8 @@ table div.rotated {
             <tr>
               <th>Year</th>
               <th>Project Code</th>
-              <th>Project Type</th>
               <th>Project Name</th>
+              <th>Project Type</th>
               {% if boss %}
               <th>Project Lead</th>
               {% endif %}
@@ -269,6 +270,57 @@ table div.rotated {
       {% endif %}
     </div> <!-- approved -->
 
+
+    <div id="cancelled" class="tab-pane" >
+      <h3>Cancelled Projects</h3>
+      {% if cancelled %}
+
+        <table id="myTable" class="table tablesorter rotated-header">
+          <thead class="rotated-header">
+            <tr>
+              <th>Year</th>
+              <th>Project Code</th>
+              <th>Project Name</th>
+              <th>Project Type</th>
+              {% if boss %}
+              <th>Project Lead</th>
+              {% endif %}
+
+              {% for report in core_reports %}
+              <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for project in cancelled %}
+            <tr class="{% cycle row1,row2 %}">
+              <td> {{ project.year }} </td>
+              <td>
+                <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+              </td>
+              <td> {{ project.project_type }} </td>
+              <td>
+                {{ project.prj_nm  }}
+              </td>
+              {% if boss %}
+            <td>
+              <a href="{% url 'EmployeeProjects' project.prj_ldr.username %}">
+                {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a> </td>
+              {% endif %}
+
+              {{ project | milestone_status:core_reports }}
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+      {% else %}
+      <p><em>You do not currently have any cancelled projects </em></p>
+      {% endif %}
+    </div> <!-- cancelled -->
+
+
     <div id="completed" class="tab-pane" >
       <h3>Completed Projects</h3>
       {% if complete %}
@@ -277,8 +329,8 @@ table div.rotated {
           <tr>
             <th>Year</th>
             <th>Project Code</th>
-            <th>Project Type</th>
             <th>Project Name</th>
+            <th>Project Type</th>
             {% if boss %}
             <th>Project Lead</th>
             {% endif %}
@@ -321,8 +373,8 @@ table div.rotated {
           <tr>
             <th>Year</th>
             <th>Project Code</th>
-            <th>Project Type</th>
             <th>Project Name</th>
+            <th>Project Type</th>
             {% if boss %}
             <th>Project Lead</th>
             {% endif %}

@@ -48,19 +48,26 @@ class ProjectsManager(models.GeoManager):
 
     def approved(self):
         '''return a queryset containing only those projects that have been
-        approved, but have not been completed.
+        approved, but have not been completed or cancelled.
         '''
-        return self.filter(active=True,
+        return self.filter(active=True, cancelled=False,
                            projectmilestones__milestone__label='Approved',
                            projectmilestones__completed__isnull=False).filter(
                                projectmilestones__milestone__label='Sign off',
                                projectmilestones__completed__isnull=True)
 
+
+    def cancelled(self):
+        '''return a queryset containing only those projects that have been
+        cancelled.
+        '''
+        return self.filter(active=True,cancelled=True)
+
     def completed(self):
         '''return a queryset containing only those projects that have been
-        both approved and completed.
+        both approved and completed but not cancelled.
         '''
-        return self.filter(active=True,
+        return self.filter(active=True, cancelled=False,
                            projectmilestones__milestone__label='Approved',
                            projectmilestones__completed__isnull=False).filter(
                                projectmilestones__milestone__label='Sign off',
@@ -332,6 +339,31 @@ class Project(models.Model):
             return(True)
         else:
             return(False)
+
+
+    def status(self):
+        """The status of a project must be one of: 'Submitted', 'Ongoing',
+        'Cancelled' or 'Complete'
+        Submitted - not approved
+        Ongoing - approved, but not cancelled or signed off
+        Cancelled - cancelled==True
+        Complete - signoff==True
+
+        NOTE - projects cannot be completed or caneled withouth being
+        approved first!  Similarly, cancelled projects cannot be complete.
+
+        """
+
+        if not self.is_approved():
+            return('Submitted')
+        elif self.cancelled:
+            return('Cancelled')
+        elif self.is_complete():
+            return('Complete')
+        else:
+            return('Ongoing')
+
+
 
 
     def project_suffix(self):
@@ -656,8 +688,6 @@ class Project(models.Model):
         super(Project, self).save( *args, **kwargs)
         if new:
             self.initialize_milestones()
-
-
 
 
     def get_sample_points(self):

@@ -27,8 +27,8 @@ def do_if_Bookmarked(parser, token):
 
 class IfBookmarkedNode(template.Node):
     def __init__(self, user, project, nodelist_true, nodelist_false):
-        self.nodelist_false = nodelist_false    
-        self.nodelist_true = nodelist_true            
+        self.nodelist_false = nodelist_false
+        self.nodelist_true = nodelist_true
         self.user = template.Variable(user)
         self.project = template.Variable(project)
 
@@ -44,7 +44,7 @@ class IfBookmarkedNode(template.Node):
         else:
             return self.nodelist_false.render(context)
 
-        
+
 register = template.Library()
 register.tag("if_bookmarked", do_if_Bookmarked)
 
@@ -73,3 +73,17 @@ def milestone_status(project, reports):
 
     return mark_safe(html)
 
+
+@register.filter
+def highlight_status(status):
+    ''' a little filter to colour our status entires in project lists.
+    '''
+
+    if status == 'Cancelled':
+        return 'red'
+    elif status == 'Ongoing':
+        return 'blue'
+    elif status == 'Complete':
+        return 'green'
+    else:
+        return 'black'

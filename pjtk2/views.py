@@ -827,6 +827,8 @@ def my_projects(request):
         owner__username__in=employees).filter(year__gte=this_year-5)
     approved = Project.objects.approved().filter(
         owner__username__in=employees).filter(year__gte=this_year-5)
+    cancelled = Project.objects.cancelled().filter(
+        owner__username__in=employees).filter(year__gte=this_year-5)
     complete = Project.objects.completed().filter(
         owner__username__in=employees).filter(year__gte=this_year-5)
 
@@ -850,6 +852,7 @@ def my_projects(request):
                                'formset': notices_formset,
                                'complete': complete,
                                'approved': approved,
+                               'cancelled':cancelled,
                                'submitted': submitted,
                                'boss': boss,
                                'core_reports':core_reports},
@@ -885,6 +888,8 @@ def employee_projects(request, employee_name):
         owner__username=my_employee).filter(year__gte=this_year-5)
     approved = Project.objects.approved().filter(
         owner__username=my_employee).filter(year__gte=this_year-5)
+    cancelled = Project.objects.cancelled().filter(
+        owner__username=my_employee).filter(year__gte=this_year-5)
     complete = Project.objects.completed().filter(
         owner__username=my_employee).filter(year__gte=this_year-5)
 
@@ -903,6 +908,7 @@ def employee_projects(request, employee_name):
                                'label':label,
                                'complete': complete,
                                'approved': approved,
+                               'cancelled':cancelled,
                                'submitted': submitted,
                                'core_reports':core_reports},
                               context_instance=RequestContext(request))

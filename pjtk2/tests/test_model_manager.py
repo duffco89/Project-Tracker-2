@@ -169,7 +169,7 @@ class TestProjectsThisLastYear(TestCase):
         self.user.delete()
 
 
-class TestApprovedCompletedModelManagers(TestCase):
+class TestApprovedCancelledCompletedModelManagers(TestCase):
 
 
     def setUp(self):
@@ -204,6 +204,10 @@ class TestApprovedCompletedModelManagers(TestCase):
         self.project6 = ProjectFactory.create(prj_cd="LHA_IA11_666",
                                               owner=self.user)
 
+        self.project7 = ProjectFactory.create(prj_cd="LHA_IA11_777",
+                                              owner=self.user,
+                                              cancelled=True)
+
 
     def test_ApprovedProjects(self):
         # project 1-4 willb be approved
@@ -231,13 +235,24 @@ class TestApprovedCompletedModelManagers(TestCase):
         self.assertQuerysetEqual(completed, shouldbe, lambda a:a.prj_cd)
 
 
-        # projects 5 and 6 have been created but have not been
+        # projects 5, 6, and 7 have been created but have not been
         # approved or completed, they should be returned by
         #Project.objects.submitted()
         submitted = Project.objects.submitted()
-        self.assertEqual(submitted.count(),2)
-        shouldbe = [self.project5.prj_cd, self.project6.prj_cd]
+        self.assertEqual(submitted.count(),3)
+        shouldbe = [self.project5.prj_cd, self.project6.prj_cd,
+                    self.project7.prj_cd]
         self.assertQuerysetEqual(submitted, shouldbe, lambda a:a.prj_cd)
+
+
+    def test_ApprovedProjects(self):
+        '''only one project has cancelled=True, it should be the only one
+        returned by project.objects.cancelled'''
+
+        cancelled = Project.objects.cancelled()
+        self.assertEqual(cancelled.count(),1)
+        shouldbe = [self.project7.prj_cd]
+        self.assertQuerysetEqual(cancelled, shouldbe, lambda a:a.prj_cd)
 
 
     def tearDown(self):
