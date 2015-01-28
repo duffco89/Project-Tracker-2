@@ -530,6 +530,8 @@ def approve_project(request, slug):
     project.save()
     return HttpResponseRedirect(project.get_absolute_url())
 
+@login_required
+@group_required('manager')
 def unapprove_project(request, slug):
     '''A quick little view that will allow managers to unapprove projects
     from the project detail page.'''
@@ -537,6 +539,24 @@ def unapprove_project(request, slug):
     project = Project.objects.get(slug=slug)
     project.unapprove()
     project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+
+@login_required
+def cancel_project(request, slug):
+    '''A quick little view that will allow managers to cancel projects
+    from the project detail page. Users who are not managers are
+    re-directed to the project detail page without doing anything.
+    '''
+    #TO DO - add message for cancelled projects.
+
+    project = Project.objects.get(slug=slug)
+    if is_manager(request.user):
+
+        project.cancelled_by = request.user
+        project.cancelled=True
+        project.save()
+        #TODO = send notice
     return HttpResponseRedirect(project.get_absolute_url())
 
 

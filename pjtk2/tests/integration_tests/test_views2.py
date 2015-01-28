@@ -779,11 +779,6 @@ class EmployeeProjectsTestCase(WebTest):
 
 
 
-
-
-
-
-
 class TestProjectDetailForm(WebTest):
 
     def setUp(self):
