@@ -239,7 +239,7 @@ class ApproveProjectsForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ('prj_cd', 'prj_nm', 'prj_ldr')
+        fields = ('prj_cd', 'prj_nm', 'prj_ldr', 'project_type')
 
     def __init__(self, *args, **kwargs):
         super(ApproveProjectsForm, self).__init__(*args, **kwargs)
@@ -261,6 +261,16 @@ class ApproveProjectsForm(forms.ModelForm):
         )
 
 
+        self.fields["project_type"].widget = forms.HiddenInput()
+
+        self.fields['project_type_label'] = forms.CharField(
+            widget = ReadOnlyText,
+            label = "Project Type",
+            required =False,
+            initial = self.instance.project_type
+        )
+
+
         self.fields.update({"prj_cd":forms.CharField(
             widget = HyperlinkWidget(
                              url = self.instance.get_absolute_url(),
@@ -272,7 +282,8 @@ class ApproveProjectsForm(forms.ModelForm):
         ,})
 
         #snippet makes sure that Approved appears first
-        self.fields.keyOrder = ['Approved','prj_cd', 'prj_nm', 'prj_ldr_label']
+        self.fields.keyOrder = ['Approved','prj_cd', 'prj_nm',
+                                'project_type_label', 'prj_ldr_label']
 
 
     def clean_prj_cd(self):
@@ -282,6 +293,10 @@ class ApproveProjectsForm(forms.ModelForm):
     def clean_prj_nm(self):
         '''return the original value of prj_nm'''
         return self.instance.prj_nm
+
+    def clean_project_type(self):
+        '''return the original value of prj_nm'''
+        return self.instance.project_type
 
     def clean_prj_ldr(self):
         '''return the original value of prj_ldr'''
