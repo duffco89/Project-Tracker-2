@@ -56,7 +56,6 @@ class ProjectsManager(models.GeoManager):
                                projectmilestones__milestone__label='Sign off',
                                projectmilestones__completed__isnull=True)
 
-
     def cancelled(self):
         '''return a queryset containing only those projects that have been
         cancelled.
