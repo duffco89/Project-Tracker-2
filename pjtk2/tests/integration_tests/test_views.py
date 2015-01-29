@@ -384,6 +384,12 @@ class CancelProjectTestCase(TestCase):
         managerGrp, created = Group.objects.get_or_create(name='manager')
         self.user.groups.add(managerGrp)
 
+
+        self.ms = MilestoneFactory.create(label = "Cancelled", protected=True,
+                                            category = 'Core', order = 99,
+                                           report=False)
+
+
         #now create a project using a different user
         self.owner = UserFactory()
         self.project = ProjectFactory(owner = self.owner)
@@ -409,6 +415,14 @@ class CancelProjectTestCase(TestCase):
         self.assertTrue(proj.cancelled)
         #make sure that who cancelled the project is recorded too
         self.assertEqual(proj.cancelled_by, self.user)
+
+        #verify that the projectmilestone was created and has been populated
+        pms = ProjectMilestones.objects.get(project=self.project,
+                                               milestone=self.ms)
+        #I don't know what time it will be, but it should populated with a
+        #datetime object
+        self.assertTrue(pms.completed != None)
+        self.assertTrue(pms.completed.__class__ == datetime.datetime)
 
 
     def test_user_cannot_cancel_project(self):

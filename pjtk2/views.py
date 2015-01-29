@@ -544,19 +544,36 @@ def unapprove_project(request, slug):
 
 @login_required
 def cancel_project(request, slug):
-    '''A quick little view that will allow managers to cancel projects
+    '''A view that will allow managers to cancel projects
     from the project detail page. Users who are not managers are
     re-directed to the project detail page without doing anything.
+
+    In order to facilitate messaging and model managers, a cancelled
+    milestone needs to be created in addition to updating dedicated
+    fields of project objects.
+
+    In order to implement messaging associated with the cancellation
+    of a project, 'Cancelled' must be a milestone (a milestone and a
+    project are required using current messaging architector.)
+
     '''
-    #TO DO - add message for cancelled projects.
 
     project = Project.objects.get(slug=slug)
     if is_manager(request.user):
-
+        cancelled_ms = Milestone.objects.get(label='Cancelled')
+        project_cancelled,created = ProjectMilestones.objects.get_or_create(
+            project=project, milestone=cancelled_ms)
+        now = datetime.datetime.now(pytz.utc)
+        project_cancelled.completed = now
+        project_cancelled.save()
+        #any outstanding task will not longer be required:
+        remaining_ms = ProjectMilestones.objects.filter(project=project,
+                                                        required=True,
+                                                        completed__isnull=True).update(required=False)
+        #keep track of who cancelled the project
         project.cancelled_by = request.user
         project.cancelled=True
         project.save()
-        #TODO = send notice
     return HttpResponseRedirect(project.get_absolute_url())
 
 
