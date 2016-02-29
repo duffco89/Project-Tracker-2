@@ -1,7 +1,6 @@
 '''=============================================================
-c:/1work/Python/djcode/pjtk2/pjtk2/tests/integration_tests/test_associated_files.py
+~/pjtk2/pjtk2/tests/integration_tests/test_associated_files.py
 Created: 06 Mar 2014 11:37:43
-
 
 DESCRIPTION:
 
@@ -22,7 +21,6 @@ from django.conf import settings
 
 from pjtk2.tests.factories import *
 from pjtk2.models import AssociatedFile
-
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -47,13 +45,15 @@ class TestAssociatedFileModel(TestCase):
 
         self.user = UserFactory()
         self.project = ProjectFactory()
+        self.project = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              owner=self.user)
 
         #here is fake file that we will upload
         self.mock_file0 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
         self.mock_file0.name = "path/to/some/fake/file.txt"
 
-
+    @pytest.mark.xfail
     def test_associated_file_upload_to(self):
         """
 
@@ -74,14 +74,12 @@ class TestAssociatedFileModel(TestCase):
         print "associated_file.file_path.url = %s" % associated_file.file_path.url
         assert 0==1
 
-
     def TearDown(self):
         """
 
         Arguments:
         - `self`:
         """
-
 
 
 
@@ -103,7 +101,7 @@ class TestActualFileUpload(TestCase):
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
         self.mock_file0.name = "path/to/some/fake/file.txt"
 
-
+    @pytest.mark.xfail
     def test_upload_single_report(self):
         '''verify that a user can upload a simple file, that the file
         is associated with the correct project and has the correct

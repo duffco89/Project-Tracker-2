@@ -761,6 +761,7 @@ class Report(models.Model):
     entries in Project Reports'''
     current = models.BooleanField(default=True)
     projectreport = models.ManyToManyField('ProjectMilestones')
+
     report_path = models.FileField(upload_to="milestone_reports/",
                                    max_length=200)
     uploaded_on = models.DateTimeField(auto_now_add=True)
@@ -771,6 +772,7 @@ class Report(models.Model):
     def __unicode__(self):
         '''Use the file path as the string representation of a report'''
         return str(self.report_path)
+
 
 
 class AssociatedFile(models.Model):

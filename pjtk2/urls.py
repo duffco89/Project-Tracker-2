@@ -135,7 +135,6 @@ urlpatterns = patterns('pjtk2.views',
         view='delete_associated_file',
         name='delete_associated_file'),
 
-
     #url(r'^uploadlist/$', 'uploadlist', name='UploadList'),
 
     #this function is used to download reports and files from project pages
