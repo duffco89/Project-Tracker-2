@@ -51,14 +51,23 @@ class DBA_Factory(factory.DjangoModelFactory):
         return user
 
 
-
 class ManagerFactory(factory.DjangoModelFactory):
     FACTORY_FOR = User
     first_name = 'Boss'
     last_name = 'Hogg'
     username = 'bosshogg'
     email = 'bosshogg@hotmail.com'
-    manager = True
+    #manager = True
+
+    @classmethod
+    def _prepare(cls, create, **kwargs):
+        password = kwargs.pop('password', None)
+        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
+        if password:
+            user.set_password(password)
+            if create:
+                user.save()
+        return user
 
 
 class LakeFactory(factory.DjangoModelFactory):
