@@ -99,7 +99,7 @@ def test_manager_has_correct_project_detail_buttons(client, project, manager):
 
 
 @pytest.mark.django_db
-def test_manager_canceld_project_detail_buttons(client, project, manager):
+def test_manager_cancel_project_detail_buttons(client, project, manager):
         '''This is an edge case - if the project is approved, a manager should
         have a link that allows them to cancel it.
         '''

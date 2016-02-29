@@ -38,6 +38,12 @@
         </tr>
         {% endif %}
 
+
+        <td><strong>Data Custodian:</strong></td>
+          <td> {{ project.owner.first_name }} {{ project.owner.last_name }}</td>
+        </tr>
+
+
         <tr>
           <td><strong>Project Start:</strong></td>
           <td> {{ project.prj_date0|date:"M d, Y" }}</td>

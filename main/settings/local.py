@@ -7,7 +7,7 @@ DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'pjtk2',
-         'USER': 'adam',
+         'USER': 'cottrillad',
          'PASSWORD': 'django',
      }
 }
@@ -15,11 +15,11 @@ DATABASES = {
 
 
 MIDDLEWARE_CLASSES += (
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
 INSTALLED_APPS += (
-    'debug_toolbar',
+#    'debug_toolbar',
     'django_extensions',
     #'werkzeug_debugger_runserver',
 
