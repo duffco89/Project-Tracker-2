@@ -50,7 +50,7 @@ def make_custom_datefield(fld, **kwargs):
 
 class UserModelChoiceField(ModelChoiceField):
     '''a custom model choice widget for user objects.  It will
-    displace user first and last name in list of available choices
+    display user first and last name in list of available choices
     (rather than their official user name). modified from
     https://docs.djangoproject.com/en/dev/ref/forms/fields/#modelchoicefield.
     '''
@@ -564,12 +564,19 @@ class ProjectForm(forms.ModelForm):
 
     prj_ldr = UserModelChoiceField(
         label="Project Leader:",
-        queryset=User.objects.filter(is_active=True),
+        queryset=User.objects.filter(is_active=True).\
+        order_by('first_name', 'last_name'),
         required=True,
     )
 
     field_ldr = UserModelChoiceField(
         label="Field Leader:",
+        queryset=User.objects.filter(is_active=True),
+        required=False,
+    )
+
+    owner = UserModelChoiceField(
+        label="Data Custodian:",
         queryset=User.objects.filter(is_active=True),
         required=False,
     )
@@ -627,7 +634,7 @@ class ProjectForm(forms.ModelForm):
     )
 
     dba = forms.ModelChoiceField(
-        label="Data Custodian:",
+        label="DBA:",
         #TODO - change this from superuser to groups__contain='dba'
         queryset=User.objects.filter(is_superuser=True),
         required=True,
@@ -640,9 +647,10 @@ class ProjectForm(forms.ModelForm):
 
     class Meta:
         model = Project
-        fields = ("prj_nm", "prj_ldr", "field_ldr", "prj_cd", "prj_date0",
-                  "prj_date1", "risk", 'project_type', "master_database",
-                  "lake", "comment", "dba", "tags", 'salary', 'odoe', 'funding')
+        fields = ("prj_nm", "prj_ldr", "field_ldr", "owner","prj_cd",
+                  "prj_date0", "prj_date1", "risk", 'project_type',
+                  "master_database", "lake", "comment", "dba", "tags",
+                  'salary', 'odoe', 'funding')
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -665,6 +673,7 @@ class ProjectForm(forms.ModelForm):
                     'prj_cd',
                     'prj_ldr',
                     'field_ldr',
+                    'owner',
                     'comment',
                     'risk',
                     Field('prj_date0', placeholder = "dd/mm/yyyy",
@@ -689,8 +698,12 @@ class ProjectForm(forms.ModelForm):
         if readonly:
             self.fields["prj_cd"].widget.attrs['readonly'] = True
             #this is an edit so our project lead could be anyone:
-            self.fields["prj_ldr"].queryset =  User.objects.all()
-            self.fields["field_ldr"].queryset = User.objects.filter()
+            self.fields["prj_ldr"].queryset =  User.objects.order_by(
+                'first_name', 'last_name').all()
+            self.fields["field_ldr"].queryset = User.objects.order_by(
+            'first_name', 'last_name').all()
+            self.fields["owner"].queryset = User.objects.order_by(
+                'first_name', 'last_name').filter(is_active=True).all()
 
         if milestones:
             if self.manager is True:
