@@ -12,10 +12,8 @@ DATABASES = {
     'default': {
          'ENGINE': 'django.contrib.gis.db.backends.postgis',
          'NAME': 'pjtk2',
-         'USER': 'adam',
+         'USER': 'cottrillad',
          'PASSWORD': 'django',
+         'HOST':'142.143.160.56',
      }
 }
-
-
-

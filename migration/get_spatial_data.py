@@ -15,7 +15,7 @@ Database not currently included in this scripts:
 - Sturgeon Master
 - Lake whitefish movement study
 - CWT cooperative collections
-- cormorant work (where is that data any how)
+- cormorant work (where is that data any how?)
 - other projects and programs I don't know about
 
 To refresh the spatial data in pjtk2 simply run:
@@ -41,10 +41,10 @@ A. Cottrill
 '''
 
 
-#import adodbapi
+import csv
+import os
 import psycopg2
 import pyodbc
-import csv
 
 PG_USER = 'adam'
 PG_DB = 'pjtk2'
@@ -100,7 +100,7 @@ masters = {
 
          'path': ('Z:/Data Warehouse/Assessment/Index/Sturgeon/' +
                   'SturgeonMaster.mdb'),
-         'table': 'Sturgeon_FN121',
+          'table': 'Sturgeon_FN121',
          'sam': 'SAM',
          'ddlat': 'dd_lat',
          'ddlon': 'dd_lon',
@@ -235,7 +235,7 @@ for db in masters.keys():
 #    INSERT SPATIAL DATA
 
 #constr = "dbname={0} user={1}".format(PG_DB, PG_USER)
-constr = "host={0} dbname={1} user={2}".format(PG_HOST, PG_DB, PG_USER)
+constr = "host={0} dbname={1} user={2} password='django'".format(PG_HOST, PG_DB, PG_USER)
 pgconn = psycopg2.connect(constr)
 pgcur = pgconn.cursor()
 
@@ -273,16 +273,30 @@ print('continue...')
 
 #here are the projects that still have spatial data but can't be found
 #in project list
-sql = ("SELECT DISTINCT sp.dbase, sp.prj_cd FROM spatial_tmp sp " +
-       "WHERE sp.prj_cd NOT IN (SELECT DISTINCT p.prj_cd FROM " +
-       "pjtk2_project p) order by dbase, prj_cd")
+
+sql = """SELECT DISTINCT CASE
+         WHEN CAST(SUBSTRING(sp.prj_cd,7,2) AS int) < 50
+         THEN '20' ||SUBSTRING(sp.prj_cd,7,2)
+         ELSE '19' ||SUBSTRING (sp.prj_cd,7,2)
+       END AS year,
+       sp.dbase,
+       sp.prj_cd
+FROM spatial_tmp sp
+WHERE UPPER(sp.prj_cd) NOT IN (
+SELECT DISTINCT UPPER(p.prj_cd) AS foo FROM pjtk2_project p)
+ORDER BY dbase,
+         prj_cd;"""
+
 pgcur.execute(sql)
 orphans = pgcur.fetchall()
+
 fname = 'c:/1work/Python/djcode/pjtk2/migration/orphans.csv'
-with open(fname, 'w') as f:
-    writer = csv.writer(f)
+with open(fname, 'wb') as f:
+    writer = csv.writer(f, lineterminator=os.linesep)
     writer.writerow([x[0] for x in pgcur.description])
     writer.writerows(orphans)
+print "Done writing orphans.csv"
+
 
 #these are projects that have a completion product of some kind but do
 #not appear in the master databases anywhere
@@ -304,20 +318,20 @@ WHERE
 ms.label = 'Field Work Conducted'
 AND   field_component IS TRUE
 AND   p.active IS TRUE
+AND   p.cancelled IS FALSE
 --and pms.completed is not null
-AND   p.prj_cd NOT IN (
+AND   UPPER(p.prj_cd) NOT IN (
 -- projects with spatial data
-SELECT DISTINCT prj_cd FROM spatial_tmp)
+SELECT DISTINCT UPPER(prj_cd) as PRJ_CD FROM spatial_tmp)
 ORDER BY p.year DESC;
-
 
 """
 
 pgcur.execute(sql)
 omissions = pgcur.fetchall()
 fname = 'c:/1work/Python/djcode/pjtk2/migration/omissions.csv'
-with open(fname, 'w') as f:
-    writer = csv.writer(f)
+with open(fname, 'wb') as f:
+    writer = csv.writer(f, lineterminator=os.linesep)
     writer.writerow([x[0] for x in pgcur.description])
     writer.writerows(omissions)
 
