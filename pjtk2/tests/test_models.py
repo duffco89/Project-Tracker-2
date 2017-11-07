@@ -153,7 +153,7 @@ class TestProjectModel(TestCase):
                                               owner=self.user)
 
 
-    def test_project_unicode(self):
+    def test_project_str(self):
         """make sure that the string representation of our project is
         what we expect (project name (project code))"""
 
@@ -454,8 +454,8 @@ class TestMilestoneModel(TestCase):
 
         #dict = self.project.get_assignment_dicts()
         dict = self.project.get_milestone_dicts()
-        print "dict.core = %s" % dict['Core']
-        print "dict.custom = %s" % dict['Custom']
+        print("dict.core = %s" % dict['Core'])
+        print("dict.custom = %s" % dict['Custom'])
 
         core = dict['Core']
 
@@ -817,7 +817,8 @@ class TestModelBookmarks(TestCase):
                                            project=self.project)
         watchers = bookmark.get_watchers()
 
-        self.assertEqual(watchers.sort(), [self.user, self.user2].sort())
+        shouldbe = [self.user, self.user2]
+        self.assertCountEqual(watchers, shouldbe)
 
 
     def tearDown(self):
@@ -947,45 +948,45 @@ class TestEmployeeFunctions(TestCase):
         #for Jerry, get supervisors will return just him
         bosses = get_supervisors(self.employee1)
         shouldbe = [self.employee1]
-        bosses = [unicode(x) for x in bosses]
-        shouldbe = [unicode(x) for x in shouldbe]
+        bosses = [str(x) for x in bosses]
+        shouldbe = [str(x) for x in shouldbe]
         self.assertListEqual(bosses, shouldbe)
 
         #for George get_supervisor will return he and Jerry
         bosses = get_supervisors(self.employee2)
         shouldbe = [self.employee2, self.employee1]
-        bosses = [unicode(x) for x in bosses]
-        shouldbe = [unicode(x) for x in shouldbe]
+        bosses = [str(x) for x in bosses]
+        shouldbe = [str(x) for x in shouldbe]
         self.assertListEqual(bosses, shouldbe)
 
         #for Kramer get_supervisor will return he and Jerry
         bosses = get_supervisors(self.employee3)
         shouldbe = [self.employee3, self.employee1]
-        bosses = [unicode(x) for x in bosses]
-        shouldbe = [unicode(x) for x in shouldbe]
+        bosses = [str(x) for x in bosses]
+        shouldbe = [str(x) for x in shouldbe]
         self.assertListEqual(bosses, shouldbe)
 
         #for Elaine get_supervisor will return her, Kramer and Jerry
         bosses = get_supervisors(self.employee4)
         shouldbe = [self.employee4, self.employee3, self.employee1]
-        bosses = [unicode(x) for x in bosses]
-        shouldbe = [unicode(x) for x in shouldbe]
+        bosses = [str(x) for x in bosses]
+        shouldbe = [str(x) for x in shouldbe]
         self.assertListEqual(bosses, shouldbe)
 
         #for Banya get_supervisor will return he, Kramer and Jerry
         bosses = get_supervisors(self.employee5)
         shouldbe = [self.employee5, self.employee3, self.employee1]
-        bosses = [unicode(x) for x in bosses]
-        shouldbe = [unicode(x) for x in shouldbe]
-        self.assertEquals(bosses, shouldbe)
+        bosses = [str(x) for x in bosses]
+        shouldbe = [str(x) for x in shouldbe]
+        self.assertEqual(bosses, shouldbe)
 
         #for Newman get_supervisor will return he, Banya, Kramer and Jerry
         bosses = get_supervisors(self.employee6)
         shouldbe = [self.employee6, self.employee5, self.employee3,
                     self.employee1]
-        bosses = [unicode(x) for x in bosses]
-        shouldbe = [unicode(x) for x in shouldbe]
-        self.assertEquals(bosses, shouldbe)
+        bosses = [str(x) for x in bosses]
+        shouldbe = [str(x) for x in shouldbe]
+        self.assertEqual(bosses, shouldbe)
 
     def test_get_minions(self):
 
@@ -994,16 +995,16 @@ class TestEmployeeFunctions(TestCase):
         # George, get_minions will return just him
         minions = get_minions(self.employee2)
         shouldbe = [self.employee2]
-        minions = [unicode(x) for x in minions]
-        shouldbe = [unicode(x) for x in shouldbe]
+        minions = [str(x) for x in minions]
+        shouldbe = [str(x) for x in shouldbe]
         self.assertListEqual(minions, shouldbe)
 
         # Banya is Newman's boss.  get_minions for Banya should return
         # both Banya and Newman
         minions = get_minions(self.employee5)
         shouldbe = [self.employee5, self.employee6]
-        minions = [unicode(x) for x in minions]
-        shouldbe = [unicode(x) for x in shouldbe]
+        minions = [str(x) for x in minions]
+        shouldbe = [str(x) for x in shouldbe]
         self.assertListEqual(minions, shouldbe)
 
         # Kramer supervises Elaine and Banya directly, Banya
@@ -1012,8 +1013,8 @@ class TestEmployeeFunctions(TestCase):
         minions = get_minions(self.employee3)
         shouldbe = [self.employee3, self.employee4, self.employee5,
                     self.employee6]
-        minions = [unicode(x) for x in minions]
-        shouldbe = [unicode(x) for x in shouldbe]
+        minions = [str(x) for x in minions]
+        shouldbe = [str(x) for x in shouldbe]
         self.assertListEqual(minions, shouldbe)
 
         # Jerry supervises everyone either directly or indirectly
@@ -1021,8 +1022,8 @@ class TestEmployeeFunctions(TestCase):
         minions = get_minions(self.employee1)
         shouldbe = [self.employee1, self.employee2, self.employee3,
                     self.employee4, self.employee5, self.employee6]
-        minions = [unicode(x) for x in minions]
-        shouldbe = [unicode(x) for x in shouldbe]
+        minions = [str(x) for x in minions]
+        shouldbe = [str(x) for x in shouldbe]
         self.assertListEqual(minions, shouldbe)
 
 
@@ -1080,7 +1081,7 @@ class TestMilestoneStatus(TestCase):
         handle it gracefully - return None'''
 
         #we pass in a non-sensical value, return None
-        self.assertEquals(self.project1.milestone_complete('foobar'), None)
+        self.assertEqual(self.project1.milestone_complete('foobar'), None)
 
     def test_incomplete_milestones(self):
         '''If the milestone has been applied to the project but is still

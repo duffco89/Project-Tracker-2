@@ -1016,7 +1016,6 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         self.assertTrue(login)
         response = self.client.get(reverse('ApproveProjects'), follow=True)
 
-        print response
         #This year
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
                          args = (self.project1.slug,)), self.project1.prj_cd)
@@ -1072,21 +1071,16 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-TOTAL_FORMS': 3,
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
-            #'thisyear-0-id':'6',
             'thisyear-0-id':str(self.project6.id),
+            'thisyear-0-prj_ldr':str(self.project6.prj_ldr.id),
             'thisyear-0-Approved': True,
-            #'thisyear-1-id':'1',
             'thisyear-1-id':str(self.project1.id),
+            'thisyear-1-prj_ldr':str(self.project1.prj_ldr.id),
             'thisyear-1-Approved': True,
-            #'thisyear-2-id':'2',
             'thisyear-2-id':str(self.project2.id),
+            'thisyear-2-prj_ldr':str(self.project2.prj_ldr.id),
             'thisyear-2-Approved': True,
             }
-
-        print "form_data = %s" % form_data
-        print "self.project6.id = %s" % self.project6.id
-        print "self.project2.id = %s" % self.project2.id
-        print "self.project1.id = %s" % self.project1.id
 
 
         #submit the form
@@ -1097,6 +1091,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         self.assertEqual(thisyear.count(),3)
         self.assertQuerysetEqual(thisyear, [True, True, True],
                                  lambda a:a.is_approved())
+
 
     def test_projects_for_thisyear_can_be_unapproved(self):
         '''Oops - funding was cut.  A project from this year that was
@@ -1116,23 +1111,22 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
             'thisyear-0-id':str(self.project6.id),
+            'thisyear-0-prj_ldr':str(self.project6.prj_ldr.id),
             'thisyear-0-Approved': False,
             'thisyear-1-id':str(self.project1.id),
+            'thisyear-1-prj_ldr':str(self.project1.prj_ldr.id),
             'thisyear-1-Approved': False,
             'thisyear-2-id':str(self.project2.id),
             'thisyear-2-Approved': False,
+            'thisyear-2-prj_ldr':str(self.project2.prj_ldr.id),
             }
 
         #submit the form
         response = self.client.post(reverse('ApproveProjects'), form_data,
                                     follow=True)
-        #print "response = {0}".format(response)
 
         #they should all be false now:
         thisyear = Project.this_year.all()
-
-        for proj in thisyear:
-            print proj.prj_nm, proj.prj_cd, proj.is_approved()
 
         self.assertEqual(thisyear.count(),3)
         self.assertQuerysetEqual(thisyear, [False, False, False],
@@ -1144,10 +1138,13 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'thisyear-INITIAL_FORMS': 3,
             'form-type':'thisyear',
             'thisyear-0-id':str(self.project6.id),
+            'thisyear-0-prj_ldr':str(self.project6.prj_ldr.id),
             'thisyear-0-Approved': False,
             'thisyear-1-id':str(self.project1.id),
+            'thisyear-1-prj_ldr':str(self.project1.prj_ldr.id),
             'thisyear-1-Approved': True,
             'thisyear-2-id':str(self.project2.id),
+            'thisyear-2-prj_ldr':str(self.project2.prj_ldr.id),
             'thisyear-2-Approved': False,
             }
 
@@ -1194,22 +1191,23 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
             'lastyear-0-id':str(self.project3.id),
-            'lastyear-0-prj_ldr':'1',
+            'lastyear-0-prj_ldr':str(self.project3.prj_ldr.id),
             'lastyear-0-Approved': True,
             'lastyear-1-id':str(self.project4.id),
-            'lastyear-0-prj_ldr':'1',
+            'lastyear-1-prj_ldr':str(self.project4.prj_ldr.id),
             'lastyear-1-Approved': True,
             }
 
         #submit the form
         response = self.client.post(reverse('ApproveProjects'), form_data,
                                     follow=True)
-        print response
-        print response.status_code
-        print "dir(response) = {0}".format(dir(response))
+
         #they should all be false now:
         lastyear = Project.last_year.all()
         self.assertEqual(lastyear.count(),2)
+        project_ids = [x.id for x in lastyear]
+        self.assertIn(self.project3.id, project_ids)
+        self.assertIn(self.project4.id, project_ids)
         self.assertQuerysetEqual(lastyear, [True, True],
                                  lambda a:a.is_approved())
 
@@ -1234,8 +1232,10 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
             'lastyear-0-id':str(self.project3.id),
+            'lastyear-0-prj_ldr':str(self.project3.prj_ldr.id),
             'lastyear-0-Approved': False,
             'lastyear-1-id':str(self.project4.id),
+            'lastyear-1-prj_ldr':str(self.project4.prj_ldr.id),
             'lastyear-1-Approved': False,
             }
 
@@ -1254,8 +1254,10 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             'lastyear-INITIAL_FORMS': 2,
             'form-type':'lastyear',
             'lastyear-0-id':str(self.project3.id),
+            'lastyear-0-prj_ldr':str(self.project3.prj_ldr.id),
             'lastyear-0-Approved': False,
             'lastyear-1-id':str(self.project4.id),
+            'lastyear-1-prj_ldr':str(self.project4.prj_ldr.id),
             'lastyear-1-Approved': True,
             }
 
@@ -1513,7 +1515,6 @@ class ProjectQuickSearch(TestCase):
         response = self.client.get(url, {'q':'foobar'})
         self.assertEqual(response.status_code, 200)
 
-        print response
         self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
         self.assertContains(response, "Sorry, no projects match that criteria.")
 

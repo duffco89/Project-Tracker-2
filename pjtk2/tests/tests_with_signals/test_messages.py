@@ -167,7 +167,7 @@ class TestBuildRecipientsList(TestCase):
 
         recipients = build_msg_recipients(self.project1)
         #compare what the funtion returns vs what we think it should.
-        self.assertItemsEqual(recipients, shouldbe)
+        self.assertCountEqual(recipients, shouldbe)
 
     def test_levels2(self):
         '''in this case we only want message to propegate up to the second
@@ -181,7 +181,7 @@ class TestBuildRecipientsList(TestCase):
 
         recipients = build_msg_recipients(self.project1, level=2)
         #compare what the funtion returns vs what we think it should.
-        self.assertItemsEqual(recipients, shouldbe)
+        self.assertCountEqual(recipients, shouldbe)
 
     def test_no_dba(self):
         '''Make sure that George is not on the DL if the dba option is set to
@@ -193,7 +193,7 @@ class TestBuildRecipientsList(TestCase):
 
         recipients = build_msg_recipients(self.project1, dba=False)
         #compare what the funtion returns vs what we think it should.
-        self.assertItemsEqual(recipients, shouldbe)
+        self.assertCountEqual(recipients, shouldbe)
 
     def test_watchers(self):
         '''Make sure that anyone who has bookmarked this project is also
@@ -211,7 +211,7 @@ class TestBuildRecipientsList(TestCase):
 
         recipients = build_msg_recipients(self.project1)
         #compare what the funtion returns vs what we think it should.
-        self.assertItemsEqual(recipients, shouldbe)
+        self.assertCountEqual(recipients, shouldbe)
 
     def test_watching_dba(self):
         '''if the dba is watching a project, make sure that he is in the list
@@ -227,7 +227,7 @@ class TestBuildRecipientsList(TestCase):
 
         recipients = build_msg_recipients(self.project1)
         #compare what the funtion returns vs what we think it should.
-        self.assertItemsEqual(recipients, shouldbe)
+        self.assertCountEqual(recipients, shouldbe)
 
     def test_ops(self):
         '''not implemented yet. - eventually, we would like to send a message
@@ -400,7 +400,7 @@ class TestMyMessages(TestCase):
         have not been read yet (i.e. [read] is null)'''
 
         msgs = my_messages(self.user1)
-        #self.assertItemsEqual(msgs, self.msgtxt[2:])
+        #self.assertCountEqual(msgs, self.msgtxt[2:])
         should_be = self.msgtxt[2:]
         should_be.reverse()
         should_be.extend(['Submitted'])
@@ -426,7 +426,7 @@ class TestMyMessages(TestCase):
         (gracefully)'''
 
         msgs = my_messages(self.user2)
-        self.assertItemsEqual(msgs, [])
+        self.assertCountEqual(msgs, [])
 
 
     def tearDown(self):
@@ -520,7 +520,7 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
         Georges_msgs = my_messages(self.user2)
 
         for msg in Georges_msgs:
-            print msg.message
+            print(msg.message)
 
         self.assertEqual(Georges_msgs.count(), 3)
 
@@ -660,7 +660,7 @@ class TestGetMessagesDict(TestCase):
         self.assertEqual(msg_dict[0]['msg_id'], messages[0].id)
 
         #send george a bunch of fake messages
-        for msg in xrange(15):
+        for msg in range(15):
             msgtxt = "a fake message - {0}.".format(msg)
             send_message(msgtxt=msgtxt, recipients=self.user2,
                          project=self.project2, milestone=self.milestone3)
@@ -853,19 +853,13 @@ class TestMyMessages(TestCase):
         have not been read yet (i.e. [read] is null)'''
 
         msgs = my_messages(self.user1)
-        #self.assertItemsEqual(msgs, self.msgtxt[2:])
+        #self.assertCountEqual(msgs, self.msgtxt[2:])
         should_be = self.msgtxt[2:]
         should_be.reverse()
         should_be.extend(['Submitted'])
 
-        for msg in msgs:
-            print(msg, msg.created, msg.read)
-
-        print "dir(msg) = %s" % dir(msg)
-
-
         self.assertQuerysetEqual(msgs, should_be,
-                                 lambda a: str(a.message.msgtxt))
+                                 lambda a: str(a.message.msgtxt), ordered=False)
 
     def test_my_messages_all(self):
         '''We may want to see all of the messages that have been sent to a
@@ -885,7 +879,7 @@ class TestMyMessages(TestCase):
         (gracefully)'''
 
         msgs = my_messages(self.user2)
-        self.assertItemsEqual(msgs, [])
+        self.assertCountEqual(msgs, [])
 
 
     def tearDown(self):
@@ -959,7 +953,7 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
         Kramers_msgs = my_messages(self.user3)
 
         for msg in Georges_msgs:
-            print "msg = %s" % msg
+            print("msg = %s" % msg)
 
 
         self.assertEqual(Georges_msgs.count(), 2)
@@ -983,7 +977,7 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
         Georges_msgs = my_messages(self.user2)
 
         for msg in Georges_msgs:
-            print msg.message
+            print(msg.message)
 
         self.assertEqual(Georges_msgs.count(), 3)
 

@@ -5,7 +5,7 @@ functionality are not included (assumed to be completed by the Django
 development team.)"""
 
 import os
-from StringIO import StringIO
+#from io import StringIO
 from datetime import datetime
 
 #from django.core.urlresolvers import reverse
@@ -19,7 +19,7 @@ from django.test import TestCase
 
 from pjtk2.models import *
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm, SisterProjectsForm,
-                         ReportUploadForm, ReportUploadFormSet)
+                         ReportUploadForm)
 from pjtk2.tests.factories import *
 
 
@@ -131,9 +131,9 @@ class TestProjectForm(TestCase):
         form = ProjectForm(data=proj)
         form.is_valid()
         if form.errors:
-            print "form.errors: %s" % form.errors
+            print("form.errors: %s" % form.errors)
         if form.non_field_errors():
-            print "form.non_field_errors(): %s" % form.non_field_errors()
+            print("form.non_field_errors(): %s" % form.non_field_errors())
 
         self.assertEqual(form.is_valid(), True)
 
@@ -340,9 +340,9 @@ class TestProjectForm(TestCase):
 
         form = ProjectForm(data=proj)
         if form.errors:
-            print "form.errors: %s" % form.errors
+            print("form.errors: %s" % form.errors)
         if form.non_field_errors():
-            print "form.non_field_errors(): %s" % form.non_field_errors()
+            print("form.non_field_errors(): %s" % form.non_field_errors())
         self.assertEqual(form.is_valid(), True)
 
 
@@ -369,9 +369,9 @@ class TestProjectForm(TestCase):
         form = ProjectForm(data=proj)
         form.is_valid()
         if form.errors:
-            print "form.errors: %s" % form.errors
+            print("form.errors: %s" % form.errors)
         if form.non_field_errors():
-            print "form.non_field_errors(): %s" % form.non_field_errors()
+            print("form.non_field_errors(): %s" % form.non_field_errors())
 
         self.assertEqual(form.is_valid(), True)
 
@@ -399,9 +399,9 @@ class TestProjectForm(TestCase):
         form = ProjectForm(data=proj)
         form.is_valid()
         if form.errors:
-            print "form.errors: %s" % form.errors
+            print("form.errors: %s" % form.errors)
         if form.non_field_errors():
-            print "form.non_field_errors(): %s" % form.non_field_errors()
+            print("form.non_field_errors(): %s" % form.non_field_errors())
 
         self.assertEqual(form.is_valid(), True)
 
@@ -588,7 +588,7 @@ class TestProjectForm(TestCase):
         should_be = list(set([x.lower() for x in tags]))
         should_be.sort()
 
-        self.assertItemsEqual(form_tags, should_be)
+        self.assertCountEqual(form_tags, should_be)
 
 
 class TestSelectSistersForm(TestCase):
@@ -668,13 +668,11 @@ class TestReportUploadForm(TestCase):
                                               owner=self.user)
 
         #here is fake file that we will upload
-        self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
-                     '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
-        self.mock_file.name = "path/to/some/fake/file.txt"
+        self.mock_file = b'File_content'
+        self.mock_file_name = "path/to/some/fake/file.txt"
 
-        self.mock_file2 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
-                     '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
-        self.mock_file2.name = "path/to/some/fake/file-2.txt"
+        self.mock_file2 = b'More_file_content'
+        self.mock_file2_name = "path/to/some/fake/file-2.txt"
 
 
     def test_submit_reports(self):
@@ -691,16 +689,16 @@ class TestReportUploadForm(TestCase):
         #this is the data that is returned from the form:
         data = dict(required=True, milestone = self.rep1)
 
-        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name,
-                                                       self.mock_file.read())}
+        file_data = {'report_path': SimpleUploadedFile(self.mock_file_name,
+                                                       self.mock_file)}
         form = ReportUploadForm(initial=initial, data=data,
                                 project = self.project1,
                                 user = self.user, files=file_data)
 
         if form.errors:
-            print "form.errors: %s" % form.errors
+            print("form.errors: %s" % form.errors)
         if form.non_field_errors():
-            print "form.non_field_errors(): %s" % form.non_field_errors()
+            print("form.non_field_errors(): %s" % form.non_field_errors())
 
         self.assertEqual(form.is_valid(), True)
 
@@ -716,7 +714,7 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(reports[0].uploaded_by, self.user)
 
         filepath = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file.name)[1])
+                                os.path.split(self.mock_file_name)[1])
         self.assertEqual(str(reports[0].report_path), filepath)
 
         #verify that self.rep2 isnt in the completed list - it isn't done yet:
@@ -738,8 +736,8 @@ class TestReportUploadForm(TestCase):
         #upload report1 to this project (same code as above)
         initial = dict(required=True, milestone = self.rep1, report_path = "")
         data = dict(required=True, milestone = self.rep1)
-        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name,
-                                                       self.mock_file.read())}
+        file_data = {'report_path': SimpleUploadedFile(self.mock_file_name,
+                                                       self.mock_file)}
         form = ReportUploadForm(initial=initial, data=data,
                                 project = self.project1,
                                 user = self.user, files=file_data)
@@ -756,8 +754,8 @@ class TestReportUploadForm(TestCase):
         #now upload the file 2 to the same project.  It should be
         #associated with the same type of report so this file should
         #replace the first.
-        file_data = {'report_path': SimpleUploadedFile(self.mock_file2.name,
-                                                       self.mock_file2.read())}
+        file_data = {'report_path': SimpleUploadedFile(self.mock_file2_name,
+                                                       self.mock_file2)}
         form = ReportUploadForm(initial=initial, data=data,
                                 project = self.project1,
                                 user = self.user, files=file_data)
@@ -775,8 +773,8 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(reports[0].uploaded_by, self.user)
 
         filepath = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file2.name)[1])
-        print "filepath = %s" % filepath
+                                os.path.split(self.mock_file2_name)[1])
+        print("filepath = %s" % filepath)
 
         self.assertEqual(str(reports[0].report_path), filepath)
 
@@ -803,8 +801,8 @@ class TestReportUploadForm(TestCase):
         #this is the data that is returned from the form:
         data = dict(required=True, milestone = self.rep1)
 
-        file_data = {'report_path': SimpleUploadedFile(self.mock_file.name,
-                                                       self.mock_file.read())}
+        file_data = {'report_path': SimpleUploadedFile(self.mock_file_name,
+                                                       self.mock_file)}
         form = ReportUploadForm(initial=initial, data=data,
                                 project = self.project1,
                                 user = self.user, files=file_data)
@@ -825,7 +823,7 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(reports[0].uploaded_by, self.user)
 
         filepath = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file.name)[1])
+                                os.path.split(self.mock_file_name)[1])
         self.assertEqual(str(reports[0].report_path), filepath)
 
         #verify that self.rep2 isnt in the completed list - it isn't done yet:
@@ -851,7 +849,7 @@ class TestReportUploadForm(TestCase):
         self.assertEqual(reports[0].uploaded_by, self.user)
 
         filepath = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file.name)[1])
+                                os.path.split(self.mock_file_name)[1])
         self.assertEqual(str(reports[0].report_path), filepath)
 
 
@@ -880,14 +878,14 @@ class TestReportUploadForm(TestCase):
         #finally get rid of the temporary file if it was created in
         #this test
         filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
-                                os.path.split(self.mock_file.name)[1])
+                                os.path.split(self.mock_file_name)[1])
         try:
             os.remove(filepath)
         except:
             pass
 
         filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
-                                os.path.split(self.mock_file2.name)[1])
+                                os.path.split(self.mock_file2_name)[1])
         try:
             os.remove(filepath)
         except:

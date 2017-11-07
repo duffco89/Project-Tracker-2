@@ -3,7 +3,11 @@ import pytest
 from .factories import *
 from pprint import pprint
 
-from pytest_fixtures import *
+from .pytest_fixtures import *
+
+
+
+
 
 @pytest.mark.django_db
 def test_anon_user_cannot_approve_project(client, project):

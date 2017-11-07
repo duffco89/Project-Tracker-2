@@ -15,13 +15,16 @@ from django.contrib.auth.models import Group
 import pytest
 from .factories import *
 
-@pytest.fixture(scope="module", autouse=True)
+SCOPE = 'function'
+
+
+@pytest.fixture(scope=SCOPE, autouse=True)
 def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
     pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope=SCOPE)
 def user(db):
     """return a normal user named homer
     """
@@ -33,7 +36,7 @@ def user(db):
     return(homer)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope=SCOPE)
 def joe_user(db):
     """return a normal user named joe blow
     """
@@ -45,7 +48,7 @@ def joe_user(db):
     return(joe)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope=SCOPE)
 def dba(db):
     """return a normal user named homer
     """
@@ -57,7 +60,7 @@ def dba(db):
     return(kramer)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope=SCOPE)
 def manager(db):
     """return a manager user named monty
     """
@@ -73,7 +76,7 @@ def manager(db):
     return(monty)
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope=SCOPE)
 def project(db, user):
     '''create a simple project with basic approved and signoff milestones'''
 

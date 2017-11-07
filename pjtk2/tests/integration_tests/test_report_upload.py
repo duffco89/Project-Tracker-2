@@ -5,7 +5,7 @@ files as expected.'''
 
 import os
 import re
-from StringIO import StringIO
+from io import StringIO
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -109,7 +109,7 @@ class BasicReportUploadTestCase(WebTest):
         #there should be four forms in the formset
         formcnt = len([x for x in form.fields.keys() if
                                x.endswith("-report_path")])
-        self.assertEquals(formcnt,3)
+        self.assertEqual(formcnt, 3)
 
 
 
@@ -302,9 +302,6 @@ class TestActualFileUpload(TestCase):
         url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
-
-        #print "response = %s" % response
-
 
         form_data = {
             'form-TOTAL_FORMS': 1,
