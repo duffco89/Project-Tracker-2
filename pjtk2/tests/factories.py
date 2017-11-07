@@ -8,7 +8,9 @@ from pjtk2.models import *
 
 
 class UserFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = User
+    class Meta:
+        model = User
+
     first_name = 'John'
     last_name = 'Doe'
     #username = 'johndoe'
@@ -31,7 +33,9 @@ class UserFactory(factory.DjangoModelFactory):
 
 
 class DBA_Factory(factory.DjangoModelFactory):
-    FACTORY_FOR = User
+    class Meta:
+        model = User
+
     first_name = 'Bill'
     last_name = 'Gates'
     #username = 'billgates'
@@ -52,7 +56,9 @@ class DBA_Factory(factory.DjangoModelFactory):
 
 
 class ManagerFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = User
+    class Meta:
+        model = User
+
     first_name = 'Boss'
     last_name = 'Hogg'
     username = 'bosshogg'
@@ -71,12 +77,14 @@ class ManagerFactory(factory.DjangoModelFactory):
 
 
 class LakeFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = Lake
+    class Meta:
+        model = Lake
     lake = "Lake Huron"
 
 
 class EmployeeFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = Employee
+    class Meta:
+        model = Employee
     user = factory.SubFactory(UserFactory)
     position = 'worker bee'
     role = 'employee'
@@ -85,24 +93,29 @@ class EmployeeFactory(factory.DjangoModelFactory):
 
 
 class ProjTypeFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = ProjectType
+    class Meta:
+        model = ProjectType
     project_type = "Offshore Index"
 
 
 class DatabaseFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = Database
+    class Meta:
+        model = Database
     master_database = "Offshore Master"
     path = "C:/Path/to/somedb.mdb"
 
 
 class FamilyFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = Family
+    class Meta:
+        model = Family
     id = factory.Sequence(lambda n:n)
 
 
 class ProjectFactory(factory.DjangoModelFactory):
     '''year and slug are built by the project save method'''
-    FACTORY_FOR = Project
+    class Meta:
+        model = Project
+
     prj_cd = "LHA_IA12_123"
     prj_nm = "Fake Project"
     #prj_ldr = "Bob Sakamano"
@@ -145,13 +158,17 @@ class ProjectFactory(factory.DjangoModelFactory):
 
 
 class ProjectSisters(factory.DjangoModelFactory):
-    FACTORY_FOR = ProjectSisters
+    class Meta:
+        model = ProjectSisters
+
     family = factory.SubFactory(FamilyFactory)
     project = factory.SubFactory(ProjectFactory)
 
 
 class MilestoneFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = Milestone
+    class Meta:
+        model = Milestone
+
     '''Look-up table of reporting milestone'''
     label = "Completion Report"
     label_abbrev = factory.Sequence(lambda n: 'milestone {0}'.format(n))
@@ -161,14 +178,17 @@ class MilestoneFactory(factory.DjangoModelFactory):
 
 
 class ProjectMilestonesFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = ProjectMilestones
+    class Meta:
+        model = ProjectMilestones
+
     '''list of reporting requirements for each project'''
     project = factory.SubFactory(ProjectFactory)
     milestone = factory.SubFactory(MilestoneFactory)
 
 
 class ReportFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = Report
+    class Meta:
+        model = Report
     current = True
     #projectreport = factory.SubFactory(ProjectMilestonesFactory)
     report_path = "some/fake/file.txt"
@@ -192,7 +212,8 @@ class ReportFactory(factory.DjangoModelFactory):
 
 
 class AssociatedFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = AssociatedFile
+    class Meta:
+        model = AssociatedFile
     current = True
     project = factory.SubFactory(Project)
     file_path = "some/fake/file.txt"
@@ -202,7 +223,8 @@ class AssociatedFactory(factory.DjangoModelFactory):
 
 
 class SamplePointFactory(factory.DjangoModelFactory):
-    FACTORY_FOR = SamplePoint
+    class Meta:
+        model = SamplePoint
 
     project = factory.SubFactory(ProjectFactory)
     sam = '123'
