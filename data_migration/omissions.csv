@@ -1,0 +1,167 @@
+year,prj_cd,prj_nm,project_lead,field_component
+2017,LHA_CF17_001,Commercial Catch Sampling 2017,Stephen Gile,True
+2017,LHA_IA17_03F,Nottawasaga Bay FLIN Lake Trout Assessment 2017,Stephen Gile,True
+2017,LHA_IA17_249,Severn Sound SMIN (Hoopnet),Arunas Liskauskas,True
+2017,LHA_IA17_250,Severn Sound SMIN (trapnet),Arunas Liskauskas,True
+2017,LHA_IA17_258,Severn Sound Fall Walleye Index Netting (FWIN),Sasha Fernando,True
+2017,LHA_IA17_301,Spanish River Delta SMIN (Trapnet),Arunas Liskauskas,True
+2017,LHA_IA17_302,Spanish River Delta SMIN (Hoopnet),Arunas Liskauskas,True
+2017,LHA_IA17_802,Broadscale Monitoring - Parry Sound,Vicki Lee,True
+2017,LHA_IA17_803,Broadscale Monitoring - Severn Sound,Vicki Lee,True
+2017,LHA_IA17_806,Broadscale Monitoring - Moon River,Vicki Lee,True
+2017,LHA_IA17_809,Broadscale Monitoring - Spanish,Vicki Lee,True
+2017,LHA_IA17_810,Broadscale Monitoring - Key River,Vicki Lee,True
+2017,LHA_IA17_S05,Lake Whitefish larval beach seining - Fishing Islands,Vicki Lee,True
+2017,LHA_IA17_S07,Lake Whitefish larval beach seining - Blind River,Vicki Lee,True
+2017,LHA_IL17_T05,Larval Whitefish Trawling - Fishing Islands,Vicki Lee,True
+2017,LHA_IL17_T07,Larval Whitefish Trawling - Blind River,Vicki Lee,True
+2017,LHA_IS17_03L,Nottawasaga Bay LMGN Lake Trout Assessment 2017,Stephen Gile,True
+2017,LHA_SC17_DA7,Maitland River Access Creel,Ronald Green,True
+2017,LHA_SC17_DR7,Maitland River Roving Creel,Ronald Green,True
+2017,LHA_SF17_404,Chantry Chinook Classic Derby Sampling 2017,Stephen Gile,True
+2017,LHA_SF17_501,Owen Sound Salmon Spectacular Derby Sampling 2017,Stephen Gile,True
+2016,LHA_IA16_029,Offshore Index Assessment - Point Clark,Jeff Speers,True
+2016,LHA_IA16_300,Spanish River Walleye Spawning Survey - Electrofishing,Jason Ritchie,True
+2016,LHA_IA16_305,Spanish Delta FWIN,Jason Ritchie,True
+2016,LHA_IM16_54S,Dennys Dam Fishway Monitoring - Spring ,Sasha Fernando,True
+2016,LHA_SC16_043,Shawanaga Winter Creel,Vicki Lee,True
+2016,LHA_SC16_200,Spanish Boat Creel,Vicki Lee,True
+2016,LHA_SC16_DA7,Maitland River Access Creel,Ronald Green,True
+2016,LHA_SC16_DR1,Saugeen River Shore-Based Roving Creel,Sasha Fernando,True
+2016,LHA_SC16_DR7,Maitland River Roving Creel,Ronald Green,True
+2015,LHA_IA15_J31,Lake Sturgeon Program 2015 - Juvenile (Experimental),Jeff Speers,True
+2015,LHA_IM15_56E,"Bruce Peninsula Sportsmen's Association, Egg Collections",Sasha Fernando,True
+2015,LHA_SC15_000,Owen Sound Boat Access creel,Vicki Lee,True
+2015,LHA_SC15_001,Owen Sound Roving Shore Creel,Vicki Lee,True
+2015,LHA_SC15_040,Shawanaga On water Boat creel,Vicki Lee,True
+2015,LHA_SC15_05A,Southampton Boat Access creel,Vicki Lee,True
+2015,LHA_SC15_06A,Colpoys Bay (Wiarton) Boat Access creel,Vicki Lee,True
+2015,LHA_SC15_06S,Colpoys Bay (Wiarton) Roving Shore creel ,Vicki Lee,True
+2015,LHA_SC15_11A,Kincardine Boat Access Creel,Vicki Lee,True
+2015,LHA_SC15_DR1,Saugeen River Shore-Based Roving Creel,Sasha Fernando,True
+2015,LHR_IA15_300,Hydroacoustics Companion Netting and Trawling,Erin Dunlop,True
+2014,LHA_SC14_033,Parry Sound Summer Roving Creel,Vicki Lee,True
+2014,LHA_SC14_052,Severn Sound Fall On-water Creel,Vicki Lee,True
+2013,LHA_SC13_000,Owen Sound Access Creel,Vicki Lee,True
+2013,LHA_SC13_001,Owen Sound Roving Shore Creel,Vicki Lee,True
+2013,LHA_SC13_033,Parry Sound Winter Creel,Vicki Lee,True
+2013,LHA_SC13_053,Severn Sound Winter Creel - 2013,Vicki Lee,True
+2013,LHA_SC13_AIR,Aerial Boat Count Survey Owen Sound And Colpoys Bay 2013,Stephen Gile,True
+2012,LHA_SC12_000,Owen Sound Access Creel,Vicki Lee,True
+2012,LHA_SC12_052,Severn Sound On Water Creel Survey,Vicki Lee,True
+2012,LHA_SC12_100,Kincardine/Goderich Access Creel,Vicki Lee,True
+2012,LHA_SC12_AIR,Aerial Boat Count Survey Owen Sound And Colpoys Bay 2012,Stephen Gile,True
+2011,LHA_IA11_119,South Bay Fall Lake Trout Assessment (FLIN),Vicki Lee,True
+2011,LHA_IS11_119,South Bay Fall Trap Netting - 2011,Vicki Lee,True
+2011,LHA_SC11_053,Severn Sound Winter Roving Creel,Vicki Lee,True
+2010,LHA_IA10_260,OCFA Eastern Georgian Bay Walleye Assessment,Lloyd Mohr,True
+2010,LHA_IM10_50E,Fall 2010 Milldam Vertebrae Collections,David Gonder,True
+2009,LHA_IA09_260,OCFA (EGB) Walleye - 2009,Adam Cottrill,True
+2009,LHA_SC09_033,Parry Sound Winter Creel - 2009,Vicki Lee,True
+2009,LHA_SC09_120,Manitoulin Creel - 2009,Vicki Lee,True
+2008,LHA_IA08_018,Five Mile Bay Lake Trout SLIN,Dave Anderson,True
+2008,LHA_IA08_260,OCFA (EGB) Walleye - 2008,Adam Cottrill,True
+2008,LHA_SC08_033,Parry Sound Summer Roving Creel,Vicki Lee,True
+2008,LHA_SC08_120,Manitoulin Creel - 2008,Vicki Lee,True
+2007,LHA_IA07_105,Bruce Archipelago Lake Trout Spring Gill Net Assessment,Stephen Gile,True
+2007,LHA_SC07_120,Manitoulin Access Creel - 2007,Lloyd Mohr,True
+2006,LHA_BS06_101,Brood Stock Release,Stephen Gile,True
+2006,LHA_IA06_119,South Bay - Fall Littoral Index,Yolanda Morbey,True
+2006,LHA_SC06_120,"South Bay/Providence Bay Summer Access Creel, 2006",Lloyd Mohr,True
+2006,LHR_IS06_119,South Bay - Fall Trapnetting,Yolanda Morbey,True
+2005,LHA_BS05_101,Brood Stock Release,Stephen Gile,True
+2005,LHR_IA05_119,South Bay - Fall Littoral Index,Yolanda Morbey,True
+2005,LHR_IS05_119,South Bay - Fall Trapnetting,Yolanda Morbey,True
+2004,LHR_IA04_119,South Bay - Fall Littoral Index,Yolanda Morbey,True
+2004,LHR_IS04_119,South Bay - Fall Trapnetting,Yolanda Morbey,True
+2003,35D_IA03_SPA,Spanish River Harbour ESTN 2003,George Morgan,True
+2003,LHR_IA03_119,South Bay - Fall Littoral Index,Yolanda Morbey,True
+2003,LHR_IS03_119,South Bay - Fall Trapnetting,Yolanda Morbey,True
+2002,LHA_VC02_001,Maitland Volunteer Steelhead Sampling,David Gonder,True
+2001,LHA_IA01_019,"Partnership Index Fishing, Northern Main Basin, 2001",Stephen Gile,True
+2001,LHA_IA01_50S,Fishway Monitoring 2001.,David Gonder,True
+2000,LHA_IA00_500,Severn Sound Index Netting,Unknown Unknown,True
+2000,LHA_SF00_001,Derby Monitoring - 2000,Lloyd Mohr,True
+1999,LHA_IA99_500,Severn Sound Index Netting,Unknown Unknown,True
+1998,LHA_IA98_500,Severn Sound Index Netting,Unknown Unknown,True
+1998,LHA_SC98_400,Wah Wah Taysee Association Marine Patrol Creel Survey,Arunas Liskauskas,True
+1997,LHA_BS97_101,Brood Stock Release,Stephen Gile,True
+1997,LHA_IA97_500,Severn Sound Index Netting,Jerry Kwciniski,True
+1996,LHA_BS96_101,Brood Stocking,Stephen Gile,True
+1996,LHA_IA96_500,Severn Sound Index Netting,Unknown Unknown,True
+1996,LHA_SC96_304,"Bruce Peninsula Aerial Boat Count Survey, 1996",Lloyd Mohr,True
+1995,LHA_IA95_500,Severn Sound Index Netting,Dave Ross,True
+1994,LHA_IA94_500,Severn Sound Index Netting,Wayne Calder,True
+1994,LHA_SC94_W03,Big Sound Winter Creel - Non-Stratified,Lloyd Thurston,True
+1993,LHA_IA93_230,Shawanaga River SWIN,Stephen James,True
+1993,LHA_IA93_500,Severn Sound Index Netting,Dave Ross,True
+1993,LHA_SC93_W03,Parry Sound Winter Creel,Lloyd Thurston,True
+1992,LHA_IA92_230,Shawanaga River SWIN,Stephen James,True
+1992,LHA_IA92_500,Severn Sound Index Netting,Wayne Lafrance,True
+1992,LHA_SC92_W03,Big Sound Creel Survey 1992,Lloyd Thurston,True
+1992,LHR_IS92_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1991,LHA_IA91_230,Shawanaga River SWIN,Stephen James,True
+1991,LHA_IA91_500,Severn Sound Index Netting,Wayne Lafrance,True
+1991,LHA_SC91_W03,Big Sound Creel,Dave Ross,True
+1991,LHR_IS91_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1990,LHA_IA90_230,Shawanaga River SWIN,Stephen James,True
+1990,LHA_IA90_239,Shawanaga Area Electrofishing,Stephen James,True
+1990,LHA_IA90_500,Severn Sound Index Netting,Wayne Lafrance,True
+1990,LHR_IS90_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1989,LHA_IA89_230,Shawanaga River SWIN,Stephen James,True
+1989,LHA_IA89_239,Shawanaga Area Electrofishing,Stephen James,True
+1989,LHA_IA89_500,Severn Sound Index Netting,Wayne Lafrance,True
+1989,LHA_SC89_040,On Water Boat Creel - Shawanaga Area,Stephen James,True
+1989,LHA_SC89_DR1,"Saugeen River Creel, 1989",Sasha Fernando,True
+1989,LHR_IS89_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1988,LHA_IA88_230,Shawanaga River SWIN,Stephen James,True
+1988,LHA_IA88_239,Shawanaga Area Electrofishing,Stephen James,True
+1988,LHA_IA88_500,Severn Sound Index Netting,Wayne Lafrance,True
+1988,LHA_SC88_043,Shawanaga Winter Creel,Stephen James,True
+1988,LHR_IS88_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1987,LHA_IA87_230,Shawanaga River SWIN,Stephen James,True
+1987,LHA_IA87_239,Shawanaga Area Electrofishing,Stephen James,True
+1987,LHR_IS87_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1986,LHA_IA86_230,Shawanaga River SWIN,Stephen James,True
+1986,LHA_IA86_239,Shawanaga Area Electrofishing,Stephen James,True
+1986,LHA_IA86_GBX,Gb-2 Deepwater Chub Index Netting,Jim Hoyle,True
+1986,LHA_IA86_GBY,Gb-2 Lake Whitefish Index Netting,Jim Hoyle,True
+1986,LHR_IS86_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1985,LHA_IA85_230,Shawanaga Island SWIN,Stephen James,True
+1985,LHA_IA85_239,Shawanaga Area Electrofishing,Stephen James,True
+1985,LHA_IA85_500,Severn Sound Index Netting,Wayne Lafrance,True
+1985,LHR_IS85_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1984,LHA_IA84_230,Shawanaga Area SWIN,Stephen James,True
+1984,LHA_IA84_500,Severn Sound Index Netting,Wayne Lafrance,True
+1984,LHR_IS84_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1983,LHA_IA83_230,Shawanaga Area SWIN,Stephen James,True
+1983,LHA_IA83_239,"Index Gill Netting - Shawanaga Island Area (""Groundhog"")",Stephen James,True
+1983,LHA_IA83_500,Severn Sound Index Netting,Wayne Lafrance,True
+1983,LHR_IS83_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1982,LHA_IA82_230,Shawanaga River SWIN,Stephen James,True
+1982,LHA_IA82_500,Severn Sound Index Netting,Wayne Lafrance,True
+1982,LHR_IS82_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1981,LHA_IA81_239,"Index Gill Netting - Shawanaga Island Area (""Groundhog"")",Stephen James,True
+1981,LHA_SC81_040,On Water Boat Creel - Shawanaga Area,Stephen James,True
+1981,LHR_IS81_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1980,LHA_IA80_239,"Index Gill Netting - Shawanaga Island Area (""Groundhog"")",Stephen James,True
+1980,LHR_IS80_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1979,LHA_IA79_239,"Index Gill Netting - Shawanaga Island Area (""Groundhog"")",Stephen James,True
+1979,LHA_SC79_040,On Water Boat Creel - Shawanaga Area,Stephen James,True
+1979,LHR_IS79_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1978,LHR_IS78_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1977,LHR_IS77_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1976,LHR_IS76_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1975,LHR_IS75_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1974,LHR_IS74_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1973,LHA_IA73_239,Georgian Bay Walleye Project - Shawanaga Area,Stephen James,True
+1973,LHR_IS73_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1972,LHR_IS72_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1971,LHR_IS71_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1970,LHR_IS70_119,South Bay - Fall Trapnetting,Brian Henderson,True
+1967,LHA_IA67_239,Georgian Bay Walleye Project - Shawanaga Area,Stephen James,True
+1966,LHA_IA66_239,Georgian Bay Walleye Project - Shawanaga Area,Stephen James,True
+1965,LHA_IA65_239,Georgian Bay Walleye Project - Shawanaga Area,Stephen James,True
+1964,LHA_IA64_239,Georgian Bay Walleye Project - Shawanaga Area,Stephen James,True
+1963,LHA_IA63_239,Georgian Bay Walleye Project - Shawanaga Area,Stephen James,True
+1962,LHA_IA62_239,Georgian Bay Walleye Project - Shawanaga Area,Stephen James,True
