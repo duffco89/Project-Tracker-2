@@ -20,8 +20,6 @@ PASSWORD_HASHERS = (
 )
 
 
-SOUTH_TESTS_MIGRATE = False
-
 
 COVERAGE_MODULE_EXCLUDES = [
     'tests$', 'settings$', 'urls$', 'locale$',

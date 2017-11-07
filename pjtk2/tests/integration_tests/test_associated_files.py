@@ -15,7 +15,7 @@ A. Cottrill
 
 
 import pytest
-from StringIO import StringIO
+from io import StringIO
 from django.test import TestCase
 from django.conf import settings
 
@@ -68,10 +68,6 @@ class TestAssociatedFileModel(TestCase):
         )
 
         #associated_file.save()
-
-        print "self.project.prj_cd = %s" % self.project.prj_cd
-
-        print "associated_file.file_path.url = %s" % associated_file.file_path.url
         assert 0==1
 
     def TearDown(self):
@@ -144,7 +140,5 @@ class TestActualFileUpload(TestCase):
 
         linkstring= '<a href="%s">%s</a>' % (reverse('serve_file',
                              args = (filepath,)), filepath)
-
-        #print "response = %s" % response
 
         self.assertContains(response, linkstring)

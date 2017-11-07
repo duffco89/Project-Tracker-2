@@ -357,7 +357,8 @@ class ReportsForm(forms.Form):
         what = self.what
 
         existing = project.get_milestone_dicts()[what]['assigned']
-        cleaned_list = [int(x) for x in cleaned_data.values()[0]]
+        values = list(cleaned_data.values())[0]
+        cleaned_list = [int(x) for x in values]
 
         #these are the milestones that are existing but not in cleaned_data
         turn_off = list(set(existing) - set(cleaned_list))
@@ -390,31 +391,40 @@ class ReportsForm(forms.Form):
                                               milestone_id=milestone)
 
 
-class ReportUploadFormSet(BaseFormSet):
-    '''modified from
-    here:http://stackoverflow.com/questions/
-                     5426031/django-formset-set-current-user
-    allows additional parameters to be passed to formset.  Project and
-    user are required to upload reports.
+#class ReportUploadFormSet(BaseFormSet):
+#    '''modified from
+#    here:http://stackoverflow.com/questions/
+#                     5426031/django-formset-set-current-user
+#    allows additional parameters to be passed to formset.  Project and
+#    user are required to upload reports.
+#
+#    This formset is used to upload the reports for a particular
+#    project.  It will generate one reportUploadForm for each reporting
+#    requirement (all core reports plus any additional reports that
+#    have been requested).
+#
+#    Additionally, the project and user id will associated with each
+#    form so that they can be appended and uploaded properly.
+#    '''
+#    def __init__(self, *args, **kwargs):
+#        self.project = kwargs.pop('project', None)
+#        self.user = kwargs.pop('user', None)
+#        super(ReportUploadFormSet, self).__init__(*args, **kwargs)
+#        for form in self.forms:
+#            form.empty_permitted = False
+#
+#    def _construct_forms(self):
+#        if hasattr(self,"_forms"):
+#            return self._forms
+#        self._forms = []
+#        for i in range(self.total_form_count()):
+#            self._forms.append(self._construct_form(i,
+#                                                   project=self.project,
+#                                                   user=self.user))
+#        return self._forms
+#
+#    forms = property(_construct_forms)
 
-    This formset is used to upload the reports for a particular
-    project.  It will generate one reportUploadForm for each reporting
-    requirement (all core reports plus any additional reports that
-    have been requested).
-
-    Additionally, the project and user id will associated with each
-    form so that they can be appended and uploaded properly.
-    '''
-    def __init__(self, *args, **kwargs):
-        self.project = kwargs.pop('project', None)
-        self.user = kwargs.pop('user', None)
-        super(ReportUploadFormSet, self).__init__(*args, **kwargs)
-
-    def _construct_forms(self):
-        self.forms = []
-        for i in xrange(self.total_form_count()):
-            self.forms.append(self._construct_form(i, project=self.project,
-                                                   user=self.user))
 
 
 class ReportUploadForm(forms.Form):
@@ -447,6 +457,7 @@ class ReportUploadForm(forms.Form):
         #self.fields["report_path"].widget.attrs['style'] = "text-align: right;"
         self.fields["report_path"].widget.attrs['size'] = "40"
         self.fields["report_path"].widget.attrs['class'] = "fileinput"
+
 
     def clean_milestone(self):
         '''return the original value of milestone'''
@@ -496,14 +507,15 @@ class ReportUploadForm(forms.Form):
 
             self.is_valid() #just to make sure
 
-            newReport = Report(
-                    report_path = self.cleaned_data['report_path'],
-                    #uploaded_by = self.user.username,
-                    uploaded_by = self.user,
-                    report_hash = hashlib.sha1(
-                        str(self.cleaned_data['report_path'])).hexdigest()
+            report_path = self.cleaned_data['report_path']
+            report_hash = hashlib.sha1(str(report_path).encode('utf-8')).hexdigest()
 
+            newReport = Report(
+                    report_path = report_path,
+                    uploaded_by = self.user,
+                    report_hash = report_hash
                 )
+
             newReport.save()
             #add the m2m record for this projectreport
             newReport.projectreport.add(projectreport)
@@ -544,6 +556,11 @@ class ReportUploadForm(forms.Form):
                     newReport.projectreport.add(projreport)
                     projectreport.completed = now
                     projectreport.save()
+
+
+
+
+
 
 class ProjectForm(forms.ModelForm):
     '''This a form for new projects using crispy-forms and including
@@ -804,7 +821,7 @@ class ProjectForm(forms.ModelForm):
         if form_ms:
             if not self.manager:
                 ms = self.instance.get_milestones()
-                protected_ms = ([unicode(x.id) for x in ms if x.milestone.protected
+                protected_ms = ([x.id for x in ms if x.milestone.protected
                                  and x.completed is not None])
                 cleaned_data['milestones'].extend(protected_ms)
 

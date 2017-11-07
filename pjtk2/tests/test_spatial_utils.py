@@ -140,18 +140,18 @@ def test_find_project_roi_not_polygon():
     roi = GEOSGeometry('POINT(5 23)')
     projects = find_roi_projects(roi)
     assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
-    assert projects.values() == [[], [], []]
+    assert [x for x in projects.values()] == [[], [], []]
 
     roi = GEOSGeometry('LINESTRING(5 23, 10 30 )')
     projects = find_roi_projects(roi)
     assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
-    assert projects.values() == [[], [], []]
+    assert [x for x in projects.values()] == [[], [], []]
 
     #should even work for objects that have not geom_type() method.
     roi = 'foobar'
     projects = find_roi_projects(roi)
     assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
-    assert projects.values() == [[], [], []]
+    assert [x for x in projects.values()] == [[], [], []]
 
 
 @pytest.mark.django_db

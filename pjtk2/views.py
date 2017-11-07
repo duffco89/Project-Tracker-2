@@ -15,7 +15,8 @@ from django.core.servers.basehttp import FileWrapper
 from django.db.models import Q
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
-from django.http import Http404, HttpResponseRedirect, HttpResponse, StreamingHttpResponse
+from django.http import (Http404, HttpResponseRedirect, HttpResponse,
+                         StreamingHttpResponse)
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
@@ -31,8 +32,11 @@ from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
                           SamplePoint)#, my_messages)
 
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
-                         ReportsForm, SisterProjectsForm,  ReportUploadForm,
-                         ReportUploadFormSet, NoticesForm,
+                         ReportsForm, SisterProjectsForm,
+                         #make_report_upload_form,
+                         ReportUploadForm,
+                         #ReportUploadFormSet,
+                         NoticesForm,
                          AssociatedFileUploadForm, GeoForm)
 
 from pjtk2.spatial_utils import find_roi_projects, empty_map, get_map
@@ -653,6 +657,8 @@ def report_milestones(request, slug):
                               context_instance=RequestContext(request))
 
 
+from functools import partial, wraps
+
 @login_required
 def report_upload(request, slug):
     '''This view will render a formset with filefields for each of the
@@ -669,24 +675,43 @@ def report_upload(request, slug):
         for report in custom:
             reports.append(report)
 
-    report_formset = formset_factory(ReportUploadForm,
-                                     formset=ReportUploadFormSet, extra=0)
+#    report_formset = formset_factory(make_report_upload_form(
+#        project=project,
+#        user=request.user), extra=0)
+
+
+#    reportform = ReportUploadForm()
+#    report_formset = formset_factory(form=reportform,
+#                                     formset=ReportUploadFormSet)
+#
+    report_formset = formset_factory(wraps(ReportUploadForm)
+                                 (partial(ReportUploadForm,
+                                          project=project,
+                                          user=request.user)),
+                                 extra=0)
+
 
     if request.method == 'POST':
         formset = report_formset(request.POST,  request.FILES,
-                                 initial=reports,
-                                 project=project,
-                                 user=request.user)
+                                 initial=reports)#,
+                                 #project=project,
+                                 #user=request.user)
         if formset.is_valid():
             for form in formset:
                 form.save()
             return HttpResponseRedirect(project.get_absolute_url())
     else:
-        formset = report_formset(initial=reports)
+        formset = report_formset(initial=reports)#,
+                                 #project=project,
+                                 #user=request.user)
+
     return render_to_response('pjtk2/UploadReports.html',
                               {'formset': formset,
                                'project': project},
                               context_instance=RequestContext(request))
+
+
+
 @login_required
 def delete_report(request, slug, pk):
     """this view removes a report from the project detail page.  For the
@@ -849,7 +874,7 @@ def serve_file(request, filename):
         content_type = mimetypes.guess_type(filename)[0]
 
         filename = os.path.split(filename)[-1]
-        wrapper = FileWrapper(file(fname, 'rb'))
+        wrapper = FileWrapper(open(fname, 'rb'))
         response = HttpResponse(wrapper, content_type=content_type)
         response['Content-Disposition'] = (
             'attachment; filename=%s' % os.path.basename(fname))

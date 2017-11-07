@@ -154,9 +154,6 @@ class ProjectTaggingTestCase(WebTest):
         form['tags'] = "blue, green, red, yellow"
         response = form.submit()
 
-        print "response = %s" % response
-
-
         #verify that the tags submitted on the form are actually
         #saved to the database and associated with this project.
         tags_back = self.project1.tags.all().order_by('name')
@@ -187,8 +184,6 @@ class ProjectTaggingTestCase(WebTest):
                                 args=(tags[0],)), user=self.user)
         self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed('pjtk2/ProjectList.html')
-
-        print response
 
         msg = "<h1>Projects tagged with '%s'</h1>" % tags[0]
         self.assertContains(response, msg, html=True)
@@ -497,7 +492,6 @@ class UpdateReportsTestCase(WebTest):
 
         #get the sub-report that has the check boxes for reports
         forms = response.forms
-        #print "forms = %s" % forms
 
         form = forms['reports']
 
@@ -726,8 +720,6 @@ class EmployeeProjectsTestCase(WebTest):
 
         #these values should be in the response:
         self.assertNotContains(response, self.project3.prj_cd)
-
-        print(response)
 
         label=" ".join([self.user.first_name,self.user.last_name])
         #label= label + "'s"
@@ -1043,7 +1035,6 @@ class TestProjectDetailForm(WebTest):
         #verify that the protected milestones are disabled
         shouldbe = ['disabled', 'enabled', 'enabled', 'enabled', 'disabled']
 
-        print response
         #the lamba function will return True if it has been completed,
         #otherwise false
         self.assertListEqual(Enabled, shouldbe)

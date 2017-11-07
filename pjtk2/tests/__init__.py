@@ -26,7 +26,7 @@ LOGGING['loggers']['tests'] = {'handlers': ['console'], 'level': 'INFO'}
 
 def get_hash(string, length=8):
     """ Shortcut for generating short hash strings """
-    return hashlib.sha1(string).hexdigest()[:length]
+    return hashlib.sha1(string.encode('utf-8')).hexdigest()[:length]
 
 def reloaded(obj):
     """ Reload an object from the database """
@@ -108,7 +108,7 @@ Beware query expense involved...
         for model in MODELS:
             changelist_url = reverse(
                 'admin:%s_%s_changelist' % (
-                    model._meta.app_label, model._meta.module_name
+                    model._meta.app_label, model._meta.model_name
                 )
             )
             response = self.client.get(changelist_url)
@@ -117,7 +117,7 @@ Beware query expense involved...
             add_url = reverse(
                 'admin:%s_%s_add' % (
                     model._meta.app_label,
-                    model._meta.module_name
+                    model._meta.model_name
                 )
             )
             response = self.client.get(add_url)
@@ -127,7 +127,7 @@ Beware query expense involved...
                 change_url = reverse(
                     'admin:%s_%s_change' % (
                         model._meta.app_label,
-                        model._meta.module_name,
+                        model._meta.model_name,
                     ),
                     args=(instance.pk,)
                 )
@@ -160,7 +160,8 @@ Modified context manager which logs the unexpected queries.
             logger.warning(
                 '\n '.join(
                     ['Unexpected queries ({0}):'.format(e)] +
-                    map(unicode, queries)
+                    #map(unicode, queries)
+                    map(str, queries)
                 )
             )
             raise

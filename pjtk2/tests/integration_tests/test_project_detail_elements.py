@@ -58,44 +58,44 @@ def test_manager_has_correct_project_detail_buttons(client, project, manager):
 
         response = client.get(reverse('project_detail',
                                            kwargs={'slug':project.slug}),)
-        response = str(response)
+        content = str(response.content)
 
         linkstring_base = '<a href="{0}"'
 
         #can edit
         url = reverse('EditProject', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #can edit
         url = reverse('SisterProjects', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #can edit
         url = reverse('ReportUpload', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #manager only:
         url = reverse('Reports', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #manager only:
         url = reverse('cancel_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #manager only:
         url = reverse('signoff_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #can edit
         url = reverse('associated_file_upload', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
 
 @pytest.mark.django_db
@@ -112,14 +112,14 @@ def test_manager_cancel_project_detail_buttons(client, project, manager):
 
         response = client.get(reverse('project_detail',
                                            kwargs={'slug':project.slug}),)
-        response = str(response)
+        content = str(response.content)
 
         linkstring_base = '<a href="{0}"'
 
         #can edit
         url = reverse('approve_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
 @pytest.mark.django_db
 def test_manager_completed_project_detail_buttons(client, project, manager):
@@ -171,44 +171,44 @@ def test_project_lead_has_correct_project_detail_buttons(client, project, user):
         response = client.get(reverse('project_detail',
                                            kwargs={'slug':project.slug}),)
 
-        response = str(response)
+        content = str(response.content)
 
         linkstring_base = '<a href="{0}"'
 
         #can edit
         url = reverse('EditProject', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #can edit
         url = reverse('SisterProjects', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #can edit
         url = reverse('ReportUpload', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #manager only:
         url = reverse('Reports', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #manager only:
         url = reverse('cancel_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #manager only:
         url = reverse('signoff_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #can edit
         url = reverse('associated_file_upload', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
 
 @pytest.mark.django_db
@@ -234,43 +234,44 @@ def test_dba_has_correct_project_detail_buttons(client, project, dba):
         assert login == True
         response = client.get(reverse('project_detail',
                                            kwargs={'slug':project.slug}),)
-        response = str(response)
+
+        content = str(response.content)
         linkstring_base = '<a href="{0}"'
 
         #can edit
         url = reverse('EditProject', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #can edit
         url = reverse('SisterProjects', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #can edit
         url = reverse('ReportUpload', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
         #manager only:
         url = reverse('Reports', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #manager only:
         url = reverse('cancel_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #manager only:
         url = reverse('signoff_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #can edit
         url = reverse('associated_file_upload', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring in response
+        assert linkstring in content
 
 
 
@@ -293,40 +294,40 @@ def test_joe_user_has_correct_project_detail_buttons(client, project, joe_user):
         assert login == True
         response = client.get(reverse('project_detail',
                                            kwargs={'slug':project.slug}),)
-        response = str(response)
+        content = str(response.content)
         linkstring_base = '<a href="{0}"'
 
         #can edit
         url = reverse('EditProject', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #can edit
         url = reverse('SisterProjects', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #can edit
         url = reverse('ReportUpload', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #manager only:
         url = reverse('Reports', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #manager only:
         url = reverse('cancel_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #manager only:
         url = reverse('signoff_project', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content
 
         #can edit
         url = reverse('associated_file_upload', kwargs={'slug':project.slug})
         linkstring = linkstring_base.format(url)
-        assert linkstring not in response
+        assert linkstring not in content

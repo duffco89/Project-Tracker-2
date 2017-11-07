@@ -32,9 +32,9 @@ class ProjectsManager(models.GeoManager):
     '''Custom extensions to the base manager for project objects to
     return approved and completed projects.'''
 
-    def get_query_set(self):
+    def get_queryset(self):
         #by default, only return projects that are active:
-        return super(ProjectsManager, self).get_query_set().filter(active=True)
+        return super(ProjectsManager, self).get_queryset().filter(active=True)
 
     def submitted(self):
         '''return a queryset containing only those projects that have been
@@ -75,19 +75,19 @@ class ProjectsManager(models.GeoManager):
 
 class ProjectsThisYear(models.Manager):
     '''get all of the project objects from the current year'''
-    def get_query_set(self):
+    def get_queryset(self):
         #use_for_related_fields = True
         year = datetime.datetime.now().year
-        return super(ProjectsThisYear, self).get_query_set().filter(
+        return super(ProjectsThisYear, self).get_queryset().filter(
             year__gte=year, active=True)
 
 
 class ProjectsLastYear(models.Manager):
     '''get all of the project objects from last year'''
-    def get_query_set(self):
+    def get_queryset(self):
         #use_for_related_fields = True
         year = datetime.datetime.now().year - 1
-        return super(ProjectsLastYear, self).get_query_set().filter(
+        return super(ProjectsLastYear, self).get_queryset().filter(
             year=year, active=True)
 
 
@@ -101,30 +101,30 @@ class MilestoneManager(models.Manager):
     def shared(self):
         '''return only those milestones that are shared among sister
         projects'''
-        return super(MilestoneManager, self).get_query_set().filter(
+        return super(MilestoneManager, self).get_queryset().filter(
                      shared=True)
 
-    def get_query_set(self):
+    def get_queryset(self):
         use_for_related_fields = True
-        return super(MilestoneManager, self).get_query_set().exclude(
+        return super(MilestoneManager, self).get_queryset().exclude(
                      label='Submitted')
 
 
 class MessageManager(models.Manager):
     '''We only want messages for projects that continue to be active.
     '''
-    def get_query_set(self):
+    def get_queryset(self):
         use_for_related_fields = True
-        return super(MessageManager, self).get_query_set().filter(
+        return super(MessageManager, self).get_queryset().filter(
             project_milestone__project__active=True)
 
 
 class Messages2UsersManager(models.Manager):
     '''We only want messages for projects that continue to be active.
     '''
-    def get_query_set(self):
+    def get_queryset(self):
         use_for_related_fields = True
-        return super(Messages2UsersManager, self).get_query_set().filter(
+        return super(Messages2UsersManager, self).get_queryset().filter(
             message__project_milestone__project__active=True)
 
 
@@ -163,7 +163,7 @@ class Milestone(models.Model):
         verbose_name_plural = "Milestones List"
         ordering = ['-report', 'order']
 
-    def __unicode__(self):
+    def __str__(self):
         return self.label
 
 
@@ -177,7 +177,7 @@ class ProjectType(models.Model):
     class Meta:
         verbose_name = "Project Type"
 
-    def __unicode__(self):
+    def __str__(self):
         '''return the project type  as its string representation'''
         return self.project_type
 
@@ -190,7 +190,7 @@ class Database(models.Model):
     class Meta:
         verbose_name = "Master Database"
 
-    def __unicode__(self):
+    def __str__(self):
         '''return the database name as its string representation'''
         return self.master_database
 
@@ -202,7 +202,7 @@ class Lake(models.Model):
     class Meta:
         verbose_name = "Lake"
 
-    def __unicode__(self):
+    def __str__(self):
         '''return the lake name as its string representation'''
         return self.lake
 
@@ -220,7 +220,7 @@ class Project(models.Model):
 
     active  = models.BooleanField(default=True)
     cancelled  = models.BooleanField(default=False)
-    cancelled_by  = models.ForeignKey(User, related_name="Cancelled By",
+    cancelled_by  = models.ForeignKey(User, related_name="CancelledBy",
                                   blank=True, null=True)
     year = models.CharField("Year", max_length=4, blank=True, editable=False)
     prj_date0 = models.DateField("Start Date", blank=False)
@@ -228,8 +228,8 @@ class Project(models.Model):
     prj_cd = models.CharField("Project Code", max_length=12, unique=True,
                               blank=False)
     prj_nm = models.CharField("Project Name", max_length=60, blank=False)
-    prj_ldr = models.ForeignKey(User, related_name="Project Lead")
-    field_ldr = models.ForeignKey(User, related_name="Field Lead",
+    prj_ldr = models.ForeignKey(User, related_name="ProjectLead")
+    field_ldr = models.ForeignKey(User, related_name="FieldLead",
                                   blank=True, null=True)
     comment = models.TextField(blank=False,
                                help_text="General project description.")
@@ -276,6 +276,7 @@ class Project(models.Model):
             #                             completed=now)
             prjms = ProjectMilestones.objects.get(project=self,
                                                   milestone__label='Approved')
+
             prjms.completed = now
             #save sends pre_save signal
             prjms.save()
@@ -362,9 +363,6 @@ class Project(models.Model):
         else:
             return('Ongoing')
 
-
-
-
     def project_suffix(self):
         '''return the prject suffix for the given project'''
         return self.prj_cd[-3:]
@@ -379,7 +377,7 @@ class Project(models.Model):
          with django convention of obj.description.'''
         return self.comment
 
-    def __unicode__(self):
+    def __str__(self):
         '''Return the name of the project and it's project code'''
         ret = "%s (%s)" % (self.prj_nm, self.prj_cd)
         return ret
@@ -670,7 +668,9 @@ class Project(models.Model):
         new = False
         if not self.slug or not self.year:
             self.slug = slugify(self.prj_cd)
-            self.year = self.prj_date0.year
+            #self.year = self.prj_date0.year
+            yr = self.prj_cd[6:8]
+            self.year = ("20" + yr if int(yr) < 50 else "19" + yr)
             new = True
 
         if self.comment:
@@ -748,7 +748,7 @@ class ProjectMilestones(models.Model):
         unique_together = ("project", "milestone",)
         verbose_name_plural = "Project Milestones"
 
-    def __unicode__(self):
+    def __str__(self):
         '''Return a string that include the project code and milestone label'''
         return "%s - %s" % (self.project.prj_cd, self.milestone.label)
 
@@ -769,7 +769,7 @@ class Report(models.Model):
     uploaded_by = models.ForeignKey(User)
     report_hash = models.CharField(max_length = 300)
 
-    def __unicode__(self):
+    def __str__(self):
         '''Use the file path as the string representation of a report'''
         return str(self.report_path)
 
@@ -798,7 +798,7 @@ class AssociatedFile(models.Model):
     uploaded_by = models.ForeignKey(User)
     hash = models.CharField(max_length=300)
 
-    def __unicode__(self):
+    def __str__(self):
         '''Use the file path as the string representation of a report'''
         return str(self.file_path)
 
@@ -818,7 +818,7 @@ class Bookmark(models.Model):
     class Meta:
         ordering = ['-date']
 
-    def __unicode__(self):
+    def __str__(self):
         '''return the name of the associated project as our representation'''
         return "%s" % self.project
 
@@ -865,7 +865,7 @@ class Family(models.Model):
     class Meta:
         verbose_name_plural = "Families"
 
-    def __unicode__(self):
+    def __str__(self):
         '''A simple string representation'''
         return str("Family %s" % self.id)
 
@@ -881,7 +881,7 @@ class ProjectSisters(models.Model):
         verbose_name_plural = "Project Sisters"
         ordering = ['family', 'project']
 
-    def __unicode__(self):
+    def __str__(self):
         '''Return the project and family as a string'''
         return str("Project - %s - Family %s" % (self.project, self.family))
 
@@ -895,7 +895,8 @@ class Employee(models.Model):
         ('employee', 'Employee'),
     }
 
-    user = models.ForeignKey(User, unique=True, related_name='employee')
+    user = models.OneToOneField(User, related_name='employee')
+    #user = models.ForeignKey(User, unique=True, related_name='employee')
     position = models.CharField(max_length=60)
     role = models.CharField(max_length=30, choices=ROLL_CHOICES,
                             default='Employee')
@@ -906,7 +907,7 @@ class Employee(models.Model):
     #supervisor = models.ForeignKey(User, unique=False, blank=True, null=True,
     #                               related_name='supervisor')
 
-    def __unicode__(self):
+    def __str__(self):
         '''Use the username of the Employee as the string representation'''
         return self.user.username
 
@@ -938,7 +939,7 @@ class Message(models.Model):
 
     objects = MessageManager()
 
-    def __unicode__(self):
+    def __str__(self):
         '''return the messsage as it's unicode method.'''
         return self.msgtxt
 
@@ -958,7 +959,7 @@ class Messages2Users(models.Model):
         unique_together = ("user", "message",)
         verbose_name_plural = "Messages2Users"
 
-    def __unicode__(self):
+    def __str__(self):
         '''return the messsage as it's unicode method.'''
         return "%s - %s" % (self.user, self.message)
 

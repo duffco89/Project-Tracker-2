@@ -119,8 +119,7 @@ class SisterFormTestCase(WebTest):
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
                              args=(self.project2.slug,)),
                                              self.project2.prj_cd)
-        #print response
-        print "linkstring = %s" % linkstring
+
         assert linkstring in response
         linkstring= '<a href="%s">%s</a>' % (reverse('project_detail',
                              args=(self.project3.slug,)), self.project3.prj_cd)
@@ -132,7 +131,7 @@ class SisterFormTestCase(WebTest):
         fldcnt = [x for x in form.fields.keys() if x is not None]
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
-        #print "formcnt = %s" % formcnt
+
         self.assertEquals(formcnt, 2)
 
         #the check boxes in both should == None
@@ -176,7 +175,7 @@ class SisterFormTestCase(WebTest):
         fldcnt = [x for x in form.fields.keys() if x is not None]
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
-        #print "formcnt = %s" % formcnt
+
         self.assertEquals(formcnt, 2)
 
         #the check boxes in both should == None
@@ -281,7 +280,7 @@ class SisterFormTestCase(WebTest):
 
         fldcnt = [x for x in form.fields.keys() if x is not None]
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
-        #print "formcnt = %s" % formcnt
+
         self.assertEquals(formcnt, 2)
 
         #the check boxes in both should == None
@@ -334,7 +333,7 @@ class SisterFormTestCase(WebTest):
         fldcnt = [x for x in form.fields.keys() if x is not None]
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
-        #print "formcnt = %s" % formcnt
+
         self.assertEquals(formcnt, 2)
 
         #the check boxes in both should == None
@@ -382,7 +381,7 @@ class SisterFormTestCase(WebTest):
         fldcnt = [x for x in form.fields.keys() if x is not None]
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
-        #print "formcnt = %s" % formcnt
+
         self.assertEquals(formcnt, 2)
 
         #the check boxes in both should == None
@@ -433,7 +432,7 @@ class SisterFormTestCase(WebTest):
         fldcnt = [x for x in form.fields.keys() if x is not None]
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
-        #print "formcnt = %s" % formcnt
+
         self.assertEquals(formcnt, 2)
 
         #the check boxes in both should == None
