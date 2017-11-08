@@ -16,7 +16,7 @@ from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
 from django.http import (Http404, HttpResponseRedirect, HttpResponse,
                          StreamingHttpResponse)
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
@@ -41,6 +41,8 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
 from pjtk2.spatial_utils import find_roi_projects, empty_map, get_map
 
 from wsgiref.util import FileWrapper
+
+from functools import partial, wraps
 
 import datetime
 import pytz
@@ -301,16 +303,15 @@ def project_detail(request, slug):
     sample_points = project.get_sample_points()
     mymap = get_map(sample_points)
 
-    return render_to_response('pjtk2/projectdetail.html',
-                              {'milestones': milestones,
-                               'Core': core,
-                               'Custom': custom,
-                               'project': project,
-                               'edit': edit,
-                               'manager': manager,
-                               'map': mymap
-                               },
-                              context_instance=RequestContext(request))
+    return render(request, 'pjtk2/projectdetail.html',
+                  {'milestones': milestones,
+                   'Core': core,
+                   'Custom': custom,
+                   'project': project,
+                   'edit': edit,
+                   'manager': manager,
+                   'map': mymap
+                  })
 
 
 def update_milestones(form_ms, milestones):
@@ -431,19 +432,18 @@ def crud_project(request, slug, action='New'):
             proj = Project.objects.get(slug=form.slug)
             return HttpResponseRedirect(proj.get_absolute_url())
         else:
-            return render_to_response('pjtk2/ProjectForm.html',
-                                      {'form': form,
-                                       'action': action, 'project': instance},
-                                      context_instance=RequestContext(request))
+            return render(request, 'pjtk2/ProjectForm.html',
+                          {'form': form,
+                           'action': action, 'project': instance})
     else:
         form = ProjectForm(instance=instance, readonly=readonly,
                            manager=manager, milestones=milestones)
 
-    return render_to_response('pjtk2/ProjectForm.html',
-                              {'form': form,
-                               'milestones': milestones,
-                               'action': action, 'project': instance},
-                              context_instance=RequestContext(request))
+    return render(request, 'pjtk2/ProjectForm.html',
+                  {'form': form,
+                   'milestones': milestones,
+                   'action': action, 'project': instance})
+
 
 
 @login_required
@@ -499,29 +499,26 @@ def approveprojects(request):
             lastyearsformset.save()
             return HttpResponseRedirect(reverse('ApprovedProjectsList'))
         else:
-            return render_to_response('pjtk2/ApproveProjects.html',
-                                      {
-                                          'year': year,
-                                          'thisYearEmpty': this_year_empty,
-                                          'lastYearEmpty': last_year_empty,
-                                          'thisyearsformset': thisyearsformset,
-                                          'lastyearsformset':
-                                          lastyearsformset},
-                                      context_instance=RequestContext(request))
+            return render(request, 'pjtk2/ApproveProjects.html',
+                          {'year': year,
+                           'thisYearEmpty': this_year_empty,
+                           'lastYearEmpty': last_year_empty,
+                           'thisyearsformset': thisyearsformset,
+                           'lastyearsformset': lastyearsformset})
+
     else:
         thisyearsformset = project_formset(queryset=thisyears,
                                            prefix="thisyear")
         lastyearsformset = project_formset(queryset=lastyears,
                                            prefix="lastyear")
 
-    return render_to_response('pjtk2/ApproveProjects.html',
-                              {
-                                  'year': year,
-                                  'thisYearEmpty': this_year_empty,
-                                  'lastYearEmpty': last_year_empty,
-                                  'thisyearsformset': thisyearsformset,
-                                  'lastyearsformset': lastyearsformset},
-                              context_instance=RequestContext(request))
+    return render(request, 'pjtk2/ApproveProjects.html',
+                  {'year': year,
+                   'thisYearEmpty': this_year_empty,
+                   'lastYearEmpty': last_year_empty,
+                   'thisyearsformset': thisyearsformset,
+                   'lastyearsformset': lastyearsformset})
+
 
 
 @login_required
@@ -649,16 +646,16 @@ def report_milestones(request, slug):
         core = ReportsForm(project=project, reports=reports)
         custom = ReportsForm(project=project, reports=reports, what='Custom')
 
-    return render_to_response('pjtk2/reportform.html',
-                              {'Milestones': milestones,
-                               'Core': core,
-                               'Custom': custom,
-                               'project': project
-                               },
-                              context_instance=RequestContext(request))
+    return render(request, 'pjtk2/reportform.html',
+                  {'Milestones': milestones,
+                   'Core': core,
+                   'Custom': custom,
+                   'project': project
+                  })
 
 
-from functools import partial, wraps
+
+
 
 @login_required
 def report_upload(request, slug):
@@ -706,10 +703,9 @@ def report_upload(request, slug):
                                  #project=project,
                                  #user=request.user)
 
-    return render_to_response('pjtk2/UploadReports.html',
-                              {'formset': formset,
-                               'project': project},
-                              context_instance=RequestContext(request))
+    return render(request, 'pjtk2/UploadReports.html',
+                  {'formset': formset,
+                   'project': project})
 
 
 
@@ -742,10 +738,9 @@ def delete_report(request, slug, pk):
         report.delete()
         return HttpResponseRedirect(project.get_absolute_url())
     else:
-        return render_to_response('pjtk2/confirm_report_delete.html',
-                                  { 'report': report,
-                                    'project': project},
-                                  context_instance=RequestContext(request))
+        return render(request, 'pjtk2/confirm_report_delete.html',
+                      { 'report': report,
+                        'project': project})
 
 
 @login_required
@@ -766,9 +761,9 @@ def associated_file_upload(request, slug):
             return HttpResponseRedirect(project.get_absolute_url())
 
     else:
-        return render_to_response('pjtk2/UploadAssociatedFiles.html',
-                                  { 'project': project},
-                                  context_instance=RequestContext(request))
+        return render(request, 'pjtk2/UploadAssociatedFiles.html',
+                      { 'project': project})
+
 
 
 
@@ -796,11 +791,9 @@ def delete_associated_file(request, id):
         associated_file.delete()
         return HttpResponseRedirect(project.get_absolute_url())
     else:
-        return render_to_response('pjtk2/confirm_file_delete.html',
-                                  { 'associated_file': associated_file,
-                                    'project': project},
-                                  context_instance=RequestContext(request))
-
+        return render(request, 'pjtk2/confirm_file_delete.html',
+                      { 'associated_file': associated_file,
+                        'project': project})
 
 @login_required
 def associated_file_upload(request, slug):
@@ -820,9 +813,8 @@ def associated_file_upload(request, slug):
             return HttpResponseRedirect(project.get_absolute_url())
 
     else:
-        return render_to_response('pjtk2/UploadAssociatedFiles.html',
-                                  { 'project': project},
-                                  context_instance=RequestContext(request))
+        return render(render, 'pjtk2/UploadAssociatedFiles.html',
+                      { 'project': project})
 
 
 
@@ -850,10 +842,10 @@ def delete_associated_file(request, id):
         associated_file.delete()
         return HttpResponseRedirect(project.get_absolute_url())
     else:
-        return render_to_response('pjtk2/confirm_file_delete.html',
-                                  { 'associated_file': associated_file,
-                                    'project': project},
-                                  context_instance=RequestContext(request))
+        return render(request, 'pjtk2/confirm_file_delete.html',
+                      { 'associated_file': associated_file,
+                        'project': project})
+
 
 
 
@@ -883,10 +875,8 @@ def serve_file(request, filename):
 
         return response
     else:
-        return render_to_response('pjtk2/MissingFile.html',
-                                  { 'filename': filename},
-                                  context_instance=RequestContext(request))
-
+        return render(request, 'pjtk2/MissingFile.html',
+                      { 'filename': filename})
 
 
 @login_required
@@ -943,17 +933,15 @@ def my_projects(request):
 
     template_name = "pjtk2/my_projects.html"
 
-    return render_to_response(template_name,
-                              {'bookmarks': bookmarks,
-                               'formset': notices_formset,
-                               'complete': complete,
-                               'approved': approved,
-                               'cancelled':cancelled,
-                               'submitted': submitted,
-                               'boss': boss,
-                               'core_reports':core_reports},
-                              context_instance=RequestContext(request))
-
+    return render(request, template_name,
+                  {'bookmarks': bookmarks,
+                   'formset': notices_formset,
+                   'complete': complete,
+                   'approved': approved,
+                   'cancelled':cancelled,
+                   'submitted': submitted,
+                   'boss': boss,
+                   'core_reports':core_reports})
 
 
 @login_required
@@ -999,17 +987,14 @@ def employee_projects(request, employee_name):
     else:
         label=label + "'s"
 
-    return render_to_response(template_name,
-                              {'employee': my_employee,
-                               'label':label,
-                               'complete': complete,
-                               'approved': approved,
-                               'cancelled':cancelled,
-                               'submitted': submitted,
-                               'core_reports':core_reports},
-                              context_instance=RequestContext(request))
-
-
+    return render(request, template_name,
+                  {'employee': my_employee,
+                   'label':label,
+                   'complete': complete,
+                   'approved': approved,
+                   'cancelled':cancelled,
+                   'submitted': submitted,
+                   'core_reports':core_reports})
 
 
 #=====================
@@ -1037,10 +1022,8 @@ def unbookmark_project(request, slug):
                                 project__pk=project.id).delete()
         return HttpResponseRedirect(project.get_absolute_url())
     else:
-        return render_to_response('pjtk2/confirm_bookmark_delete.html',
-                                  { 'project': project },
-                                  context_instance=RequestContext(request))
-
+        return render(request, 'pjtk2/confirm_bookmark_delete.html',
+                                  { 'project': project })
 
 def get_sisters_dict(slug):
     '''given a slug, return a list of dictionaries of projects that
@@ -1105,13 +1088,12 @@ def sisterprojects(request, slug):
             return HttpResponseRedirect(project.get_absolute_url())
     else:
         formset = sister_formset(initial=initial)
-    return render_to_response('pjtk2/SisterProjects.html',
-                              {
-                                  'formset': formset,
-                                  'project': project,
-                                  'empty': empty
-                              },
-                              context_instance=RequestContext(request))
+    return render(request, 'pjtk2/SisterProjects.html',
+                  {'formset': formset,
+                   'project': project,
+                   'empty': empty
+                  })
+
 
 class ProjectTagList(ListView):
     '''A list of tags associated with one or more projects.
@@ -1158,35 +1140,29 @@ def find_projects_roi_view(request):
 
             mymap = get_map(points=projects['map_points'], roi=roi)
 
-            return render_to_response('pjtk2/show_projects_gis.html',
-                              {'map':mymap,
-                               'contained':projects['contained'],
-                               'overlapping':projects['overlapping']},
-                            context_instance = RequestContext(request))
+            return render(request, 'pjtk2/show_projects_gis.html',
+                          {'map':mymap,
+                           'contained':projects['contained'],
+                           'overlapping':projects['overlapping']})
+        else:
+            return render(request, 'pjtk2/find_projects_gis.html',
+                          {'form':form,
+                           'contained':projects['contained'],
+                           'overlapping':projects['overlapping'],
+                          })
 
-
-            return render_to_response('pjtk2/find_projects_gis.html',
-                              {'form':form,
-                               'contained':projects['contained'],
-                               'overlapping':projects['overlapping'],
-                               },
-                              context_instance=RequestContext(request)
-                )
     else:
         form = GeoForm()
-    return render_to_response('pjtk2/find_projects_gis.html',
-                              {'form':form},
-                              context_instance=RequestContext(request)
-        )
+    return render(request, 'pjtk2/find_projects_gis.html',
+                  {'form':form})
 
 
 def about_view(request):
     """a view to render the about page."""
-    return render_to_response('pjtk2/about.html',
-                              context_instance=RequestContext(request))
+    return render(request, 'pjtk2/about.html')
+
 
 def report_desc_view(request):
     """a view to render the html page that describes each of the project
     tracker reporting requirements."""
-    return render_to_response('pjtk2/reporting_milestone_descriptions.html',
-                              context_instance=RequestContext(request))
+    return render(request, 'pjtk2/reporting_milestone_descriptions.html')
