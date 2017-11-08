@@ -116,6 +116,7 @@ class TestUrls(DemoTestCase):
 
 class TestAdmin(DemoTestCase):
 
+
     def test_admin(self):
         self.create_user('super', super=True)
         self.login('super')

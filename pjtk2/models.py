@@ -23,6 +23,8 @@ import pytz
 from pjtk2.functions import get_supervisors, replace_links
 
 
+
+
 LINK_PATTERNS = getattr(settings, "LINK_PATTERNS", None)
 #for markdown2 (<h1> becomes <h3>)
 DEMOTE_HEADERS = 2
@@ -655,7 +657,7 @@ class Project(models.Model):
     #@models.permalink
     def get_absolute_url(self):
         '''return the url for the project'''
-        url = reverse('pjtk2.views.project_detail', kwargs={'slug':self.slug})
+        url = reverse('project_detail', kwargs={'slug':self.slug})
         return url
 
     def save(self, *args, **kwargs):

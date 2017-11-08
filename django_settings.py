@@ -54,16 +54,20 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", SETTINGS_FILE)
 
 #from: http://sontek.net/blog/detail/tips-and-tricks-for-the-python-interpreter
 if 'DJANGO_SETTINGS_MODULE' in os.environ:
-    from django.db.models.loading import get_models
+    #from django.db.models.loading import get_models
+    import django
+    from django.apps import apps
     from django.test.client import Client
     from django.test.utils import (setup_test_environment,
                                    teardown_test_environment)
     from django.conf import settings as S
 
+    django.setup()
+
     class DjangoModels(object):
         """Loop through all the models in INSTALLED_APPS and import them."""
         def __init__(self):
-            for m in get_models():
+            for m in apps.get_models():
                 setattr(self, m.__name__, m)
 
     A = DjangoModels()
