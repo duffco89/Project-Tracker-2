@@ -11,7 +11,6 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
-from django.core.servers.basehttp import FileWrapper
 from django.db.models import Q
 from django.forms.models import modelformset_factory
 from django.forms.formsets import formset_factory
@@ -40,6 +39,8 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
                          AssociatedFileUploadForm, GeoForm)
 
 from pjtk2.spatial_utils import find_roi_projects, empty_map, get_map
+
+from wsgiref.util import FileWrapper
 
 import datetime
 import pytz

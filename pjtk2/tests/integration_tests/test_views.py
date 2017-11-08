@@ -767,20 +767,13 @@ class ApprovedProjectListUserTestCase(TestCase):
     def test_without_Login(self):
         '''if we try to view page without logging in, we should be
         re-directed to the login page'''
-        response = self.client.get(reverse('ApprovedProjectsList'),
-                                   follow=True)
-        self.assertEqual(response.status_code,200)
+
+        response = self.client.get(reverse('ApprovedProjectsList'))
+        self.assertEqual(response.status_code,302)
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('ApprovedProjectsList'))
-        redirectstring = redirectstring.replace('%2F','/')
-        #self.assertRedirects(response, redirectstring)
+        self.assertRedirects(response, redirectstring)
 
-        #assertRedirect doens't work on windows.
-        #do it manually - add the test server prefix to redirect string
-        redirectstring = "http://testserver{0}".format(redirectstring)
-        #replace encoded slashes with regular slashes
-        redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
-        self.assertEqual(redirect_chain, redirectstring)
 
 
     def tearDown(self):
@@ -854,21 +847,12 @@ class ApprovedProjectListManagerTestCase(TestCase):
     def test_without_Login(self):
         '''if we try to view page without logging in, we should be
         re-directed to the login page'''
-        response = self.client.get(reverse('ApprovedProjectsList'),
-                                   follow=True)
-        self.assertEqual(response.status_code,200)
+
+        response = self.client.get(reverse('ApprovedProjectsList'))
+        self.assertEqual(response.status_code,302)
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('ApprovedProjectsList'))
-        redirectstring = redirectstring.replace('%2F','/')
-        #self.assertRedirects(response, redirectstring)
-
-        #assertRedirect doens't work on windows.
-        #do it manually - add the test server prefix to redirect string
-        redirectstring = "http://testserver{0}".format(redirectstring)
-        #replace encoded slashes with regular slashes
-        redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
-        self.assertEqual(redirect_chain, redirectstring)
-
+        self.assertRedirects(response, redirectstring)
 
     def tearDown(self):
         self.project.delete()
@@ -958,20 +942,13 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         '''if we try to view page without logging in, we should be
         re-directed to the login page'''
 
-        response = self.client.get(reverse('ApproveProjects'),
-                                   follow=True)
-        self.assertEqual(response.status_code,200)
+        response = self.client.get(reverse('ApproveProjects'))
+        self.assertEqual(response.status_code,302)
+
         redirectstring = "%s?next=%s" % (reverse('login'),
                                          reverse('ApproveProjects'))
-        redirectstring = redirectstring.replace('%2F','/')
-        #self.assertRedirects(response, redirectstring)
+        self.assertRedirects(response, redirectstring)
 
-        #assertRedirect doens't work on windows.
-        #do it manually - add the test server prefix to redirect string
-        redirectstring = "http://testserver{0}".format(redirectstring)
-        #replace encoded slashes with regular slashes
-        redirect_chain = response.redirect_chain[-1][0].replace('%2F','/')
-        self.assertEqual(redirect_chain, redirectstring)
 
     def test_that_nonmanagers_are_redirected(self):
         '''only managers can approve/unapprove projects.  Verify that

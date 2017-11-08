@@ -317,17 +317,14 @@ class UpdateReportsTestCase(WebTest):
         requirements associated with a project - if they try to access
         the url, they will be redirected to the login page'''
 
-        response = self.app.get(reverse('Reports',
-                                args=(self.project1.slug,)),
-                                user=self.user1).follow()
 
-        self.assertEqual(response.status_int, 301)
+        url = reverse('Reports', args=(self.project1.slug,))
+        response = self.app.get(url, user=self.user1)
 
-        #these use to work - now webtest doesn't follow through to the
-        #login forms
-        #self.assertTemplateUsed("auth/login.html")
-        #self.assertContains(response, "login")
-        #self.assertContains(response, "password")
+        login_url = reverse('login')
+        new_url = '{}?next={}'.format(login_url, url)
+
+        self.assertRedirects(response, new_url)
 
 
     def test_report_form_renders(self):

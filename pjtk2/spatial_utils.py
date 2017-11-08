@@ -11,6 +11,7 @@ DESCRIPTION:
 A. Cottrill
 =============================================================
 '''
+from django.contrib.gis.db.models import Collect
 
 from pjtk2.models import SamplePoint, Project
 from olwidget.widgets import InfoMap, InfoLayer, Map
@@ -131,11 +132,15 @@ def find_roi_projects(roi, project_types=None, first_year=None, last_year=None):
             contained=[]
             overlapping = []
 
+            #import pdb;pdb.set_trace()
+
             # now loop over project_codes, cacluate a convex hull for
             # the points associated with that project
             for prj in prj_cds:
                 samples = SamplePoint.objects.filter(project__prj_cd=prj)
-                samples = samples.collect()
+                #samples = samples.collect()
+                #this is ugly but works for now:
+                samples = list(samples.aggregate(Collect('geom')).values())[0]
                 hull = samples.convex_hull
                 #if the convex hull for that project is contained
                 #in roi add it to contained

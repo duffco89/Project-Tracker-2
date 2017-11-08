@@ -65,13 +65,13 @@ class SisterWarningRendersonConfirmationPageTestCase(WebTest):
         #get our projectmilestone:
         self.pmst = self.project1.projectmilestones_set.get(
             milestone__label=self.milestone.label)
-                              
+
         #then make a report and associated the pmst with it
         self.report = ReportFactory.create()
         self.report.projectreport.add(self.pmst)
         self.report.save()
 
-        
+
     def test_warning_message_renders(self):
         '''Project 1 and 2 are sisters, when we try to delete the report
         associated with project1, we should see a warning message to
@@ -87,7 +87,7 @@ class SisterWarningRendersonConfirmationPageTestCase(WebTest):
                                                 'pk':self.report.id
                                             }), user=self.user)
         self.assertEqual(response.status_int, 200)
-        msg = ('This projects has sister projects that could be' + 
+        msg = ('This projects has sister projects that could be' +
                ' affected by deleting this report!')
         self.assertContains(response, msg)
 
@@ -99,12 +99,12 @@ class SisterWarningRendersonConfirmationPageTestCase(WebTest):
 
         '''
 
-        response = self.app.get(reverse('delete_report',
-                                        kwargs={'slug':self.project1.slug,
-                                                'pk':self.report.id
-                                            }), user=self.user)
+        url = reverse('delete_report', kwargs={'slug':self.project1.slug,
+                                               'pk':self.report.id})
+        response = self.app.get(url, user=self.user)
+
         self.assertEqual(response.status_int, 200)
-        msg = ('This projects has sister projects that could be' + 
+        msg = ('This projects has sister projects that could be' +
                ' affected by deleting this report!')
         self.assertNotContains(response, msg)
 
@@ -146,13 +146,13 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
         #get our projectmilestone:
         self.pmst = self.project.projectmilestones_set.get(
             milestone__label=self.milestone.label)
-                              
+
         #then make a report and associated the pmst with it
         self.report = ReportFactory.create()
         self.report.projectreport.add(self.pmst)
         self.report.save()
 
-        
+
     def tearDown(self):
         pass
 
@@ -165,16 +165,16 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
         response = self.app.get(reverse('project_detail',
                                 args=(self.project.slug,)), user=self.user)
         self.assertEqual(response.status_int, 200)
-        
+
         #our response should contain a link to our file:
         url = reverse('serve_file', kwargs={'filename':self.report.report_path})
-        self.assertContains(response, url)                      
+        self.assertContains(response, url)
 
         #a link to delete our file
-        url = reverse('delete_report', kwargs={'slug':self.project.slug, 
+        url = reverse('delete_report', kwargs={'slug':self.project.slug,
                                                'pk':self.report.id})
         url = '<a href="{0}">'.format(url)
-        self.assertContains(response, url)              
+        self.assertContains(response, url)
 
 
     def test_manager_has_delete_link(self):
@@ -187,27 +187,27 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
                                 first_name = 'Burns',
                                 last_name = 'Montgomery',
                                        )
-        
+
         #make Mr. Burns the manager:
         managerGrp, created = Group.objects.get_or_create(name='manager')
         self.user2.groups.add(managerGrp)
 
         response = self.app.get(reverse('project_detail',
-                                        args=(self.project.slug,)), 
+                                        args=(self.project.slug,)),
                                 user=self.user2)
         self.assertEqual(response.status_int, 200)
-        
+
         #our response should contain a link to our file:
         url = reverse('serve_file', kwargs={'filename':self.report.report_path})
-        self.assertContains(response, url)                      
+        self.assertContains(response, url)
 
         #a link to delete our file
-        url = reverse('delete_report', kwargs={'slug':self.project.slug, 
+        url = reverse('delete_report', kwargs={'slug':self.project.slug,
                                                'pk':self.report.id})
         url = '<a href="{0}">'.format(url)
-        self.assertContains(response, url)              
+        self.assertContains(response, url)
 
-        
+
     def test_admin_has_delete_link(self):
 
         '''If a logged in user who is an administrator, they should be able both
@@ -219,21 +219,21 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
                                 first_name = 'Bart',
                                 last_name = 'Simpson',
                                        )
-        
+
         response = self.app.get(reverse('project_detail',
-                                        args=(self.project.slug,)), 
+                                        args=(self.project.slug,)),
                                 user=self.user3)
         self.assertEqual(response.status_int, 200)
-        
+
         #our response should contain a link to our file:
         url = reverse('serve_file', kwargs={'filename':self.report.report_path})
-        self.assertContains(response, url)                      
+        self.assertContains(response, url)
 
         #a link to delete our file
-        url = reverse('delete_report', kwargs={'slug':self.project.slug, 
+        url = reverse('delete_report', kwargs={'slug':self.project.slug,
                                                'pk':self.report.id})
         url = '<a href="{0}">'.format(url)
-        self.assertContains(response, url)              
+        self.assertContains(response, url)
 
 
 
@@ -242,25 +242,25 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
         admin, they should have a link to download the report but not
         delete it.
         '''
-        
+
         self.user4 = UserFactory(username = 'bgumble',
                                 first_name = 'Barney',
                                 last_name = 'Gumble')
 
         response = self.app.get(reverse('project_detail',
-                                        args=(self.project.slug,)), 
+                                        args=(self.project.slug,)),
                                 user=self.user4)
         self.assertEqual(response.status_int, 200)
-        
+
         #our response should contain a link to our file:
         url = reverse('serve_file', kwargs={'filename':self.report.report_path})
-        self.assertContains(response, url)                      
+        self.assertContains(response, url)
 
         #a link to delete our file
-        url = reverse('delete_report', kwargs={'slug':self.project.slug, 
+        url = reverse('delete_report', kwargs={'slug':self.project.slug,
                                                'pk':self.report.id})
         url = '<a href="{0}">'.format(url)
-        self.assertNotContains(response, url)              
+        self.assertNotContains(response, url)
 
 
     def test_joe_user_cannot_access_delete_report_url(self):
@@ -275,32 +275,31 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
 
         response = self.app.get(reverse('delete_report',
                                         kwargs={'slug':self.project.slug,
-                                                'pk':self.report.id}), 
+                                                'pk':self.report.id}),
                                 user=self.user4).follow()
 
         #make sure that we are successfully redirecte back to the
         #project detail page:
-        self.assertEqual(response.status_int, 200)        
+        self.assertEqual(response.status_int, 200)
         self.assertTemplateUsed('pjtk2/project_detail.html')
         self.assertContains(response, "Project Start:")
         self.assertContains(response, "Project End:")
         self.assertContains(response, "Reporting Requirements:")
 
- 
+
     def test_anon_user_cannot_access_delete_report_url(self):
         '''If a user is not logged in and try to access the delete report url
         directly, they should be directed back to the login page.
         '''
 
-        response = self.app.get(reverse('delete_report',
-                                        kwargs={'slug':self.project.slug,
-                                                'pk':self.report.id})).follow()
+        url =reverse('delete_report', kwargs={'slug':self.project.slug,
+                                              'pk':self.report.id})
+        response = self.app.get(url)
         #verify that they are re-directed
-        self.assertEqual(response.status_int, 301)                
-        #url should contain the url to the login (and a bunch of other stuff)
-        self.assertIn(reverse('login'),response['Location'])
+        self.assertEqual(response.status_int, 302)
+        redirectstring = "{}?next={}".format(reverse('login'), url)
 
-
+        self.assertRedirects(response, redirectstring)
 
 
 class DeleteReportTestCase(TestCase):
@@ -337,13 +336,13 @@ class DeleteReportTestCase(TestCase):
         #get our projectmilestone:
         self.pmst = self.project.projectmilestones_set.get(
             milestone__label=self.milestone.label)
-                              
+
         #then make a report and associated the pmst with it
         self.report = ReportFactory.create()
         self.report.projectreport.add(self.pmst)
         self.report.save()
 
-        
+
     def tearDown(self):
         pass
 
@@ -353,11 +352,11 @@ class DeleteReportTestCase(TestCase):
         exist, a 404 should be thrown.
         '''
 
-        login = self.client.login(username=self.user.username, 
+        login = self.client.login(username=self.user.username,
                                   password=self.password)
         self.assertTrue(login)
 
-        response = self.client.get(reverse('delete_report', 
+        response = self.client.get(reverse('delete_report',
                                            kwargs={'slug':'zzz_zz12_123',
                                                    'pk':self.report.id}))
         self.assertEqual(response.status_code, 404)
@@ -369,11 +368,11 @@ class DeleteReportTestCase(TestCase):
         should be thrown.
         '''
 
-        login = self.client.login(username=self.user.username, 
+        login = self.client.login(username=self.user.username,
                                   password=self.password)
         self.assertTrue(login)
 
-        response = self.client.get(reverse('delete_report', 
+        response = self.client.get(reverse('delete_report',
                                            kwargs={'slug':self.project.slug,
                                                    'pk':999999}))
         self.assertEqual(response.status_code, 404)
@@ -383,11 +382,11 @@ class DeleteReportTestCase(TestCase):
         successfully access the delete file page.
         '''
 
-        login = self.client.login(username=self.user.username, 
+        login = self.client.login(username=self.user.username,
                                   password=self.password)
         self.assertTrue(login)
 
-        response = self.client.get(reverse('delete_report', 
+        response = self.client.get(reverse('delete_report',
                                            kwargs={'slug':self.project.slug,
                                                    'pk':self.report.id}))
 
@@ -401,17 +400,17 @@ class DeleteReportTestCase(TestCase):
 
         '''
 
-        login = self.client.login(username=self.user.username, 
+        login = self.client.login(username=self.user.username,
                                   password=self.password)
         self.assertTrue(login)
 
-        response = self.client.post(reverse('delete_report', 
+        response = self.client.post(reverse('delete_report',
                                            kwargs={'slug':self.project.slug,
                                                    'pk':self.report.id}))
 
         self.assertEqual(response.status_code, 302)
         self.assertTemplateUsed('pjtk2/project_detail.html')
-        id = self.report.id 
+        id = self.report.id
         self.assertFalse(Report.objects.filter(id=id).exists())
 
 
@@ -423,16 +422,16 @@ class DeleteReportTestCase(TestCase):
                                         first_name = 'Burns',
                                         last_name = 'Montgomery',
                                         password=self.password)
-        
+
         #make Mr. Burns the manager:
         managerGrp, created = Group.objects.get_or_create(name='manager')
         self.user2.groups.add(managerGrp)
 
-        login = self.client.login(username=self.user2.username, 
+        login = self.client.login(username=self.user2.username,
                                   password=self.password)
         self.assertTrue(login)
 
-        response = self.client.get(reverse('delete_report', 
+        response = self.client.get(reverse('delete_report',
                                            kwargs={'slug':self.project.slug,
                                                    'pk':self.report.id}))
 
@@ -450,16 +449,16 @@ class DeleteReportTestCase(TestCase):
                                         first_name = 'Burns',
                                         last_name = 'Montgomery',
                                         password=self.password)
-        
+
         #make Mr. Burns the manager:
         managerGrp, created = Group.objects.get_or_create(name='manager')
         self.user2.groups.add(managerGrp)
 
-        login = self.client.login(username=self.user2.username, 
+        login = self.client.login(username=self.user2.username,
                                   password=self.password)
         self.assertTrue(login)
 
-        response = self.client.post(reverse('delete_report', 
+        response = self.client.post(reverse('delete_report',
                                            kwargs={'slug':self.project.slug,
                                                    'pk':self.report.id}))
 
@@ -467,50 +466,50 @@ class DeleteReportTestCase(TestCase):
         #and that the report has been deleted from the database.
         self.assertEqual(response.status_code, 302)
         self.assertTemplateUsed('pjtk2/project_detail.html')
-        id = self.report.id 
+        id = self.report.id
         self.assertFalse(Report.objects.filter(id=id).exists())
 
-        
+
     def test_admin_can_delete_report_get(self):
 
         '''If a logged in user is an administrator, they should be able to
         successfully access the delete file page.
         '''
- 
+
         self.user3 = DBA_Factory.create(username = 'bsimpson',
                                         first_name = 'Bart',
                                         last_name = 'Simpson',
                                         password = self.password)
-        
-        login = self.client.login(username=self.user3.username, 
+
+        login = self.client.login(username=self.user3.username,
                                    password=self.password)
         self.assertTrue(login)
-         
-        response = self.client.get(reverse('delete_report', 
+
+        response = self.client.get(reverse('delete_report',
                                             kwargs={'slug':self.project.slug,
                                                     'pk':self.report.id}))
-         
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed('pjtk2/confirm_report_delete.html')
-         
- 
+
+
     def test_admin_can_delete_report_post(self):
 
         '''If a logged in user is an administrator, they should be able to
         successfully confirm that they want to delete file and then
         successfully delete the file.
         '''
- 
+
         self.user3 = DBA_Factory.create(username = 'bsimpson',
                                         first_name = 'Bart',
                                         last_name = 'Simpson',
                                         password = self.password)
-        
-        login = self.client.login(username=self.user3.username, 
+
+        login = self.client.login(username=self.user3.username,
                                    password=self.password)
         self.assertTrue(login)
-         
-        response = self.client.post(reverse('delete_report', 
+
+        response = self.client.post(reverse('delete_report',
                                             kwargs={'slug':self.project.slug,
                                                     'pk':self.report.id}))
 
@@ -518,7 +517,7 @@ class DeleteReportTestCase(TestCase):
         #and that the report has been deleted from the database.
         self.assertEqual(response.status_code, 302)
         self.assertTemplateUsed('pjtk2/project_detail.html')
-        id = self.report.id 
+        id = self.report.id
         self.assertFalse(Report.objects.filter(id=id).exists())
 
 
@@ -527,20 +526,20 @@ class DeleteReportTestCase(TestCase):
         admin, they should have a link to download the report but not
         delete it.
         '''
-         
+
         self.user4 = UserFactory(username = 'bgumble',
                                  first_name = 'Barney',
                                  last_name = 'Gumble',
                                  password = self.password)
-        
-        login = self.client.login(username=self.user4.username, 
+
+        login = self.client.login(username=self.user4.username,
                                   password=self.password)
         self.assertTrue(login)
-        
-        response = self.client.get(reverse('delete_report', 
+
+        response = self.client.get(reverse('delete_report',
                                            kwargs={'slug':self.project.slug,
                                                    'pk':self.report.id}))
-        
+
         self.assertEqual(response.status_code, 302)
         self.assertTemplateUsed('pjtk2/project_detail.html')
 
@@ -551,23 +550,22 @@ class DeleteReportTestCase(TestCase):
         file will not be deleted.
 
         '''
-         
+
         self.user4 = UserFactory(username = 'bgumble',
                                  first_name = 'Barney',
                                  last_name = 'Gumble',
                                  password = self.password)
-        
-        login = self.client.login(username=self.user4.username, 
+
+        login = self.client.login(username=self.user4.username,
                                   password=self.password)
         self.assertTrue(login)
-        
-        response = self.client.post(reverse('delete_report', 
+
+        response = self.client.post(reverse('delete_report',
                                            kwargs={'slug':self.project.slug,
                                                    'pk':self.report.id}))
         self.assertEqual(response.status_code, 302)
         self.assertTemplateUsed('pjtk2/project_detail.html')
- 
-        #make sure that the report is still there
-        id = self.report.id 
-        self.assertTrue(Report.objects.filter(id=id).exists())
 
+        #make sure that the report is still there
+        id = self.report.id
+        self.assertTrue(Report.objects.filter(id=id).exists())

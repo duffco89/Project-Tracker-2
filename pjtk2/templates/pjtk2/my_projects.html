@@ -141,7 +141,7 @@ table div.rotated {
             {% endfor %}
           </tr></thead>
           {% endif %}
-          <tr class="{% cycle row1,row2 %}">
+          <tr class="{% cycle row1 row2 %}">
             {% for field in form.visible_fields %}
             <td>
               {# Include the hidden fields in the form #}
@@ -194,7 +194,7 @@ table div.rotated {
         </thead>
         <tbody>
           {% for project in submitted %}
-          <tr class="{% cycle row1,row2 %}">
+          <tr class="{% cycle row1 row2 %}">
             <td> {{ project.year }} </td>
             <td>
               <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
@@ -243,7 +243,7 @@ table div.rotated {
           </thead>
           <tbody>
             {% for project in approved %}
-            <tr class="{% cycle row1,row2 %}">
+            <tr class="{% cycle row1 row2 %}">
               <td> {{ project.year }} </td>
               <td>
                 <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
@@ -293,7 +293,7 @@ table div.rotated {
           </thead>
           <tbody>
             {% for project in cancelled %}
-            <tr class="{% cycle row1,row2 %}">
+            <tr class="{% cycle row1 row2 %}">
               <td> {{ project.year }} </td>
               <td>
                 <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
@@ -341,7 +341,7 @@ table div.rotated {
         </thead>
         <tbody>
           {% for project in complete %}
-          <tr class="{% cycle row1,row2 %}">
+          <tr class="{% cycle row1 row2 %}">
             <td> {{ project.year }} </td>
             <td>
               <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
@@ -382,7 +382,7 @@ table div.rotated {
         </thead>
         <tbody>
           {% for bookmark in bookmarks %}
-          <tr class="{% cycle row1,row2 %}">
+          <tr class="{% cycle row1 row2 %}">
             <td>
               {{ bookmark.year }}
             </td>
