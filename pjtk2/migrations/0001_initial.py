@@ -88,8 +88,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('read', models.DateTimeField(blank=True, null=True)),
-                ('message', models.ForeignKey(to='pjtk2.Message')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('message', models.ForeignKey(to='pjtk2.Message',on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'Messages2Users',
@@ -132,13 +132,13 @@ class Migration(migrations.Migration):
                 ('odoe', models.DecimalField(decimal_places=2, max_digits=8, null=True, verbose_name='ODOE', blank=True, default=0)),
                 ('salary', models.DecimalField(decimal_places=2, max_digits=8, null=True, verbose_name='Salary', blank=True, default=0)),
                 ('slug', models.SlugField(editable=False, blank=True)),
-                ('cancelled_by', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='CancelledBy', null=True, blank=True)),
-                ('dba', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='ProjectDBA', blank=True)),
-                ('field_ldr', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='FieldLead', null=True, blank=True)),
-                ('lake', models.ForeignKey(to='pjtk2.Lake', default=1)),
-                ('master_database', models.ForeignKey(to='pjtk2.Database', null=True, blank=True)),
-                ('owner', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='ProjectOwner', blank=True)),
-                ('prj_ldr', models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='ProjectLead')),
+                ('cancelled_by', models.ForeignKey(to=settings.AUTH_USER_MODEL,  on_delete=models.CASCADE, related_name='CancelledBy', null=True, blank=True)),
+                ('dba', models.ForeignKey(to=settings.AUTH_USER_MODEL,  on_delete=models.CASCADE, related_name='ProjectDBA', blank=True)),
+                ('field_ldr', models.ForeignKey(to=settings.AUTH_USER_MODEL,  on_delete=models.CASCADE, related_name='FieldLead', null=True, blank=True)),
+                ('lake', models.ForeignKey(to='pjtk2.Lake', on_delete=models.CASCADE, default=1)),
+                ('master_database', models.ForeignKey(to='pjtk2.Database',  on_delete=models.CASCADE, null=True, blank=True)),
+                ('owner', models.ForeignKey(to=settings.AUTH_USER_MODEL,  on_delete=models.CASCADE, related_name='ProjectOwner', blank=True)),
+                ('prj_ldr', models.ForeignKey(to=settings.AUTH_USER_MODEL,  on_delete=models.CASCADE, related_name='ProjectLead')),
             ],
             options={
                 'verbose_name': 'Project List',
@@ -151,8 +151,8 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('required', models.BooleanField(default=True)),
                 ('completed', models.DateTimeField(blank=True, null=True)),
-                ('milestone', models.ForeignKey(to='pjtk2.Milestone')),
-                ('project', models.ForeignKey(to='pjtk2.Project')),
+                ('milestone', models.ForeignKey(to='pjtk2.Milestone', on_delete=models.CASCADE)),
+                ('project', models.ForeignKey(to='pjtk2.Project', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'Project Milestones',
@@ -162,8 +162,8 @@ class Migration(migrations.Migration):
             name='ProjectSisters',
             fields=[
                 ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
-                ('family', models.ForeignKey(to='pjtk2.Family')),
-                ('project', models.ForeignKey(to='pjtk2.Project')),
+                ('family', models.ForeignKey(to='pjtk2.Family', on_delete=models.CASCADE)),
+                ('project', models.ForeignKey(to='pjtk2.Project', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name_plural': 'Project Sisters',
@@ -190,7 +190,7 @@ class Migration(migrations.Migration):
                 ('uploaded_on', models.DateTimeField(auto_now_add=True)),
                 ('report_hash', models.CharField(max_length=300)),
                 ('projectreport', models.ManyToManyField(to='pjtk2.ProjectMilestones')),
-                ('uploaded_by', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('uploaded_by', models.ForeignKey(to=settings.AUTH_USER_MODEL,  on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -199,13 +199,13 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(serialize=False, primary_key=True, auto_created=True, verbose_name='ID')),
                 ('sam', models.CharField(blank=True, max_length=30, null=True)),
                 ('geom', django.contrib.gis.db.models.fields.PointField(srid=4326, help_text='Represented as (longitude, latitude)')),
-                ('project', models.ForeignKey(to='pjtk2.Project')),
+                ('project', models.ForeignKey(to='pjtk2.Project', on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='project',
             name='project_type',
-            field=models.ForeignKey(to='pjtk2.ProjectType', null=True, blank=True),
+            field=models.ForeignKey(to='pjtk2.ProjectType',  on_delete=models.CASCADE, null=True, blank=True),
         ),
         migrations.AddField(
             model_name='project',
@@ -220,7 +220,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='message',
             name='project_milestone',
-            field=models.ForeignKey(to='pjtk2.ProjectMilestones'),
+            field=models.ForeignKey(to='pjtk2.ProjectMilestones', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='employee',
@@ -230,32 +230,32 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='employee',
             name='supervisor',
-            field=models.ForeignKey(to='pjtk2.Employee', null=True, blank=True),
+            field=models.ForeignKey(to='pjtk2.Employee',  on_delete=models.CASCADE, null=True, blank=True),
         ),
         migrations.AddField(
             model_name='employee',
             name='user',
-            field=models.OneToOneField(to=settings.AUTH_USER_MODEL, related_name='employee'),
+            field=models.OneToOneField(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='employee'),
         ),
         migrations.AddField(
             model_name='bookmark',
             name='project',
-            field=models.ForeignKey(to='pjtk2.Project'),
+            field=models.ForeignKey(to='pjtk2.Project', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='bookmark',
             name='user',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, related_name='project_bookmark'),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL,  on_delete=models.CASCADE, related_name='project_bookmark'),
         ),
         migrations.AddField(
             model_name='associatedfile',
             name='project',
-            field=models.ForeignKey(to='pjtk2.Project'),
+            field=models.ForeignKey(to='pjtk2.Project', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='associatedfile',
             name='uploaded_by',
-            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
         ),
         migrations.AlterUniqueTogether(
             name='projectmilestones',

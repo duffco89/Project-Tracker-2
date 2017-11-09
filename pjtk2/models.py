@@ -223,15 +223,18 @@ class Project(models.Model):
     active  = models.BooleanField(default=True)
     cancelled  = models.BooleanField(default=False)
     cancelled_by  = models.ForeignKey(User, related_name="CancelledBy",
-                                  blank=True, null=True)
+                                      on_delete=models.CASCADE,
+                                      blank=True, null=True)
     year = models.CharField("Year", max_length=4, blank=True, editable=False)
     prj_date0 = models.DateField("Start Date", blank=False)
     prj_date1 = models.DateField("End Date", blank=False)
     prj_cd = models.CharField("Project Code", max_length=12, unique=True,
                               blank=False)
     prj_nm = models.CharField("Project Name", max_length=60, blank=False)
-    prj_ldr = models.ForeignKey(User, related_name="ProjectLead")
+    prj_ldr = models.ForeignKey(User, related_name="ProjectLead",
+                                on_delete=models.CASCADE,)
     field_ldr = models.ForeignKey(User, related_name="FieldLead",
+                                  on_delete=models.CASCADE,
                                   blank=True, null=True)
     comment = models.TextField(blank=False,
                                help_text="General project description.")
@@ -242,13 +245,19 @@ class Project(models.Model):
                             help_text=help_str)
     risk_html = models.TextField("Risk", null=True, blank=True,
                             help_text=help_str)
-    master_database = models.ForeignKey("Database", null=True, blank=True)
-    project_type = models.ForeignKey("ProjectType", null=True, blank=True)
-    owner = models.ForeignKey(User, blank=True, related_name="ProjectOwner")
-    dba = models.ForeignKey(User, blank=True, related_name="ProjectDBA")
+    master_database = models.ForeignKey("Database",
+                                        on_delete=models.CASCADE,
+                                        null=True, blank=True)
+    project_type = models.ForeignKey("ProjectType",
+                                     on_delete=models.CASCADE,
+                                     null=True, blank=True)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE,
+                              blank=True, related_name="ProjectOwner")
+    dba = models.ForeignKey(User, on_delete=models.CASCADE,
+                            blank=True, related_name="ProjectDBA")
     funding = models.CharField("Funding Source", max_length=30,
                                choices=FUNDING_CHOICES, default="spa")
-    lake = models.ForeignKey(Lake, default=1)
+    lake = models.ForeignKey(Lake, on_delete=models.CASCADE, default=1)
     odoe = models.DecimalField("ODOE", max_digits=8, default=0,
                                      decimal_places=2, null=True, blank=True)
     salary = models.DecimalField("Salary", max_digits=8, default=0,
@@ -716,7 +725,7 @@ class SamplePoint(models.Model):
     cases, a samplePoint instance represents a net in the water, but
     can have different meaning for different projects.
     '''
-    project = models.ForeignKey('Project')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE)
     sam  = models.CharField(max_length=30, null=True, blank=True)
     geom = models.PointField(srid=4326,
                              help_text='Represented as (longitude, latitude)')
@@ -739,9 +748,9 @@ class SamplePoint(models.Model):
 class ProjectMilestones(models.Model):
     '''list of reporting requirements for each project'''
     #aka - project milestones
-    project = models.ForeignKey('Project')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE)
     #report_type = models.ForeignKey('Milestone')
-    milestone = models.ForeignKey('Milestone')
+    milestone = models.ForeignKey('Milestone', on_delete=models.CASCADE)
     required  = models.BooleanField(default=True)
     completed = models.DateTimeField(blank=True, null=True)
 
@@ -768,7 +777,7 @@ class Report(models.Model):
                                    max_length=200)
     uploaded_on = models.DateTimeField(auto_now_add=True)
     #uploaded_by = models.CharField(max_length = 300)
-    uploaded_by = models.ForeignKey(User)
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE,)
     report_hash = models.CharField(max_length = 300)
 
     def __str__(self):
@@ -792,12 +801,12 @@ class AssociatedFile(models.Model):
         return val
 
 
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     file_path = models.FileField(upload_to=get_associated_file_upload_path,
                                  max_length=200)
     current = models.BooleanField(default=True)
     uploaded_on = models.DateTimeField(auto_now_add=True)
-    uploaded_by = models.ForeignKey(User)
+    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
     hash = models.CharField(max_length=300)
 
     def __str__(self):
@@ -813,8 +822,9 @@ class AssociatedFile(models.Model):
 class Bookmark(models.Model):
     '''a class to allow users to bookmark and unbookmark their
     favourite projects.'''
-    project = models.ForeignKey(Project)
-    user = models.ForeignKey(User, related_name = "project_bookmark")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name = "project_bookmark")
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -876,8 +886,8 @@ class ProjectSisters(models.Model):
     '''Sister projects have common presentations and summary reports.
     They must be the same project type, and run in the same year.'''
 
-    project = models.ForeignKey('Project')
-    family = models.ForeignKey('Family')
+    project = models.ForeignKey('Project', on_delete=models.CASCADE)
+    family = models.ForeignKey('Family', on_delete=models.CASCADE)
 
     class Meta:
         verbose_name_plural = "Project Sisters"
@@ -897,13 +907,15 @@ class Employee(models.Model):
         ('employee', 'Employee'),
     }
 
-    user = models.OneToOneField(User, related_name='employee')
+    user = models.OneToOneField(User, on_delete=models.CASCADE,
+                                related_name='employee')
     #user = models.ForeignKey(User, unique=True, related_name='employee')
     position = models.CharField(max_length=60)
     role = models.CharField(max_length=30, choices=ROLL_CHOICES,
                             default='Employee')
     lake = models.ManyToManyField('Lake')
     supervisor = models.ForeignKey('self',
+                                   on_delete=models.CASCADE,
                                    blank=True,
                                    null=True)
     #supervisor = models.ForeignKey(User, unique=False, blank=True, null=True,
@@ -924,7 +936,8 @@ class Message(models.Model):
     distribution_list = models.ManyToManyField(User, through='Messages2Users')
 
     msgtxt = models.CharField(max_length=100)
-    project_milestone = models.ForeignKey(ProjectMilestones)
+    project_milestone = models.ForeignKey(ProjectMilestones,
+                                          on_delete=models.CASCADE)
     #these two fields will allow us to keep track of why messages were sent:
 
     #we will need a project 'admin' to send announcements
@@ -950,8 +963,8 @@ class Messages2Users(models.Model):
     '''a table to associated messages with users and keep track of when
     they were create and when they were read.'''
 
-    user = models.ForeignKey(User)
-    message = models.ForeignKey(Message)
+    user = models.ForeignKey(User, on_delete=models.CASCADE,)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
     created = models.DateTimeField(auto_now_add=True)
     read = models.DateTimeField(blank=True, null=True)
 

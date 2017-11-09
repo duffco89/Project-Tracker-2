@@ -21,6 +21,8 @@ from django.template import RequestContext
 from django.utils.decorators import method_decorator
 
 
+
+
 from taggit.models import Tag
 
 from pjtk2.functions import get_minions, my_messages, get_messages_dict
@@ -141,6 +143,12 @@ class HomePageView(TemplateView):
     template_name = "index.html"
 
 
+
+from django.core.paginator import Paginator
+from django.core.paginator import EmptyPage
+from django.core.paginator import PageNotAnInteger
+
+
 class ListFilteredMixin(object):
     """ Mixin that adds support for django-filter
     from: https://github.com/rasca/django-enhanced-cbv/blob/master/
@@ -159,10 +167,12 @@ class ListFilteredMixin(object):
 
     def get_filter_set_kwargs(self):
         """ Returns the keyword arguments for instantiating the filterset."""
+
         return {
             'data': self.request.GET,
             'queryset': self.get_base_queryset(),
         }
+
 
     def get_base_queryset(self):
         """ We can decided to either alter the queryset before or
@@ -181,7 +191,9 @@ class ListFilteredMixin(object):
                 Q(field_ldr__username=self.username))
         else:
             queryset = Project.objects.all()
+
         return queryset
+
         #==========
         #return super(ListFilteredMixin, self).get_queryset()
 
@@ -196,19 +208,36 @@ class ListFilteredMixin(object):
             return filter
 
     def get_queryset(self):
-        return self.get_constructed_filter().qs
+        qs = self.get_constructed_filter().qs
+        return qs
 
     def get_context_data(self, **kwargs):
         kwargs.update({'filter': self.get_constructed_filter()})
         return super(ListFilteredMixin, self).get_context_data(**kwargs)
 
 
+
+#from django_filters.views import FilterView
+#from django_filters.views import FilterMixin as _FilterMixin
+#
+#class FilterMixin(_FilterMixin):
+#
+#    def get_filterset_kwargs(self, filterset_class):
+#        kwargs = super(FilterMixin, self).get_filterset_kwargs(filterset_class)
+#        if kwargs['data'] is not None and 'page' in kwargs['data']:
+#            data = kwargs['data'].copy() ; del data['page']
+#            kwargs['data'] = data
+#        return kwargs
+#
 class ProjectList(ListFilteredMixin, ListView):
+#class ProjectList(FilterMixin, FilterView):
     """ A list view that can be filtered by django-filter """
     # modified to accept tag argument
-    queryset = Project.objects.all()
+    queryset = Project.objects.select_related('project_type', 'prj_ldr').all()
     filter_set = ProjectFilter
+    #filterset_class = ProjectFilter
     template_name = "pjtk2/ProjectList.html"
+    paginate_by = 50
 
     def get_context_data(self, **kwargs):
         '''get any additional context information that has been passed in with
@@ -218,14 +247,33 @@ class ProjectList(ListFilteredMixin, ListView):
             try:
                 prj_ldr = User.objects.get(username=self.username)
             except User.DoesNotExist:
-                prj_ldr = dict(first_name=self.username, last_name="")
+                prj_ldr = dict(first_name=self.username,
+                               last_name="")
                 #prj_ldr = None
         else:
             prj_ldr = None
 
+
+        #import pdb; pdb.set_trace()
+
+
+        #import pdb;pdb.set_trace()
+        paginator = Paginator(self.object_list, self.paginate_by)
+        page = self.request.GET.get('page')
+        try:
+            paged_qs = paginator.page(page)
+        except PageNotAnInteger:
+            paged_qs = paginator.page(1)
+        except EmptyPage:
+            paged_qs = paginator.page(paginator.num_pages)
+
+
         context = super(ProjectList, self).get_context_data(**kwargs)
         context['tag'] = self.tag
         context['prj_ldr'] = prj_ldr
+        context['project_count'] = len(self.object_list)
+        context['object_list'] = paged_qs.object_list
+
         return context
 
 project_list = ProjectList.as_view()
