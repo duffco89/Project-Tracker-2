@@ -101,16 +101,16 @@ STATICFILES_FINDERS = (
 SECRET_KEY = '0yo*&amp;!557a9o8=+2b_9mrcfc=n$*7vc-hr@b56y^x#&amp;a+pidx@'
 
 
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     #'main.middleware.LoginRequiredMiddleware',
-    'pagination.middleware.PaginationMiddleware',
-)
+]
 
 
 
@@ -167,7 +167,6 @@ THIRDPARTY_APPS = (
     'haystack',
     'passwords',
     'password_reset',
-    'pagination',
     'olwidget',
     )
 
@@ -182,17 +181,11 @@ MY_APPS = (
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
 
 
-##HAYSTACK_CONNECTIONS = {
-##    'default': {
-##        'ENGINE': 'haystack.backends.whoosh_backend.WhooshEngine',
-##        'PATH': os.path.join(os.path.dirname(__file__), 'whoosh_ndex'),
-##    },
-##}
 
-eng = 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine'
+engine = 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine'
 HAYSTACK_CONNECTIONS = {
     'default': {
-        'ENGINE': eng,
+        'ENGINE': engine,
         'URL': 'http://127.0.0.1:9200/',
         'INDEX_NAME': 'haystack',
     },

@@ -18,8 +18,7 @@ urlpatterns = [
     url(r'^$', project_list, name='home'),
     url(r'^$', project_list, name='index'),
 
-    url(r'^coregonusclupeaformis/admin/',
-        include(admin.site.urls), name='admin'),
+    url(r'^coregonusclupeaformis/admin/', admin.site.urls),
 
     url(r'^accounts/', include('simple_auth.urls')),
     url(r'^password_reset/',
