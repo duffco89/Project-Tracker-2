@@ -739,11 +739,11 @@ class SamplePoint(models.Model):
     objects = models.GeoManager()
 
     @property
-    def ddlat(self):
+    def dd_lat(self):
         return self.geom.y
 
     @property
-    def ddlon(self):
+    def dd_lon(self):
         return self.geom.x
 
     @property

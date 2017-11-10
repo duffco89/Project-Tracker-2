@@ -168,6 +168,7 @@ THIRDPARTY_APPS = (
     'passwords',
     'password_reset',
     'olwidget',
+    'leaflet',
     'rest_framework',
     )
 
@@ -241,5 +242,17 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+
+}
+
+
+LEAFLET_CONFIG = {
+    #minx, miny, maxx,maxy
+    #'SPATIAL_EXTENT': (-84.0, 43.0,-80.0, 47.0),
+    'DEFAULT_CENTER': (45.0,-82.0),
+    'DEFAULT_ZOOM': 7,
+    #'MIN_ZOOM': 3,
+    #'MAX_ZOOM': 18,
+    'RESET_VIEW': True,
 
 }
