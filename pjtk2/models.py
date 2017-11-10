@@ -730,7 +730,27 @@ class SamplePoint(models.Model):
     geom = models.PointField(srid=4326,
                              help_text='Represented as (longitude, latitude)')
 
+    #project code and sample number or space name:
+    #dd_lat
+    #dd_lat
+    #popup_html = models.TextField()
+
+
     objects = models.GeoManager()
+
+    @property
+    def ddlat(self):
+        return self.geom.y
+
+    @property
+    def ddlon(self):
+        return self.geom.x
+
+    @property
+    def popup_text(self):
+        return "{} - {}".format(self.project.prj_cd, self.sam)
+
+
 
 
 #class ProjectPoly(models.Model):
