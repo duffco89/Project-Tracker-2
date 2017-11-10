@@ -18,35 +18,8 @@ from olwidget.widgets import InfoMap, InfoLayer, Map
 
 
 
-def empty_map(map_options=dict()):
-    """Return an empty info map object.  Options is an optional
-    dictionary that control basic attributes of the map - different
-    maps can be returned by diffent users/projects
-
-    """
-
-    lat = map_options.get('lat', 45)
-    lon = map_options.get('lon', -82)
-    zoom = map_options.get('zoom', 7)
-    zoom2extent = map_options.get('zoom2extent', False)
-    height = map_options.get('height', '600px')
-    width = map_options.get('width', '600px')
-
-    mymap = InfoMap(
-        None,
-        {'default_lat': lat,
-         'default_lon': lon,
-         'default_zoom': zoom,
-         'zoom_to_data_extent': zoom2extent,
-         'map_div_style': {'width': width, 'height': height}}
-    )
-    return mymap
-
-
-
-
 def get_map(points, roi=None, map_options={}):
-    """
+    """  This will soon be obsolete!
 
     Arguments:
     - `points`:

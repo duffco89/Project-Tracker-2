@@ -1,14 +1,22 @@
 {% extends "pjtk2/pjtk2_base.html" %}
 
-{% block extrahead %}
-    {{ map.media }}
-{% endblock %}
-
+{% load leaflet_tags %}
 {% load pjtk2_tags %}
+
+
+{% block extrahead %}
+
+{% leaflet_js %}
+{% leaflet_css %}
+
+<script src="{{ STATIC_URL }}Leaflet.MakiMarkers.js"></script>
+
+{% endblock %}
 
 {% block content %}
 
 <div class="container" >
+
 
   <div class="row" >
     <div class="col-md-5" >
@@ -134,12 +142,9 @@
       </div>
     </div>
     <div class="col-md-7" >
-      {% if map %}
-        {{ map }}
-      {% else %}
-        <img src="{{ STATIC_URL }}LakeHuron.png" style="width: 600px;"/>
-      {% endif %}
-      <br />
+
+    <div id="main_map" style="width: 600px; height: 600px;"></div>
+
     </div>
   </div>
   <br />
@@ -389,5 +394,77 @@
 
 
 </div>
+
+
+
+<script src='https://api.mapbox.com/mapbox.js/v2.2.4/mapbox.js'></script>
+<link href='https://api.mapbox.com/mapbox.js/v2.2.4/mapbox.css' rel='stylesheet' />
+
+<script type="text/javascript">
+
+
+
+ $(document).ready(function(){
+
+     function add_project_points(map){
+
+         var markerOptions = {
+             radius: 4,
+             fillColor: "#ff7800",
+             color: "#000",
+             weight: 0.5,
+             opacity: 1,
+             fillOpacity: 0.6
+         };
+
+         $.ajax("{% url 'project_points' slug=project.slug %}", {
+             success: function(data) {
+                 var markerArray = [];
+                 data.forEach(function(d){
+                     markerArray.push(L.circleMarker([d.dd_lat, d.dd_lon], markerOptions)
+                      .bindPopup(d.popup_text));
+                 });
+
+                 if(markerArray.length >0){
+                     var grp = L.featureGroup(markerArray).addTo(map);
+                     map.fitBounds(grp.getBounds());
+                 }
+             },
+             error: function() {
+                 console.log('Error retrieving project points.');
+             }
+         });
+
+     }
+
+
+     // we will initialize the map over lake huron - this could be customized at some point in the future.
+     var  my_map = new L.map('main_map').setView([45,-82], 7);
+
+     L.mapbox.accessToken = 'pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ';
+     // Replace 'mapbox.streets' with your map id.
+     var mapboxTiles = L.tileLayer('https://api.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=' + L.mapbox.accessToken, {
+         attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
+     }).addTo(my_map);
+
+     add_project_points(my_map);
+
+
+
+
+
+ });  //end of document ready
+
+//===================================
+
+
+</script>
+
+
+
+
+
+
+
 
 {% endblock %}

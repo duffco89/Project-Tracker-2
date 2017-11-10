@@ -40,7 +40,7 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
                          NoticesForm,
                          AssociatedFileUploadForm, GeoForm)
 
-from pjtk2.spatial_utils import find_roi_projects, empty_map, get_map
+from pjtk2.spatial_utils import find_roi_projects,  get_map
 
 from wsgiref.util import FileWrapper
 
@@ -348,9 +348,6 @@ def project_detail(request, slug):
     edit = can_edit(user, project)
     manager = is_manager(user)
 
-    sample_points = project.get_sample_points()
-    mymap = get_map(sample_points)
-
     return render(request, 'pjtk2/projectdetail.html',
                   {'milestones': milestones,
                    'Core': core,
@@ -358,7 +355,6 @@ def project_detail(request, slug):
                    'project': project,
                    'edit': edit,
                    'manager': manager,
-                   'map': mymap
                   })
 
 

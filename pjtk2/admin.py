@@ -1,3 +1,4 @@
+from leaflet.admin import LeafletGeoAdmin
 from django.contrib import admin
 
 from pjtk2.models import (Milestone, ProjectType, Database, Project,

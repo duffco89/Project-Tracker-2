@@ -21,6 +21,6 @@ class ProjectPointSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = SamplePoint
-        fields = ('project', 'prj_cd', 'sam', 'geom', 'ddlat', 'ddlon',
-                  'popup_text'
+        fields = ('project', 'prj_cd', 'sam', 'geom', 'dd_lat', 'dd_lon',
+                  'popup_text',
                   )
