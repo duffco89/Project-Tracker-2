@@ -168,6 +168,7 @@ THIRDPARTY_APPS = (
     'passwords',
     'password_reset',
     'olwidget',
+    'rest_framework',
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG
@@ -233,3 +234,12 @@ LINK_PATTERNS = [{'pattern':
                   'url': r'<a href="/projects/projectdetail/{0}">{1}</a>'},
                  {'pattern': r'ticket:\s?(\d+)',
                   'url': r'<a href="/tickets/\1">ticket \1</a>'}]
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+
+}
