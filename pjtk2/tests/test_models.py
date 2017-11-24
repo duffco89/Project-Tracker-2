@@ -1200,3 +1200,44 @@ class TestProjectStatus(TestCase):
         self.project1.approve()
         self.project1.signoff()
         self.assertEqual(self.project1.status(), 'Complete')
+
+
+
+
+def test_project_polygon_new():
+    """if we have a project with at least three sample points that form a
+    valid polygon, we should be able to create a project polygon
+    object from those points and save it.
+
+    """
+    assert 1==0
+
+def test_project_polygon_none():
+    """If we have a project without any spatial points, we should not be
+    able to created a projectpolygon.
+    """
+    assert 1==0
+
+
+def test_project_polygon_point():
+    """If we have a project with just one spatial point, we should not
+    be able to created a projectpolygon as a single point does not
+    form a polygon.
+    """
+    assert 1==0
+
+def test_project_polygon_line():
+    """if we have a project with three sample points
+    """
+    assert 1==0
+
+
+def test_project_polygon_changed():
+    """
+    """
+    assert 1==0
+
+def test_project_polygon_changed_to_none():
+    """
+    """
+    assert 1==0

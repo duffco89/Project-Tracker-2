@@ -9,6 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -22,12 +23,12 @@ from django.utils.decorators import method_decorator
 
 
 
-
 from taggit.models import Tag
 
 from pjtk2.functions import get_minions, my_messages, get_messages_dict
 
 from pjtk2.filters import ProjectFilter
+
 from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
                           Bookmark, Employee, AssociatedFile,
                           SamplePoint)#, my_messages)
@@ -40,7 +41,7 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
                          NoticesForm,
                          AssociatedFileUploadForm, GeoForm)
 
-from pjtk2.spatial_utils import find_roi_projects,  get_map
+from pjtk2.spatial_utils import find_roi_projects#,  get_map
 
 from wsgiref.util import FileWrapper
 
@@ -1157,13 +1158,8 @@ class ProjectTagList(ListView):
     queryset = Tag.objects.order_by('name')
     template_name = "pjtk2/project_tag_list.html"
 
-#    @method_decorator(login_required)
-#    def dispatch(self, *args, **kwargs):
-#        '''Override the dispatch method'''
-#        return super(ProjectTagList, self).dispatch(*args, **kwargs)
 
 project_tag_list = ProjectTagList.as_view()
-
 
 
 def find_projects_roi_view(request):
@@ -1175,6 +1171,9 @@ def find_projects_roi_view(request):
         form = GeoForm(request.POST)
         if form.is_valid():
             roi = form.cleaned_data['selection'][0]
+            if roi.geom_type=='LinearRing':
+                roi = Polygon(roi)
+
             project_types = form.cleaned_data['project_types']
             first_year = form.cleaned_data['first_year']
             last_year = form.cleaned_data['last_year']
@@ -1182,10 +1181,21 @@ def find_projects_roi_view(request):
             projects = find_roi_projects(roi, project_types, first_year,
                                          last_year)
 
-            mymap = get_map(points=projects['map_points'], roi=roi)
+            #there must be a better way to do this - build the url
+            #filters to be used by the api calls when the template is
+            #rendered.  THe points are retrieved using ajax calls to
+            #improve performance - the page loads, and then points are
+            #added.
+            api_filter_string = "?first_year={}&last_year={}".\
+                                format(first_year, last_year)
+            if project_types:
+                ids = ','.join([str(x.id) for x in project_types])
+                api_filter_string += "&project_type=" + ids
+
 
             return render(request, 'pjtk2/show_projects_gis.html',
-                          {'map':mymap,
+                          {'api_filter_string': api_filter_string,
+                           'roi':roi,
                            'contained':projects['contained'],
                            'overlapping':projects['overlapping']})
         else:
@@ -1194,7 +1204,6 @@ def find_projects_roi_view(request):
                            'contained':projects['contained'],
                            'overlapping':projects['overlapping'],
                           })
-
     else:
         form = GeoForm()
     return render(request, 'pjtk2/find_projects_gis.html',

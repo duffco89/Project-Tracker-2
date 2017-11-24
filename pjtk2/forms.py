@@ -8,8 +8,11 @@ import re
 import hashlib
 
 
-from django import forms
+from django.contrib.gis import forms
+from django.contrib.gis.forms.fields import PolygonField
+#from django import forms
 from django.contrib.auth.models import User
+from django.db.models.aggregates import Max, Min
 from django.forms.formsets import BaseFormSet
 from django.forms import ModelChoiceField, CharField
 from django.forms.widgets import (CheckboxSelectMultiple, Select,
@@ -19,7 +22,8 @@ from django.forms.widgets import (CheckboxSelectMultiple, Select,
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
-from olwidget.fields import MapField, EditableLayerField
+#from olwidget.fields import MapField, EditableLayerField
+from leaflet.forms.widgets import LeafletWidget
 
 from itertools import chain
 
@@ -949,23 +953,10 @@ class AssociatedFileUploadForm(forms.Form):
 
 
 class GeoForm(forms.Form):
-    """Load a map centered over Lake Huron. """
+    """ """
 
-    selection = MapField([
-        EditableLayerField({
-            'geometry': 'polygon',
-            'is_collection': False,
-            #'name': 'selection',
-        })],
-
-         options= {
-             'default_lat': 45,
-             'default_lon': -81.7,
-             'default_zoom':7,
-             'map_div_style': {'width': '650px', 'height': '600px'},
-          }
-
-        )
+    selection = PolygonField(widget=LeafletWidget(),
+                                   required=True)
 
     project_types = forms.ModelMultipleChoiceField(
         (ProjectType.objects.filter(field_component=True).
@@ -975,3 +966,58 @@ class GeoForm(forms.Form):
 
     first_year = forms.IntegerField(required=False)
     last_year = forms.IntegerField(required=False)
+
+
+    def __init__(self, *args, **kwargs):
+        '''Pre-populate the first_year and last_year years with actual values in
+        the database.'''
+        super(GeoForm, self).__init__(*args, **kwargs)
+
+        qs = Project.objects.values('year').aggregate(last_year=Max('year'),
+                                                    first_year=Min('year'))
+
+        self.first_year = qs['first_year']
+        self.last_year = qs['last_year']
+
+        self.fields['first_year'].widget.attrs['placeholder'] = self.first_year
+        self.fields['last_year'].widget.attrs['placeholder'] = self.last_year
+
+    def clean_first_year(self):
+        '''If we can't convert the first_year year value to an integer,
+        throw an error'''
+        yr =  self.cleaned_data['first_year']
+        if yr:
+            try:
+                yr = int(yr)
+            except ValueError:
+                msg = "'First_Year Year' must be numeric."
+                raise forms.ValidationError(msg.format())
+            return yr
+        else:
+            return self.first_year
+
+    def clean_last_year(self):
+        '''If we can't convert the last_year year value to an integer,
+        throw an error'''
+        yr =  self.cleaned_data['last_year']
+        if yr:
+            try:
+                yr = int(yr)
+            except ValueError:
+                msg = "'Last_Year Year' must be numeric."
+                raise forms.ValidationError(msg.format())
+            return yr
+        else:
+            return self.last_year
+
+    def clean(self):
+        cleaned_data = super(GeoForm, self).clean()
+
+        first_year = cleaned_data.get('first_year')
+        last_year = cleaned_data.get('last_year')
+
+        if first_year and last_year:
+            if int(first_year) > int(last_year):
+                msg = "'First Year' occurs after 'Last Year'."
+                raise forms.ValidationError(msg)
+        return cleaned_data
