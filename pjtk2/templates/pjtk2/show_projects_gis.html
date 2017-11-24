@@ -3,106 +3,116 @@
 <!-- {% block pages %}
 
 
-{% endblock %}
--->
+     {% endblock %}
+     -->
 
 {% block extrahead %}
 
-{{ map.media }}
+{% load geojson_tags %}
+{% load leaflet_tags %}
 
-<!-- tablesorter plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
-<!-- tablesorter widget file - loaded after the plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
-
+<!-- Leaflet js -->
+<!--  {% leaflet_js %} -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha256-kdEnCVOWosn3TNsGslxB8ffuKdrZoGQdIdPwh7W1CsE=" crossorigin="anonymous"></script>
+<!-- Leaflet css -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha256-LcmP8hlMTofQrGU6W2q3tUnDnDZ1QVraxfMkP060ekM=" crossorigin="anonymous" />
+<!-- {% leaflet_css %} -->
+<!-- end Leaflet -->
 
 {% endblock %}
 
 
 {% block content %}
 <div class="container" >
-  <div class="row">
-    <div class="col-md-10 col-md-offset-1">
-      {{ map }}
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <div id="main_map" style="width: 800px; height: 700px;"></div>
+        </div>
     </div>
-  </div>
+
 
     <hr />
-  <!-- Nav tabs -->
-  <ul class="nav nav-tabs" role="tablist">
-    <li class="active"><a href="#contained" role="tab" data-toggle="tab">Contained (n={{ contained|length }})</a></li>
-    <li><a href="#overlapping" role="tab" data-toggle="tab">Overlapping (n={{ overlapping|length }}) </a></li>
-  </ul>
+    <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="active"><a href="#contained" role="tab" data-toggle="tab">Contained (n={{ contained|length }})</a></li>
+        <li><a href="#overlapping" role="tab" data-toggle="tab">Overlapping (n={{ overlapping|length }}) </a></li>
+    </ul>
 
-  <!-- Tab panes -->
-  <div class="tab-content">
-    <div class="tab-pane active" id="contained">
-      {% if contained %}
-      <table cellspacing="0" class="tablesorter">
-        <thead>
-          <tr>
-            <th>Year</th>
-            <th>Project Code</th>
-            <th>Project Type</th>
-            <th>Project Name</th>
-          </tr>
-        </thead>
-        {% for project in contained %}
-        <tr>
-          <td> {{ project.year }} </td>
-          <td>
-            <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
-          </td>
-          <td> {{ project.project_type }} </td>
-          <td>
-            {{ project.prj_nm  }}
-          </td>
-        </tr>
-        {% endfor %}
-      </table>
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div class="tab-pane active" id="contained">
+            {% if contained %}
+            <table cellspacing="0" class="tablesorter">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Project Code</th>
+                        <th>Project Type</th>
+                        <th>Project Name</th>
+                    </tr>
+                </thead>
+                {% for project in contained %}
+                <tr>
+                    <td> {{ project.year }} </td>
+                    <td>
+                        <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+                    </td>
+                    <td> {{ project.project_type }} </td>
+                    <td>
+                        {{ project.prj_nm  }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
 
-      {% else %}
-      <br />
+            {% else %}
+            <br />
 
-        <h3>There are no projects that match that criteria and are entirely contained in that region of interest.</h3>
-      {% endif %}
+            <h3>There are no projects that match that criteria and are entirely contained in that region of interest.</h3>
+            {% endif %}
 
+        </div>
+        <div class="tab-pane" id="overlapping">
+
+            {% if overlapping %}
+
+            <table cellspacing="0" class="tablesorter">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Project Code</th>
+                        <th>Project Type</th>
+                        <th>Project Name</th>
+                    </tr>
+                </thead>
+                {% for project in overlapping %}
+                <tr>
+                    <td> {{ project.year }} </td>
+                    <td>
+                        <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+                    </td>
+                    <td> {{ project.project_type }} </td>
+                    <td>
+                        {{ project.prj_nm  }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+            {% else %}
+            <h3>There are no projects that match that criteria and have at least one sample in that region of interest.</h3>
+            {% endif %}
+
+        </div>
     </div>
-    <div class="tab-pane" id="overlapping">
-
-      {% if overlapping %}
-
-      <table cellspacing="0" class="tablesorter">
-        <thead>
-          <tr>
-            <th>Year</th>
-            <th>Project Code</th>
-            <th>Project Type</th>
-            <th>Project Name</th>
-          </tr>
-        </thead>
-        {% for project in overlapping %}
-        <tr>
-          <td> {{ project.year }} </td>
-          <td>
-            <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
-          </td>
-          <td> {{ project.project_type }} </td>
-          <td>
-            {{ project.prj_nm  }}
-          </td>
-        </tr>
-        {% endfor %}
-      </table>
-
-      {% else %}
-        <h3>There are no projects that match that criteria and have at least one sample in that region of interest.</h3>
-      {% endif %}
-
-    </div>
-  </div>
 
 </div>
+
+
+<!-- tablesorter plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+<!-- tablesorter widget file - loaded after the plugin -->
+<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
 
 
   <script  type="text/javascript">
@@ -130,6 +140,164 @@
   });
 
 </script>
+
+<script src='https://api.mapbox.com/mapbox.js/v2.2.4/mapbox.js'></script>
+<link href='https://api.mapbox.com/mapbox.js/v2.2.4/mapbox.css' rel='stylesheet' />
+
+<script type="text/javascript">
+
+ $(document).ready(function(){
+
+     function add_roi(map){
+
+         // add our region of interest to the map and re-center and
+         //zoom to just contain it.
+
+         var roi = {{ roi.geojson|safe }}
+
+         if (roi){
+             var roi_layer = L.geoJson(roi);
+             roi_layer.addTo(map);
+             map.fitBounds(roi_layer.getBounds());
+         }
+     }
+
+
+     function add_contained_points(data) {
+
+         // a function to actually add the contained points to the map
+         // called on success of the ajax call to the api
+
+         var markerOptions = {
+             radius: 4,
+             fillColor: "#ff7800",
+             color: "#000",
+             weight: 0.5,
+             opacity: 1,
+             fillOpacity: 0.6
+         };
+
+         var markerArray = [];
+         data.forEach(function(d){
+             markerArray.push(L.circleMarker([d.dd_lat, d.dd_lon], markerOptions)
+                               .bindPopup(d.popup_text));
+         });
+
+         if(markerArray.length >0){
+             var grp = L.featureGroup(markerArray).addTo(contained_pts);
+             contained_pts.addTo(my_map);
+         }
+     }
+
+
+     function add_overlapping_points(data){
+         // a function to actually add the overlapping points to the map
+         // called on success of the ajax call to the api
+         var markerOptions = {
+             radius: 4,
+             fillColor: "#74d600",
+             color: "#000",
+             weight: 0.5,
+             opacity: 1,
+             fillOpacity: 0.6
+         };
+
+         var markerArray = [];
+         data.forEach(function(d){
+             markerArray.push(L.circleMarker([d.dd_lat, d.dd_lon], markerOptions)
+                               .bindPopup(d.popup_text));
+         });
+
+         if(markerArray.length >0){
+             var grp = L.featureGroup(markerArray).addTo(overlapping_pts);
+             overlapping_pts.addTo(my_map);
+             redraw_contained_points();
+         }
+     }
+
+
+     function redraw_contained_points(){
+         // a little helper function to put the contained points on the top.
+         // they come back faster from the ajax call and are drawn first, but
+         // are then covered up by the overlapping points.  This puts them
+         //back on top.
+         if (contained_pts){
+             my_map.removeLayer(contained_pts);
+             contained_pts.addTo(my_map);
+         }
+     }
+
+
+     function get_points_in_roi(){
+         // an ajax call to our api view to get the points completely contained in the region
+         // of interest.  The region of interest is included in the body of a post request
+         var the_url = "{% url 'get_points_contained_in_roi'  %}{{ api_filter_string|safe }}";
+         var roi = "{{ roi|safe }}"
+         $.ajax({url:the_url,
+                 type: "POST",
+                 data: {'roi': roi},
+                 success: add_contained_points,
+                 error: function() {
+                     console.log('Error retrieving points for projects completely contained in roi.');
+                 }
+         });
+     }
+
+
+
+     function get_points_overlapping_roi(){
+         // an ajax call to our api view to get the points for projects that have some points
+         // in the region of interest.  The region of interest is included in the body of a
+         //post request
+         var the_url = "{% url 'get_points_overlapping_roi'  %}{{ api_filter_string|safe }}";
+         var roi = "{{ roi|safe }}"
+         $.ajax({url:the_url,
+                 type: "POST",
+                 data: {'roi': roi},
+                 success: add_overlapping_points,
+             error: function() {
+                 console.log('Error retrieving points for projects overlapping roi.');
+             }
+         });
+     }
+
+     // we will initialize the map over lake huron - this could be customized at some
+     //point in the future.
+     var  my_map = new L.map('main_map').setView([45,-82], 7);
+
+     L.mapbox.accessToken = 'pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ';
+     var mapboxTiles = L.tileLayer('https://api.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=' + L.mapbox.accessToken, {
+         attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
+     }).addTo(my_map);
+
+     add_roi(my_map);
+
+     var overlapping_pts = new L.LayerGroup();
+     var contained_pts = new L.LayerGroup();
+
+     get_points_overlapping_roi(overlapping_pts);
+     get_points_in_roi(contained_pts);
+
+     // this puts the points in a control widget so that we can toggle overlapping
+     //and completely contained points on and off:
+     var overlays = {
+         "Contained": contained_pts,
+         "Overlapping": overlapping_pts,
+     };
+     var baselayers = {
+         "Region of Interest":"",
+     }
+
+     L.control.layers(baselayers, overlays).addTo(my_map);
+
+
+ });  //end of document ready
+
+//===================================
+
+
+</script>
+
 
 
 

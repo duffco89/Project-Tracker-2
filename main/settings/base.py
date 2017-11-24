@@ -169,6 +169,7 @@ THIRDPARTY_APPS = (
     'password_reset',
     'olwidget',
     'leaflet',
+    'djgeojson',
     'rest_framework',
     )
 

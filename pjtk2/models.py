@@ -6,6 +6,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib import admin
+from django.contrib.gis.db.models import Collect
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.signals import pre_save, post_save
@@ -712,6 +713,48 @@ class Project(models.Model):
         return points
 
 
+    def update_convex_hull(self):
+        """
+
+        Arguments:
+        - `self`:
+        """
+
+        points = self.get_sample_points()
+
+        try:
+            project_poly = ProjectPolygon.objects.get(project=self)
+        except ProjectPolygon.DoesNotExist:
+            project_poly = ProjectPolygon(project=self)
+
+        if points:
+            points = points.aggregate(Collect('geom')).get('geom__collect')
+            convex_hull  = points.convex_hull
+
+            if convex_hull.geom_type == 'Polygon':
+                project_poly.geom = convex_hull
+                project_poly.save()
+            else:
+                if project_poly.id:
+                    project_poly.delete()
+        else:
+            if project_poly.id:
+                project_poly.delete()
+
+        # see if there are any sample points:
+        # if so, create a polygon object.
+
+        # see if there is already a polygon object for this
+        # project. If so, update it with our new polygon, if not
+        # create it, with the new polygon object.  If there is a
+        # polygon object but we can't create one with the current
+        # points, delete the old record.
+
+
+
+
+
+
     def total_cost(self):
         '''a little helper function to calculate the total cost of a project
         (sum of salary and odoe)'''
@@ -748,21 +791,37 @@ class SamplePoint(models.Model):
 
     @property
     def popup_text(self):
+        """Pop-up text should include a hyperlink to project detail so that
+        when we find projects by region, the leaflet map will provide
+        us with a way to get more inforamtion about specific net
+        sets.
+        """
         return "{} - {}".format(self.project.prj_cd, self.sam)
 
 
+    def __str__(self):
+        '''Return a string that include the project code and sample'''
+        return "%s - %s" % (self.project.prj_cd, self.sam)
 
 
-#class ProjectPoly(models.Model):
-#    '''A class to hold the convex hull derived from the sampling locations
-#    of a project.  Calculated when sample points are uploaded into
-#    project tracker.  Makes spatial queries much faster - query few
-#    polygons instead of lots and lots of individual points.
-#
-#    '''
-#    project = models.ForeignKey('Project')
-#    geom = models.PolygonField(srid=4326)
-#    objects = models.GeoManager()
+
+
+class ProjectPolygon(models.Model):
+    '''A class to hold the convex hull derived from the sampling locations
+    of a project.  Calculated when sample points are uploaded into
+    project tracker.  Makes spatial queries much faster - query few
+    polygons instead of lots and lots of individual points.
+
+    '''
+    project = models.OneToOneField(Project, on_delete=models.CASCADE,
+                                related_name='convex_hull')
+    geom = models.PolygonField(srid=4326)
+    objects = models.GeoManager()
+
+    def __str__(self):
+        '''Return a string that include the project code'''
+        return "<{}>".format(self.project.prj_cd)
+
 
 
 class ProjectMilestones(models.Model):

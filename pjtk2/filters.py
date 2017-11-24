@@ -2,7 +2,7 @@ from django import forms
 from django.db import models
 import django_filters
 
-from pjtk2.models import Project, ProjectType, Lake
+from pjtk2.models import Project, ProjectType, Lake, SamplePoint
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout,  Field, Submit
@@ -81,3 +81,28 @@ class ProjectFilter(django_filters.FilterSet):
         )
 
         return self._form
+
+
+
+class SamplePointFilter(django_filters.FilterSet):
+    """A filter for sample points lists"""
+
+    year = django_filters.NumberFilter()
+    first_year = django_filters.NumberFilter('project__year',
+                                           lookup_expr='gte')
+    last_year = django_filters.NumberFilter('project__year',
+                                           lookup_expr='lte')
+
+    project_type = django_filters.ModelMultipleChoiceFilter(
+        'project__project_type',
+        to_field_name='id',
+        lookup_expr='in',
+        queryset=ProjectType.objects.all(),
+
+    )
+
+
+    class Meta:
+        model = SamplePoint
+        fields = ['project__year',
+                  'project__project_type',]

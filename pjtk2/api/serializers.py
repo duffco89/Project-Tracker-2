@@ -1,7 +1,7 @@
 
 from rest_framework import serializers
 
-from pjtk2.models import Project, SamplePoint
+from pjtk2.models import Project, SamplePoint, ProjectPolygon
 
 
 class ProjectSerializer(serializers.HyperlinkedModelSerializer):
@@ -18,9 +18,20 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
 class ProjectPointSerializer(serializers.HyperlinkedModelSerializer):
 
     prj_cd = serializers.CharField(source='project.prj_cd', read_only=True)
+    project_type = serializers.CharField(source='project.project_type',
+                                         read_only=True)
 
     class Meta:
         model = SamplePoint
         fields = ('project', 'prj_cd', 'sam', 'geom', 'dd_lat', 'dd_lon',
-                  'popup_text',
+                  'popup_text', 'project_type'
                   )
+
+
+class ProjectPolygonSerializer(serializers.HyperlinkedModelSerializer):
+
+    prj_cd = serializers.CharField(source='project.prj_cd', read_only=True)
+
+    class Meta:
+        model = ProjectPolygon
+        fields = ('prj_cd', 'geom')
