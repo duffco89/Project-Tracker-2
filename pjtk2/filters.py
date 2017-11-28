@@ -27,6 +27,13 @@ def get_year_choices():
 class ProjectFilter(django_filters.FilterSet):
     """A filter for project lists"""
 
+
+    year = django_filters.NumberFilter()
+    first_year = django_filters.NumberFilter('year',
+                                           lookup_expr='gte')
+    last_year = django_filters.NumberFilter('year',
+                                           lookup_expr='lte')
+
     class Meta:
         model = Project
         #fields = ['year', 'project_type', 'lake', 'funding']
@@ -36,12 +43,6 @@ class ProjectFilter(django_filters.FilterSet):
         #from https://github.com/alex/django-filter/issues/29
         super(ProjectFilter, self).__init__(*args, **kwargs)
         filter_ = self.filters['project_type']
-
-        #self.filters['lake'].extra.update(
-        #    {'empty_label': 'All lakes'})
-        #
-        #self.filters['lake'].extra.update(
-        #    {'empty_label': 'All Sources'})
 
         # this will grab all the fk ids that are in use
         fk_counts = Project.objects.values_list('project_type').order_by(
@@ -54,7 +55,6 @@ class ProjectFilter(django_filters.FilterSet):
     def form(self):
         self._form = super(ProjectFilter, self).form
         self._form.helper = FormHelper()
-        #self._form.helper.form_tag = False
         self._form.helper.form_style = 'inline'
         self._form.helper.form_method = 'get'
         self._form.helper.form_action = ''

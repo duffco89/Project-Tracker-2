@@ -6,17 +6,24 @@ from rest_framework.decorators import api_view
 from django.http import Http404
 from django.contrib.gis.geos import GEOSGeometry
 
-from .serializers import (ProjectSerializer,
-                          ProjectPointSerializer,
-                          ProjectPolygonSerializer)
-from pjtk2.models import Project, SamplePoint, ProjectPolygon
-
-from pjtk2.filters import SamplePointFilter
-
-from pjtk2.spatial_utils import find_roi_points
+from django_filters import rest_framework as filters
 
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import ValidationError
+
+
+from .serializers import (ProjectSerializer,
+                          ProjectTypeSerializer,
+                          ProjectPointSerializer,
+                          ProjectPolygonSerializer,
+                          UserSerializer)
+from pjtk2.models import Project, ProjectType, SamplePoint, ProjectPolygon, User
+
+from pjtk2.filters import SamplePointFilter, ProjectFilter
+
+from pjtk2.spatial_utils import find_roi_points
+
+
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -25,29 +32,29 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 1000
 
 
+class UserViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = User.objects.order_by('id').all()
+    serializer_class = UserSerializer
+    pagination_class = StandardResultsSetPagination
+    lookup_field = 'username'
+
+
+class ProjectTypeViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = ProjectType.objects.order_by('id').all()
+    serializer_class = ProjectTypeSerializer
+    pagination_class = StandardResultsSetPagination
+
+
 class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     pagination_class = StandardResultsSetPagination
+    lookup_field = 'slug'
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = ProjectFilter
 
 
-class ProjectDetail(RetrieveAPIView):
-    """
-    Retrieve project instance.
-    """
-    queryset = Project.objects.all()
-    serializer_class = ProjectSerializer
-
-
-    def get_object(self):
-        try:
-            slug = self.kwargs.get('slug').lower()
-            return Project.objects.get(slug=slug)
-        except Project.DoesNotExist:
-            raise Http404
-
-
-class ProjectPointViewSet(viewsets.ModelViewSet):
+class ProjectPointViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = ProjectPointSerializer
 
@@ -56,7 +63,7 @@ class ProjectPointViewSet(viewsets.ModelViewSet):
         return SamplePoint.objects.filter(project__slug=slug)
 
 
-class ProjectPolygonViewSet(viewsets.ModelViewSet):
+class ProjectPolygonViewSet(viewsets.ReadOnlyModelViewSet):
 
     serializer_class = ProjectPolygonSerializer
 
@@ -78,13 +85,14 @@ def points_roi(request, how='contained'):
 
     """
 
+    #get the region of interest from the request - raise an error if we can't
     request_roi = request.GET.get("roi")
-    #roi = request.POST.get("roi")
     if request_roi is None:
         request_roi = request.POST.get("roi")
         if request_roi is None:
             raise Http404
 
+    #convert the roi string to a geos object
     try:
         roi = GEOSGeometry(request_roi)
     except ValueError:
@@ -93,31 +101,41 @@ def points_roi(request, how='contained'):
 
     #try to create a polygon from our region of interest.
     # and  Raise a TypeError if roi is not a valid Linear Ring or Polygon
-    if roi.geom_type!='Polygon':
+    if roi.geom_type not in ('Polygon', 'MultiPolygon'):
         try:
             roi = Polygon(roi)
         except:
             errmsg = ['roi is not a valid polygon.']
             raise ValidationError(errmsg)
 
+    if how=='points_in':
+        #we just want the points in the ROI, regardless of project.
+        sample_points = SamplePoint.objects.filter(geom__within=roi).\
+                                order_by('-project__year')
+        sample_point_filter = SamplePointFilter(request.GET, sample_points)
+        serializer = ProjectPointSerializer(sample_point_filter.qs,
+                                            many=True,
+                                            context={'request': request})
 
-    #get the unique project codes for all of the points that fall in
-    #the region of interest
-    sample_points = SamplePoint.objects.filter(geom__within=roi).\
-                            distinct('project__prj_cd', 'project__year').\
-                            values_list('project__prj_cd').\
-                            order_by('-project__year')
+    else:
+        #get the unique project codes for all of the points that fall in
+        #the region of interest
+        sample_points = SamplePoint.objects.filter(geom__within=roi).\
+                                distinct('project__prj_cd', 'project__year').\
+                                values_list('project__prj_cd').\
+                                order_by('-project__year')
 
-    # use django-filter to parse any url parameters and filter our
-    # results accordingly.
-    sample_point_filter = SamplePointFilter(request.GET, sample_points)
+        # use django-filter to parse any url parameters and filter our
+        # results accordingly.
+        sample_point_filter = SamplePointFilter(request.GET, sample_points)
 
-    #get our list of unique project codes after filtering:
-    prj_cds = [x[0] for x in sample_point_filter.qs]
-    points = find_roi_points(roi, prj_cds)
+        #get our list of unique project codes after filtering:
+        prj_cds = [x[0] for x in sample_point_filter.qs]
+        points = find_roi_points(roi, prj_cds)
 
-    #serialize the points based on the value of 'how' (either 'overlapping' or
-    #'contained'):
-    serializer = ProjectPointSerializer(points[how], many=True,
-                                        context={'request': request})
+        #serialize the points based on the value of 'how' (either 'overlapping' or
+        #'contained'):
+        serializer = ProjectPointSerializer(points[how], many=True,
+                                            context={'request': request})
+
     return Response(serializer.data)

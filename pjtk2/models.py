@@ -714,32 +714,59 @@ class Project(models.Model):
 
 
     def update_convex_hull(self):
-        """
+        """a method to update the assocaited table containing the project
+        polygon object.  If there are points, get or create a polygon
+        object.  If there aren't any points, or the points don't form
+        a polygon, don't create a polygon object, or delete one if it
+        exists.
 
         Arguments:
         - `self`:
+
         """
 
-        points = self.get_sample_points()
-
+        #see if there already is a polygon, if not create one
         try:
-            project_poly = ProjectPolygon.objects.get(project=self)
+            project_poly = self.convex_hull
         except ProjectPolygon.DoesNotExist:
             project_poly = ProjectPolygon(project=self)
 
+        points = self.get_sample_points()
+        #mport pdb;pdb.set_trace()
         if points:
-            points = points.aggregate(Collect('geom')).get('geom__collect')
-            convex_hull  = points.convex_hull
+            try:
+                points = points.aggregate(Collect('geom')).get('geom__collect')
+                convex_hull  = points.convex_hull
+            except:
+
+                if hasattr(self, 'convex_hull'):
+                    self.convex_hull.delete()
+                    self.save()
+                else:
+                    return None
 
             if convex_hull.geom_type == 'Polygon':
                 project_poly.geom = convex_hull
                 project_poly.save()
             else:
                 if project_poly.id:
-                    project_poly.delete()
+                    self.convex_hull.delete()
+                    self.save()
+                else:
+                    project_poly = None
+
         else:
+            #import pdb;pdb.set_trace()
+            #if there are no points, there should be not be a polygon
+            #associated with this project if there was one originally
+            #or not.
             if project_poly.id:
-                project_poly.delete()
+                self.convex_hull.delete()
+                self.save()
+                return self
+            else:
+                project_poly = None
+
 
         # see if there are any sample points:
         # if so, create a polygon object.
@@ -750,7 +777,7 @@ class Project(models.Model):
         # polygon object but we can't create one with the current
         # points, delete the old record.
 
-
+    #can we create a polygon from existing points?
 
 
 
@@ -816,6 +843,7 @@ class ProjectPolygon(models.Model):
     project = models.OneToOneField(Project, on_delete=models.CASCADE,
                                 related_name='convex_hull')
     geom = models.PolygonField(srid=4326)
+
     objects = models.GeoManager()
 
     def __str__(self):
