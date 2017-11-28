@@ -25,14 +25,12 @@ from pjtk2.views import (
     serve_file, bookmark_project, unbookmark_project
 )
 
-#import pjtk2.api as api
-
 
 PRJ_CD_REGEX = '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'
 
 urlpatterns = [
 
-    url(r'^api/', include('pjtk2.api.urls')),
+    url(r'^api/', include('pjtk2.api.urls', namespace='api')),
 
     url(r'^search/$', FacetedSearchView(
         form_class=FacetedSearchForm,

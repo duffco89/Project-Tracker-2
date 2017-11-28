@@ -2,23 +2,22 @@ from django.conf.urls import url, include
 from rest_framework import routers
 from rest_framework.urlpatterns import format_suffix_patterns
 
-from .views import (ProjectViewSet, ProjectDetail,
+from .views import (UserViewSet, ProjectViewSet, ProjectTypeViewSet,
                     ProjectPointViewSet, ProjectPolygonViewSet,
                     points_roi)
 
+app_name='api'
 
 
-# Routers provide an easy way of automatically determining the URL conf.
+
 router = routers.DefaultRouter()
 
 router.register(r'projects', ProjectViewSet)
+router.register(r'project_leads', UserViewSet, base_name='project_lead')
+router.register(r'project_types', ProjectTypeViewSet, base_name='project_type')
 
-# Wire up our API using automatic URL routing.
-# Additionally, we include login URLs for the browsable API.
 urlpatterns = [
 
-    url(r'^project/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
-        ProjectDetail.as_view()),
 
     url(r'^project_points/(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$',
         ProjectPointViewSet.as_view({'get':'list'}),
@@ -29,12 +28,17 @@ urlpatterns = [
         name='project_polygon'),
 
 
-    #find points
-    url(r'points_contained_in_roi/', points_roi, {'how':'contained'},
-        name="get_points_contained_in_roi"),
+    #just the points - regardless of project
+    url(r'points_in_roi/', points_roi, {'how':'points_in'},
+        name="get_points_in_roi"),
 
-    url(r'points_overlapping_roi/', points_roi, {'how':'overlapping'},
-        name="get_points_overlapping_roi"),
+    # points for projects were ALL points are in roi
+    url(r'project_points_contained_in_roi/', points_roi, {'how':'contained'},
+        name="get_project_points_contained_in_roi"),
+
+    # points for projects were SOME points are in roi
+    url(r'project_points_overlapping_roi/', points_roi, {'how':'overlapping'},
+        name="get_project_points_overlapping_roi"),
 
     url(r'^', include(router.urls)),
 

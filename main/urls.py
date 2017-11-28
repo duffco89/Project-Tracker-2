@@ -28,6 +28,7 @@ urlpatterns = [
 
     url(r'^tickets/', include('tickets.urls')),
 
+
     url(r'^static/(?P<path>.*)$',
             serve_static,
             {'document_root': settings.STATIC_ROOT}),

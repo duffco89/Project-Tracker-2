@@ -139,19 +139,19 @@ def test_find_project_roi_not_polygon():
     """
     roi = GEOSGeometry('POINT(5 23)')
     projects = find_roi_projects(roi)
-    assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
-    assert [x for x in projects.values()] == [[], [], []]
+    assert sorted(projects.keys()) == ['contained',  'overlapping']
+    assert [x for x in projects.values()] == [[], []]
 
     roi = GEOSGeometry('LINESTRING(5 23, 10 30 )')
     projects = find_roi_projects(roi)
-    assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
-    assert [x for x in projects.values()] == [[], [], []]
+    assert sorted(projects.keys()) == ['contained',  'overlapping']
+    assert [x for x in projects.values()] == [[], []]
 
     #should even work for objects that have not geom_type() method.
     roi = 'foobar'
     projects = find_roi_projects(roi)
-    assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
-    assert [x for x in projects.values()] == [[], [], []]
+    assert sorted(projects.keys()) == ['contained', 'overlapping']
+    assert [x for x in projects.values()] == [[], []]
 
 
 @pytest.mark.django_db
@@ -166,12 +166,9 @@ def test_find_project_roi_contained(roi, project_all_in):
     #that all fall within the
 
     projects = find_roi_projects(roi)
-    assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
+    assert sorted(projects.keys()) == ['contained', 'overlapping']
     assert projects['contained'] == [project_all_in]
     assert projects['overlapping'] == []
-
-    points = projects['map_points']
-    assert len(points) > 0
 
 
 @pytest.mark.django_db
@@ -183,12 +180,9 @@ def test_find_project_roi_overlapping(roi, project_some_in):
     """
 
     projects = find_roi_projects(roi)
-    assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
+    assert sorted(projects.keys()) == ['contained',  'overlapping']
     assert projects['contained'] == []
     assert projects['overlapping'] == [project_some_in]
-
-    points = projects['map_points']
-    assert len(points) > 0
 
 
 @pytest.mark.django_db
@@ -200,12 +194,10 @@ def test_find_project_roi_disjoint(roi, project_disjoint):
     """
 
     projects = find_roi_projects(roi)
-    assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
+    assert sorted(projects.keys()) == ['contained', 'overlapping']
     assert projects['contained'] == []
     assert projects['overlapping'] == []
 
-    points = projects['map_points']
-    assert len(points) == 0
 
 
 @pytest.mark.django_db
@@ -224,7 +216,7 @@ def test_find_project_roi_both_contained_and_overlapping(roi,
     """
 
     projects = find_roi_projects(roi)
-    assert sorted(projects.keys()) == ['contained', 'map_points', 'overlapping']
+    assert sorted(projects.keys()) == ['contained', 'overlapping']
     assert projects['contained'] == [project_all_in]
     assert projects['overlapping'] == [project_some_in]
 

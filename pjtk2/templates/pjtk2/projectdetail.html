@@ -417,7 +417,7 @@
              fillOpacity: 0.6
          };
 
-         $.ajax("{% url 'project_points' slug=project.slug %}", {
+         $.ajax("{% url 'api:project_points' slug=project.slug %}", {
              success: function(data) {
                  var markerArray = [];
                  data.forEach(function(d){
