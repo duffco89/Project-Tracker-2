@@ -85,6 +85,7 @@ def points_roi(request, how='contained'):
 
     """
 
+
     #get the region of interest from the request - raise an error if we can't
     request_roi = request.GET.get("roi")
     if request_roi is None:
@@ -96,8 +97,9 @@ def points_roi(request, how='contained'):
     try:
         roi = GEOSGeometry(request_roi)
     except ValueError:
-        errmsg = ['roi could not be converted to a valid GEOS geometry.']
+        errmsg = 'roi could not be converted to a valid GEOS geometry.'
         raise ValidationError(errmsg)
+
 
     #try to create a polygon from our region of interest.
     # and  Raise a TypeError if roi is not a valid Linear Ring or Polygon
@@ -105,13 +107,13 @@ def points_roi(request, how='contained'):
         try:
             roi = Polygon(roi)
         except:
-            errmsg = ['roi is not a valid polygon.']
+            errmsg = 'roi is not a valid polygon.'
             raise ValidationError(errmsg)
 
     if how=='points_in':
         #we just want the points in the ROI, regardless of project.
         sample_points = SamplePoint.objects.filter(geom__within=roi).\
-                                order_by('-project__year')
+                                order_by('-project__year', 'sam')
         sample_point_filter = SamplePointFilter(request.GET, sample_points)
         serializer = ProjectPointSerializer(sample_point_filter.qs,
                                             many=True,

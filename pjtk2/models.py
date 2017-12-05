@@ -800,13 +800,18 @@ class SamplePoint(models.Model):
     geom = models.PointField(srid=4326,
                              help_text='Represented as (longitude, latitude)')
 
+
     #project code and sample number or space name:
     #dd_lat
     #dd_lat
     #popup_html = models.TextField()
 
-
     objects = models.GeoManager()
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['project', 'geom']),
+        ]
 
     @property
     def dd_lat(self):

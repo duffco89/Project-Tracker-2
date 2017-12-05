@@ -1,22 +1,16 @@
 {% extends "pjtk2/pjtk2_base.html" %}
 
-<!-- {% block pages %}
-
-
-     {% endblock %}
-     -->
-
 {% block extrahead %}
 
 {% load geojson_tags %}
 {% load leaflet_tags %}
 
 <!-- Leaflet js -->
-<!--  {% leaflet_js %} -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js" integrity="sha256-kdEnCVOWosn3TNsGslxB8ffuKdrZoGQdIdPwh7W1CsE=" crossorigin="anonymous"></script>
 <!-- Leaflet css -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" integrity="sha256-LcmP8hlMTofQrGU6W2q3tUnDnDZ1QVraxfMkP060ekM=" crossorigin="anonymous" />
-<!-- {% leaflet_css %} -->
+
 <!-- end Leaflet -->
 
 {% endblock %}
@@ -29,7 +23,6 @@
             <div id="main_map" style="width: 800px; height: 700px;"></div>
         </div>
     </div>
-
 
     <hr />
     <!-- Nav tabs -->
@@ -232,7 +225,7 @@
      function get_points_in_roi(){
          // an ajax call to our api view to get the points completely contained in the region
          // of interest.  The region of interest is included in the body of a post request
-         var the_url = "{% url 'get_project_points_contained_in_roi'  %}{{ api_filter_string|safe }}";
+         var the_url = "{% url 'api:get_project_points_contained_in_roi'  %}{{ api_filter_string|safe }}";
          var roi = "{{ roi|safe }}"
          $.ajax({url:the_url,
                  type: "POST",
@@ -249,7 +242,7 @@
          // an ajax call to our api view to get the points for projects that have some points
          // in the region of interest.  The region of interest is included in the body of a
          //post request
-         var the_url = "{% url 'get_project_points_overlapping_roi'  %}{{ api_filter_string|safe }}";
+         var the_url = "{% url 'api:get_project_points_overlapping_roi'  %}{{ api_filter_string|safe }}";
          var roi = "{{ roi|safe }}"
          $.ajax({url:the_url,
                  type: "POST",
