@@ -21,9 +21,8 @@ import datetime
 import os
 import pytz
 
-from pjtk2.functions import get_supervisors, replace_links
-
-
+from pjtk2.functions import (get_supervisors, replace_links,
+                             strip_carriage_returns)
 
 
 LINK_PATTERNS = getattr(settings, "LINK_PATTERNS", None)
@@ -237,10 +236,16 @@ class Project(models.Model):
     field_ldr = models.ForeignKey(User, related_name="FieldLead",
                                   on_delete=models.CASCADE,
                                   blank=True, null=True)
-    comment = models.TextField(blank=False,
-                               help_text="General project description.")
+    abstract = models.TextField(blank=False,
+                               help_text="Project Abstract (public).")
+    abstract_html = models.TextField(blank=True, null=True,
+                                    help_text="Project Abstract (public).")
+
+    comment = models.TextField(null=True, blank=True,
+                               help_text="Comments or Remarks (internal)")
     comment_html = models.TextField(blank=True, null=True,
-                               help_text="General project description.")
+                                    help_text="Comments or Remarks (internal)")
+
     help_str = "Potential risks associated with not running project."
     risk = models.TextField("Risk", null=True, blank=True,
                             help_text=help_str)
@@ -387,7 +392,7 @@ class Project(models.Model):
     def description(self):
         '''alias for comment - maintains fishnetII comment in model but works
          with django convention of obj.description.'''
-        return self.comment
+        return self.abstract
 
     def __str__(self):
         '''Return the name of the project and it's project code'''
@@ -685,13 +690,26 @@ class Project(models.Model):
             self.year = ("20" + yr if int(yr) < 50 else "19" + yr)
             new = True
 
+        if self.abstract:
+            self.abstract = strip_carriage_returns(self.abstract)
+            self.abstract_html = markdown(self.abstract,
+                                          extras={'demote-headers':
+                                                  DEMOTE_HEADERS,})
+            self.abstract_html = replace_links(self.abstract_html,
+                                              link_patterns=LINK_PATTERNS)
+
         if self.comment:
-            self.comment_html = markdown(self.comment, extras={'demote-headers':
-                                                               DEMOTE_HEADERS,})
+            self.comment = strip_carriage_returns(self.comment)
+            self.comment_html = markdown(self.comment,
+                                          extras={'demote-headers':
+                                                  DEMOTE_HEADERS,})
             self.comment_html = replace_links(self.comment_html,
                                               link_patterns=LINK_PATTERNS)
+
         if self.risk:
-            self.risk_html = markdown(self.risk,extras={'demote-headers':
+            self.risk = strip_carriage_returns(self.risk)
+            self.risk_html = markdown(self.risk,
+                                      extras={'demote-headers':
                                                         DEMOTE_HEADERS,})
             self.risk_html = replace_links(self.risk_html,
                                               link_patterns=LINK_PATTERNS)

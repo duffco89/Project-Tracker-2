@@ -133,6 +133,7 @@ class TestProjectModel(TestCase):
         #define these as strings here so that we can access them later
         #and verify that the returned values match.
         self.commentStr = "This is a fake comment."
+        self.abstractStr = "This is a fake abstract."
         self.ProjectName = "Homer's Odyssey"
 
         #we need to create some models with different years - starting
@@ -142,6 +143,7 @@ class TestProjectModel(TestCase):
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               comment=self.commentStr,
+                                              abstract=self.abstractStr,
                                               prj_nm = self.ProjectName)
 
         prj_cd = "LHA_IA%s_222" % str(yr.year -1)[-2:]
@@ -166,7 +168,7 @@ class TestProjectModel(TestCase):
         '''verify that project description is return properly.'''
 
         self.assertEqual(self.project1.description(),
-                         self.commentStr)
+                         self.abstractStr)
 
 
     def test_project_name(self):

@@ -1,6 +1,33 @@
 '''This file contains a number of helper functions.  Most of the
 functions are used in views.py,but they are not views themselves.'''
 
+import re
+
+
+def strip_carriage_returns(my_string):
+    """A little helper function to remove carriage returns from text.
+    This function is intended to help with artifacts introduced by cutting
+    and pasting from word - if people do that, carriage returns are added
+    to end of each line.  This fucntion removes those carriage returns
+    without disrupting the paragraph structure or markdown.
+
+    Arguments: - `my_string`: the string from which to remove
+    extranious carriage returns.
+
+    """
+
+    if my_string is None:
+        return None
+
+    my_lines = my_string.splitlines()
+    for i, x in enumerate(my_lines):
+        if x=='' or re.match('\s', x):
+            my_lines[i] = "\r\n\r\n"
+        else:
+            my_lines[i] +=" "
+    return "".join(my_lines).strip()
+
+
 
 
 def get_supervisors(employee):
