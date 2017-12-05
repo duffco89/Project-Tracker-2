@@ -96,7 +96,21 @@
         </tr>
       </table>
 
-      <p><strong>Project Description:</strong></p>
+
+      <p><strong>Project Abstract (public facing):</strong></p>
+
+      <div class="panel panel-default" >
+        <div class="panel-body" >
+          {% if project.abstract_html %}
+          <p>{{ project.abstract_html|safe  }} </p>
+          {% else %}
+          <p><em>Sorry. No project abstract has been provided. </em>   </p>
+          {% endif %}
+        </div>
+      </div>
+
+
+      <p><strong>Comments or Remarks:</strong></p>
 
       <div class="panel panel-default" >
         <div class="panel-body" >

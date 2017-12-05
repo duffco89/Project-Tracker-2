@@ -592,21 +592,30 @@ class ProjectForm(forms.ModelForm):
 
     field_ldr = UserModelChoiceField(
         label="Field Leader:",
-        queryset=User.objects.filter(is_active=True),
+        queryset=User.objects.filter(is_active=True).\
+        order_by('first_name', 'last_name'),
         required=False,
     )
 
     owner = UserModelChoiceField(
         label="Data Custodian:",
-        queryset=User.objects.filter(is_active=True),
+        queryset=User.objects.filter(is_active=True).\
+        order_by('first_name', 'last_name'),
         required=False,
     )
+
+    abstract = forms.CharField(
+        widget=forms.Textarea(
+            attrs={'class': 'input-xxlarge', 'rows': 20, 'cols': 60}),
+        label="Project Abstract (public):",
+        required=True,
+        )
 
     comment = forms.CharField(
         widget=forms.Textarea(
             attrs={'class': 'input-xxlarge', 'rows': 20, 'cols': 60}),
-        label="Brief Project Description:",
-        required=True,
+        label="Comments, Concerns or Remarks:",
+        required=False,
         )
 
     risk = forms.CharField(
@@ -657,7 +666,8 @@ class ProjectForm(forms.ModelForm):
     dba = forms.ModelChoiceField(
         label="DBA:",
         #TODO - change this from superuser to groups__contain='dba'
-        queryset=User.objects.filter(is_superuser=True),
+        queryset=User.objects.filter(is_superuser=True).\
+        order_by('first_name', 'last_name'),
         required=True,
     )
 
@@ -670,8 +680,8 @@ class ProjectForm(forms.ModelForm):
         model = Project
         fields = ("prj_nm", "prj_ldr", "field_ldr", "owner","prj_cd",
                   "prj_date0", "prj_date1", "risk", 'project_type',
-                  "master_database", "lake", "comment", "dba", "tags",
-                  'salary', 'odoe', 'funding')
+                  "master_database", "lake", "abstract", "comment",
+                  "dba", "tags", 'salary', 'odoe', 'funding')
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -695,6 +705,7 @@ class ProjectForm(forms.ModelForm):
                     'prj_ldr',
                     'field_ldr',
                     'owner',
+                    'abstract',
                     'comment',
                     'risk',
                     Field('prj_date0', placeholder = "dd/mm/yyyy",

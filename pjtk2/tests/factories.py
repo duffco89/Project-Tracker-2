@@ -121,7 +121,8 @@ class ProjectFactory(factory.DjangoModelFactory):
     #prj_ldr = "Bob Sakamano"
     prj_ldr = factory.SubFactory(UserFactory)
     field_ldr = factory.SubFactory(UserFactory)
-    comment = "This is a fake project"
+    abstract = "This is the abstract for a fake project"
+    comment = "This is a comment for our fake project"
     risk = "none"
     project_type = factory.SubFactory(ProjTypeFactory)
     master_database = factory.SubFactory(DatabaseFactory)
