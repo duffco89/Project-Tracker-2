@@ -52,7 +52,9 @@ PG_DB = 'pjtk2'
 PG_HOST = '***REMOVED***'
 #PG_HOST = '127.0.0.1'
 
-masters = {
+OUTDIR = 'C:/1work/scrapbook/project_tracker'
+
+MASTERS = {
     'offshore': {
         'path': 'Z:/Data Warehouse/Assessment/Index/Offshore/IA_OFFSHORE.mdb',
         'table': 'Offshore_FN121',
@@ -196,9 +198,9 @@ def build_sql(table, sam, dd_lat, dd_lon, groupby=True):
 
 samplepoints = []
 
-for db in masters.keys():
+for db in MASTERS.keys():
 
-    dbase = masters[db]
+    dbase = MASTERS[db]
 
     constr = r"DRIVER={{Microsoft Access Driver (*.mdb)}};DBQ={0}"
     constr = constr.format(dbase['path'])
@@ -268,7 +270,7 @@ pgcur.executemany(sql, args)
 pgconn.commit()
 
 #===================
-#check for data missing from masters and data in masters without project here
+#check for data missing from MASTERS and data in MASTERS without project here
 print('continue...')
 
 #here are the projects that still have spatial data but can't be found
@@ -290,12 +292,12 @@ ORDER BY dbase,
 pgcur.execute(sql)
 orphans = pgcur.fetchall()
 
-fname = 'c:/1work/Python/djcode/pjtk2/migration/orphans.csv'
-with open(fname, 'wb') as f:
+fname = os.path.join(OUTDIR,'orphans.csv')
+with open(fname, 'w', newline='') as f:
     writer = csv.writer(f, lineterminator=os.linesep)
     writer.writerow([x[0] for x in pgcur.description])
     writer.writerows(orphans)
-print "Done writing orphans.csv"
+print("Done writing orphans.csv")
 
 
 #these are projects that have a completion product of some kind but do
@@ -329,12 +331,13 @@ ORDER BY p.year DESC;
 
 pgcur.execute(sql)
 omissions = pgcur.fetchall()
-fname = 'c:/1work/Python/djcode/pjtk2/migration/omissions.csv'
-with open(fname, 'wb') as f:
+
+fname = os.path.join(OUTDIR,'omissions.csv')
+with open(fname, 'w', newline='') as f:
     writer = csv.writer(f, lineterminator=os.linesep)
     writer.writerow([x[0] for x in pgcur.description])
     writer.writerows(omissions)
-
+print("Done writing omissions.csv")
 
 #=========================
 ###Update milestones

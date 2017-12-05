@@ -19,14 +19,6 @@ class ProjectAPITest(APITestCase):
 
         self.factory = RequestFactory()
 
-
-        grid = ('MULTIPOLYGON(((-82.000000033378 43.9999999705306,' +
-                '-82.0833359084557 43.9999999705305,' +
-                '-82.0833359084557 44.0833320331081,' +
-                '-82.000000033378 44.0833320331082,' +
-                '-82.000000033378 43.9999999705306)))')
-        self.roi = GEOSGeometry(grid.replace('\n',''), srid=4326)
-
         #we need to create some models with different years - starting
         #with the current year.
 
@@ -46,36 +38,6 @@ class ProjectAPITest(APITestCase):
 
         self.project1.update_convex_hull()
 
-        prj_cd = "LHA_IA16_LAP"
-        self.project2 = ProjectFactory.create(prj_cd=prj_cd,
-                                              prj_nm = "Some In Roi")
-
-        pts = ['POINT(-82.081126628131 44.000970817096)',
-               'POINT(-82.0456637754061 44.0649121962459)',
-               'POINT(-82.1249999941107 44.0416640136496)',
-               'POINT(-81.9583320623296 44.0416640159647)']
-
-        for i,pt in enumerate(pts):
-            SamplePointFactory.create(project=self.project2,
-                                      sam="some-{}".format(i),
-                                      geom = GEOSGeometry(pt))
-
-
-        #a project with all of its points outside our region of interest
-        prj_cd = "LHA_IA16_OUT"
-        self.project3 = ProjectFactory.create(prj_cd=prj_cd,
-                                              prj_nm = "NOT In Roi")
-
-        #these are four points north, south, east and west of the roi
-        pts = ['POINT(-82.0416679351682 43.9583319806175)',
-               'POINT(-82.0416679337938 44.1249979556483)',
-               'POINT(-82.1249999941107 44.0416640136496)',
-               'POINT(-81.9583320623296 44.0416640159647)']
-
-        for i,pt in enumerate(pts):
-            SamplePointFactory.create(project=self.project3,
-                                      sam="out-{}".format(i),
-                                      geom = GEOSGeometry(pt))
 
         prj_cd = "LHA_IA16_000"
         self.project4 = ProjectFactory.create(prj_cd=prj_cd,
