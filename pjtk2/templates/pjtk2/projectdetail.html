@@ -97,6 +97,20 @@
       </table>
 
 
+      {% if edit %}
+      {% with  project.abstract|length as abstract_length %}
+      {% if abstract_length > 2500 %}
+      <div class="alert alert-danger" role="alert">
+          <p>The abstract for this project exceeds the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
+      </div>
+      {% elif  abstract_length > 2000 %}
+      <div class="alert alert-warning" role="alert">
+          <p>The abstract for this project is approaching the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
+      </div>
+      {% endif %}
+      {% endwith %}
+      {% endif %}
+
       <p><strong>Project Abstract (public facing):</strong></p>
 
       <div class="panel panel-default" >
@@ -109,7 +123,7 @@
         </div>
       </div>
 
-
+      {% if user.is_authenticated %}
       <p><strong>Comments or Remarks:</strong></p>
 
       <div class="panel panel-default" >
@@ -121,6 +135,7 @@
           {% endif %}
         </div>
       </div>
+      {% endif %}
 
       {% if project.risk_html %}
       <p><strong>Risks:</strong></p>
