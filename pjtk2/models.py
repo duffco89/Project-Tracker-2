@@ -854,8 +854,6 @@ class SamplePoint(models.Model):
         return "%s - %s" % (self.project.prj_cd, self.sam)
 
 
-
-
 class ProjectPolygon(models.Model):
     '''A class to hold the convex hull derived from the sampling locations
     of a project.  Calculated when sample points are uploaded into
@@ -872,7 +870,6 @@ class ProjectPolygon(models.Model):
     def __str__(self):
         '''Return a string that include the project code'''
         return "<{}>".format(self.project.prj_cd)
-
 
 
 class ProjectMilestones(models.Model):

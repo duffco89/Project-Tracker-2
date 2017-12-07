@@ -97,6 +97,9 @@
       </table>
 
 
+      {{ project | fisheye_button }}
+
+
       {% if edit %}
       {% with  project.abstract|length as abstract_length %}
       {% if abstract_length > 2500 %}
