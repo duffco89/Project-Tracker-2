@@ -237,6 +237,54 @@ LINK_PATTERNS = [{'pattern':
                  {'pattern': r'ticket:\s?(\d+)',
                   'url': r'<a href="/tickets/\1">ticket \1</a>'}]
 
+#a dictionary of attributes used to create links to project details in
+# associated (but currently distinct) apps - fisheye, fsis-II and
+# creel portal:
+LOCAL_LINKS = {
+    'ipaddress': '142.143.160.56',
+    'project_types':
+    {
+        'Offshore Index Netting':{
+            'port': '8181',
+            'detail_url':'fn_portal/catcnts2',
+            'button_label':'View in Fisheye',
+            'identifier': 'slug'
+        },
+
+        'Nearshore Index Netting':{
+            'port': '8181',
+            'detail_url':'/fn_portal/catcnts2/',
+            'button_label':'View in Fisheye',
+            'identifier': 'slug'
+        },
+
+        'Small Fish Assessment':{
+            'port': '8181',
+            'detail_url':'fn_portal/catcnts2',
+            'button_label':'View in Fisheye',
+            'identifier': 'slug'
+        },
+
+        'Creel Survey':{
+            'port': '8181',
+            'detail_url':'creel_portal/creel_detail',
+            'button_label':'View in Creel Portal',
+            'identifier': 'slug'
+        },
+
+        'Fish Stocking':{
+            'port': '8090',
+            'detail_url':'fsis2/events',
+            'button_label':'View in FSIS-II',
+            'identifier': 'year'
+        }
+
+    }
+
+}
+
+
+
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.

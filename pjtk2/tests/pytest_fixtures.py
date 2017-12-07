@@ -21,7 +21,8 @@ SCOPE = 'function'
 @pytest.fixture(scope=SCOPE, autouse=True)
 def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
-    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
+    pre_save.disconnect(send_notice_prjms_changed,
+                        sender=ProjectMilestones)
 
 
 @pytest.fixture(scope=SCOPE)
@@ -33,7 +34,7 @@ def user(db):
                         first_name = 'Homer',
                         last_name = 'Simpson',
                         password = password)
-    return(homer)
+    return homer
 
 
 @pytest.fixture(scope=SCOPE)
@@ -45,7 +46,7 @@ def joe_user(db):
                         first_name = 'Joe',
                         last_name = 'Blow',
                         password = password)
-    return(joe)
+    return joe
 
 
 @pytest.fixture(scope=SCOPE)
@@ -57,7 +58,7 @@ def dba(db):
                         first_name = 'cozmo',
                         last_name = 'kramer',
                         password = password)
-    return(kramer)
+    return kramer
 
 
 @pytest.fixture(scope=SCOPE)
@@ -73,7 +74,7 @@ def manager(db):
     managerGrp, created = Group.objects.get_or_create(name='manager')
     monty.groups.add(managerGrp)
 
-    return(monty)
+    return monty
 
 
 @pytest.fixture(scope=SCOPE)
@@ -85,4 +86,4 @@ def project(db, user):
 
     project = ProjectFactory.create(prj_cd="LHA_IA12_111",
                                           owner=user)
-    return(project)
+    return project

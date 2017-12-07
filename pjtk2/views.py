@@ -718,35 +718,21 @@ def report_upload(request, slug):
         for report in custom:
             reports.append(report)
 
-#    report_formset = formset_factory(make_report_upload_form(
-#        project=project,
-#        user=request.user), extra=0)
-
-
-#    reportform = ReportUploadForm()
-#    report_formset = formset_factory(form=reportform,
-#                                     formset=ReportUploadFormSet)
-#
     report_formset = formset_factory(wraps(ReportUploadForm)
                                  (partial(ReportUploadForm,
                                           project=project,
                                           user=request.user)),
                                  extra=0)
 
-
     if request.method == 'POST':
         formset = report_formset(request.POST,  request.FILES,
-                                 initial=reports)#,
-                                 #project=project,
-                                 #user=request.user)
+                                 initial=reports)
         if formset.is_valid():
             for form in formset:
                 form.save()
             return HttpResponseRedirect(project.get_absolute_url())
     else:
-        formset = report_formset(initial=reports)#,
-                                 #project=project,
-                                 #user=request.user)
+        formset = report_formset(initial=reports)
 
     return render(request, 'pjtk2/UploadReports.html',
                   {'formset': formset,
