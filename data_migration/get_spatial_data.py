@@ -52,7 +52,7 @@ PG_DB = 'pjtk2'
 PG_HOST = '142.143.160.56'
 #PG_HOST = '127.0.0.1'
 
-OUTDIR = 'C:/1work/scrapbook/project_tracker'
+OUTDIR = 'c:/Users/COTTRILLAD/Documents/1work/scrapbook/project_tracker'
 
 MASTERS = {
     'offshore': {
@@ -132,9 +132,8 @@ MASTERS = {
      },
 
     'creel': {
-        'path':('Z:/Data Warehouse/Recreational Fisheries/Creel/SC/' +
-                'SC_Master.mdb'),
-        'table': 'FINAL_FN121',
+        'path':('Y:/File Transfer/Jephf/Creesys 4.1.mdb'),
+        'table': 'FN121',
         'sam': 'SAM',
         'ddlat': 'DD_LAT',
         'ddlon': 'DD_LON',
@@ -286,11 +285,14 @@ sql = """SELECT DISTINCT CASE
 FROM spatial_tmp sp
 WHERE UPPER(sp.prj_cd) NOT IN (
 SELECT DISTINCT UPPER(p.prj_cd) AS foo FROM pjtk2_project p)
-ORDER BY dbase,
+ORDER BY year desc,
          prj_cd;"""
 
 pgcur.execute(sql)
 orphans = pgcur.fetchall()
+
+
+
 
 fname = os.path.join(OUTDIR,'orphans.csv')
 with open(fname, 'w', newline='') as f:

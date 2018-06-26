@@ -167,7 +167,7 @@ THIRDPARTY_APPS = (
     'haystack',
     'passwords',
     'password_reset',
-    'olwidget',
+    #'olwidget',
     'leaflet',
     'djgeojson',
     'rest_framework',

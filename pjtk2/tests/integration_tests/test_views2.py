@@ -32,7 +32,9 @@ class BookmarkTestCase(WebTest):
 
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
-        self.project = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        year = str(datetime.datetime.today().year - 3)[2:]
+        prj_cd = "LHA_IA{}_111".format(year)
+        self.project = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               project_type = self.ProjType)
     csrf_checks = False
@@ -85,17 +87,23 @@ class ProjectTaggingTestCase(WebTest):
                                 first_name = 'Homer',
                                 last_name = 'Simpson')
 
+        year = str(datetime.datetime.today().year - 3)[2:]
+
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
 
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        prj_cd = "LHA_IA{}_111".format(year)
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               project_type = self.ProjType,
                                               )
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+        prj_cd = "LHA_IA{}_222".format(year)
+        self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               project_type = self.ProjType)
-        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
+
+        prj_cd = "LHA_IA{}_333".format(year)
+        self.project3 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               project_type = self.ProjType)
 
@@ -308,9 +316,11 @@ class UpdateReportsTestCase(WebTest):
 
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
-                                              owner=self.user1)
+        year = str(datetime.datetime.today().year - 3)[2:]
+        prj_cd = "LHA_IA{}_111".format(year)
 
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
+                                              owner=self.user1)
 
     def test_only_managers_can_view_form(self):
         '''regular user shouldn;t be able to change reporting
@@ -529,6 +539,8 @@ class MyProjectViewTestCase(WebTest):
         '''create two employees, one supervises the other. Additionally,
         create 3 projects, one run by the supervisor, 2 by the employee.'''
 
+        year = str(datetime.datetime.today().year - 3)[2:]
+
         #self.client = Client()
 
         self.user = UserFactory(username = 'hsimpson',
@@ -556,17 +568,20 @@ class MyProjectViewTestCase(WebTest):
                                         category = 'Core', order=999,
                                              report=False)
 
-
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        prj_cd = "LHA_IA{}_111".format(year)
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user,
                                               owner=self.user,
                                               project_type = self.ProjType)
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+
+        prj_cd = "LHA_IA{}_222".format(year)
+        self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user,
                                               owner=self.user,
                                               project_type = self.ProjType)
         #this one is run by mr. burns
-        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
+        prj_cd = "LHA_IA{}_333".format(year)
+        self.project3 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user2,
                                               owner=self.user2,
                                               project_type = self.ProjType)
@@ -648,7 +663,7 @@ class EmployeeProjectsTestCase(WebTest):
         '''create two employees, one supervises the other. Additionally,
         create 3 projects, one run by the supervisor, 2 by the employee.'''
 
-        #self.client = Client()
+        year = str(datetime.datetime.today().year - 3)[2:]
 
         self.user = UserFactory(username = 'hsimpson',
                                 first_name = 'Homer',
@@ -678,17 +693,20 @@ class EmployeeProjectsTestCase(WebTest):
                                         category = 'Core', order=999,
                                              report=False)
 
-
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        prj_cd = "LHA_IA{}_111".format(year)
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user,
                                               owner=self.user,
                                               project_type = self.ProjType)
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+
+        prj_cd = "LHA_IA{}_222".format(year)
+        self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user,
                                               owner=self.user,
                                               project_type = self.ProjType)
         #this one is run by mr. burns
-        self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
+        prj_cd = "LHA_IA{}_333".format(year)
+        self.project3 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user2,
                                               owner=self.user2,
                                               project_type = self.ProjType)
@@ -704,11 +722,19 @@ class EmployeeProjectsTestCase(WebTest):
 
         """
 
+        self.project1.approve()
+
         login = self.client.login(username=self.user2.username, password='abc')
         self.assertTrue(login)
         url = reverse('EmployeeProjects',
                       kwargs={'employee_name':self.user.username},)
         response = self.client.get(url, follow=True)
+
+        content = str(response.content)
+        html_file = 'C:/Users/Cottrillad/Documents/1work/scrapbook/wft2.html'
+        with open(html_file, 'wb') as f:
+            f.write(response.content)
+
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pjtk2/employee_projects.html")
 
@@ -814,7 +840,9 @@ class TestProjectDetailForm(WebTest):
                                            report=False)
 
         #PROJECTS
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        year = str(datetime.datetime.today().year - 3)[2:]
+        prj_cd = "LHA_IA{}_111".format(year)
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
 
 
@@ -1189,7 +1217,10 @@ class TestCanCopyProject(WebTest):
                                 last_name = 'Gumble',
                                        )
 
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        year = str(datetime.datetime.today().year - 3)[2:]
+        prj_cd = "LHA_IA{}_111".format(year)
+
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
                                               owner=self.user1)
 
@@ -1278,14 +1309,18 @@ class TestFieldLeader(WebTest):
         self.user2 = UserFactory.create(username = 'bgumble',
                                 first_name = 'Barney',
                                 last_name = 'Gumble',
-                                       )
+        )
 
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        year = str(datetime.datetime.today().year - 3)[2:]
+
+        prj_cd = "LHA_IA{}_111".format(year)
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
                                               field_ldr=self.user2,
                                               owner=self.user1)
 
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222",
+        prj_cd = "LHA_IA{}_222".format(year)
+        self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
                                               field_ldr=None,
                                               owner=self.user1)
@@ -1415,7 +1450,10 @@ class TestUserChoiceFilesProjectForm(WebTest):
                                         is_active=False
                                        )
 
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+        year = str(datetime.datetime.today().year - 3)[2:]
+        prj_cd = "LHA_IA{}_111".format(year)
+
+        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
                                               owner=self.user1)
 
