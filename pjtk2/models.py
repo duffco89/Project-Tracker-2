@@ -890,8 +890,6 @@ class ProjectMilestones(models.Model):
         '''Return a string that include the project code and milestone label'''
         return "%s - %s" % (self.project.prj_cd, self.milestone.label)
 
-    def __str__(self):
-        return self.milestone.label
 
 
 class Report(models.Model):

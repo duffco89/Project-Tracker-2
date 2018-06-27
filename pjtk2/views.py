@@ -1005,8 +1005,10 @@ def employee_projects(request, employee_name):
         owner__username=my_employee).filter(year__gte=this_year-5)
     cancelled = Project.objects.cancelled().filter(
         owner__username=my_employee).filter(year__gte=this_year-5)
+
     complete = Project.objects.completed().filter(
         owner__username=my_employee).filter(year__gte=this_year-5)
+
 
     template_name = "pjtk2/employee_projects.html"
 
