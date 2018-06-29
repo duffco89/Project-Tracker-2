@@ -102,35 +102,45 @@
 </div>
 
 
+
+{% endblock %}
+
+
+{% block extrascripts  %}
+
 <!-- tablesorter plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.js"></script>
 <!-- tablesorter widget file - loaded after the plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
+<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.widgets.js"></script>
 
 
-  <script  type="text/javascript">
-    $('#myTab a').click(function (e) {
-    e.preventDefault()
-    $(this).tab('show')
-    })
-  </script>
+
+
+
+
+<script  type="text/javascript">
+ $('#myTab a').click(function (e) {
+     e.preventDefault()
+         $(this).tab('show')
+ })
+</script>
 
 
 <script type="text/javascript">
 
-  $(".tablesorter").tablesorter({
-  theme: 'bootstrap',
-  widthFixed: true,
-  showProcessing: true,
-  headerTemplate: '{content} {icon}',
-  widgets: ['zebra', 'uitheme', 'scroller'],
-  widgetOptions: {
-  scroller_height: 300,
-  scroller_barWidth: 17,
-  scroller_jumpToHeader: true,
-  scroller_idPrefix: 's_'
-  }
-  });
+ $(".tablesorter").tablesorter({
+     theme: 'bootstrap',
+     widthFixed: true,
+     showProcessing: true,
+     headerTemplate: '{content} {icon}',
+     widgets: ['zebra', 'uitheme', 'scroller'],
+     widgetOptions: {
+         scroller_height: 300,
+         scroller_barWidth: 17,
+         scroller_jumpToHeader: true,
+         scroller_idPrefix: 's_'
+     }
+ });
 
 </script>
 
@@ -248,9 +258,9 @@
                  type: "POST",
                  data: {'roi': roi},
                  success: add_overlapping_points,
-             error: function() {
-                 console.log('Error retrieving points for projects overlapping roi.');
-             }
+                 error: function() {
+                     console.log('Error retrieving points for projects overlapping roi.');
+                 }
          });
      }
 
@@ -286,7 +296,7 @@
 
  });  //end of document ready
 
-//===================================
+ //===================================
 
 
 </script>

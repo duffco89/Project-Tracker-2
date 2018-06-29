@@ -2,92 +2,55 @@
 
 {% block extrahead  %}
 
+
 <!-- bootstrap widget theme -->
-<link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
-<!-- tablesorter plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
-<!-- tablesorter widget file - loaded after the plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap-theme.css" />
 
 
-<script type="text/javascript">
+<style type="text/css" media="screen">
+
+ table.tablesorter {
+     background: #FFF;
+ }
+
+ table.rotate-table-grid{
+     box-sizing: border-box;
+     border-collapse: collapse;
+ }
+
+ .rotate-table-grid tr, .rotate-table-grid td, .rotate-table-grid th {
+     border: 1px solid #ddd;
+     position: relative;
+     padding: 10px;
+     bottom: 0;
+ }
+
+ .rotate-table-grid th span {
+     transform-origin: 0 50%;
+     transform: rotate(-90deg);
+     white-space: nowrap;
+     display: block;
+     position: absolute;
+     bottom: 0;
+     left: 50%;
+
+ }
+
+ .icon-red {
+     color: red;
+ }
+ .icon-green {
+     color: #57D900;
+ }
+
+ .icon-grey {
+     color: grey;
+ }
 
 
- (function ($) {
-   $.fn.rotateTableCellContent = function (options) {
-     /*
-     from http://jsfiddle.net/9pUu4/
-     see: http://stackoverflow.com/questions/716970/
-
-     Version 1.0
-     7/2011
-     Written by David Votrubec (davidjs.com) and
-     Michal Tehnik (@Mictech) for ST-Software.com
-      */
-
-     var cssClass = ((options) ? options.className : false) || "vertical";
-
-     var cellsToRotate = $('.' + cssClass, this);
-
-     var betterCells = [];
-     cellsToRotate.each(function () {
-       var cell = $(this)
-       , newText = cell.text()
-       , height = cell.height()
-       , width = cell.width()
-       , newDiv = $('<div>', { height: width, width: height })
-       , newInnerDiv = $('<div>', { text: newText, 'class': 'rotated' });
-
-       newInnerDiv.css('-webkit-transform-origin', (width / 2) + 'px ' + (width / 2) + 'px');
-       newInnerDiv.css('-moz-transform-origin', (width / 2) + 'px ' + (width / 2) + 'px');
-       newDiv.append(newInnerDiv);
-
-       betterCells.push(newDiv);
-     });
-
-     cellsToRotate.each(function (i) {
-       $(this).html(betterCells[i]);
-     });
-   };
- })(jQuery);
-
-
- $(document).ready(function(){
-      $('.rotated-header').rotateTableCellContent();
-      $('#myTab a:first').tab('show')
- });
-
-
-</script>
-
-
-<style media="screen" type="text/css">
-
-.icon-red {
-    color: red;
-}
-.icon-green {
-    color: #57D900;
-}
-
-.icon-grey {
-    color: grey;
-}
-
-
-/* Styles for rotateTableCellContent plugin*/
-table div.rotated {
-  -webkit-transform: rotate(270deg);
-  -moz-transform: rotate(270deg);
-  writing-mode:tb-rl;
-  white-space: nowrap;
-
-}
-
-.tablesorter-headerRow{
-   height: 150px;
-}
-
+ .tablesorter-headerRow{
+     height: 150px;
+ }
 
 </style>
 
@@ -101,209 +64,179 @@ table div.rotated {
 
 <div class="container" >
 
-  <div class="row" >
-    <div class="col-md-10">
-      <h3> {{ label }} Projects</h3>
+
+    <div  class="row" >
+        <div  class="col-md-10" >
+            <h3> {{ label }} Projects</h3>
+            <br />
+        </div>
+        <div  class="col-md-1" >
+            <div class="checkbox pull-right"> <label>
+                <input type='checkbox' checked
+                       onclick='toggleReports(this);'>Reports
+            </label> </div>
+
+        </div>
+        <div  class="col-md-1" >
+            <div class="checkbox pull-right"> <label>
+                <input type='checkbox' checked
+                       onclick='toggleMilestones(this);'>Milestones
+            </label> </div>
+        </div>
     </div>
-    <div class="col-md-2">
-      <br />
-      <button type="button" class="btn btn-success" disabled="disabled">Download xls</button>
-    </div>
-  </div>
-  <br />
 
-  <ul class="nav nav-tabs" id="myTab" >
-    <li><a href="#submitted">Submitted</a></li>
-    <li><a href="#approved">Approved</a></li>
-    <li><a href="#cancelled">Cancelled</a></li>
-    <li><a href="#completed">Completed</a></li>
-  </ul>
+    <ul class="nav nav-tabs" id="myTab" >
+        <li><a href="#submitted">Submitted</a></li>
+        <li><a href="#approved">Approved</a></li>
+        <li><a href="#cancelled">Cancelled</a></li>
+        <li><a href="#completed">Completed</a></li>
+    </ul>
 
-  <div id="content" class="tab-content" >
+    <div id="content" class="tab-content" >
 
-    <div id="submitted" class="tab-pane" >
+        <div id="submitted" class="tab-pane" >
 
-      <h3>Submitted Projects</h3>
-      {% if submitted %}
-      <table id="myTable" class="table tablesorter rotated-header">
-        <thead class="rotated-header">
-          <tr>
-            <th>Year</th>
-            <th>Project Code</th>
-            <th>Project Name</th>
-            <th>Project Type</th>
-            {% for report in core_reports %}
-            <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for project in submitted %}
-          <tr class="{% cycle row1 row2 %}">
-            <td> {{ project.year }} </td>
-            <td>
-              <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
-            </td>
-            <td> {{ project.project_type }} </td>
-            <td>
-              {{ project.prj_nm  }}
-            </td>
-            {{ project | milestone_status:core_reports }}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+            <h3>Submitted Projects  (N={{ submitted.count }})</h3>
+            {% if submitted %}
 
-      {% else %}
-      <p><em>You do not currently have any submitted projects </em></p>
-      {% endif%}
+            {% with projects=submitted what="submitted" %}
+            {% include "pjtk2/_milestone_table.html" %}
+            {% endwith %}
 
-    </div> <!-- submitted -->
+            {% else %}
+            <p><em>You do not currently have any submitted projects </em></p>
+            {% endif%}
 
-    <div id="approved" class="tab-pane" >
-      <h3>Approved Projects</h3>
-      {% if approved %}
+        </div> <!-- submitted -->
 
-      <table id="myTable" class="table tablesorter rotated-header">
-        <thead class="rotated-header">
-          <tr>
-            <th>Year</th>
-            <th>Project Code</th>
-            <th>Project Name</th>
-            <th>Project Type</th>
-            {% for report in core_reports %}
-            <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for project in approved %}
-          <tr class="{% cycle row1 row2 %}">
-            <td> {{ project.year }} </td>
-            <td>
-              <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
-            </td>
-            <td> {{ project.project_type }} </td>
-            <td>
-              {{ project.prj_nm  }}
-            </td>
-            {{ project | milestone_status:core_reports }}
+        <div id="approved" class="tab-pane active" >
+            <h3>Approved Projects (N={{ approved.count }})</h3>
+            {% if approved %}
 
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+            {% with projects=approved what="approved" %}
+            {% include "pjtk2/_milestone_table.html" %}
+            {% endwith %}
 
-      {% else %}
-      <p><em>You do not currently have any approved projects </em></p>
-      {% endif %}
-    </div> <!-- approved -->
+            {% else %}
+            <p><em>You do not currently have any approved projects </em></p>
+            {% endif %}
+        </div> <!-- approved -->
 
 
-    <div id="cancelled" class="tab-pane" >
-      <h3>Cancelled Projects</h3>
-      {% if cancelled %}
+        <div id="cancelled" class="tab-pane" >
+            <h3>Cancelled Projects (N={{ cancelled.count }})</h3>
+            {% if cancelled %}
 
-      <table id="myTable" class="table tablesorter rotated-header">
-        <thead class="rotated-header">
-          <tr>
-            <th>Year</th>
-            <th>Project Code</th>
-            <th>Project Name</th>
-            <th>Project Type</th>
-            {% for report in core_reports %}
-            <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for project in cancelled %}
-          <tr class="{% cycle row1 row2 %}">
-            <td> {{ project.year }} </td>
-            <td>
-              <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
-            </td>
-            <td> {{ project.project_type }} </td>
-            <td>
-              {{ project.prj_nm  }}
-            </td>
-            {{ project | milestone_status:core_reports }}
+            {% with projects=cancelled what="cancelled" %}
+            {% include "pjtk2/_milestone_table.html" %}
+            {% endwith %}
 
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      {% else %}
-      <p><em>You do not currently have any cancelled projects </em></p>
-      {% endif %}
-    </div> <!-- cancelled -->
+            {% else %}
+            <p><em>You do not currently have any cancelled projects </em></p>
+            {% endif %}
+        </div> <!-- cancelled -->
 
 
-    <div id="completed" class="tab-pane" >
-      <h3>Completed Projects</h3>
-      {% if complete %}
-      <table id="myTable" class="table tablesorter rotated-header">
-        <thead class="rotated-header">
-          <tr>
-            <th>Year</th>
-            <th>Project Code</th>
-            <th>Project Name</th>
-            <th>Project Type</th>
-            {% for report in core_reports %}
-            <th class="vertical"><div><span>{{ report.label_abbrev }}</span></div></th>
-            {% endfor %}
-          </tr>
-        </thead>
-        <tbody>
-          {% for project in complete %}
-          <tr class="{% cycle row1 row2 %}">
-            <td> {{ project.year }} </td>
-            <td>
-              <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
-            </td>
-            <td> {{ project.project_type }} </td>
-            <td>
-              {{ project.prj_nm  }}
-            </td>
-            {{ project | milestone_status:core_reports }}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p><em>You do not have any complete projects </em></p>
-      {% endif%}
-    </div> <!-- completed -->
+        <div id="completed" class="tab-pane" >
+            <h3>Completed Projects (N={{ complete.count }})</h3>
+            {% if complete %}
 
-  </div> <!-- content -->
+            {% with projects=complete what="complete" %}
+            {% include "pjtk2/_milestone_table.html" %}
+            {% endwith %}
+
+            {% else %}
+            <p><em>You do not have any complete projects </em></p>
+            {% endif%}
+        </div> <!-- completed -->
+
+    </div> <!-- content -->
 </div>  <!-- container -->
 
 
+{% endblock %}
+
+{% block extrascripts %}
+
+
+<!-- tablesorter plugin -->
+<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.js"></script>
+<!-- tablesorter widget file - loaded after the plugin -->
+<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.widgets.js"></script>
+
+
 <script type="text/javascript">
+
+ $(document).ready(function() {
+     $('#check-all').on('click', function(){
+         $("input:checkbox").attr('checked', true);
+     });
+     $('#uncheck-all').on('click', function(){
+         $("input:checkbox").attr('checked', false);
+     });
+     $('#bookmarks-header').height('15px');
+
+     $('.report').show();
+     $('.milestone').show();
+
+});
+
+
 
  $(".tablesorter").tablesorter({
    theme: 'bootstrap',
    widthFixed: true,
    showProcessing: true,
    headerTemplate: '{content} {icon}',
-   widgets: ['zebra', 'uitheme', 'scroller'],
+   cssHeaderRow: 'vertical-align: bottom',
+   widgets: ['zebra', 'uitheme', 'scroller', 'stickyHeaders'],
    widgetOptions: {
      scroller_height: 300,
      scroller_barWidth: 17,
      scroller_jumpToHeader: true,
-     scroller_idPrefix: 's_'
+     scroller_idPrefix: 's_',
+
+         stickyHeaders : '',
+         // number or jquery selector targeting the position:fixed element
+         stickyHeaders_offset : 0,
+         // added to table ID, if it exists
+         stickyHeaders_cloneId : '-sticky',
+         // trigger "resize" event on headers
+         stickyHeaders_addResizeEvent : true,
+         // if false and a caption exist, it won't be included in the sticky header
+         stickyHeaders_includeCaption : true,
+         // The zIndex of the stickyHeaders, allows the user to adjust this to their needs
+         stickyHeaders_zIndex : 2,
+         // jQuery selector or object to attach sticky header to
+         stickyHeaders_attachTo : null,
+         // jQuery selector or object to monitor horizontal scroll position (defaults: xScroll > attachTo > window)
+         stickyHeaders_xScroll : null,
+         // jQuery selector or object to monitor vertical scroll position (defaults: yScroll > attachTo > window)
+         stickyHeaders_yScroll : null,
+
+         // scroll table top into view after filtering
+         stickyHeaders_filteredToTop: true
+
+
    }
  });
 
-</script>
 
-<script type="text/javascript">
+ function toggleReports(cb) {
+     $('.report').toggle();
+ }
+
+ function toggleMilestones(cb) {
+     $('.milestone').toggle();
+ }
+
+
  $('#myTab a').click(function (e) {
    e.preventDefault()
    $(this).tab('show')
  })
 </script>
+
 
 
 

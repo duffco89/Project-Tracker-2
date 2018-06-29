@@ -77,8 +77,12 @@ def test_manager_has_correct_project_detail_buttons(client, project, manager):
     linkstring = linkstring_base.format(url)
     assert linkstring in content
 
-    #manager only:
-    url = reverse('Reports', kwargs={'slug':project.slug})
+    #manager only: this one is alittle different - the same form is
+    #used by different views. the next argument ensures that it will
+    #return here after it is submitted.
+    url  = reverse('Reports', kwargs={'slug':project.slug})
+    next_url = reverse('project_detail', kwargs={'slug':project.slug})
+    url = url + '?next=' + next_url
     linkstring = linkstring_base.format(url)
     assert linkstring in content
 

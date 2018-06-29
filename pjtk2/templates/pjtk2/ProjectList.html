@@ -101,44 +101,49 @@
 
 </div>
 
-<script src="{{ STATIC_URL }}js/jquery-1.10.2.min.js"></script>
+{% endblock %}
+
+
+{% block extrascripts  %}
+
+
 <!-- tablesorter plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
+<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.js"></script>
 <!-- tablesorter widget file - loaded after the plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
+<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.widgets.js"></script>
 
 
 <script type="text/javascript">
 
  $(".tablesorter").tablesorter({
-   theme: 'bootstrap',
-   widthFixed: true,
-   showProcessing: true,
-   headerTemplate: '{content} {icon}',
-   widgets: ['zebra', 'uitheme', 'scroller'],
-   widgetOptions: {
-     scroller_height: 300,
-     scroller_barWidth: 17,
-     scroller_jumpToHeader: true,
-     scroller_idPrefix: 's_'
-   }
+     theme: 'bootstrap',
+     widthFixed: true,
+     showProcessing: true,
+     headerTemplate: '{content} {icon}',
+     widgets: ['zebra', 'uitheme', 'scroller'],
+     widgetOptions: {
+         scroller_height: 300,
+         scroller_barWidth: 17,
+         scroller_jumpToHeader: true,
+         scroller_idPrefix: 's_'
+     }
  });
 
 </script>
 
 
 <script type="text/javascript">
-<!--
+ <!--
 
-function toggle_visibility(id) {
-var e = document.getElementById(id);
-if(e.style.display == 'block')
-e.style.display = 'none';
-else
-e.style.display = 'block';
-}
+ function toggle_visibility(id) {
+     var e = document.getElementById(id);
+     if(e.style.display == 'block')
+         e.style.display = 'none';
+     else
+         e.style.display = 'block';
+ }
 
-//-->
+ //-->
 </script>
 
 

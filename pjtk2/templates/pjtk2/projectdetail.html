@@ -236,7 +236,7 @@
 
 
       {% if manager %}
-      <a href="{% url 'Reports' project.slug %}"
+      <a href="{% url 'Reports' project.slug %}?next={{ request.path|urlencode }}"
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-primary">Change Reporting Requirements</button> </a>
       {% if project.is_approved %}
@@ -428,6 +428,10 @@
 </div>
 
 
+{% endblock %}
+
+
+{% block extrascripts %}
 
 <script src='https://api.mapbox.com/mapbox.js/v2.2.4/mapbox.js'></script>
 <link href='https://api.mapbox.com/mapbox.js/v2.2.4/mapbox.css' rel='stylesheet' />
@@ -491,12 +495,6 @@
 
 
 </script>
-
-
-
-
-
-
 
 
 {% endblock %}
