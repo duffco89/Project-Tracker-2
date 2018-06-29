@@ -3,6 +3,8 @@
 # E1120 - No value passed for parameter 'cls' in function call
 #pylint: disable=E1101, E1120
 
+from collections import OrderedDict
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib import admin
@@ -225,9 +227,10 @@ class Project(models.Model):
     cancelled_by  = models.ForeignKey(User, related_name="CancelledBy",
                                       on_delete=models.CASCADE,
                                       blank=True, null=True)
-    year = models.CharField("Year", max_length=4, blank=True, editable=False)
-    prj_date0 = models.DateField("Start Date", blank=False)
-    prj_date1 = models.DateField("End Date", blank=False)
+    year = models.CharField("Year", max_length=4, blank=True, editable=False,
+                            db_index=True)
+    prj_date0 = models.DateField("Start Date", blank=False, db_index=True)
+    prj_date1 = models.DateField("End Date", blank=False, db_index=True)
     prj_cd = models.CharField("Project Code", max_length=12, unique=True,
                               blank=False)
     prj_nm = models.CharField("Project Name", max_length=60, blank=False)
@@ -455,6 +458,90 @@ class Project(models.Model):
                 milestone__category='Core',
                 milestone__report=True).filter(required=True)
         return assignments
+
+
+
+    def get_milestone_status_dict(self):
+        '''in order to impoved the performance of the myProjects view we
+         need a function that will take a project return a dictionary of
+         milestones the keys of the dictionary will be the abbreviated label
+         of the milestone, in lower case with spaces replaced by dashes.  the
+         value of each dictionary key will be the status of the milestone:
+
+         required-done
+         required-notDone
+         notRequired-done
+         notRequired-notDone
+
+        The status of all custom reports is tacked on to the end of
+        the ordered dictionary and reflects the status of all required
+        additional reporting requirements.
+
+        '''
+
+
+
+        milestone_status = OrderedDict()
+
+        #we need to instantiate an order dictionary that has all of
+        #the milestone keys - ensures that they are reported for every
+        #project (and in the same order) - without this, some of our
+        #rows will have different lengths.
+
+        all_milestones = Milestone.objects.filter(category='Core')\
+                                          .order_by('order').all()
+        for ms in all_milestones:
+            key = ms.label_abbrev.lower().replace(" ","-")
+            milestone_status[key] = {
+                'status': None,
+                'type': 'report' if ms.report else 'milestone'
+            }
+
+
+        milestones = self.projectmilestones_set.\
+                     filter(milestone__category='Core').\
+                     exclude(milestone__label='Submitted').\
+                     select_related('milestone').\
+                     order_by('milestone__order').all()
+
+        for ms in milestones:
+            key = ms.milestone.label_abbrev.lower().replace(" ","-")
+            if ms.required:
+                value = {
+                    'status': ('required-done' if ms.completed else
+                                'required-notDone'),
+                    'type': 'report' if ms.milestone.report else 'milestone'
+                    }
+            else:
+                value = {
+                    'status': ('notRequired-done' if ms.completed else
+                              'notRequired-notDone'),
+                    'type': 'report' if ms.milestone.report else 'milestone'
+                }
+
+            milestone_status[key] = value
+
+        #finally for each project, we need to know if this project has any
+        #custom reporting requirements and their status:
+        milestones = self.projectmilestones_set.\
+                     select_related('milestone').\
+                     filter(milestone__category='custom')
+        if not milestones:
+            milestone_status['custom'] = {'status': 'notRequired-notDone',
+                                          'type': 'report'}
+        else:
+            #if the status of all custom milestones are complete then
+            #required-done else 'required-notDone'
+            done = ([x.completed is not None for x in milestones
+                     if x.required==True])
+            if all(x==True for x in done):
+                milestone_status['custom'] = {'status': 'required-done',
+                                             'type': 'report'}
+            else:
+                milestone_status['custom'] = {'status': 'required-done',
+                                             'type': 'report'}
+        return milestone_status
+
 
     def get_custom_assignments(self):
         '''get a list of any custom reports that have been assigned to
@@ -878,8 +965,8 @@ class ProjectMilestones(models.Model):
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
     #report_type = models.ForeignKey('Milestone')
     milestone = models.ForeignKey('Milestone', on_delete=models.CASCADE)
-    required  = models.BooleanField(default=True)
-    completed = models.DateTimeField(blank=True, null=True)
+    required  = models.BooleanField(default=True, db_index=True)
+    completed = models.DateTimeField(blank=True, null=True, db_index=True)
 
     class Meta:
         #unique_together = ("project", "report_type",)
@@ -1037,7 +1124,7 @@ class Employee(models.Model):
     #user = models.ForeignKey(User, unique=True, related_name='employee')
     position = models.CharField(max_length=60)
     role = models.CharField(max_length=30, choices=ROLL_CHOICES,
-                            default='Employee')
+                            default='Employee', db_index=True)
     lake = models.ManyToManyField('Lake')
     supervisor = models.ForeignKey('self',
                                    on_delete=models.CASCADE,
@@ -1090,8 +1177,8 @@ class Messages2Users(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE,)
     message = models.ForeignKey(Message, on_delete=models.CASCADE)
-    created = models.DateTimeField(auto_now_add=True)
-    read = models.DateTimeField(blank=True, null=True)
+    created = models.DateTimeField(auto_now_add=True, db_index=True)
+    read = models.DateTimeField(blank=True, null=True, db_index=True)
 
     objects = Messages2UsersManager()
 

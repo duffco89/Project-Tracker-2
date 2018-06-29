@@ -2,6 +2,8 @@
 # E1120 - No value passed for parameter 'cls' in function call
 #pylint: disable=E1101, E1120
 
+from collections import OrderedDict
+
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from django.conf import settings
@@ -66,7 +68,7 @@ def group_required(*group_names):
     def in_groups(user):
         '''returns true if user is in one of the groups in group_names or is a
         superuser'''
-        if user.is_authenticated():
+        if user.is_authenticated:
             if (bool(user.groups.filter(name__in=group_names))
                     | user.is_superuser):
                 return True
@@ -919,7 +921,19 @@ def my_projects(request):
 
     user = User.objects.get(username__exact=request.user)
 
-    core_reports = Milestone.objects.filter(category='Core', report=True)
+    milestones = Milestone.objects.filter(category='Core')\
+                                  .order_by('order').all()
+
+    milestone_dict = OrderedDict()
+    for ms in milestones:
+        key = ms.label_abbrev.lower().replace(" ","-")
+        value = {'label': ms.label_abbrev,
+                 'type': 'report' if ms.report else 'milestone'}
+        milestone_dict[key] = value
+
+    milestone_dict['custom'] = {'label': "Add. Report(s)",
+                                'type': 'report' }
+
 
     #make sure that the user exists - otherwise redirect them to a
     #help page
@@ -938,19 +952,31 @@ def my_projects(request):
     if len(employees) > 1:
         boss = True
 
+
     #get the submitted, approved and completed projects from the last five years
     this_year = datetime.datetime.now(pytz.utc).year
-    submitted = Project.objects.submitted().filter(
-        owner__username__in=employees).filter(year__gte=this_year-5)
-    approved = Project.objects.approved().filter(
-        owner__username__in=employees).filter(year__gte=this_year-5)
-    cancelled = Project.objects.cancelled().filter(
-        owner__username__in=employees).filter(year__gte=this_year-5)
-    complete = Project.objects.completed().filter(
-        owner__username__in=employees).filter(year__gte=this_year-5)
+    submitted = Project.objects.submitted().\
+                select_related('project_type', 'prj_ldr').\
+                filter(owner__username__in=employees).\
+                filter(year__gte=this_year-5)
+    approved = Project.objects.approved().\
+                select_related('project_type', 'prj_ldr').\
+               filter(owner__username__in=employees).\
+               filter(year__gte=this_year-5)
+    cancelled = Project.objects.cancelled().\
+                select_related('project_type', 'prj_ldr').\
+                filter(owner__username__in=employees).\
+                filter(year__gte=this_year-5)
+    complete = Project.objects.completed().\
+               select_related('project_type', 'prj_ldr').\
+               filter(owner__username__in=employees).\
+               filter(year__gte=this_year-15)
 
     notices = get_messages_dict(my_messages(user))
+    notices_count = len(notices)
+
     formset = formset_factory(NoticesForm, extra=0)
+
 
     if request.method == 'POST':
         notices_formset = formset(request.POST, initial=notices)
@@ -964,6 +990,7 @@ def my_projects(request):
 
     template_name = "pjtk2/my_projects.html"
 
+
     return render(request, template_name,
                   {'bookmarks': bookmarks,
                    'formset': notices_formset,
@@ -972,7 +999,9 @@ def my_projects(request):
                    'cancelled':cancelled,
                    'submitted': submitted,
                    'boss': boss,
-                   'core_reports':core_reports})
+                   'notices_count': notices_count,
+                   'milestones': milestone_dict,
+                  })
 
 
 @login_required
