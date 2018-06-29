@@ -1,7 +1,7 @@
 {% load pjtk2_tags %}
 
 <table id="{{ what }}-table" class="table rotate-table-grid tablesorter ">
-    <thead class="rotated-header">
+    <thead>
         <tr>
             <th>Year</th>
             <th>Project Code</th>
@@ -11,8 +11,10 @@
             <th>Project Lead</th>
             {% endif %}
 
-            {% for report in core_reports %}
-            <th class="rotate" style="vertical-align: bottom" ><div><span class="rotate" >{{ report.label_abbrev }}</span></div></th>
+
+            {% for milestone, attrs in milestones.items %}
+            <th id="{{ what }}-{{ milestone }}-col" class="rotated {{ attrs.type }}">
+                <div><span class="rotate" > {{ attrs.label }}</span></div></th>
             {% endfor %}
         </tr>
     </thead>
@@ -27,13 +29,18 @@
             <td>
                 {{ project.prj_nm  }}
             </td>
+
             {% if boss %}
             <td>
                 <a href="{% url 'EmployeeProjects' project.prj_ldr.username %}">
                     {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a> </td>
             {% endif %}
 
-            {{ project | milestone_status:core_reports }}
+
+            {% for x, value in project.get_milestone_status_dict.items %}
+            <td class="{{value.type}}">{{ value.status | milestone_status_glyph }}</td>
+            {% endfor %}
+
 
         </tr>
         {% endfor %}

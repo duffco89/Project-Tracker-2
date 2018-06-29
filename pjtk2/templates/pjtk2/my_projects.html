@@ -9,6 +9,10 @@
 
 <style type="text/css" media="screen">
 
+table.tablesorter {
+  background: #FFF;
+}
+
  table.rotate-table-grid{
      box-sizing: border-box;
      border-collapse: collapse;
@@ -60,8 +64,27 @@
 
 <div class="container" >
 
-    <h3>My Projects Page</h3>
-    <br />
+
+    <div  class="row" >
+        <div  class="col-md-10" >
+            <h3>My Projects Page</h3>
+            <br />
+        </div>
+        <div  class="col-md-1" >
+            <div class="checkbox pull-right"> <label>
+                <input type='checkbox' checked
+                       onclick='toggleReports(this);'>Reports
+            </label> </div>
+
+        </div>
+        <div  class="col-md-1" >
+            <div class="checkbox pull-right"> <label>
+                <input type='checkbox' checked
+                       onclick='toggleMilestones(this);'>Milestones
+            </label> </div>
+        </div>
+    </div>
+
 
     <ul class="nav nav-tabs" id="myTab" >
         <li><a href="#notices">Notices</a></li>
@@ -75,7 +98,7 @@
     <div id="content" class="tab-content" >
 
         <div id="notices" class="tab-pane active" >
-            <h3>Notifications</h3>
+            <h3>Notifications (N={{ notices_count }})</h3>
 
             {% if formset %}
 
@@ -127,11 +150,11 @@
 
         <div id="submitted" class="tab-pane" >
 
-            <h3>Submitted Projects</h3>
+            <h3>Submitted Projects  (N={{ submitted.count }})</h3>
             {% if submitted %}
 
             {% with projects=submitted what="submitted" %}
-            {% include "pjtk2/_miletstone_table.html" %}
+            {% include "pjtk2/_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -141,11 +164,11 @@
         </div> <!-- submitted -->
 
         <div id="approved" class="tab-pane" >
-            <h3>Approved Projects</h3>
+            <h3>Approved Projects (N={{ approved.count }})</h3>
             {% if approved %}
 
             {% with projects=approved what="approved" %}
-            {% include "pjtk2/_miletstone_table.html" %}
+            {% include "pjtk2/_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -155,11 +178,11 @@
 
 
         <div id="cancelled" class="tab-pane" >
-            <h3>Cancelled Projects</h3>
+            <h3>Cancelled Projects (N={{ cancelled.count }})</h3>
             {% if cancelled %}
 
             {% with projects=cancelled what="cancelled" %}
-            {% include "pjtk2/_miletstone_table.html" %}
+            {% include "pjtk2/_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -169,11 +192,11 @@
 
 
         <div id="completed" class="tab-pane" >
-            <h3>Completed Projects</h3>
+            <h3>Completed Projects (N={{ complete.count }})</h3>
             {% if complete %}
 
             {% with projects=complete what="complete" %}
-            {% include "pjtk2/_miletstone_table.html" %}
+            {% include "pjtk2/_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -182,7 +205,7 @@
         </div> <!-- completed -->
 
         <div id="bookmarks" class="tab-pane" >
-            <h3>Bookmarks</h3>
+            <h3>Bookmarks (N={{ bookmarks.count }})</h3>
             {% if bookmarks %}
             <table id="bookmarks-table" class="table tablesorter rotated-header">
                 <thead id="bookmarks-header" style="height: 15px;">
@@ -242,14 +265,16 @@
 <script type="text/javascript">
 
  $(document).ready(function() {
-  $('#check-all').on('click', function(){
-    $("input:checkbox").attr('checked', true);
-  });
-  $('#uncheck-all').on('click', function(){
-    $("input:checkbox").attr('checked', false);
-  });
+     $('#check-all').on('click', function(){
+         $("input:checkbox").attr('checked', true);
+     });
+     $('#uncheck-all').on('click', function(){
+         $("input:checkbox").attr('checked', false);
+     });
      $('#bookmarks-header').height('15px');
 
+     $('.report').show();
+     $('.milestone').show();
 
 });
 
@@ -261,14 +286,46 @@
    showProcessing: true,
    headerTemplate: '{content} {icon}',
    cssHeaderRow: 'vertical-align: bottom',
-   widgets: ['zebra', 'uitheme', 'scroller'],
+   widgets: ['zebra', 'uitheme', 'scroller', 'stickyHeaders'],
    widgetOptions: {
      scroller_height: 300,
      scroller_barWidth: 17,
      scroller_jumpToHeader: true,
-     scroller_idPrefix: 's_'
+     scroller_idPrefix: 's_',
+
+         stickyHeaders : '',
+         // number or jquery selector targeting the position:fixed element
+         stickyHeaders_offset : 0,
+         // added to table ID, if it exists
+         stickyHeaders_cloneId : '-sticky',
+         // trigger "resize" event on headers
+         stickyHeaders_addResizeEvent : true,
+         // if false and a caption exist, it won't be included in the sticky header
+         stickyHeaders_includeCaption : true,
+         // The zIndex of the stickyHeaders, allows the user to adjust this to their needs
+         stickyHeaders_zIndex : 2,
+         // jQuery selector or object to attach sticky header to
+         stickyHeaders_attachTo : null,
+         // jQuery selector or object to monitor horizontal scroll position (defaults: xScroll > attachTo > window)
+         stickyHeaders_xScroll : null,
+         // jQuery selector or object to monitor vertical scroll position (defaults: yScroll > attachTo > window)
+         stickyHeaders_yScroll : null,
+
+         // scroll table top into view after filtering
+         stickyHeaders_filteredToTop: true
+
+
    }
  });
+
+
+ function toggleReports(cb) {
+     $('.report').toggle();
+ }
+
+ function toggleMilestones(cb) {
+     $('.milestone').toggle();
+ }
 
 
  $('#myTab a').click(function (e) {

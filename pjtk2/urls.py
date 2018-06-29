@@ -22,7 +22,8 @@ from pjtk2.views import (
     find_projects_roi_view, report_milestones,
     delete_report, report_upload,
     associated_file_upload, delete_associated_file,
-    serve_file, bookmark_project, unbookmark_project
+    serve_file, bookmark_project, unbookmark_project,
+
 )
 
 
@@ -98,6 +99,7 @@ urlpatterns = [
 
     url(r'^myprojects/$',
         my_projects, name='MyProjects'),
+
 
     url(r'^employeeprojects/(?P<employee_name>.+)$',
         employee_projects,

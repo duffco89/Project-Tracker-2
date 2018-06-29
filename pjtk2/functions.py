@@ -58,11 +58,14 @@ def my_messages(user, all=False):
 
     from pjtk2.models import Messages2Users
 
-    if all:
-        my_msgs = Messages2Users.objects.filter(user=user).order_by('-created')
-    else:
-        my_msgs = (Messages2Users.objects.filter(user=user,
-                            read__isnull=True).order_by('-created'))
+    my_msgs = Messages2Users.objects.filter(user=user)\
+                                    .select_related('user',
+                                                    'message__project_milestone',
+                                                    'message__project_milestone__project')\
+                                    .order_by('-created')
+    if not all:
+        my_msgs = my_msgs.filter(read__isnull=True)
+
     return(my_msgs)
 
 

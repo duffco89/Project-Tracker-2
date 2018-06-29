@@ -76,6 +76,26 @@ def milestone_status(project, reports):
 
 
 @register.filter
+def milestone_status_glyph(status):
+    '''
+    '''
+
+    default = '<span class="glyphicon glyphicon-minus icon-grey"></span>'
+
+    glyphs = {
+         "required-done": '<span class="glyphicon glyphicon-ok icon-green"></span>',
+         "required-notDone": '<span class="glyphicon glyphicon-question-sign icon-red"></span>',
+         "notRequired-done": '<span class="glyphicon glyphicon-ok icon-grey"></span>',
+         "notRequired-notDone": default
+    }
+
+
+    return mark_safe(glyphs.get(status, default))
+
+
+
+
+@register.filter
 def highlight_status(status):
     ''' a little filter to colour our status entires in project lists.
     '''
