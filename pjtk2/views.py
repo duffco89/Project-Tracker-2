@@ -685,8 +685,9 @@ def report_milestones(request, slug):
                 core.save()
                 custom.save()
                 milestones.save()
-
-                return HttpResponseRedirect(project.get_absolute_url())
+                next = request.POST.get('next', '/')
+                return HttpResponseRedirect(next)
+                #return HttpResponseRedirect(project.get_absolute_url())
     else:
         milestones = ReportsForm(project=project, reports=reports,
                                  what='Milestones')
@@ -763,7 +764,6 @@ def delete_report(request, slug, pk):
     report = get_object_or_404(Report, id=pk)
     project = get_object_or_404(Project, slug=slug)
 
-
     if not can_edit(request.user, project):
         return HttpResponseRedirect(project.get_absolute_url())
 
@@ -827,58 +827,6 @@ def delete_associated_file(request, id):
         return render(request, 'pjtk2/confirm_file_delete.html',
                       { 'associated_file': associated_file,
                         'project': project})
-
-@login_required
-def associated_file_upload(request, slug):
-    '''This view will render a formset with filefields that can be used to
-    upload files that will be associated with a specific project.'''
-
-    project = Project.objects.get(slug=slug)
-
-    if request.method == 'POST':
-        form = AssociatedFileUploadForm(request.POST, request.FILES,
-                                         project=project, user=request.user)
-        if form.is_valid():
-            form.save()
-            #m = ExampleModel.objects.get(pk=course_id)
-            #m.model_pic = form.cleaned_data['image']
-            #m.save()
-            return HttpResponseRedirect(project.get_absolute_url())
-
-    else:
-        return render(render, 'pjtk2/UploadAssociatedFiles.html',
-                      { 'project': project})
-
-
-
-@login_required
-def delete_associated_file(request, id):
-    """this view deletes an associated file
-
-    If this is a get request, redirect to a confirmation page.  If it
-    is a post, delete the associated file o
-    project detail page.
-
-    Arguments:
-    - `request`:
-    - `slug`:
-    - `pk`:
-
-    """
-    associated_file = get_object_or_404(AssociatedFile, id=id)
-    project = associated_file.project
-
-    if not can_edit(request.user, project):
-        return HttpResponseRedirect(project.get_absolute_url())
-
-    if request.method == 'POST':
-        associated_file.delete()
-        return HttpResponseRedirect(project.get_absolute_url())
-    else:
-        return render(request, 'pjtk2/confirm_file_delete.html',
-                      { 'associated_file': associated_file,
-                        'project': project})
-
 
 
 
@@ -1024,20 +972,40 @@ def employee_projects(request, employee_name):
     #if I am the employees supervisor - get their projects and
     #associated milestones:
 
-    core_reports = Milestone.objects.filter(category='Core', report=True)
+    milestones = Milestone.objects.filter(category='Core')\
+                                  .order_by('order').all()
+
+    milestone_dict = OrderedDict()
+    for ms in milestones:
+        key = ms.label_abbrev.lower().replace(" ","-")
+        value = {'label': ms.label_abbrev,
+                 'type': 'report' if ms.report else 'milestone'}
+        milestone_dict[key] = value
+
+    milestone_dict['custom'] = {'label': "Add. Report(s)",
+                                'type': 'report' }
+
+    #core_reports = Milestone.objects.filter(category='Core', report=True)
 
     #get the submitted, approved and completed projects from the last five years
     this_year = datetime.datetime.now(pytz.utc).year
-    submitted = Project.objects.submitted().filter(
-        owner__username=my_employee).filter(year__gte=this_year-5)
-    approved = Project.objects.approved().filter(
-        owner__username=my_employee).filter(year__gte=this_year-5)
-    cancelled = Project.objects.cancelled().filter(
-        owner__username=my_employee).filter(year__gte=this_year-5)
+    submitted = Project.objects.submitted().\
+                filter(owner__username=my_employee).\
+                filter(year__gte=this_year-5).\
+                select_related('project_type', 'prj_ldr')
+    approved = Project.objects.approved().\
+               filter(owner__username=my_employee).\
+               filter(year__gte=this_year-5).\
+                select_related('project_type', 'prj_ldr')
+    cancelled = Project.objects.cancelled().\
+                filter(owner__username=my_employee).\
+                filter(year__gte=this_year-5).\
+                select_related('project_type', 'prj_ldr')
 
-    complete = Project.objects.completed().filter(
-        owner__username=my_employee).filter(year__gte=this_year-5)
-
+    complete = Project.objects.completed().\
+               filter(owner__username=my_employee).\
+               filter(year__gte=this_year-15).\
+               select_related('project_type', 'prj_ldr')
 
     template_name = "pjtk2/employee_projects.html"
 
@@ -1056,7 +1024,9 @@ def employee_projects(request, employee_name):
                    'approved': approved,
                    'cancelled':cancelled,
                    'submitted': submitted,
-                   'core_reports':core_reports})
+                   'milestones': milestone_dict,
+                   'edit': True
+                  })
 
 
 #=====================

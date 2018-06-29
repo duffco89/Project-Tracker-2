@@ -11,6 +11,9 @@
             <th>Project Lead</th>
             {% endif %}
 
+            {% if edit %}
+            <th class="rotated"><div><span class="rotate" >Edit Requirements</span></div></th>
+            {% endif %}
 
             {% for milestone, attrs in milestones.items %}
             <th id="{{ what }}-{{ milestone }}-col" class="rotated {{ attrs.type }}">
@@ -29,13 +32,22 @@
             <td>
                 {{ project.prj_nm  }}
             </td>
-
             {% if boss %}
             <td>
                 <a href="{% url 'EmployeeProjects' project.prj_ldr.username %}">
                     {{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a> </td>
             {% endif %}
 
+            {% if edit %}
+            <td>
+            <a href="{% url 'Reports' project.slug %}?next={{ request.path|urlencode }}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-primary btn-xs" aria-label="edit">
+                    <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+                </button>
+            </a>
+            </td>
+            {% endif %}
 
             {% for x, value in project.get_milestone_status_dict.items %}
             <td class="{{value.type}}">{{ value.status | milestone_status_glyph }}</td>
