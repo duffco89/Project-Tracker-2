@@ -33,11 +33,13 @@ urlpatterns = [
         name="get_points_in_roi"),
 
     # points for projects were ALL points are in roi
-    url(r'project_points_contained_in_roi/', points_roi, {'how':'contained'},
+    url(r'project_points_contained_in_roi/', points_roi,
+        {'how':'contained'},
         name="get_project_points_contained_in_roi"),
 
     # points for projects were SOME points are in roi
-    url(r'project_points_overlapping_roi/', points_roi, {'how':'overlapping'},
+    url(r'project_points_overlapping_roi/', points_roi,
+        {'how':'overlapping'},
         name="get_project_points_overlapping_roi"),
 
     url(r'^', include(router.urls)),

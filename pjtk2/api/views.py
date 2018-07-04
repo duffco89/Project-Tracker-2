@@ -1,7 +1,9 @@
 from rest_framework import  viewsets, status
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 
 from django.http import Http404
 from django.contrib.gis.geos import GEOSGeometry
@@ -74,6 +76,7 @@ class ProjectPolygonViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 @api_view(['POST'])
+@permission_classes((AllowAny,))
 def points_roi(request, how='contained'):
     """A view to return all of the sampling points either contained in or
     overlapping the region of interest.  Overlapping projects will have at
@@ -84,7 +87,6 @@ def points_roi(request, how='contained'):
     or have some of their samples in the region of interest.
 
     """
-
 
     #get the region of interest from the request - raise an error if we can't
     request_roi = request.GET.get("roi")
