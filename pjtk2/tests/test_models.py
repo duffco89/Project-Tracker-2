@@ -220,7 +220,326 @@ class TestProjectModel(TestCase):
         self.user.delete()
 
 
+@pytest.mark.django_db
+def test_milestone_status_dict():
+    """The milestone status dict method returns an ordered dictionary
+    that contains each of the milestones assigned to a project and a
+    status string that indicates if the milestone was associated with
+    the project and if it has been complete.
 
+    test for the presence and order of keys of the dictionary
+    - test for the value of the entries.
+
+    """
+
+    # need four miles stones and a project.
+
+
+    milestone1 = MilestoneFactory.create(label="Approved",
+                                         label_abbrev='approved',
+                                         category = 'Core',
+                                         order=1,
+                                         report=False)
+
+    milestone2 = MilestoneFactory.create(label="Proposal",
+                                         label_abbrev='proposal',
+                                         category = 'Core',
+                                         order=2,
+                                         report=True)
+
+    milestone3 = MilestoneFactory.create(label="Draft Report",
+                                         label_abbrev="draft-report",
+                                         category = 'Core',
+                                         order=3,
+                                         report=True)
+
+    milestone4 = MilestoneFactory.create(label="Final Report",
+                                         label_abbrev = 'final-report',
+                                         category = 'Core',
+                                         order=4,
+                                         report=True)
+
+    project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
+
+
+    #project1.initialize_milestones()
+
+    #required and done
+    pms = ProjectMilestones.objects.get(project=project1, milestone=milestone1)
+    pms.completed = datetime.datetime.now(pytz.utc)
+    pms.save()
+
+    #not required but done anyway
+    pms = ProjectMilestones.objects.get(project=project1, milestone=milestone2)
+    pms.required = False
+    pms.completed = datetime.datetime.now(pytz.utc)
+    pms.save()
+
+    #A report that is required and done
+    pms = ProjectMilestones.objects.get(project=project1, milestone=milestone3)
+    pms.completed = datetime.datetime.now(pytz.utc)
+    pms.save()
+
+    status_dict = project1.get_milestone_status_dict()
+
+    milestones = ['approved','proposal','draft-report','final-report', 'custom']
+
+    types = ['milestone','report','report','report', 'report']
+
+    status = ['required-done',
+              'notRequired-done',
+              'required-done',
+              'required-notDone',
+              'notRequired-notDone']
+
+    assert list(status_dict.keys()) == milestones
+
+
+    #loop over our status dictionary and make sure that it contains
+    #the elements we think it should:
+    for i, ms in enumerate(milestones):
+        tmp = status_dict.get(ms)
+        assert tmp['type'] == types[i]
+        assert tmp['status'] == status[i]
+
+
+
+@pytest.mark.django_db
+def test_milestone_status_dict_custom_report():
+    """the ordered dictionary returned by the milestone_status_dict()
+     method should include a key 'custom', the status of the
+     milestone should be 'required-NotDone' and the type should be
+     'report'
+    """
+
+    # need an additional custom milestone - one that is not core, but
+    # specific to this project.
+
+    milestone1 = MilestoneFactory.create(label="Custom Report",
+                                         label_abbrev='my-custom-report',
+                                         category = 'custom',
+                                         order=1,
+                                         report=True)
+
+    project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
+
+    pms = ProjectMilestonesFactory.create(project=project1,
+                                          milestone=milestone1,
+                                          required=True,
+                                          completed=None)
+
+    status_dict = project1.get_milestone_status_dict()
+
+    assert list(status_dict.keys()) == ['custom']
+
+    tmp = status_dict.get('custom')
+    assert tmp['type'] == 'report'
+    assert tmp['status'] == 'required-notDone'
+
+
+
+@pytest.mark.django_db
+def test_milestone_status_dict_custom_report_complete():
+    """
+    """
+
+    # we need custom report, and it should be completed.
+    # the ordered dictionary returned by the milestone_status_dict()
+    # method:
+    # + should include a key 'custom',
+    # + the status of the milestone should be 'required-Done'
+    # + and the type should be 'report'
+
+    milestone1 = MilestoneFactory.create(label="Custom Report",
+                                         label_abbrev='my-custom-report',
+                                         category = 'custom',
+                                         order=1,
+                                         report=True)
+
+    project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
+
+    #this time, the project milestone is completed
+    timestamp = datetime.datetime.now(pytz.utc)
+    pms = ProjectMilestonesFactory.create(project=project1,
+                                          milestone=milestone1,
+                                          required=True,
+                                          completed=timestamp)
+
+    status_dict = project1.get_milestone_status_dict()
+
+    assert list(status_dict.keys()) == ['custom']
+
+    tmp = status_dict.get('custom')
+    assert tmp['type'] == 'report'
+    assert tmp['status'] == 'required-done'
+
+
+
+@pytest.mark.django_db
+def test_milestone_status_dict_custom_reports():
+    """The 'custom report' milestone is generic and applies to all custom
+    reports for a project - multiple custom reports still result in
+    only one 'custom' milestone in this dictionary.
+
+    """
+
+    # need an two additional custom milestones
+    # the ordered dictionary returned by the milestone_status_dict()
+    # method:
+    # + should include a key 'custom',
+    # + the status of the milestone should be 'required-Done'
+    # + and the type should be 'report'
+
+
+    milestone1 = MilestoneFactory.create(label="Custom Report",
+                                         label_abbrev='my-custom-report',
+                                         category = 'custom',
+                                         order=1,
+                                         report=True)
+
+    milestone2 = MilestoneFactory.create(label="Another Custom Report",
+                                         label_abbrev='my-custom-report-2',
+                                         category = 'custom',
+                                         order=2,
+                                         report=True)
+
+
+    project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
+
+    #this time, the project milestone is Not completed
+    pms = ProjectMilestonesFactory.create(project=project1,
+                                          milestone=milestone1,
+                                          required=True,
+                                          completed=None)
+
+    #this time, the project milestone is Not completed either
+    pms2 = ProjectMilestonesFactory.create(project=project1,
+                                           milestone=milestone2,
+                                           required=True,
+                                           completed=None)
+
+    status_dict = project1.get_milestone_status_dict()
+
+    assert list(status_dict.keys()) == ['custom']
+
+    tmp = status_dict.get('custom')
+    assert tmp['type'] == 'report'
+    assert tmp['status'] == 'required-notDone'
+
+
+@pytest.mark.django_db
+def test_milestone_status_dict_custom_reports_one_done():
+    """The 'custom report' milestone is generic and applies to all custom
+    reports for a project - multiple custom reports still result in
+    only one 'custom' milestone in this dictionary.  If only one of
+    the reports is complete, the status of the milestone should still
+    be required-NotDone.
+
+    """
+
+    # need an two additional custom milestones - one will be complete,
+    # one will not.
+    # the ordered dictionary returned by the
+    # milestone_status_dict() method: + should include a key 'custom',
+    # + the status of the milestone should be 'required-NotDone' + and
+    # the type should be 'report'
+
+
+    milestone1 = MilestoneFactory.create(label="Custom Report",
+                                         label_abbrev='my-custom-report',
+                                         category = 'custom',
+                                         order=1,
+                                         report=True)
+
+    milestone2 = MilestoneFactory.create(label="Another Custom Report",
+                                         label_abbrev='my-custom-report-2',
+                                         category = 'custom',
+                                         order=2,
+                                         report=True)
+
+
+    project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
+
+    #this time, the project milestone is Not completed
+    pms = ProjectMilestonesFactory.create(project=project1,
+                                          milestone=milestone1,
+                                          required=True,
+                                          completed=None)
+
+    #this time, the project milestone is completed
+    timestamp = datetime.datetime.now(pytz.utc)
+    pms2 = ProjectMilestonesFactory.create(project=project1,
+                                          milestone=milestone2,
+                                          required=True,
+                                           completed=timestamp)
+
+    status_dict = project1.get_milestone_status_dict()
+
+    assert list(status_dict.keys()) == ['custom']
+
+    tmp = status_dict.get('custom')
+    assert tmp['type'] == 'report'
+    assert tmp['status'] == 'required-notDone'
+
+
+
+@pytest.mark.django_db
+def test_milestone_status_dict_custom_reports_both_done():
+    """The 'custom report' milestone is generic and applies to all custom
+    reports for a project - multiple custom reports still result in
+    only one 'custom' milestone in this dictionary.  The status of the
+    milestone should be required-Done only if all of the custom
+    requirements are complete.
+
+    """
+
+    # need an two additional custom milestones - one will be complete,
+    # one will not to start.
+    # the ordered dictionary returned by the
+    # milestone_status_dict() method: + should include a key 'custom',
+    # + the status of the milestone should be 'required-NotDone' + and
+    # the type should be 'report'
+
+    #when we complete the second custom milestone, and call our
+    #milestone_status_dict() method again, the status will be changed
+    #to 'required-Done'
+
+
+    milestone1 = MilestoneFactory.create(label="Custom Report",
+                                         label_abbrev='my-custom-report',
+                                         category = 'custom',
+                                         order=1,
+                                         report=True)
+
+    milestone2 = MilestoneFactory.create(label="Another Custom Report",
+                                         label_abbrev='my-custom-report-2',
+                                         category = 'custom',
+                                         order=2,
+                                         report=True)
+
+
+    project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
+
+    timestamp = datetime.datetime.now(pytz.utc)
+    #this time, the project milestone is completed
+    pms = ProjectMilestonesFactory.create(project=project1,
+                                          milestone=milestone1,
+                                          required=True,
+                                          completed=timestamp)
+
+    #this time, the project milestone is completed too
+    pms2 = ProjectMilestonesFactory.create(project=project1,
+                                          milestone=milestone2,
+                                          required=True,
+                                           completed=timestamp)
+
+    status_dict = project1.get_milestone_status_dict()
+
+    assert list(status_dict.keys()) == ['custom']
+
+    tmp = status_dict.get('custom')
+    assert tmp['type'] == 'report'
+    assert tmp['status'] == 'required-done'
 
 
 @pytest.mark.django_db

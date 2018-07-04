@@ -50,31 +50,6 @@ register = template.Library()
 register.tag("if_bookmarked", do_if_Bookmarked)
 
 
-
-#@register.filter
-#def milestone_status(project, reports):
-#    ''' The milestone_status template tag takes a project and a list of core
-#    reports and returns glyph icons for completed, missing, and not required
-#    milestones.  Each glyph is wrapped in table data elements so that they
-#    can be directly integrated into summary report table.
-#    '''
-#
-#    html = ""
-#
-#    for report in reports:
-#        status = project.milestone_complete(report)
-#        if status == False:
-#            glyph = '<span class="glyphicon glyphicon-question-sign icon-red"></span>'
-#        elif status==True:
-#            glyph = '<span class="glyphicon glyphicon-ok icon-green"></span>'
-#        else:
-#            glyph = '<span class="glyphicon glyphicon-minus icon-grey"></span>'
-#
-#        html += "<td>{0}</td>\n".format(glyph)
-#
-#    return mark_safe(html)
-
-
 @register.filter
 def milestone_status_glyph(status):
     '''
@@ -94,20 +69,19 @@ def milestone_status_glyph(status):
 
 
 
-
 @register.filter
 def highlight_status(status):
     ''' a little filter to colour our status entires in project lists.
     '''
 
-    if status == 'Cancelled':
-        return 'red'
-    elif status == 'Ongoing':
-        return 'blue'
-    elif status == 'Complete':
-        return 'green'
-    else:
-        return 'black'
+    status_colours = {
+        "Cancelled":"red",
+        "Ongoing":"blue",
+        "Complete":"green",
+    }
+
+    return status_colours.get(status, 'black')
+
 
 
 

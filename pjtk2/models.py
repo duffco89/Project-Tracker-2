@@ -479,8 +479,6 @@ class Project(models.Model):
 
         '''
 
-
-
         milestone_status = OrderedDict()
 
         #we need to instantiate an order dictionary that has all of
@@ -538,7 +536,7 @@ class Project(models.Model):
                 milestone_status['custom'] = {'status': 'required-done',
                                              'type': 'report'}
             else:
-                milestone_status['custom'] = {'status': 'required-done',
+                milestone_status['custom'] = {'status': 'required-notDone',
                                              'type': 'report'}
         return milestone_status
 
