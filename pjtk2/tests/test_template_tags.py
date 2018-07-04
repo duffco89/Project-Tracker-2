@@ -8,7 +8,10 @@ import pytest
 from .factories import ProjectFactory, ProjTypeFactory, MilestoneFactory
 
 from pjtk2.models import ProjectMilestones, send_notice_prjms_changed
-from pjtk2.templatetags.pjtk2_tags import fisheye_button
+
+from pjtk2.templatetags.pjtk2_tags import (fisheye_button,
+                                           highlight_status,
+                                           milestone_status_glyph)
 
 
 def get_project_link_url(label):
@@ -177,3 +180,50 @@ def test_fisheye_button_synthesis():
 
     button = fisheye_button(project)
     assert button is ""
+
+
+
+def test_highlight_status_filter():
+    """if the status of the project is complete, the tag should return the
+    appropriate colour string.  If the status doesn't match a known
+    status, it should return black.
+
+    """
+
+    should_be = [
+        ("Cancelled", "red"),
+        ("Ongoing", "blue"),
+        ("Complete", "green"),
+        ("Unknown", "black"),
+
+
+    ]
+
+    for pair in should_be:
+        assert highlight_status(pair[0]) == pair[1]
+
+
+def test_milestone_status_glyph():
+    """if the status of the project is complete, the tag should return the
+    appropriate html string that will insert an appropriate coloured
+    glyph icon.  If no match is found, it should return a grey minus
+    sign by default.
+
+    """
+
+    should_be = [
+         ("required-done",
+          '<span class="glyphicon glyphicon-ok icon-green"></span>'),
+         ("required-notDone",
+          '<span class="glyphicon glyphicon-question-sign icon-red"></span>'),
+         ("notRequired-done",
+          '<span class="glyphicon glyphicon-ok icon-grey"></span>'),
+         ("notRequired-notDone",
+          '<span class="glyphicon glyphicon-minus icon-grey"></span>'),
+         ("foo-bar",
+          '<span class="glyphicon glyphicon-minus icon-grey"></span>')
+
+    ]
+
+    for pair in should_be:
+        assert milestone_status_glyph(pair[0]) == pair[1]
