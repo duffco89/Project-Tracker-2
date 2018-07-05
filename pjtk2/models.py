@@ -339,13 +339,27 @@ class Project(models.Model):
         '''A helper function to make it easier to sign off a project'''
         #TODO - add logic here to make sure all previous requirements
         #have been met! - can't signoff on a project that wasn't
-        #approved or compelted.
+        #approved or completed.
+
         now = datetime.datetime.now(pytz.utc)
-        milestone= Milestone.objects.get(label__iexact='Sign Off')
+        milestone = Milestone.objects.get(label__iexact='Sign Off')
         prjms, created= ProjectMilestones.objects.get_or_create(
                 project=self, milestone=milestone)
-
         prjms.completed = now
+        prjms.save()
+
+
+
+    def reopen(self):
+        '''A helper function to reopen a project.  This does not keep track of
+        whether or not the project had been previously closed or how many
+        times it has been closed or re-activated.'''
+
+
+        milestone = Milestone.objects.get(label__iexact='Sign Off')
+        prjms, created= ProjectMilestones.objects.get_or_create(
+            project=self, milestone=milestone)
+        prjms.completed = None
         prjms.save()
 
 
@@ -353,8 +367,8 @@ class Project(models.Model):
         '''Is the current project completed (ie. signoff=True)?  Returns true
         if it is, otherwise false.
         '''
-        completed = ProjectMilestones.objects.get(project=self,
-                                                  milestone__label__iexact='Sign Off')
+        completed = ProjectMilestones.objects.\
+                    get(project=self, milestone__label__iexact='Sign Off')
         if completed.completed is not None:
             return(True)
         else:

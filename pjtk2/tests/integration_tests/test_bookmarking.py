@@ -32,8 +32,6 @@ class ProjectBookmarkingTestCase(TestCase):
 
         self.employee = EmployeeFactory(user=self.user)
 
-
-
         #create two projects, one that will be bookmarked, and one that
         #isn't.
         self.client = Client()
@@ -42,6 +40,7 @@ class ProjectBookmarkingTestCase(TestCase):
             prj_cd="LHA_IA12_222",
             prj_ldr = self.user,
             owner = self.user)
+
         self.project2 = ProjectFactory(
             prj_cd = "LHA_IA12_111",
             prj_nm = "An approved project",
@@ -49,6 +48,10 @@ class ProjectBookmarkingTestCase(TestCase):
             owner = self.user)
         self.project2.Approved = True
         self.project2.save()
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
 
     def test_bookmarking(self):
 
@@ -94,7 +97,7 @@ class ProjectBookmarkingTestCase(TestCase):
         prj_ldr = '{0} {1}'.format(self.project1.prj_ldr.first_name,
                                    self.project1.prj_ldr.last_name,)
         self.assertContains(response, prj_ldr)
-        
+
         bookmarks = Bookmark.objects.filter(user=self.user)
         self.assertEqual(bookmarks.count(),1)
         bookmark=bookmarks[0]

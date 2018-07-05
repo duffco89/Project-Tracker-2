@@ -71,6 +71,11 @@ class SisterWarningRendersonConfirmationPageTestCase(WebTest):
         self.report.projectreport.add(self.pmst)
         self.report.save()
 
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
+
+
 
     def test_warning_message_renders(self):
         '''Project 1 and 2 are sisters, when we try to delete the report
@@ -151,6 +156,9 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
         self.report = ReportFactory.create()
         self.report.projectreport.add(self.pmst)
         self.report.save()
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
 
 
     def tearDown(self):
@@ -341,6 +349,11 @@ class DeleteReportTestCase(TestCase):
         self.report = ReportFactory.create()
         self.report.projectreport.add(self.pmst)
         self.report.save()
+
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
+
 
 
     def tearDown(self):

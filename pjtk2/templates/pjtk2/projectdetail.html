@@ -228,6 +228,7 @@
         <button type="button" class="btn btn-default">Bookmark Project</button> </a>
       {% endif_bookmarked %}
 
+
       {% if edit %}
       <a href="{% url 'ReportUpload' project.slug %}"
          onclick="javascript:window.location=this.href">
@@ -236,10 +237,12 @@
 
 
       {% if manager %}
+            {% if not project.is_complete %}
       <a href="{% url 'Reports' project.slug %}?next={{ request.path|urlencode }}"
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-primary">Change Reporting Requirements</button> </a>
       {% if project.is_approved %}
+
           {% if project.cancelled %}
           <a href="#" onclick="javascript:window.location=this.href">
             <button type="button" class="btn btn-danger" disabled="disabled">Cancel</button> </a>
@@ -247,23 +250,26 @@
           <a href="{% url 'cancel_project' project.slug %}" onclick="javascript:window.location=this.href">
             <button type="button" class="btn btn-danger">Cancel</button> </a>
           {% endif %}
+
           {% else %}
       <a href="{% url 'approve_project' project.slug %}"
          onclick="javascript:window.location=this.href">
         <button type="button" class="btn btn-primary">Approve</button> </a>
       {% endif %}
 
-      {% if not project.is_complete %}
       <a href="{% url 'signoff_project' project.slug %}"
          onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-success">Sign Off</button> </a>
+          <button type="button" class="btn btn-success">Sign Off</button> </a>
+
+      {% else %}
+
+      <a href="{% url 'reopen_project' project.slug %}"
+         onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-success">Re-Open Project</button> </a>
+
       {% endif %}
 
-
-
-
       {% endif %}
-
 
     </div>
   </div>

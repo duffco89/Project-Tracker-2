@@ -15,7 +15,7 @@ from pjtk2.views import (
     report_desc_view,
     project_list, user_project_list, project_list_q, approved_projects_list,
     approveprojects, approve_project,
-    cancel_project, signoff_project,
+    cancel_project, signoff_project, reopen_project,
     new_project, copy_project, edit_project, project_detail, my_projects,
     employee_projects, sisterprojects,
     taggedprojects, project_tag_list,
@@ -83,6 +83,9 @@ urlpatterns = [
         name='signoff_project'),
 
 
+    url((r'^reopen_project/' + PRJ_CD_REGEX),
+        reopen_project,
+        name='reopen_project'),
 
     url(r'^newproject/$',
         new_project,
