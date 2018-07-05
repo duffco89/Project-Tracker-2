@@ -67,6 +67,12 @@ class BasicReportUploadTestCase(WebTest):
         self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               owner=self.user)
 
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project3, milestone=signoff)
+
+
         #here is fake file that we will upload
         self.mock_file = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'
                      '\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;')
@@ -234,6 +240,11 @@ class TestActualFileUpload(TestCase):
                                               owner=self.user)
         self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333",
                                               owner=self.user)
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project3, milestone=signoff)
 
         #here is fake file that we will upload
         self.mock_file0 = StringIO('GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00'

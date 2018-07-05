@@ -65,6 +65,10 @@ class TestCanEditFunction(TestCase):
                                               owner=self.user1,
                                               field_ldr=self.user3)
 
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
+
 
     def test_can_edit_function(self):
         '''Verify that canEdit returns the expected value given our project
@@ -270,6 +274,9 @@ class ProjectDetailownerTestCase(TestCase):
         self.user = UserFactory()
         self.project = ProjectFactory(owner = self.user)
 
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
+
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
         the page'''
@@ -335,6 +342,10 @@ class ProjectDetailJoeUserTestCase(TestCase):
         self.owner = UserFactory()
         self.project = ProjectFactory(owner = self.owner)
 
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
+
+
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
         the page'''
@@ -394,6 +405,11 @@ class CancelProjectTestCase(TestCase):
         self.owner = UserFactory()
         self.project = ProjectFactory(owner = self.owner)
 
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
+
+
     def test_manager_can_cancel_project(self):
         """A manager should be able to access the cancel project url and
         successfully cancel a project.
@@ -448,7 +464,7 @@ class CancelProjectTestCase(TestCase):
 
     def test_anonuser_cannot_cancel_project(self):
         """An anonmous user cannot access the cancel project url and should be
-        re-directed to loggin-page.
+        re-directed to login-page.
 
         """
         proj = Project.objects.get(slug=self.project.slug)
@@ -500,7 +516,10 @@ class TestDetailPageCancelledProjects(TestCase):
                                               prj_ldr=self.user1,
                                               owner=self.user1)
 
-        #make Barney is the manager:
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+
+        #Barney is the manager:
         managerGrp, created = Group.objects.get_or_create(name='manager')
         self.user2.groups.add(managerGrp)
 
@@ -660,6 +679,285 @@ class TestDetailPageCancelledProjects(TestCase):
 
 
 
+class ReOpenProjectTestCase(TestCase):
+    '''Verify that a manager can reopen a completed project, but regular
+    and anonmous users cannot..'''
+
+    def setUp(self):
+        self.client = Client()
+        self.user = UserFactory(username = 'gcostansa',
+                                first_name = 'George',
+                                last_name = 'Costansa')
+
+        self.user1 = UserFactory(username = 'hsimpson',
+                                first_name = 'Homer',
+                                last_name = 'Simpson')
+
+        #make george the manager:
+        managerGrp, created = Group.objects.get_or_create(name='manager')
+        self.user.groups.add(managerGrp)
+
+        self.signoff = MilestoneFactory.create(label = "Sign Off",
+                                               protected=True,
+                                               category = 'Core', order = 99,
+                                               report=False)
+
+        #now create a project using a different user
+        self.owner = UserFactory()
+        self.project = ProjectFactory(owner = self.owner)
+
+
+        pms = ProjectMilestones.objects.get(project=self.project,
+                                            milestone=self.signoff)
+        pms.completed = datetime.datetime.now(pytz.utc)
+        pms.save()
+
+
+    def test_manager_reopens_nonproject_returns_404(self):
+        """If a manager tries to access the url for project that does not
+        exist, the response should be a 404.
+        """
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('reopen_project',
+                                           kwargs={'slug':"LHA_IA13_999"}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 404)
+
+
+    def test_manager_can_reopen_project(self):
+        """A manager should be able to access the reopen project url and
+        successfully reopen a project.
+        """
+
+        #make sure the project is complete to start with
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.is_complete())
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('reopen_project',
+                                           kwargs={'slug':self.project.slug}),
+                                   follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+        #it should be active:
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertFalse(proj.is_complete())
+
+        #verify that the projectmilestone was created and has been populated
+        pms = ProjectMilestones.objects.get(project=self.project,
+                                               milestone=self.signoff)
+
+        # the completed attr of our project milestone should be empty
+        self.assertTrue(pms.completed is None)
+
+    def test_user_cannot_reopen_project(self):
+        """A regular user cannot access the reopen project url and should be
+        re-directed to project detail page.
+
+        """
+        #make sure the project complete to start with
+
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.is_complete())
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('reopen_project',
+                                           kwargs={'slug':self.project.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+
+        #it still should be complete :
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.is_complete())
+
+
+    def test_anonuser_cannot_reopen_project(self):
+        """An anonmous user cannot access the reopen project url and should be
+        re-directed to login-page.
+
+        """
+
+        #login = self.client.login(username=self.user1.username, password='abc')
+        #self.assertTrue(login)
+        response = self.client.get(reverse('reopen_project',
+                                           kwargs={'slug':self.project.slug}),
+                                   follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'auth/login.html')
+        #it still should still be complete:
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.is_complete())
+
+    def tearDown(self):
+        self.project.delete()
+        self.user1.delete()
+        self.user.delete()
+
+
+
+
+
+
+class TestDetailPageReOpenProject(TestCase):
+    '''When a project is completed, there are a number of items that
+    should not appear on the page regardless of whether or not the
+    user is a manager or not.  If the project is complete, and a
+    manager access the page, a 'Re-open button should appear'
+    '''
+
+    def setUp(self):
+        #USERS
+        self.user1 = UserFactory.create(username = 'hsimpson',
+                                        first_name = 'Homer',
+                                        last_name = 'Simpson')
+
+        self.user2 = UserFactory.create(username = 'bgumble',
+                                        first_name = 'Barney',
+                                        last_name = 'Gumble',
+                                       )
+
+
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111",
+                                              prj_ldr=self.user1,
+                                              owner=self.user1)
+
+        self.signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1,
+                                 milestone=self.signoff)
+
+        #Barney is the manager:
+        managerGrp, created = Group.objects.get_or_create(name='manager')
+        self.user2.groups.add(managerGrp)
+
+
+        self.EditBtn = ('<button type="button" ' +
+                           'class="btn btn-default">Edit Information</button>')
+
+        self.SignOffBtn = ('<button type="button" ' +
+                          'class="btn btn-success">Sign Off</button>')
+
+        self.ReOpenBtn = ('<button type="button" ' +
+                          'class="btn btn-success">Re-Open Project</button>')
+
+
+    def test_no_reopen_btn_active_project_manager(self):
+        """If the manager views an active project, there will not be a re-open
+        project button, but there will be buttons to edit, sign-off
+        and cancel project.
+
+        """
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        #the project is neither approved or canceled:
+        self.assertFalse(self.project1.is_complete())
+
+        #we should be able to edit, sign off this project but
+        #shouldn't be able to re-open it
+        self.assertContains(response, self.EditBtn)
+        self.assertContains(response, self.SignOffBtn)
+        self.assertNotContains(response, self.ReOpenBtn)
+
+
+    def test_reopen_btn_completed_project_manager(self):
+        """If the manager views an completed project, there will be a re-open
+        project button, and the buttons to edit, sign-off and cancel
+        project. will not be included in the response.
+        """
+
+        pms = ProjectMilestones.objects.get(project=self.project1,
+                                            milestone=self.signoff)
+        pms.completed = datetime.datetime.now(pytz.utc)
+        pms.save()
+
+        login = self.client.login(username=self.user2.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        #the project is neither approved or canceled:
+        self.assertTrue(self.project1.is_complete())
+
+        #We should no longer have buttons ot edit or sign off on our
+        #project, but we should be able to re-open it.
+        self.assertNotContains(response, self.EditBtn)
+        self.assertNotContains(response, self.SignOffBtn)
+        self.assertContains(response, self.ReOpenBtn)
+
+
+
+    def test_no_reopen_btn_completed_project_user(self):
+        """If the a logged in user views a completed project, there
+        will not be buttons to to edit, sign-off, cancel or re-open
+        the project.  """
+
+        pms = ProjectMilestones.objects.get(project=self.project1,
+                                            milestone=self.signoff)
+        pms.completed = datetime.datetime.now(pytz.utc)
+        pms.save()
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        #this project is still complete, so is_complete() will be True
+        self.assertTrue(self.project1.is_complete())
+
+        #We should no longer have buttons to edit, or sign off, or
+        #re-open our project
+        self.assertNotContains(response, self.EditBtn)
+        self.assertNotContains(response, self.SignOffBtn)
+        self.assertNotContains(response, self.ReOpenBtn)
+
+
+
+    def test_no_reopen_btn_active_project_user(self):
+        """If the a logged in user views an active project, there will be
+        buttons to to edit it, but they should not be able to
+        sign-off, cancel, or re-open the project.
+        """
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project1.slug}),
+                                   follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        #this project is still active, so is_complete() will be False
+        self.assertFalse(self.project1.is_complete())
+
+        #We should have an edit button (as this project is open and
+        #homer is the project owner), but we should not be able to
+        #sign-off or re-open it.
+        self.assertContains(response, self.EditBtn)
+        self.assertNotContains(response, self.SignOffBtn)
+        self.assertNotContains(response, self.ReOpenBtn)
+
+
+
 class ProjectDetailManagerTestCase(TestCase):
     '''verify that a manager can see a project and be able to both
     edit the record and update milestones.'''
@@ -676,6 +974,10 @@ class ProjectDetailManagerTestCase(TestCase):
         #now create a project using a different user
         self.owner = UserFactory()
         self.project = ProjectFactory(owner = self.owner)
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
+
 
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view

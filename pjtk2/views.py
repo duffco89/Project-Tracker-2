@@ -93,6 +93,9 @@ def can_edit(user, project):
     to edit this project.  In order to edit the use must be either the
     project owner, a manager or a superuser.'''
 
+    if project.is_complete():
+        return False
+
     if user:
         canedit = ((user.groups.filter(name='manager').count() > 0) or
                    (user.is_superuser) or
@@ -634,6 +637,19 @@ def signoff_project(request, slug):
     project = Project.objects.get(slug=slug)
     project.signoff()
     project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+
+@login_required
+def reopen_project(request, slug):
+    '''A quick little view that will allow managers to reopen projects
+    from the project detail page so that reports can be uploaded or
+    entries edited.'''
+
+    user = User.objects.get(username__exact=request.user)
+    project = get_object_or_404(Project, slug=slug)
+    if is_manager(user):
+        project.reopen()
     return HttpResponseRedirect(project.get_absolute_url())
 
 

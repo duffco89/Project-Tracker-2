@@ -111,6 +111,28 @@ class TestProjectApproveUnapproveMethods(TestCase):
         self.assertIsNotNone(completed)
         self.assertTrue((completed - now)<datetime.timedelta(seconds=1))
 
+
+    def test_reopen_project(self):
+
+        #verify that the 'reopen' method removed the date from the
+        #sign-off milestone associated with this project.
+
+
+        milestone = ProjectMilestones.objects.get(
+            project=self.project1,
+            milestone__label='Sign off')
+        milestone.completed = datetime.datetime.now(pytz.utc)
+
+        milestone.save()
+
+        #verfify that the poject is currently complete
+        self.assertTrue(self.project1.is_complete())
+        # re-open the project
+        self.project1.reopen()
+        # verify that it so not longer considered complete.
+        self.assertFalse(self.project1.is_complete())
+
+
     def tearDown(self):
 
         self.project1.delete()

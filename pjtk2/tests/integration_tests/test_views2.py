@@ -39,6 +39,10 @@ class BookmarkTestCase(WebTest):
         self.project = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               project_type = self.ProjType)
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
+
     csrf_checks = False
 
     def test_add_delete_bookmarks(self):
@@ -108,6 +112,14 @@ class ProjectTaggingTestCase(WebTest):
         self.project3 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               project_type = self.ProjType)
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project3, milestone=signoff)
+
+
+
 
     def test_tags_in_project_details_view(self):
         '''verify that the tags associated with a project appear on
@@ -323,6 +335,8 @@ class UpdateReportsTestCase(WebTest):
 
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
+
+
 
     def test_only_managers_can_view_form(self):
         '''regular user shouldn;t be able to change reporting
@@ -588,6 +602,8 @@ class MyProjectViewTestCase(WebTest):
                                               owner=self.user2,
                                               project_type = self.ProjType)
 
+
+
     def test_employee_version_myprojects(self):
 
         login = self.client.login(username=self.user.username, password='abc')
@@ -713,6 +729,8 @@ class EmployeeProjectsTestCase(WebTest):
                                               owner=self.user2,
                                               project_type = self.ProjType)
 
+
+
     def test_manager_sees_employee_projects(self):
         """WHen a manager logs into an employees project list, they should see
         a list of project run by that employee. The response should also
@@ -837,7 +855,7 @@ class TestProjectDetailForm(WebTest):
         self.ms4 = MilestoneFactory.create(label = "Data Merged", report=False,
                                              category = 'Core', order = 4)
 
-        self.ms5 = MilestoneFactory.create(label = "Sign off", protected=True,
+        self.ms5 = MilestoneFactory.create(label = "Sign Off", protected=True,
                                             category = 'Core', order = 999,
                                            report=False)
 
@@ -846,6 +864,7 @@ class TestProjectDetailForm(WebTest):
         prj_cd = "LHA_IA{}_111".format(year)
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user1)
+
 
 
     def test_milestones_render_properly_in_form(self):
@@ -888,9 +907,11 @@ class TestProjectDetailForm(WebTest):
 
         #first update the 'completed' field for a number of milestones:
         now = datetime.datetime.now(pytz.utc)
-        ProjectMilestones.objects.filter(project=self.project1,
-                                         milestone__report=False
-                                      ).update(completed=now)
+        ProjectMilestones.objects\
+                         .filter(project=self.project1,
+                                 milestone__report=False)\
+                         .exclude(milestone__label__iexact='Sign Off').\
+                         update(completed=now)
 
         milestones = self.project1.get_milestones()
         #a vector of boolean values that indicate status of each milestone
@@ -910,8 +931,9 @@ class TestProjectDetailForm(WebTest):
         #the status of the check boxes should match the status of the
         #completed field
         self.assertListEqual(completed, checked)
-        #just for giggles:
-        check2 = [True] * milestones.count()
+        #just for giggles - (the last milestone 'Sign off' will always
+        #be false if we can see the buttons)
+        check2 = [True] * (milestones.count() - 1) + [False]
         self.assertListEqual(check2, checked)
 
     def test_status_of_milestones_can_be_updated_by_employee_from_form(self):
@@ -1226,6 +1248,9 @@ class TestCanCopyProject(WebTest):
                                               prj_ldr=self.user1,
                                               owner=self.user1)
 
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+
 
     def test_can_copy_project(self):
         '''verify that we can copy a project with the crud form, that the
@@ -1326,6 +1351,10 @@ class TestFieldLeader(WebTest):
                                               prj_ldr=self.user1,
                                               field_ldr=None,
                                               owner=self.user1)
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
 
 
     def test_field_ldr_on_project_detail(self):
@@ -1458,6 +1487,9 @@ class TestUserChoiceFilesProjectForm(WebTest):
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
                                               owner=self.user1)
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
 
 
     def test_edit_project_all_users_project(self):
