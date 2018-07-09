@@ -354,6 +354,9 @@ def project_detail(request, slug):
     edit = can_edit(user, project)
     manager = is_manager(user)
 
+    if project.cancelled:
+        edit = False
+
     return render(request, 'pjtk2/projectdetail.html',
                   {'milestones': milestones,
                    'Core': core,
@@ -610,7 +613,8 @@ def cancel_project(request, slug):
 
     '''
 
-    project = Project.objects.get(slug=slug)
+    project = get_object_or_404(Project, slug=slug)
+
     if is_manager(request.user):
         cancelled_ms = Milestone.objects.get(label='Cancelled')
         project_cancelled,created = ProjectMilestones.objects.get_or_create(
@@ -625,6 +629,26 @@ def cancel_project(request, slug):
         #keep track of who cancelled the project
         project.cancelled_by = request.user
         project.cancelled=True
+        project.save()
+    return HttpResponseRedirect(project.get_absolute_url())
+
+
+
+@login_required
+def uncancel_project(request, slug):
+    '''
+    '''
+
+    project = get_object_or_404(Project, slug=slug)
+    cancelled_ms = get_object_or_404(Milestone, label='Cancelled')
+    project_cancelled = get_object_or_404(ProjectMilestones,
+                                          project=project,
+                                          milestone=cancelled_ms)
+    if is_manager(request.user):
+        project_cancelled.completed = None
+        project_cancelled.save()
+        project.cancelled_by = None
+        project.cancelled=False
         project.save()
     return HttpResponseRedirect(project.get_absolute_url())
 

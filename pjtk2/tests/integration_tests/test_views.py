@@ -531,9 +531,8 @@ class TestDetailPageCancelledProjects(TestCase):
         self.CancelBtn = ('<button type="button" ' +
                           'class="btn btn-danger">Cancel</button>')
 
-        self.DisabledCancelBtn = ('<button type="button" ' +
-                                  'class="btn btn-danger"' +
-                                  ' disabled="disabled">Cancel</button>')
+        self.UnCancelBtn = ('<button type="button" ' +
+                            'class="btn btn-danger">Un-Cancel</button>')
 
 
 
@@ -558,7 +557,7 @@ class TestDetailPageCancelledProjects(TestCase):
         #we should be able to approve it, but can't cancel it yet
         self.assertContains(response, self.ApproveBtn)
         self.assertNotContains(response, self.CancelBtn)
-        self.assertNotContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, self.UnCancelBtn)
         self.assertNotContains(response, 'Unapprove')
         self.assertNotContains(response, self.message)
 
@@ -586,7 +585,7 @@ class TestDetailPageCancelledProjects(TestCase):
 
         self.assertNotContains(response, self.ApproveBtn)
         self.assertContains(response, self.CancelBtn)
-        self.assertNotContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, self.UnCancelBtn)
         self.assertNotContains(response, 'Unapprove')
         self.assertNotContains(response, self.message)
 
@@ -615,7 +614,7 @@ class TestDetailPageCancelledProjects(TestCase):
 
         self.assertNotContains(response, self.ApproveBtn)
         self.assertNotContains(response, self.CancelBtn)
-        self.assertContains(response, self.DisabledCancelBtn)
+        self.assertContains(response, self.UnCancelBtn)
         self.assertNotContains(response, 'Unapprove')
         self.assertContains(response, self.message)
 
@@ -642,7 +641,7 @@ class TestDetailPageCancelledProjects(TestCase):
         #it should not contain any buttons or cancelled messages:
         self.assertNotContains(response, self.ApproveBtn)
         self.assertNotContains(response, self.CancelBtn)
-        self.assertNotContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, self.UnCancelBtn)
         self.assertNotContains(response, 'Unapprove')
         self.assertNotContains(response, self.message)
 
@@ -671,7 +670,7 @@ class TestDetailPageCancelledProjects(TestCase):
         #it should not contain any buttons:
         self.assertNotContains(response, self.ApproveBtn)
         self.assertNotContains(response, self.CancelBtn)
-        self.assertNotContains(response, self.DisabledCancelBtn)
+        self.assertNotContains(response, self.UnCancelBtn)
         self.assertNotContains(response, 'Unapprove')
         # it should contain basic message:
         self.assertContains(response, self.message)
