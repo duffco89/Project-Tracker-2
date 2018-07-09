@@ -37,3 +37,10 @@ migration/*.ldb
 some_fixtures/*
 clear_pjtk2.sql
 migration/sandbox_scripts.sql
+
+
+.cache/*
+.coverage
+.coveragerc
+conftest.py
+htmlcov/*
