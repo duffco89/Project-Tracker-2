@@ -132,11 +132,11 @@ class SisterFormTestCase(WebTest):
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
 
-        self.assertEquals(formcnt, 2)
+        self.assertEqual(formcnt, 2)
 
         #the check boxes in both should == None
-        self.assertEquals(form.fields['form-0-sister'][0].value, None)
-        self.assertEquals(form.fields['form-1-sister'][0].value, None)
+        self.assertEqual(form.fields['form-0-sister'][0].value, None)
+        self.assertEqual(form.fields['form-1-sister'][0].value, None)
 
         #make sure that the projects that should be candidates or
         #sisters aren't in the response
@@ -176,11 +176,11 @@ class SisterFormTestCase(WebTest):
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
 
-        self.assertEquals(formcnt, 2)
+        self.assertEqual(formcnt, 2)
 
         #the check boxes in both should == None
-        self.assertEquals(form.fields['form-0-sister'][0].value, 'on')
-        self.assertEquals(form.fields['form-1-sister'][0].value, None)
+        self.assertEqual(form.fields['form-0-sister'][0].value, 'on')
+        self.assertEqual(form.fields['form-1-sister'][0].value, None)
 
         #make sure that the projects that should be candidates or
         #sisters aren't in the response
@@ -281,11 +281,11 @@ class SisterFormTestCase(WebTest):
         fldcnt = [x for x in form.fields.keys() if x is not None]
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
 
-        self.assertEquals(formcnt, 2)
+        self.assertEqual(formcnt, 2)
 
         #the check boxes in both should == None
-        self.assertEquals(form.fields['form-0-sister'][0].value, None)
-        self.assertEquals(form.fields['form-1-sister'][0].value, None)
+        self.assertEqual(form.fields['form-0-sister'][0].value, None)
+        self.assertEqual(form.fields['form-1-sister'][0].value, None)
 
         #check one of the boxes and submit the form,
         form.fields['form-0-sister'][0].value = 'on'
@@ -306,8 +306,8 @@ class SisterFormTestCase(WebTest):
         form = response.forms['sisterformset']
 
         #verify that the sister is selected,
-        self.assertEquals(form.fields['form-0-sister'][0].value, 'on')
-        self.assertEquals(form.fields['form-1-sister'][0].value, None)
+        self.assertEqual(form.fields['form-0-sister'][0].value, 'on')
+        self.assertEqual(form.fields['form-1-sister'][0].value, None)
 
         #unselect it and re-sumbit the form.
         form.fields['form-0-sister'][0].value = None
@@ -334,11 +334,11 @@ class SisterFormTestCase(WebTest):
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
 
-        self.assertEquals(formcnt, 2)
+        self.assertEqual(formcnt, 2)
 
         #the check boxes in both should == None
-        self.assertEquals(form.fields['form-0-sister'][0].value, None)
-        self.assertEquals(form.fields['form-1-sister'][0].value, None)
+        self.assertEqual(form.fields['form-0-sister'][0].value, None)
+        self.assertEqual(form.fields['form-1-sister'][0].value, None)
 
 
 
@@ -382,11 +382,11 @@ class SisterFormTestCase(WebTest):
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
 
-        self.assertEquals(formcnt, 2)
+        self.assertEqual(formcnt, 2)
 
         #the check boxes in both should == None
-        self.assertEquals(form.fields['form-0-sister'][0].value, 'on')
-        self.assertEquals(form.fields['form-1-sister'][0].value, 'on')
+        self.assertEqual(form.fields['form-0-sister'][0].value, 'on')
+        self.assertEqual(form.fields['form-1-sister'][0].value, 'on')
 
         #make sure that the projects that should be candidates or
         #sisters aren't in the response
@@ -433,11 +433,11 @@ class SisterFormTestCase(WebTest):
         formcnt = len([x for x in fldcnt if x.endswith("-sister")])
         #formcnt = len([x for x in form.fields.keys() if x.endswith("-sister")])
 
-        self.assertEquals(formcnt, 2)
+        self.assertEqual(formcnt, 2)
 
         #the check boxes in both should == None
-        self.assertEquals(form.fields['form-0-sister'][0].value, 'on')
-        self.assertEquals(form.fields['form-1-sister'][0].value, 'on')
+        self.assertEqual(form.fields['form-0-sister'][0].value, 'on')
+        self.assertEqual(form.fields['form-1-sister'][0].value, 'on')
 
         #uncheck both of the boxes and submit the form,
         form.fields['form-0-sister'][0].value = None

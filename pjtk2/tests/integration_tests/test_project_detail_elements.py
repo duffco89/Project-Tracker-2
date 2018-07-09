@@ -130,7 +130,7 @@ def test_manager_completed_project_detail_buttons(client, project, manager):
     ''' 'Signoff' project should not appear on completed projects
     '''
 
-    project.signoff()
+    project.signoff(manager)
     assert project.is_complete() == True
 
     login = client.login(username=manager.username,
