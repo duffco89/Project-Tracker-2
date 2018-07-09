@@ -619,9 +619,9 @@ def cancel_project(request, slug):
         project_cancelled.completed = now
         project_cancelled.save()
         #any outstanding task will not longer be required:
-        remaining_ms = ProjectMilestones.objects.filter(project=project,
-                                                        required=True,
-                                                        completed__isnull=True).update(required=False)
+        # remaining_ms = ProjectMilestones.objects.filter(project=project,
+        #                                                 required=True,
+        #                                                 completed__isnull=True).update(required=False)
         #keep track of who cancelled the project
         project.cancelled_by = request.user
         project.cancelled=True
@@ -630,13 +630,13 @@ def cancel_project(request, slug):
 
 
 @login_required
-@group_required('manager')
 def signoff_project(request, slug):
     '''A quick little view that will allow managers to signoff projects
     from the project detail page.'''
-    project = Project.objects.get(slug=slug)
-    project.signoff()
-    project.save()
+    user = User.objects.get(username__exact=request.user)
+    project = get_object_or_404(Project, slug=slug)
+    if is_manager(user):
+        project.signoff(user)
     return HttpResponseRedirect(project.get_absolute_url())
 
 

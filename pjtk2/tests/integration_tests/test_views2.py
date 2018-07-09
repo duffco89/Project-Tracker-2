@@ -372,13 +372,13 @@ class UpdateReportsTestCase(WebTest):
         form = forms['reports']
 
         #there should be three core reports that should be selected:
-        self.assertEquals(len(form.fields['Core']), 3)
+        self.assertEqual(len(form.fields['Core']), 3)
         self.assertTrue(form.fields['Core'][0].checked)
         self.assertTrue(form.fields['Core'][1].checked)
         self.assertTrue(form.fields['Core'][2].checked)
 
         #additional reporting requirements - not checked
-        self.assertEquals(len(form.fields['Custom']), 2)
+        self.assertEqual(len(form.fields['Custom']), 2)
         self.assertFalse(form.fields['Custom'][0].checked)
         self.assertFalse(form.fields['Custom'][1].checked)
 
@@ -650,7 +650,7 @@ class MyProjectViewTestCase(WebTest):
 
         self.project1.approve()
         self.project2.approve()
-        self.project1.signoff()
+        self.project1.signoff(self.user2)
 
         login = self.client.login(username=self.user2.username, password='abc')
         self.assertTrue(login)

@@ -227,6 +227,11 @@ class Project(models.Model):
     cancelled_by  = models.ForeignKey(User, related_name="CancelledBy",
                                       on_delete=models.CASCADE,
                                       blank=True, null=True)
+
+    signoff_by  = models.ForeignKey(User, related_name="SignOffBy",
+                                      on_delete=models.CASCADE,
+                                      blank=True, null=True)
+
     year = models.CharField("Year", max_length=4, blank=True, editable=False,
                             db_index=True)
     prj_date0 = models.DateField("Start Date", blank=False, db_index=True)
@@ -335,7 +340,7 @@ class Project(models.Model):
         else:
             return(False)
 
-    def signoff(self):
+    def signoff(self, user):
         '''A helper function to make it easier to sign off a project'''
         #TODO - add logic here to make sure all previous requirements
         #have been met! - can't signoff on a project that wasn't
@@ -348,6 +353,8 @@ class Project(models.Model):
         prjms.completed = now
         prjms.save()
 
+        self.signoff_by = user
+        self.save()
 
 
     def reopen(self):

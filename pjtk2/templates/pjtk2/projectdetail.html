@@ -52,6 +52,13 @@
         </tr>
 
 
+        {% if project.is_complete and project.signoff_by %}
+        <td><strong>Sign-off Manager:</strong></td>
+          <td> {{ project.signoff_by.first_name }} {{ project.signoff_by.last_name }}</td>
+        </tr>
+        {% endif %}
+
+
         <tr>
           <td><strong>Project Start:</strong></td>
           <td> {{ project.prj_date0|date:"M d, Y" }}</td>

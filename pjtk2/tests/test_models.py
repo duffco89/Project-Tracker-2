@@ -99,7 +99,7 @@ class TestProjectApproveUnapproveMethods(TestCase):
 
         #call self.project1.approve()
         #call self.project1.signoff()
-        self.project1.signoff()
+        self.project1.signoff(self.user)
 
         #assert that the value in completed is not null and that it is
         #close to the current time
@@ -1541,5 +1541,5 @@ class TestProjectStatus(TestCase):
         cancelled or signed off, it should be submitted.
         """
         self.project1.approve()
-        self.project1.signoff()
+        self.project1.signoff(self.user)
         self.assertEqual(self.project1.status(), 'Complete')

@@ -156,7 +156,7 @@ class BasicReportUploadTestCase(WebTest):
         #there should be four forms in the formset
         formcnt = len([x for x in form.fields.keys() if
                        x.endswith("-report_path")])
-        self.assertEquals(formcnt, 4)
+        self.assertEqual(formcnt, 4)
 
 
     def tearDown(self):
@@ -335,7 +335,7 @@ class TestActualFileUpload(TestCase):
         response = self.client.get(url)
 
         filepath = os.path.split(filepath)[1]
-        self.assertEquals(
+        self.assertEqual(
             response.get('Content-Disposition'),
             "attachment; filename=%s" % filepath
             )
