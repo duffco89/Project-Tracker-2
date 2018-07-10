@@ -232,6 +232,8 @@ class Project(models.Model):
                                       on_delete=models.CASCADE,
                                       blank=True, null=True)
 
+    project_team = models.ManyToManyField(User)
+
     year = models.CharField("Year", max_length=4, blank=True, editable=False,
                             db_index=True)
     prj_date0 = models.DateField("Start Date", blank=False, db_index=True)

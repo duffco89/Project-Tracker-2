@@ -14,7 +14,7 @@ from django.contrib.gis.forms.fields import PolygonField
 from django.contrib.auth.models import User
 from django.db.models.aggregates import Max, Min
 from django.forms.formsets import BaseFormSet
-from django.forms import ModelChoiceField, CharField
+from django.forms import ModelChoiceField, CharField, ModelMultipleChoiceField
 from django.forms.widgets import (CheckboxSelectMultiple, Select,
                                   CheckboxInput, mark_safe)
 
@@ -66,9 +66,25 @@ class UserModelChoiceField(ModelChoiceField):
         return label
 
 
+class UserMultipleChoiceField(ModelMultipleChoiceField):
+    '''a custom model choice widget for user objects.  It will
+    display user first and last name in list of available choices
+    (rather than their official user name). modified from
+    https://docs.djangoproject.com/en/dev/ref/forms/fields/#modelchoicefield.
+    '''
+    def label_from_instance(self, obj):
+        if obj.first_name:
+            label = "{0} {1}".format(obj.first_name, obj.last_name)
+        else:
+            label = obj.__str__()
+        return label
+
+
+
+
 class UserReadOnlyText(forms.TextInput):
     '''a custom readonly text widget for user objects.  It will
-    displace user first and last name of user if available, otherwise
+    display user first and last name of user if available, otherwise
     username.
     '''
 
@@ -126,15 +142,14 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
         if value is None:
             value = []
         has_id = attrs and 'id' in attrs
-        final_attrs = self.build_attrs(attrs, name=name)
-        #output = [u'<ul>']
+        final_attrs = self.build_attrs(attrs)
+
         output = [u'']
         # Normalize to strings
-        #str_values = set([force_unicode(v) for v in value])
         str_values = set([v for v in value])
         for i, (option_value, option_label) in enumerate(chain(self.choices,
                                                                choices)):
-            if final_attrs.has_key('disabled'):
+            if 'disabled' in final_attrs.keys():
                 del final_attrs['disabled']
             if isinstance(option_label, dict):
                 if dict.get(option_label, 'disabled'):
@@ -153,7 +168,7 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
             rendered_cb = chbox.render(name, option_value)
             #option_label = conditional_escape(force_unicode(option_label))
             option_label = conditional_escape(option_label)
-            output.append(u'<label%s>%s %s</label>'
+            output.append(u'<div class="checkbox"><label%s>%s %s</label></div>'
                           % (label_for, rendered_cb, option_label))
         #output.append(u'</ul>')
         return mark_safe(u'\n'.join(output))
@@ -612,11 +627,22 @@ class ProjectForm(forms.ModelForm):
     )
 
     owner = UserModelChoiceField(
-        label="Data Custodian:",
+        label="Data Custodian/Project Owner:",
         queryset=User.objects.filter(is_active=True).\
         order_by('first_name', 'last_name'),
         required=False,
     )
+
+
+    project_team = UserMultipleChoiceField(
+        label="Other Team Members (optional):",
+        widget=forms.SelectMultiple(
+            attrs={'size': 15}),
+        queryset=User.objects.filter(is_active=True).\
+        order_by('first_name', 'last_name'),
+        required=False,
+    )
+
 
     abstract = forms.CharField(
         widget=forms.Textarea(
@@ -640,12 +666,18 @@ class ProjectForm(forms.ModelForm):
         )
 
     prj_date0 = forms.DateField(
+        widget = forms.DateInput(
+            attrs={'class':'datepicker'}
+        ),
         label="Start Date:",
         required=True,
         input_formats=["%d/%m/%Y","%Y-%m-%d"],
     )
 
     prj_date1 = forms.DateField(
+        widget = forms.DateInput(
+            attrs={'class':'datepicker'}
+        ),
         label="End Date:",
         required=True,
         input_formats=["%d/%m/%Y", "%Y-%m-%d"],
@@ -695,7 +727,7 @@ class ProjectForm(forms.ModelForm):
         fields = ("prj_nm", "prj_ldr", "field_ldr", "owner","prj_cd",
                   "prj_date0", "prj_date1", "risk", 'project_type',
                   "master_database", "lake", "abstract", "comment",
-                  "dba", "tags", 'salary', 'odoe', 'funding')
+                  "dba", "tags", 'salary', 'odoe', 'funding', 'project_team')
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
@@ -703,41 +735,14 @@ class ProjectForm(forms.ModelForm):
 
         milestones = kwargs.pop('milestones', None)
 
-        self.helper = FormHelper()
-        self.helper.form_id = 'ProjectForm'
-        self.helper.form_class = 'blueForms'
-        self.helper.form_method = 'post'
-        self.helper.form_action = ''
-        self.helper.add_input(Submit('submit', 'Submit'))
-
-        self.helper.layout = Layout(
-            Div(
-                Fieldset(
-                    'Project Elements',
-                    'prj_nm',
-                    'prj_cd',
-                    'prj_ldr',
-                    'field_ldr',
-                    'owner',
-                    'abstract',
-                    'comment',
-                    'risk',
-                    Field('prj_date0', placeholder = "yyyy-mm-dd",
-                          css_class='datepicker'),
-                    Field('prj_date1', placeholder = "yyyy-mm-dd",
-                          css_class='datepicker'),
-                    'project_type',
-                    'funding',
-                     PrependedText('salary', '$'),
-                     PrependedText('odoe', '$'),
-                    'master_database',
-                    'lake',
-                    'dba',
-                    'tags'
-                )),
-         )
-
         super(ProjectForm, self).__init__(*args, **kwargs)
+        for visible in self.visible_fields():
+            if 'class' in visible.field.widget.attrs.keys():
+                class_attrs = visible.field.widget.attrs['class']
+            else:
+                class_attrs = ""
+            visible.field.widget.attrs['class'] = 'form-control ' + class_attrs
+
         self.readonly = readonly
         self.manager = manager
 
@@ -772,13 +777,17 @@ class ProjectForm(forms.ModelForm):
                     initial=completed,
                     required=False,
             ),})
-            self.helper.layout[0].extend(
-                [Div(Fieldset(
-                    'Milestones',
-                    #'milestones'
-                    Field('milestones',
-                          template='pjtk2/_MultipleSelectwDisable.html')
-                ), css_class="row")])
+
+
+
+
+#            self.helper.layout[0].extend(
+#                [Div(Fieldset(
+#                    'Milestones',
+#                    #'milestones'
+#                    Field('milestones',
+#                          template='pjtk2/_MultipleSelectwDisable.html')
+#                ), css_class="row")])
 
 
     def clean_approved(self):

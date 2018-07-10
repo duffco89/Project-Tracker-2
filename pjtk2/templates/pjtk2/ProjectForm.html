@@ -1,21 +1,10 @@
 {% extends "pjtk2/pjtk2_base.html" %}
-{% load crispy_forms_tags %}
 
 {% block extrahead %}
 
 
-    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
-    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
 
-<style type="text/css">
- #id_prj_cd{width:200px;}
- .textinput{width:400px;}
- .textarea{width:400px;}
- .tagwidget{width:400px;}
- .select{width:200px;}
- .dateinput{width:200px;}
-
-</style>
 
 {% endblock %}
 
@@ -23,19 +12,424 @@
 
 {% block content  %}
 
-<div class="container" >
-  <h1>{{ action  }} Project</h1>
-  {% crispy form form.helper 'bootstrap'  %}
+
+<div  class="container" >
+
+
+    <h1>{{ action }} Project Details {{ prj_cd }}</h1>
+
+    <div class="panel panel-default">
+        <div class="panel-body">
+
+            <form id="ProjectForm" method="post" action=".">
+                {% csrf_token %}
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    Please fix the errors in the form below.
+                    {% for error in form.non_field_errors %}
+                    <p class="error">{{ error }}</p>
+                    {% endfor %}
+                    {% for error in form.errors %}
+                    <p class="error">{{ error }}</p>
+                    {% endfor %}
+
+
+                </div>
+                {% endif %}
+
+                {% if msg %}
+                <div class="alert alert-danger">
+                    {{ msg }}
+                </div>
+                {% endif %}
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Project Data</h3>
+                    </div>
+                    <div class="panel-body">
+
+                        <div id="project-meta-row" class="row" >
+                            <div class="col-md-6" >
+                                <div class="form-group {% if form.prj_nm.errors %}has-error{% endif %}">
+                                    {{ form.prj_nm.label_tag }}
+                                    {{ form.prj_nm }}
+                                    {% if form.prj_nm.errors %}
+                                    {% for error in form.prj_nm.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+                            <div class="col-md-4" >
+                                <div class="form-group {% if form.prj_cd.errors %}has-error{% endif %}">
+                                    {{ form.prj_cd.label_tag }}
+                                    {{ form.prj_cd }}
+                                    {% if form.prj_cd.errors %}
+                                    {% for error in form.prj_cd.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+
+
+                            <div class="col-md-2" >
+                                <div class="form-group {% if form.lake.errors %}has-error{% endif %}">
+                                    {{ form.lake.label_tag }}
+                                    {{ form.lake }}
+                                    {% if form.lake.errors %}
+                                    {% for error in form.lake.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+
+                        </div>  <!-- row  -->
+
+                        <div id="project-dates-row" class="row" >
+                            <div class="col-md-6" >
+                                <div class="form-group {% if form.prj_date0.errors %}has-error{% endif %}">
+                                    {{ form.prj_date0.label_tag }}
+                                    {{ form.prj_date0 }}
+                                    {% if form.prj_date0.errors %}
+                                    {% for error in form.prj_date0.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+                            <div class="col-md-6" >
+                                <div class="form-group {% if form.prj_date1.errors %}has-error{% endif %}">
+                                    {{ form.prj_date1.label_tag }}
+                                    {{ form.prj_date1 }}
+                                    {% if form.prj_date1.errors %}
+                                    {% for error in form.prj_date1.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+
+                        </div>  <!-- row  -->
+                    </div> <!-- panel body  -->
+
+                </div>  <!-- panel -->
+
+
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Project Type</h3>
+                    </div>
+                    <div class="panel-body">
+
+                        <div  class="row" >
+
+                            <div  class="col-md-6" >
+                                <div class="form-group {% if form.project_type.errors %}has-error{% endif %}">
+                                    {{ form.project_type.label_tag }}
+                                    {{ form.project_type }}
+                                    {% if form.project_type.errors %}
+                                    {% for error in form.project_type.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+                            <div  class="col-md-6" >
+                                <div class="form-group {% if form.master_database.errors %}has-error{% endif %}">
+                                    {{ form.master_database.label_tag }}
+                                    {{ form.master_database }}
+                                    {% if form.master_database.errors %}
+                                    {% for error in form.master_database.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+                        </div>
+
+                    </div> <!-- panel body  -->
+                </div>  <!-- panel -->
+
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Project Funding Sources</h3>
+                    </div>
+                    <div class="panel-body">
+
+                        <div  class="row" >
+
+                            <div  class="col-md-4" >
+                                <div class="form-group {% if form.funding.errors %}has-error{% endif %}">
+                                    {{ form.funding.label_tag }}
+                                    {{ form.funding }}
+                                    {% if form.funding.errors %}
+                                    {% for error in form.funding.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+                            <div  class="col-md-4" >
+                                <div class="form-group {% if form.odoe.errors %}has-error{% endif %}">
+                                    {{ form.odoe.label_tag }}
+                                    {{ form.odoe }}
+                                    {% if form.odoe.errors %}
+                                    {% for error in form.odoe.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+
+
+                            <div  class="col-md-4" >
+                                <div class="form-group {% if form.salary.errors %}has-error{% endif %}">
+                                    {{ form.salary.label_tag }}
+                                    {{ form.salary }}
+                                    {% if form.salary.errors %}
+                                    {% for error in form.salary.errors %}
+                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+
+                        </div>
+                    </div> <!-- panel body  -->
+                </div>  <!-- panel -->
+
+
+
+
+
+
+
+                <div id="staff-keywords-row" class="row" >
+                    <div id="staff-col" class="col-md-9" >
+
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Staff</h3>
+                            </div>
+                            <div class="panel-body">
+
+                                <div id="staff-row" class="row" >
+                                    <div class="col-md-6" >
+
+                                        <div class="form-group {% if form.prj_ldr.errors %}has-error{% endif %}">
+                                            {{ form.prj_ldr.label_tag }}
+                                            {{ form.prj_ldr }}
+                                            {% if form.prj_ldr.errors %}
+                                            {% for error in form.prj_ldr.errors %}
+                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="form-group {% if form.field_ldr.errors %}has-error{% endif %}">
+                                            {{ form.field_ldr.label_tag }}
+                                            {{ form.field_ldr }}
+                                            {% if form.field_ldr.errors %}
+                                            {% for error in form.field_ldr.errors %}
+                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="form-group {% if form.owner.errors %}has-error{% endif %}">
+                                            {{ form.owner.label_tag }}
+                                            {{ form.owner }}
+                                            {% if form.owner.errors %}
+                                            {% for error in form.owner.errors %}
+                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="form-group {% if form.dba.errors %}has-error{% endif %}">
+                                            {{ form.dba.label_tag }}
+                                            {{ form.dba }}
+                                            {% if form.dba.errors %}
+                                            {% for error in form.dba.errors %}
+                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+
+                                    </div> <!-- column  -->
+
+                                    <div class="col-md-6" >
+                                        <div class="form-group {% if form.project_team.errors %}has-error{% endif %}">
+                                            {{ form.project_team.label_tag }}
+                                            {{ form.project_team }}
+                                            {% if form.project_team.errors %}
+                                            {% for error in form.project_team.errors %}
+                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div> <!-- column  -->
+
+
+
+
+
+                                </div>  <!-- row  -->
+                            </div> <!-- panel body  -->
+
+                        </div>  <!-- panel -->
+
+
+                    </div>
+
+                    <div id="milestone-col" class="col-md-3" >
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">Project Milestones</h3>
+                            </div>
+                            <div class="panel-body">
+                                {{ form.milestones.label_tag }}
+                                {{ form.milestones }}
+                                {% if form.milestones.errors %}
+                                {% for error in form.milestones.errors %}
+                                <div class="has-error help-block text-danger">{{ error }}</div>
+                                {% endfor %}
+                                {% endif %}
+                            </div> <!-- panel body  -->
+                        </div>  <!-- panel -->
+
+
+                    </div>
+                </div>
+
+
+
+
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Keywords (comma separated values):</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group form-horizontal {% if form.tags.errors %}has-error{% endif %}">
+
+                            {{ form.tags }}
+                            {% if form.tags.errors %}
+                            {% for error in form.tags.errors %}
+                            <div class="has-error help-block text-danger">{{ error }}</div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div> <!-- panel body  -->
+                </div>  <!-- panel -->
+
+
+
+
+
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Project Abstract (public facing)</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group {% if form.abstract.errors %}has-error{% endif %}">
+                            {{ form.abstract }}
+                            {% if form.abstract.errors %}
+                            {% for error in form.abstract.errors %}
+                            <div class="has-error help-block text-danger">{{ error }}</div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div> <!-- panel body  -->
+                </div>  <!-- panel -->
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Remarks and Comments (internal use):</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group {% if form.comment.errors %}has-error{% endif %}">
+
+                            {{ form.comment }}
+                            {% if form.comment.errors %}
+                            {% for error in form.comment.errors %}
+                            <div class="has-error help-block text-danger">{{ error }}</div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div> <!-- panel body  -->
+                </div>  <!-- panel -->
+
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title">Risks associated with not running this project:</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group {% if form.risk.errors %}has-error{% endif %}">
+
+                            {{ form.risk }}
+                            {% if form.risk.errors %}
+                            {% for error in form.risk.errors %}
+                            <div class="has-error help-block text-danger">{{ error }}</div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div> <!-- panel body  -->
+                </div>  <!-- panel -->
+
+                <hr />
+
+                <input class="btn btn-primary pull-right" type="submit" value="Submit">
+
+            </form>
+        </div>
+    </div>
+
+
+
+
 </div>
+
+
+
+
 
 
 {% endblock %}
 
 {% block extrascripts %}
 
+<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+
 <script type="text/javascript">
  $(document).ready(function() {
-   $('.dateinput').datepicker({ dateFormat: "yy-mm-dd" });
+     $('.datepicker').datepicker({ dateFormat: "yyyy-mm-dd" });
  });
 </script>
 
