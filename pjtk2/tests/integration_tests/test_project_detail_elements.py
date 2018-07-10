@@ -479,3 +479,56 @@ def test_anyuser_project_comments_and_remarks(client, project):
     content = str(response.content)
     msg = "<p><strong>Comments or Remarks:</strong></p>"
     assert msg not in content
+
+
+
+
+@pytest.mark.django_db
+def test_sister_message_not_in_detail_response(client, project):
+
+    """for a regular project without any sisters projects, the message
+    about shared reports should not appear.
+    """
+
+    response = client.get(reverse('project_detail',
+                                  kwargs={'slug':project.slug}),)
+    content = str(response.content)
+    msg = "<p><em>* denotes reports shared across sister projects </em></p>"
+    assert msg not in content
+
+
+@pytest.mark.django_db
+def test_sister_message_in_detail_response(client):
+
+    """if a project has one or more sisters, the message about shared
+    reports should not appear in the response.
+    """
+
+    submitted = MilestoneFactory.create(label='sumbitted',
+                                       label_abbrev='sumitted')
+
+    approved = MilestoneFactory.create(label='Approved',
+                                       label_abbrev='approved',
+                                       order=2)
+
+    signoff = MilestoneFactory.create(label='Sign Off',
+                                       label_abbrev='sign_off',
+                                       order=2)
+
+
+    project1 = ProjectFactory.create(prj_cd="LHA_IA16_111")
+    project2 = ProjectFactory.create(prj_cd="LHA_IA16_112")
+
+    project1.save()
+    project2.save()
+
+    project1.approve()
+    project2.approve()
+    project1.add_sister(project2.slug)
+
+
+    response = client.get(reverse('project_detail',
+                                  kwargs={'slug':project1.slug}),)
+    content = str(response.content)
+    msg = "<p><em>* denotes reports shared across sister projects </em></p>"
+    assert msg in content

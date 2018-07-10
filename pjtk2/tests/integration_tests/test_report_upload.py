@@ -451,6 +451,43 @@ class TestActualFileUpload(TestCase):
 
         #verify that the file names are in queryset returned by  get_uploaded_reports()
 
+
+    def test_upload_report_sister_report_message(self):
+        '''verify that the fields are hightlighted and the message about
+        shared reports is included in the response.'''
+
+        #set up the sister relationship:
+        self.project1.add_sister(self.project2.slug)
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('ReportUpload', args = (self.project1.slug,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/UploadReports.html')
+
+        self.assertContains(response, 'id="shared-milestone-message"')
+        self.assertContains(response, 'class="fileinput shared"')
+
+
+    def test_upload_report_sister_report_message_not_rendered(self):
+        '''verify that the fields are not hightlighted and the message about
+        shared reports is not included in the response for a project
+        without sisters.
+        '''
+
+        login = self.client.login(username=self.user.username, password='abc')
+        self.assertTrue(login)
+        url = reverse('ReportUpload', args = (self.project1.slug,))
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'pjtk2/UploadReports.html')
+
+        self.assertNotContains(response, 'id="shared-milestone-message"')
+        self.assertNotContains(response, 'class="fileinput shared"')
+
+
+
     def test_upload_report_sister_projects(self):
         '''verify that we can upload more than 1 file'''
 
