@@ -1,5 +1,22 @@
 {% extends "pjtk2/pjtk2_base.html" %}
 
+
+{% block extrahead %}
+
+{% if has_sister %}
+
+<style type="text/css" media="screen">
+ .shared {
+      background-color: yellow;
+}
+ }
+</style>
+
+{% endif %}
+
+{% endblock %}
+
+
 {% block content %}
 
 <div class="container">
@@ -40,6 +57,13 @@
     {% endfor %}
   </table>
   <hr />
+
+
+{% if has_sister %}
+
+  <p id="shared-milestone-message" style="text-align: right;">* - Highlighting identifies reports that  will be shared across sister projects.</p>
+
+{% endif %}
 
   <input type="submit" name="submit" value="Submit Reports" class="btn btn-primary"/>
 

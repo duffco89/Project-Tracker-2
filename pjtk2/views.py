@@ -357,6 +357,8 @@ def project_detail(request, slug):
     if project.cancelled:
         edit = False
 
+    has_sister = project.has_sister()
+
     return render(request, 'pjtk2/projectdetail.html',
                   {'milestones': milestones,
                    'Core': core,
@@ -364,6 +366,7 @@ def project_detail(request, slug):
                    'project': project,
                    'edit': edit,
                    'manager': manager,
+                   'has_sister': has_sister
                   })
 
 
@@ -753,6 +756,7 @@ def report_upload(request, slug):
     needed to insert Reports.'''
 
     project = Project.objects.get(slug=slug)
+    has_sister = project.has_sister()
 
     #get the core and custom reports associated with this project
     reports = get_assignments_with_paths(slug)
@@ -779,7 +783,8 @@ def report_upload(request, slug):
 
     return render(request, 'pjtk2/UploadReports.html',
                   {'formset': formset,
-                   'project': project})
+                   'project': project,
+                   'has_sister': has_sister })
 
 
 

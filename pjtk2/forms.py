@@ -71,7 +71,9 @@ class UserReadOnlyText(forms.TextInput):
     displace user first and last name of user if available, otherwise
     username.
     '''
+
     input_type = 'text'
+
     def render(self, name, value, attrs=None):
         user = User.objects.get(id=value)
         if user.first_name:
@@ -87,13 +89,15 @@ class ReadOnlyText(forms.TextInput):
                 rendering-a-value-as-text-instead-of-field-inside-a-django-form
     modified to get milestone labels if name starts with 'projectmilestone'
     '''
+
     input_type = 'text'
+
     def render(self, name, value, attrs=None):
         if name.startswith('projectmilestone'):
             value = Milestone.objects.get(id=value).label
         elif value is None:
             value = ''
-        return str(value)
+        return mark_safe(value)
 
 
 class HyperlinkWidget(forms.Widget):
@@ -453,6 +457,7 @@ class ReportUploadForm(forms.Form):
         required =False,
         )
 
+
     def __init__(self, *args, **kwargs):
         self.project = kwargs.pop('project')
         self.user = kwargs.pop('user')
@@ -461,6 +466,15 @@ class ReportUploadForm(forms.Form):
         #self.fields["report_path"].widget.attrs['style'] = "text-align: right;"
         self.fields["report_path"].widget.attrs['size'] = "40"
         self.fields["report_path"].widget.attrs['class'] = "fileinput"
+
+
+        if self.project.has_sister():
+            initial = kwargs.get('initial')
+            if initial:
+                ms = initial.get('milestone')
+                if ms.shared:
+                    new_class = "fileinput shared"
+                    self.fields["report_path"].widget.attrs['class'] = new_class
 
 
     def clean_milestone(self):

@@ -300,11 +300,12 @@
   <div class="panel well" >
     {% if Core %}
     <table class="table table-striped">
-      {% for report in Core  %}
+        {% for report in Core  %}
+
       <tr>
-        <td> <input type="checkbox" disabled="disabled"
+        <td > <input type="checkbox" disabled="disabled"
                     {% if report.required %} checked="checked" {% endif %}>
-          {{ report.milestone }}
+          {{ report.milestone }}{% if report.milestone.shared and has_sister %}*{% endif %}
         </td>
 
         {% if report.report %}
@@ -346,6 +347,10 @@
     <p><em>No reporting requirements associated with this project. </em></p>
     {% endif %}
   </div>
+
+  {% if has_sister %}
+  <p><em>* denotes reports shared across sister projects </em></p>
+  {% endif %}
 
   <br />
   <br />
