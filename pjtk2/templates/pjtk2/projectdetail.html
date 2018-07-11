@@ -33,6 +33,18 @@
           <td>{{ project.prj_cd }}</td>
         </tr>
 
+
+        <tr>
+          <td><strong>Project Start:</strong></td>
+          <td> {{ project.prj_date0|date:"M d, Y" }}</td>
+        </tr>
+
+        <tr>
+          <td><strong>Project End:</strong></td>
+          <td> {{ project.prj_date1 }}</td>
+        </tr>
+
+
         <tr>
           <td><strong>Project Lead:</strong></td>
           <td><a href="{% url 'user_project_list' project.prj_ldr.username %}">{{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a></td>
@@ -52,6 +64,19 @@
         </tr>
 
 
+        {% if project.project_team %}
+        {% for member in project.project_team.all %}
+        <tr>
+            <td>  {% if forloop.first %}
+                <strong>Project Team:</strong>
+                         {% endif %} </td><td> {{ member.first_name }} {{ member.last_name }}</td>
+        </tr>
+        {% endfor %}
+
+        {% endif %}
+
+
+
         {% if project.is_complete and project.signoff_by %}
         <td><strong>Sign-off Manager:</strong></td>
           <td> {{ project.signoff_by.first_name }} {{ project.signoff_by.last_name }}</td>
@@ -60,19 +85,15 @@
 
 
         <tr>
-          <td><strong>Project Start:</strong></td>
-          <td> {{ project.prj_date0|date:"M d, Y" }}</td>
-        </tr>
-
-        <tr>
-          <td><strong>Project End:</strong></td>
-          <td> {{ project.prj_date1 }}</td>
-        </tr>
-
-        <tr>
           <td><strong>Project Type:</strong></td>
           <td> {{ project.project_type }}</td>
         </tr>
+
+        <tr>
+          <td><strong>Master Database:</strong></td>
+          <td>          <a href="#">{{ project.master_database.master_database }}</a> </td>
+        </tr>
+
 
         {% if project.funding %}
         <tr>
@@ -97,10 +118,6 @@
 
         {% endif %}
 
-        <tr>
-          <td><strong>Master Database:</strong></td>
-          <td>          <a href="#">{{ project.master_database.master_database }}</a> </td>
-        </tr>
       </table>
 
 

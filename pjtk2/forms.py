@@ -709,10 +709,11 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
-    dba = forms.ModelChoiceField(
+    dba = UserModelChoiceField(
         label="DBA:",
         #TODO - change this from superuser to groups__contain='dba'
-        queryset=User.objects.filter(is_superuser=True).\
+        queryset=User.objects.filter(is_active=True).\
+        filter(employee__role__in=['dba']).\
         order_by('first_name', 'last_name'),
         required=True,
     )
@@ -779,15 +780,29 @@ class ProjectForm(forms.ModelForm):
             ),})
 
 
+    def save(self, commit=True):
+        """Override the save method to save many-2-many relationships."""
+        # Get the unsaved project instance
+        instance = forms.ModelForm.save(self, False)
 
+        # Prepare a 'save_m2m' method for the form,
+        old_save_m2m = self.save_m2m
 
-#            self.helper.layout[0].extend(
-#                [Div(Fieldset(
-#                    'Milestones',
-#                    #'milestones'
-#                    Field('milestones',
-#                          template='pjtk2/_MultipleSelectwDisable.html')
-#                ), css_class="row")])
+        def save_m2m():
+            old_save_m2m()
+            instance.project_team.clear()
+            project_team = self.cleaned_data.get('project_team')
+
+            if project_team:
+                for member in project_team:
+                    instance.project_team.add(member)
+
+        self.save_m2m = save_m2m
+
+        instance.save()
+        self.save_m2m()
+
+        return instance
 
 
     def clean_approved(self):

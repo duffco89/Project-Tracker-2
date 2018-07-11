@@ -328,6 +328,82 @@ class ProjectDetailownerTestCase(TestCase):
         self.user.delete()
 
 
+
+
+
+class ProjectTeamMembersProjectDetail(TestCase):
+    '''Verify that the team members are included on the project detail
+    page when a team is associated with a project.'''
+
+    def setUp(self):
+        self.client = Client()
+        self.user = UserFactory(first_name="Homer", last_name="Simpson")
+
+        #some project team members:
+        self.user_lisa = UserFactory(username="lsimpson",
+                                first_name="Lisa", last_name="Simpson")
+        self.user_bart = UserFactory(username="bsimpson",
+                                first_name="Bart", last_name="Simpson")
+        self.user_maggie = UserFactory(username="msimpson",
+                                first_name="Maggie", last_name="Simpson")
+
+        self.project = ProjectFactory(prj_ldr=self.user,
+                                      dba=self.user,
+                                      owner = self.user)
+
+        self.project2 = ProjectFactory(prj_cd="LHA_IA17_123",
+                                       prj_ldr=self.user,
+                                       dba=self.user,
+                                       owner = self.user)
+
+        #add Lisa and Bart to the team for project2. Don't add Maggie
+        #to any team.
+        self.project2.project_team.add(self.user_bart)
+        self.project2.project_team.add(self.user_lisa)
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
+
+
+    def test_project_without_team(self):
+        '''If we view a the details for a project without a team, it should
+        not contiain the phrase "Team Members:"
+        '''
+        response = self.client.get(reverse('project_detail',
+                                        kwargs={'slug':self.project.slug}))
+        self.assertEqual(response.status_code,200)
+
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        self.assertNotContains(response, 'Project Team:')
+        self.assertNotContains(response, 'Bart Simpson')
+        self.assertNotContains(response, 'Lisa Simpson')
+        self.assertNotContains(response, 'Maggie Simpson')
+
+
+    def test_project_wit_team(self):
+        '''If we view a the details for a project with a team, it should
+        contiain the phrase "Team Members:" as well as each of their names.
+        '''
+        response = self.client.get(reverse('project_detail',
+                                        kwargs={'slug':self.project2.slug}))
+        self.assertEqual(response.status_code,200)
+
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        self.assertContains(response, 'Project Team:')
+        self.assertContains(response, 'Bart Simpson')
+        self.assertContains(response, 'Lisa Simpson')
+        #maggie was not on the team and should not be in the response
+        self.assertNotContains(response, 'Maggie Simpson')
+
+
+    def tearDown(self):
+        self.project.delete()
+        self.user.delete()
+
+
 class ProjectDetailJoeUserTestCase(TestCase):
     '''verify that a user who is not the owner can see the project but
     will be unable to edit any fields, upload reports or set

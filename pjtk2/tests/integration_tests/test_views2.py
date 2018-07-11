@@ -97,20 +97,26 @@ class ProjectTaggingTestCase(WebTest):
 
         self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
 
+        self.dba = DBA_Factory.create()
+        self.dba_role = EmployeeFactory.create(user=self.dba, role='dba')
+
 
         prj_cd = "LHA_IA{}_111".format(year)
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
                                               project_type = self.ProjType,
+                                              dba=self.dba
                                               )
         prj_cd = "LHA_IA{}_222".format(year)
         self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
-                                              project_type = self.ProjType)
+                                              project_type = self.ProjType,
+                                              dba=self.dba)
 
         prj_cd = "LHA_IA{}_333".format(year)
         self.project3 = ProjectFactory.create(prj_cd=prj_cd,
                                               owner=self.user,
+                                              dba=self.dba,
                                               project_type = self.ProjType)
 
         signoff = MilestoneFactory(label="Sign Off")
@@ -839,6 +845,9 @@ class TestProjectDetailForm(WebTest):
         self.user2.groups.add(managerGrp)
 
 
+        self.dba = DBA_Factory.create()
+        self.dba_role = EmployeeFactory.create(user=self.dba, role='dba')
+
         #milestones
         self.ms1 = MilestoneFactory.create(label = "Approved", protected=True,
                                            category = 'Core', order = 1,
@@ -863,7 +872,8 @@ class TestProjectDetailForm(WebTest):
         year = str(datetime.datetime.today().year - 3)[2:]
         prj_cd = "LHA_IA{}_111".format(year)
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
-                                              owner=self.user1)
+                                              owner=self.user1,
+                                              dba=self.dba)
 
 
 
@@ -1241,12 +1251,16 @@ class TestCanCopyProject(WebTest):
                                 last_name = 'Gumble',
                                        )
 
+        self.dba = DBA_Factory.create()
+        self.dba_role = EmployeeFactory.create(user=self.dba, role='dba')
+
         year = str(datetime.datetime.today().year - 3)[2:]
         prj_cd = "LHA_IA{}_111".format(year)
 
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
-                                              owner=self.user1)
+                                              owner=self.user1,
+                                              dba=self.dba)
 
         signoff = MilestoneFactory(label="Sign Off")
         ProjectMilestonesFactory(project=self.project1, milestone=signoff)
@@ -1338,19 +1352,24 @@ class TestFieldLeader(WebTest):
                                 last_name = 'Gumble',
         )
 
+        self.dba = DBA_Factory.create()
+        self.dba_role = EmployeeFactory.create(user=self.dba, role='dba')
+
         year = str(datetime.datetime.today().year - 3)[2:]
 
         prj_cd = "LHA_IA{}_111".format(year)
         self.project1 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
                                               field_ldr=self.user2,
-                                              owner=self.user1)
+                                              owner=self.user1,
+                                              dba=self.dba)
 
         prj_cd = "LHA_IA{}_222".format(year)
         self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user1,
                                               field_ldr=None,
-                                              owner=self.user1)
+                                              owner=self.user1,
+                                              dba=self.dba)
 
         signoff = MilestoneFactory(label="Sign Off")
         ProjectMilestonesFactory(project=self.project1, milestone=signoff)
