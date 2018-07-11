@@ -102,10 +102,20 @@ class TestProjectForm(TestCase):
         self.user = UserFactory(username="hsimpson",
                                 first_name="Homer", last_name="Simpson")
         self.dba = DBA_Factory.create()
+        self.dba_role = EmployeeFactory.create(user=self.dba, role='dba')
 
         self.ptype = ProjTypeFactory()
         self.lake = LakeFactory()
         self.dbase = DatabaseFactory()
+
+        #some project team members:
+        self.user_lisa = UserFactory(username="lsimpson",
+                                first_name="Lisa", last_name="Simpson")
+        self.user_bart = UserFactory(username="bsimpson",
+                                first_name="Bart", last_name="Simpson")
+        self.user_maggie = UserFactory(username="msimpson",
+                                first_name="Maggie", last_name="Simpson")
+
 
 
     def test_good_data(self):
@@ -136,6 +146,45 @@ class TestProjectForm(TestCase):
             print("form.non_field_errors(): %s" % form.non_field_errors())
 
         self.assertEqual(form.is_valid(), True)
+
+
+    def test_project_team(self):
+        """ Good data with additional team members"""
+        proj = dict(
+            prj_cd = "LHA_IA12_103",
+            prj_nm = "Fake Project",
+            prj_ldr = self.user.id,
+            prj_date0 = datetime.datetime.strptime("January 15, 2012",
+                                                   "%B %d, %Y"),
+            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
+            abstract = "This is a fake project",
+            project_type = self.ptype.id,
+            master_database = self.dbase.id,
+            lake = self.lake.id,
+            tags = "red, blue, green",
+            owner = self.user.id,
+            dba = self.dba.id,
+            odoe = 1000,
+            salary = 1000,
+            project_team = [self.user_bart.id, self.user_lisa.id]
+           )
+
+        form = ProjectForm(data=proj)
+        form.is_valid()
+        if form.errors:
+            print("form.errors: %s" % form.errors)
+        if form.non_field_errors():
+            print("form.non_field_errors(): %s" % form.non_field_errors())
+
+        self.assertEqual(form.is_valid(), True)
+
+        #save our form and make sure that our team is correct:
+        form.save()
+        project = Project.objects.get(prj_cd=proj['prj_cd'])
+        project_team = project.project_team.all()
+        assert self.user_bart in project_team
+        assert self.user_lisa in project_team
+        assert self.user_maggie not in project_team
 
 
     def test_good_project_codes(self):
