@@ -689,13 +689,6 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
-    funding = forms.CharField(
-        label = 'Funding Source:',
-        widget=Select(choices=Project.FUNDING_CHOICES),
-        required=False)
-
-    salary = forms.DecimalField(required=False, decimal_places=2)
-    odoe = forms.DecimalField(required=False, decimal_places=2)
 
     master_database = forms.ModelChoiceField(
         label="Master Database:",
@@ -728,7 +721,7 @@ class ProjectForm(forms.ModelForm):
         fields = ("prj_nm", "prj_ldr", "field_ldr", "owner","prj_cd",
                   "prj_date0", "prj_date1", "risk", 'project_type',
                   "master_database", "lake", "abstract", "comment",
-                  "dba", "tags", 'salary', 'odoe', 'funding', 'project_team')
+                  "dba", "tags", 'project_team')
 
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop('readonly', False)
