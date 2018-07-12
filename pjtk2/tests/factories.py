@@ -178,6 +178,29 @@ class MilestoneFactory(factory.DjangoModelFactory):
     order = 1
 
 
+class FundingSourceFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = FundingSource
+
+    '''Funding Source(s)'''
+
+    name = "Special Purpose Account"
+    abbrev = "spa"
+
+
+class ProjectFundingFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = ProjectFunding
+
+    '''Funding Source(s) for each project'''
+
+    project = factory.SubFactory(ProjectFactory)
+    source = factory.SubFactory(FundingSourceFactory)
+
+    odoe = 1000
+    salary = 5000
+
+
 class ProjectMilestonesFactory(factory.DjangoModelFactory):
     class Meta:
         model = ProjectMilestones

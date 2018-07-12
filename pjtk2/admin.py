@@ -3,7 +3,8 @@ from django.contrib import admin
 
 from pjtk2.models import (Milestone, ProjectType, Database, Project,
                           Report, Lake, Family, Employee, ProjectMilestones,
-                          ProjectSisters, Message, Messages2Users)
+                          ProjectSisters, Message, Messages2Users,
+                          FundingSource, ProjectFunding)
 
 
 class Admin_Milestone(admin.ModelAdmin):
@@ -34,6 +35,16 @@ class Admin_Project(admin.ModelAdmin):
     '''Admin class for Projects'''
     list_display = ('year', 'prj_cd', 'prj_nm','prj_ldr', 'project_type')
     list_filter = ('project_type','year', 'prj_ldr', 'lake')
+
+
+class Admin_FundingSource(admin.ModelAdmin):
+    '''Admin class for our funding sources'''
+    pass
+
+class Admin_ProjectFunding(admin.ModelAdmin):
+    '''Admin class for our funding sources for each project'''
+    pass
+
 
 
 class Admin_Family(admin.ModelAdmin):
@@ -95,3 +106,6 @@ admin.site.register(ProjectSisters, Admin_ProjectSisters)
 admin.site.register(Employee, Admin_Employee)
 admin.site.register(Message, Admin_Message)
 admin.site.register(Messages2Users, Admin_Messages2Users)
+
+admin.site.register(FundingSource, Admin_FundingSource)
+admin.site.register(ProjectFunding, Admin_ProjectFunding)

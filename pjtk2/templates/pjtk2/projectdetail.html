@@ -1,5 +1,5 @@
 {% extends "pjtk2/pjtk2_base.html" %}
-
+{% load humanize %}
 {% load leaflet_tags %}
 {% load pjtk2_tags %}
 
@@ -17,456 +17,518 @@
 
 <div class="container" >
 
+    <h2>{{ project.prj_nm  }}</h2>
+    <br />
 
-  <div class="row" >
-    <div class="col-md-5" >
-      <h2>{{ project.prj_nm  }}</h2>
-      <br />
+    <div class="row" >
+        <div class="col-md-5" >
 
-      {% if project.cancelled %}
-      <div class="alert alert-danger" role="alert"> This project was cancelled.</div>
-      {% endif %}
-
-      <table cellspacing="0" class="table">
-        <tr>
-          <td><strong>Project Code:</strong></td>
-          <td>{{ project.prj_cd }}</td>
-        </tr>
-
-
-        <tr>
-          <td><strong>Project Start:</strong></td>
-          <td> {{ project.prj_date0|date:"M d, Y" }}</td>
-        </tr>
-
-        <tr>
-          <td><strong>Project End:</strong></td>
-          <td> {{ project.prj_date1 }}</td>
-        </tr>
-
-
-        <tr>
-          <td><strong>Project Lead:</strong></td>
-          <td><a href="{% url 'user_project_list' project.prj_ldr.username %}">{{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a></td>
-        </tr>
-
-        {% if project.field_ldr %}
-
-        <tr>
-          <td><strong>Field Lead:</strong></td>
-          <td><a href="{% url 'user_project_list' project.field_ldr.username %}">{{ project.field_ldr.first_name }} {{ project.field_ldr.last_name }}</a></td>
-        </tr>
-        {% endif %}
-
-
-        <td><strong>Data Custodian:</strong></td>
-          <td> {{ project.owner.first_name }} {{ project.owner.last_name }}</td>
-        </tr>
-
-
-        {% if project.project_team %}
-        {% for member in project.project_team.all %}
-        <tr>
-            <td>  {% if forloop.first %}
-                <strong>Project Team:</strong>
-                         {% endif %} </td><td> {{ member.first_name }} {{ member.last_name }}</td>
-        </tr>
-        {% endfor %}
-
-        {% endif %}
+            {% if project.cancelled %}
+            <div class="alert alert-danger" role="alert"> This project was cancelled.</div>
+            {% endif %}
 
 
 
-        {% if project.is_complete and project.signoff_by %}
-        <td><strong>Sign-off Manager:</strong></td>
-          <td> {{ project.signoff_by.first_name }} {{ project.signoff_by.last_name }}</td>
-        </tr>
-        {% endif %}
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Project Details</h3>
+                </div>
+                <div class="panel-body">
+
+                    <table class="table">
+
+                        <tr>
+                            <td><strong>Project Code:</strong></td>
+                            <td>{{ project.prj_cd }}</td>
+                        </tr>
 
 
-        <tr>
-          <td><strong>Project Type:</strong></td>
-          <td> {{ project.project_type }}</td>
-        </tr>
+                        <tr>
+                            <td><strong>Project Start:</strong></td>
+                            <td> {{ project.prj_date0|date:"M d, Y" }}</td>
+                        </tr>
 
-        <tr>
-          <td><strong>Master Database:</strong></td>
-          <td>          <a href="#">{{ project.master_database.master_database }}</a> </td>
-        </tr>
-
-
-        {% if project.funding %}
-        <tr>
-          <td><strong>Funding Source:</strong></td>
-          <td> {{ project.get_funding_display }}</td>
-        </tr>
-        {% endif %}
-
-        {% if project.total_cost > 0 %}
-        <tr>
-          <td><strong>Salary:</strong></td>
-          <td class="text-right"> {{ project.salary }}</td>
-        </tr>
-        <tr>
-          <td><strong>ODOE:</strong></td>
-          <td class="text-right"> {{ project.odoe }}</td>
-        </tr>
-        <tr>
-          <td><strong>Total Cost:</strong></td>
-          <td class="text-right"> {{ project.total_cost }}</td>
-        </tr>
-
-        {% endif %}
-
-      </table>
+                        <tr>
+                            <td><strong>Project End:</strong></td>
+                            <td> {{ project.prj_date1 }}</td>
+                        </tr>
 
 
-      {{ project | fisheye_button }}
+
+                        <tr>
+                            <td><strong>Project Type:</strong></td>
+                            <td> {{ project.project_type }}</td>
+                        </tr>
+
+                        <tr>
+                            <td><strong>Master Database:</strong></td>
+                            <td>          <a href="#">{{ project.master_database.master_database }}</a> </td>
+                        </tr>
 
 
-      {% if edit %}
-      {% with  project.abstract|length as abstract_length %}
-      {% if abstract_length > 2500 %}
-      <div class="alert alert-danger" role="alert">
-          <p>The abstract for this project exceeds the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
-      </div>
-      {% elif  abstract_length > 2000 %}
-      <div class="alert alert-warning" role="alert">
-          <p>The abstract for this project is approaching the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
-      </div>
-      {% endif %}
-      {% endwith %}
-      {% endif %}
 
-      <p><strong>Project Abstract (public facing):</strong></p>
+                    </table>
 
-      <div class="panel panel-default" >
-        <div class="panel-body" >
-          {% if project.abstract_html %}
-          <p>{{ project.abstract_html|safe  }} </p>
-          {% else %}
-          <p><em>Sorry. No project abstract has been provided. </em>   </p>
-          {% endif %}
+                </div>
+            </div>
+
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Staffing</h3>
+                </div>
+                <div class="panel-body">
+
+                    <table class="table">
+
+                        <tr>
+                            <td><strong>Project Lead:</strong></td>
+                            <td><a href="{% url 'user_project_list' project.prj_ldr.username %}">{{ project.prj_ldr.first_name }} {{ project.prj_ldr.last_name }}</a></td>
+                        </tr>
+
+                        {% if project.field_ldr %}
+
+                        <tr>
+                            <td><strong>Field Lead:</strong></td>
+                            <td><a href="{% url 'user_project_list' project.field_ldr.username %}">{{ project.field_ldr.first_name }} {{ project.field_ldr.last_name }}</a></td>
+                        </tr>
+                        {% endif %}
+
+
+                        <td><strong>Data Custodian:</strong></td>
+                        <td> {{ project.owner.first_name }} {{ project.owner.last_name }}</td>
+                        </tr>
+
+
+                        {% if project.project_team %}
+                        {% for member in project.project_team.all %}
+                        <tr>
+                            <td>  {% if forloop.first %}
+                                <strong>Project Team:</strong>
+                                {% endif %} </td><td> {{ member.first_name }} {{ member.last_name }}</td>
+                        </tr>
+                        {% endfor %}
+
+                        {% endif %}
+
+
+
+                        {% if project.is_complete and project.signoff_by %}
+                        <td><strong>Sign-off Manager:</strong></td>
+                        <td> {{ project.signoff_by.first_name }} {{ project.signoff_by.last_name }}</td>
+                        </tr>
+                        {% endif %}
+
+
+
+                    </table>
+
+
+
+                </div>
+            </div>
+
+
+
+
+
+
+            {% if project.funding_sources.all %}
+
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Funding</h3>
+                </div>
+                <div class="panel-body">
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Source</th>
+                                <th>Salary</th>
+                                <th>ODOE</th>
+                                <th>Total</th>
+                            </tr>
+
+                        </thead>
+                        {% for source in project.funding_sources.all %}
+                        <tr>
+                            <td><a href="#">{{ source.source.abbrev }}</a></td>
+                            <td>{{ source.salary|floatformat:"0"|intcomma }}</td>
+                            <td>{{ source.odoe|floatformat:"0"|intcomma }}</td>
+                            <td>{{ source.total|floatformat:"0"|intcomma }}</td>
+                        </tr>
+                        {% endfor %}
+
+
+                        {% if project.funding_sources.count > 1 %}
+
+                        <tr>
+                            <td>Total</td>
+                            <td>{{ project.total_salary|floatformat:"0"|intcomma }}</td>
+                            <td>{{ project.total_odoe|floatformat:"0"|intcomma }}</td>
+                            <td>{{ project.total_cost|floatformat:"0"|intcomma }}</td>
+                        </tr>
+
+                        {% endif %}
+
+
+                    </table>
+
+
+                </div>
+            </div>
+
+
+            {% endif %}
+
+            {{ project | fisheye_button }}
+
+
+            {% if edit %}
+            {% with  project.abstract|length as abstract_length %}
+            {% if abstract_length > 2500 %}
+            <div class="alert alert-danger" role="alert">
+                <p>The abstract for this project exceeds the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
+            </div>
+            {% elif  abstract_length > 2000 %}
+            <div class="alert alert-warning" role="alert">
+                <p>The abstract for this project is approaching the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
+            </div>
+            {% endif %}
+            {% endwith %}
+            {% endif %}
+
+            <p><strong>Project Abstract (public facing):</strong></p>
+
+            <div class="panel panel-default" >
+                <div class="panel-body" >
+                    {% if project.abstract_html %}
+                    <p>{{ project.abstract_html|safe  }} </p>
+                    {% else %}
+                    <p><em>Sorry. No project abstract has been provided. </em>   </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if user.is_authenticated %}
+            <p><strong>Comments or Remarks:</strong></p>
+
+            <div class="panel panel-default" >
+                <div class="panel-body" >
+                    {% if project.comment_html %}
+                    <p>{{ project.comment_html|safe  }} </p>
+                    {% else %}
+                    <p><em>Sorry. No project description has been provided. </em>   </p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if project.risk_html %}
+            <p><strong>Risks:</strong></p>
+            <div class="panel panel-default" >
+                <div class="panel-body" >
+                    <p>{{ project.risk_html|safe  }} </p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if project.has_sister %}
+            <p><strong>Sister Projects:</strong></p>
+            <div class="panel panel-default" >
+                <div class="panel-body" >
+                    {% for sister in project.get_sisters %}
+                    <p><a href="{{ sister.get_absolute_url  }}">{{ sister.prj_cd }}</a>  - {{ sister.prj_nm }}</p>
+                    {% endfor%}
+                </div>
+            </div>
+            {% endif %}
+
+            <p><strong>keywords:</strong></p>
+            <div class="panel panel-default" >
+                <div class="panel-body" >
+                    {% if project.tags.all %}
+                    {% for tag in project.tags.all %}
+                    <a href="{% url 'TaggedProjects' tag.name %}">{{ tag.name }}</a>,
+                    {% endfor %}
+                    {% else %}
+                    <p><em>No keywords have have been associated with this project. </em>   </p>
+                    {% endif%}
+                </div>
+            </div>
         </div>
-      </div>
+        <div class="col-md-7" >
 
-      {% if user.is_authenticated %}
-      <p><strong>Comments or Remarks:</strong></p>
+            <div id="main_map" style="width: 600px; height: 600px;"></div>
 
-      <div class="panel panel-default" >
-        <div class="panel-body" >
-          {% if project.comment_html %}
-          <p>{{ project.comment_html|safe  }} </p>
-          {% else %}
-          <p><em>Sorry. No project description has been provided. </em>   </p>
-          {% endif %}
         </div>
-      </div>
-      {% endif %}
-
-      {% if project.risk_html %}
-      <p><strong>Risks:</strong></p>
-      <div class="panel panel-default" >
-        <div class="panel-body" >
-          <p>{{ project.risk_html|safe  }} </p>
-        </div>
-      </div>
-      {% endif %}
-
-      {% if project.has_sister %}
-      <p><strong>Sister Projects:</strong></p>
-      <div class="panel panel-default" >
-        <div class="panel-body" >
-        {% for sister in project.get_sisters %}
-         <p><a href="{{ sister.get_absolute_url  }}">{{ sister.prj_cd }}</a>  - {{ sister.prj_nm }}</p>
-        {% endfor%}
-        </div>
-      </div>
-      {% endif %}
-
-      <p><strong>keywords:</strong></p>
-      <div class="panel panel-default" >
-        <div class="panel-body" >
-          {% if project.tags.all %}
-          {% for tag in project.tags.all %}
-          <a href="{% url 'TaggedProjects' tag.name %}">{{ tag.name }}</a>,
-          {% endfor %}
-          {% else %}
-          <p><em>No keywords have have been associated with this project. </em>   </p>
-          {% endif%}
-        </div>
-      </div>
     </div>
-    <div class="col-md-7" >
+    <br />
+    <div class="row" >
+        <div class="well" >
+            <form>
+                <fieldset>
+                    <legend> Milestones:</legend>
 
-    <div id="main_map" style="width: 600px; height: 600px;"></div>
+                    {% for milestone in milestones %}
+                    <input type="checkbox" disabled="disabled"
+                           {% if milestone.completed  %} checked="checked" {% endif %}> {{ milestone.milestone.label }}
+                    {% endfor %}
 
+                </fieldset>
+            </form>
+        </div>
     </div>
-  </div>
-  <br />
-  <div class="row" >
-    <div class="well" >
-      <form>
-        <fieldset>
-          <legend> Milestones:</legend>
 
-          {% for milestone in milestones %}
-          <input type="checkbox" disabled="disabled"
-                 {% if milestone.completed  %} checked="checked" {% endif %}> {{ milestone.milestone.label }}
-          {% endfor %}
+    {% if user.is_authenticated %}
+    <div class="row" >
+        <div class="btn-group" >
 
-        </fieldset>
-      </form>
+            {% if edit %}
+            <a href="{% url 'EditProject' project.slug %}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-default">Edit Information</button> </a>
+
+            {% if project.is_approved %}
+            <a href="{% url 'SisterProjects' project.slug %}">
+                <button type="button" class="btn btn-default">Sister Projects</button> </a>
+            {% else %}
+            <a href="#"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-default" disabled="disabled">Sister Projects</button> </a>
+            {% endif %}
+
+            {% endif  %}
+            <a href="{% url 'CopyProject' project.slug %}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-default">Copy Project</button> </a>
+            {% if_bookmarked user project %}
+            <a href="{% url 'Unbookmark_Project' project.slug %}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-default">Remove Bookmark</button> </a>
+            {% else %}
+            <a href="{% url 'Bookmark_Project' project.slug %}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-default">Bookmark Project</button> </a>
+            {% endif_bookmarked %}
+
+
+            {% if edit %}
+            <a href="{% url 'ReportUpload' project.slug %}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-info">Upload Reports</button> </a>
+            {% endif %}
+
+
+            {% if manager %}
+            {% if project.is_complete %}
+            <a href="{% url 'reopen_project' project.slug %}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-success">Re-Open Project</button> </a>
+
+            {% else %}
+
+            {% if project.is_approved %}
+
+            {% if project.cancelled %}
+
+            <a href="#" onclick="javascript:window.location=this.href">
+                <a href="{% url 'uncancel_project' project.slug %}" onclick="javascript:window.location=this.href">
+                    <button type="button" class="btn btn-danger">Un-Cancel</button> </a>
+
+                {% else %}
+
+                <a href="{% url 'Reports' project.slug %}?next={{ request.path|urlencode }}"
+                   onclick="javascript:window.location=this.href">
+                    <button type="button" class="btn btn-primary">Change Reporting Requirements</button> </a>
+
+
+                <a href="{% url 'cancel_project' project.slug %}" onclick="javascript:window.location=this.href">
+                    <button type="button" class="btn btn-danger">Cancel</button> </a>
+                {% endif %}
+
+                {% else %}
+
+                <a href="{% url 'approve_project' project.slug %}"  onclick="javascript:window.location=this.href">
+                    <button type="button" class="btn btn-primary">Approve</button> </a>
+
+                {% endif %}
+
+                {% if not project.cancelled %}
+                <a href="{% url 'signoff_project' project.slug %}"
+                   onclick="javascript:window.location=this.href">
+                    <button type="button" class="btn btn-success">Sign Off</button> </a>
+                {% endif %}
+
+                {% endif %}
+
+                {% endif %}
+
+        </div>
     </div>
-  </div>
+    {% endif %}
 
-  {% if user.is_authenticated %}
-  <div class="row" >
-    <div class="btn-group" >
+    <hr />
 
-      {% if edit %}
-      <a href="{% url 'EditProject' project.slug %}"
-         onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-default">Edit Information</button> </a>
+    <h3>Reporting Requirements:</h3>
+    <br />
+    <h4>Core Reporting Requirements:</h4>
 
-      {% if project.is_approved %}
-      <a href="{% url 'SisterProjects' project.slug %}">
-        <button type="button" class="btn btn-default">Sister Projects</button> </a>
-      {% else %}
-      <a href="#"
-         onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-default" disabled="disabled">Sister Projects</button> </a>
-      {% endif %}
+    <div class="panel well" >
+        {% if Core %}
+        <table class="table table-striped">
+            {% for report in Core  %}
 
-      {% endif  %}
-      <a href="{% url 'CopyProject' project.slug %}"
-         onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-default">Copy Project</button> </a>
-      {% if_bookmarked user project %}
-      <a href="{% url 'Unbookmark_Project' project.slug %}"
-         onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-default">Remove Bookmark</button> </a>
-      {% else %}
-      <a href="{% url 'Bookmark_Project' project.slug %}"
-         onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-default">Bookmark Project</button> </a>
-      {% endif_bookmarked %}
+            <tr>
+                <td > <input type="checkbox" disabled="disabled"
+                             {% if report.required %} checked="checked" {% endif %}>
+                    {{ report.milestone }}{% if report.milestone.shared and has_sister %}*{% endif %}
+                </td>
 
+                {% if report.report %}
+                <td><a href="{% url 'serve_file' report.report %}">{{ report.report }}</a></td>
 
-      {% if edit %}
-      <a href="{% url 'ReportUpload' project.slug %}"
-         onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-info">Upload Reports</button> </a>
-      {% endif %}
+                {% if edit %}
+                <td>
+                    <a href="{% url 'delete_report' slug=project.slug pk=report.report.id %}">
+                        <button type="button" class="btn btn-danger btn-sm">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </a>
+                </td>
+                {% else %}
+                <td>
+                    <button type="button" class="btn btn-default btn-sm" disabled="disabled">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </button>
+                    {% endif %}
 
-
-      {% if manager %}
-      {% if project.is_complete %}
-      <a href="{% url 'reopen_project' project.slug %}"
-         onclick="javascript:window.location=this.href">
-          <button type="button" class="btn btn-success">Re-Open Project</button> </a>
-
-      {% else %}
-
-      {% if project.is_approved %}
-
-      {% if project.cancelled %}
-
-      <a href="#" onclick="javascript:window.location=this.href">
-          <a href="{% url 'uncancel_project' project.slug %}" onclick="javascript:window.location=this.href">
-              <button type="button" class="btn btn-danger">Un-Cancel</button> </a>
-
-          {% else %}
-
-          <a href="{% url 'Reports' project.slug %}?next={{ request.path|urlencode }}"
-             onclick="javascript:window.location=this.href">
-              <button type="button" class="btn btn-primary">Change Reporting Requirements</button> </a>
-
-
-          <a href="{% url 'cancel_project' project.slug %}" onclick="javascript:window.location=this.href">
-              <button type="button" class="btn btn-danger">Cancel</button> </a>
-          {% endif %}
-
-          {% else %}
-
-          <a href="{% url 'approve_project' project.slug %}"  onclick="javascript:window.location=this.href">
-              <button type="button" class="btn btn-primary">Approve</button> </a>
-
-          {% endif %}
-
-          {% if not project.cancelled %}
-          <a href="{% url 'signoff_project' project.slug %}"
-             onclick="javascript:window.location=this.href">
-              <button type="button" class="btn btn-success">Sign Off</button> </a>
-          {% endif %}
-
-          {% endif %}
-
-          {% endif %}
-
-    </div>
-  </div>
-  {% endif %}
-
-  <hr />
-
-  <h3>Reporting Requirements:</h3>
-  <br />
-  <h4>Core Reporting Requirements:</h4>
-
-  <div class="panel well" >
-    {% if Core %}
-    <table class="table table-striped">
-        {% for report in Core  %}
-
-      <tr>
-        <td > <input type="checkbox" disabled="disabled"
-                    {% if report.required %} checked="checked" {% endif %}>
-          {{ report.milestone }}{% if report.milestone.shared and has_sister %}*{% endif %}
-        </td>
-
-        {% if report.report %}
-        <td><a href="{% url 'serve_file' report.report %}">{{ report.report }}</a></td>
-
-        {% if edit %}
-        <td>
-          <a href="{% url 'delete_report' slug=project.slug pk=report.report.id %}">
-            <button type="button" class="btn btn-danger btn-sm">
-              <span class="glyphicon glyphicon-remove"></span>
-            </button>
-          </a>
-        </td>
+                    {% else %}
+                    {% if report.required %}
+                    <td>
+                        <div class="na"><em> Report not available yet. </em></div>
+                    </td>
+                    {% else %}
+                    <td><div class="na"><em> Not requested. </em></div></td>
+                    {% endif %}
+                    <td>
+                        <button type="button" class="btn btn-default btn-sm" disabled="disabled">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </td>
+                    {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
         {% else %}
-        <td>
-          <button type="button" class="btn btn-default btn-sm" disabled="disabled">
-            <span class="glyphicon glyphicon-remove"></span>
-          </button>
+        <p><em>No reporting requirements associated with this project. </em></p>
         {% endif %}
+    </div>
 
-          {% else %}
-          {% if report.required %}
-          <td>
-            <div class="na"><em> Report not available yet. </em></div>
-          </td>
-          {% else %}
-          <td><div class="na"><em> Not requested. </em></div></td>
-          {% endif %}
-          <td>
-            <button type="button" class="btn btn-default btn-sm" disabled="disabled">
-              <span class="glyphicon glyphicon-remove"></span>
-            </button>
-          </td>
-          {% endif %}
-      </tr>
-      {% endfor %}
-    </table>
-    {% else %}
-    <p><em>No reporting requirements associated with this project. </em></p>
+    {% if has_sister %}
+    <p><em>* denotes reports shared across sister projects </em></p>
     {% endif %}
-  </div>
 
-  {% if has_sister %}
-  <p><em>* denotes reports shared across sister projects </em></p>
-  {% endif %}
+    <br />
+    <br />
 
-  <br />
-  <br />
+    <h4>Additional Reporting Requirements:</h4>
+    <div class="panel well">
+        {% if Custom %}
+        <table class="table table-striped">
+            {% for report in Custom  %}
+            <tr>
+                <td> <input type="checkbox" disabled="disabled"
+                            {% if report.required %} checked="checked" {% endif %}>
+                    {{ report.milestone }}
+                </td>
+                {% if report.report %}
+                <td><a href="{% url 'serve_file' report.report %}">{{ report.report }}</a></td>
+                {% if edit %}
+                <td>
+                    <a href="{% url 'delete_report' slug=project.slug pk=report.report.id %}">
+                        <button type="button" class="btn btn-danger btn-sm">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </a>
+                </td>
+                {% else %}
+                <td>
+                    <button type="button" class="btn btn-default btn-sm" disabled="disabled">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </button>
+                    {% endif %}
 
-  <h4>Additional Reporting Requirements:</h4>
-  <div class="panel well">
-    {% if Custom %}
-    <table class="table table-striped">
-      {% for report in Custom  %}
-      <tr>
-        <td> <input type="checkbox" disabled="disabled"
-                    {% if report.required %} checked="checked" {% endif %}>
-          {{ report.milestone }}
-        </td>
-        {% if report.report %}
-        <td><a href="{% url 'serve_file' report.report %}">{{ report.report }}</a></td>
-        {% if edit %}
-        <td>
-          <a href="{% url 'delete_report' slug=project.slug pk=report.report.id %}">
-            <button type="button" class="btn btn-danger btn-sm">
-              <span class="glyphicon glyphicon-remove"></span>
-            </button>
-          </a>
-        </td>
+                    {% else %}
+                    {% if report.required %}
+                    <td>
+                        <div class="na"><em> Report not available yet. </em></div>
+                    </td>
+                    {% else %}
+                    <td><div class="na"><em> Not requested. </em></div></td>
+                    {% endif %}
+                    <td>
+                        <button type="button" class="btn btn-default btn-sm" disabled="disabled">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </td>
+                    {% endif %}
+            </tr>
+
+            {% endfor %}
+        </table>
         {% else %}
-        <td>
-          <button type="button" class="btn btn-default btn-sm" disabled="disabled">
-            <span class="glyphicon glyphicon-remove"></span>
-          </button>
-          {% endif %}
-
-          {% else %}
-          {% if report.required %}
-          <td>
-            <div class="na"><em> Report not available yet. </em></div>
-          </td>
-          {% else %}
-          <td><div class="na"><em> Not requested. </em></div></td>
-          {% endif %}
-          <td>
-            <button type="button" class="btn btn-default btn-sm" disabled="disabled">
-              <span class="glyphicon glyphicon-remove"></span>
-            </button>
-          </td>
-          {% endif %}
-      </tr>
-
-      {% endfor %}
-    </table>
-    {% else %}
-    <p><em>No additonal reporting requirements associated with this project. </em></p>
-    {% endif %}
-  </div>
-
-
-  <hr />
-
-  <div class="row">
-    <div class="col-md-10" >
-    <h4>Associated Files:</h4>
-    </div>
-    {% if edit %}
-    <div class="col-md-2" >
-      <a href="{% url 'associated_file_upload' project.slug %}"
-         onclick="javascript:window.location=this.href">
-        <button type="button" class="btn btn-primary">Upload Assoc. Files</button> </a>
-    </div>
-    {% endif %}
-
-</div>
-  <div class="panel well" >
-
-    {% if project.get_associated_files %}
-    <table class="table table-striped">
-      {% for file in project.get_associated_files  %}
-      <tr>
-        {% if file.file_path %}
-        <td><a href="{% url 'serve_file' file.file_path %}">{{ file.file_path }}</a></td>
+        <p><em>No additonal reporting requirements associated with this project. </em></p>
         {% endif %}
+    </div>
+
+
+    <hr />
+
+    <div class="row">
+        <div class="col-md-10" >
+            <h4>Associated Files:</h4>
+        </div>
         {% if edit %}
-        <td>
-          <a href="{% url 'delete_associated_file' file.id %}">
-            <button type="button" class="btn btn-danger btn-sm">
-              <span class="glyphicon glyphicon-remove"></span>
-            </button>
-          </a>
-        </td>
+        <div class="col-md-2" >
+            <a href="{% url 'associated_file_upload' project.slug %}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-primary">Upload Assoc. Files</button> </a>
+        </div>
         {% endif %}
-      </tr>
-      {% endfor %}
-    </table>
-    {% else %}
-    <p><em>No additonal reporting requirements associated with this project. </em></p>
-    {% endif %}
-  </div>
-  <br />
 
-  <br />
-  <br />
+    </div>
+    <div class="panel well" >
+
+        {% if project.get_associated_files %}
+        <table class="table table-striped">
+            {% for file in project.get_associated_files  %}
+            <tr>
+                {% if file.file_path %}
+                <td><a href="{% url 'serve_file' file.file_path %}">{{ file.file_path }}</a></td>
+                {% endif %}
+                {% if edit %}
+                <td>
+                    <a href="{% url 'delete_associated_file' file.id %}">
+                        <button type="button" class="btn btn-danger btn-sm">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </a>
+                </td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% else %}
+        <p><em>No additonal reporting requirements associated with this project. </em></p>
+        {% endif %}
+    </div>
+    <br />
+
+    <br />
+    <br />
 
 
 </div>
@@ -502,7 +564,7 @@
                  var markerArray = [];
                  data.forEach(function(d){
                      markerArray.push(L.circleMarker([d.dd_lat, d.dd_lon], markerOptions)
-                      .bindPopup(d.popup_text));
+                                       .bindPopup(d.popup_text));
                  });
 
                  if(markerArray.length >0){
@@ -535,7 +597,7 @@
 
  });  //end of document ready
 
-//===================================
+ //===================================
 
 
 </script>
