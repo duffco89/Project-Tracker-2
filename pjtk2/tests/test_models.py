@@ -564,30 +564,30 @@ def test_milestone_status_dict_custom_reports_both_done():
     assert tmp['status'] == 'required-done'
 
 
-@pytest.mark.django_db
-def test_project_total_cost():
-    """the total_cost() method should return the sum of salary and odoe
-    """
-
-    project = ProjectFactory.build(salary=1000)
-    assert project.odoe is None
-    assert project.salary == 1000
-    assert project.total_cost() == 1000
-
-    project = ProjectFactory.build(salary=1000, odoe=1000)
-    assert project.odoe == 1000
-    assert project.salary == 1000
-    assert project.total_cost() == 2000
-
-    project = ProjectFactory.build(odoe=1000)
-    assert project.odoe == 1000
-    assert project.salary is None
-    assert project.total_cost() == 1000
-
-    project = ProjectFactory.build()
-    assert project.odoe is None
-    assert project.salary is None
-    assert project.total_cost() == 0
+#@pytest.mark.django_db
+#def test_project_total_cost():
+#    """the total_cost() method should return the sum of salary and odoe
+#    """
+#
+#    project = ProjectFactory.build(salary=1000)
+#    assert project.odoe is None
+#    assert project.salary == 1000
+#    assert project.total_cost() == 1000
+#
+#    project = ProjectFactory.build(salary=1000, odoe=1000)
+#    assert project.odoe == 1000
+#    assert project.salary == 1000
+#    assert project.total_cost() == 2000
+#
+#    project = ProjectFactory.build(odoe=1000)
+#    assert project.odoe == 1000
+#    assert project.salary is None
+#    assert project.total_cost() == 1000
+#
+#    project = ProjectFactory.build()
+#    assert project.odoe is None
+#    assert project.salary is None
+#    assert project.total_cost() == 0
 
 
 
@@ -1480,6 +1480,129 @@ class TestMilestoneStatus(TestCase):
         self.milestone1.delete()
         self.milestone2.delete()
         self.user.delete()
+
+
+
+
+class TestProjdectFundingProperties(TestCase):
+    '''test the methods/model properies used to summarize the costs by
+    source for Project objects.
+    '''
+
+    def setUp(self):
+        '''To test the methods we will need a project and at least two funding
+        sources.'''
+
+        self.project = ProjectFactory.create(prj_cd="LHA_IA99_123")
+        self.source1 = FundingSourceFactory.create(abbrev='spa')
+        self.source2 = FundingSourceFactory.create(name='COA',
+                                                   abbrev='coa')
+        self.projectfunding1 = ProjectFundingFactory.create(
+            project=self.project,
+            source=self.source1,
+            odoe = 1000,
+            salary = 5000)
+
+        self.projectfunding2 = ProjectFundingFactory.create(
+            project=self.project,
+            source=self.source2,
+            odoe = 2000,
+            salary = 8000)
+
+    def test_project_total_odoe(self):
+        """the total odoe should be sum of the odoe of the funding sources
+        assocaited with our project."""
+
+        self.assertEquals(self.project.total_odoe, 3000)
+
+    def test_project_total_salary(self):
+        """the total salary should be sum of the salary of the funding sources
+        assocaited with our project."""
+
+        self.assertEquals(self.project.total_salary, 13000)
+
+    def test_project_total_cost(self):
+        """the total cost of should be sum of the salary and odoe of the
+        funding sources assocaited with our project.
+
+        """
+
+        self.assertEquals(self.project.total_cost, 16000)
+
+    def tearDown(self):
+
+        self.projectfunding2.delete()
+        self.projectfunding1.delete()
+
+        self.source1.delete()
+        self.source2.delete()
+        self.project.delete()
+
+
+
+class TestProjectFunding(TestCase):
+    '''test the methods associated with our funding source model.
+    '''
+
+    def setUp(self):
+        ''''''
+
+        self.project = ProjectFactory.create(prj_cd="LHA_IA99_123")
+        self.fundingsource = FundingSourceFactory.create(abbrev='spa')
+
+        self.projectfunding = ProjectFundingFactory.create(project=self.project,
+                                                   source=self.fundingsource,
+                                                   odoe = 1000,
+                                                   salary = 5000)
+
+    def test_funding_source_repr(self):
+        """the string representation of our model should include the project
+        code and the funding source.  <LHA_IA99_123 - spa>"""
+
+        should_be = "<LHA_IA99_123 - spa>"
+        self.assertEqual(str(self.projectfunding), should_be)
+
+
+
+    def test_funding_source_total(self):
+        """The total method of the funding source model is the sum of the odoe
+        and salary elements."""
+
+        self.assertEqual(self.projectfunding.total, 6000)
+
+
+    def tearDown(self):
+
+        self.projectfunding.delete()
+        self.fundingsource.delete()
+        self.project.delete()
+
+
+class TestFundingSource(TestCase):
+    '''test the methods associated with our funding source model.
+    '''
+
+    def setUp(self):
+        ''''''
+
+        source = "Special Purpose Account"
+        self.fundingsource = FundingSourceFactory(name=source,
+                                                  abbrev='spa')
+
+    def test_funding_source_repr(self):
+        """the string representation of our model should include the project
+        code and the funding source.  'Special Purpose Account (spa)'  """
+
+        should_be = "Special Purpose Account (spa)"
+        self.assertEqual(str(self.fundingsource), should_be)
+
+
+
+    def tearDown(self):
+
+        self.fundingsource.delete()
+
+
 
 
 

@@ -211,6 +211,61 @@ class Lake(models.Model):
         return self.lake
 
 
+
+class FundingSource(models.Model):
+    '''A lookup table to hold the names of the different funding sources'''
+
+    name = models.CharField(max_length=150, unique=True,
+                              blank=False)
+    abbrev = models.CharField(max_length=25, unique=True,
+                              blank=False)
+
+    class Meta:
+        verbose_name = "Funding Source"
+
+    def __str__(self):
+        '''return the name and abbreviation as its string representation'''
+        return "{} ({})".format(self.name, self.abbrev)
+
+
+class ProjectFunding(models.Model):
+    '''A lookup table to hold the names of the different funding sources
+    and how the funding was used.  Originally this data was maintained
+    as fields in Project Model.  Moved to a seperate table to
+    accomodate multiple funding sources that could be used to fund a
+    project.
+
+    '''
+
+
+    project  = models.ForeignKey('Project', related_name="funding_sources",
+                                      on_delete=models.CASCADE)
+
+    source  = models.ForeignKey('FundingSource',
+                                related_name="project_allocations",
+                                on_delete=models.CASCADE)
+
+    odoe = models.DecimalField("ODOE", max_digits=8, default=0,
+                                     decimal_places=2, null=True, blank=True)
+    salary = models.DecimalField("Salary", max_digits=8, default=0,
+                                     decimal_places=2, null=True, blank=True)
+
+
+    class Meta:
+        unique_together = ("project", "source")
+
+    def __str__(self):
+        '''return the funding source as its string representation'''
+        return "<{} - {}>".format(self.project.prj_cd, self.source.abbrev)
+
+    @property
+    def total(self):
+        """the total of funding for the project will be the sum of the salary
+        and the odoe.
+        """
+        return self.odoe + self.salary
+
+
 class Project(models.Model):
     '''Class to hold a record for each project
     '''
@@ -271,13 +326,18 @@ class Project(models.Model):
                               blank=True, related_name="ProjectOwner")
     dba = models.ForeignKey(User, on_delete=models.CASCADE,
                             blank=True, related_name="ProjectDBA")
+
+    lake = models.ForeignKey(Lake, on_delete=models.CASCADE, default=1)
+
+
     funding = models.CharField("Funding Source", max_length=30,
                                choices=FUNDING_CHOICES, default="spa")
-    lake = models.ForeignKey(Lake, on_delete=models.CASCADE, default=1)
     odoe = models.DecimalField("ODOE", max_digits=8, default=0,
                                      decimal_places=2, null=True, blank=True)
     salary = models.DecimalField("Salary", max_digits=8, default=0,
                                      decimal_places=2, null=True, blank=True)
+
+
     slug = models.SlugField(blank=True, editable=False)
     tags = TaggableManager()
 
@@ -858,7 +918,6 @@ class Project(models.Model):
             project_poly = ProjectPolygon(project=self)
 
         points = self.get_sample_points()
-        #mport pdb;pdb.set_trace()
         if points:
             try:
                 points = points.aggregate(Collect('geom')).get('geom__collect')
@@ -906,14 +965,23 @@ class Project(models.Model):
     #can we create a polygon from existing points?
 
 
+    @property
+    def total_odoe(self):
+        """Return the total odoe for this project from all sources."""
 
+        return sum([x.odoe for x in self.funding_sources.all()])
 
+    @property
+    def total_salary(self):
+        """Return the total salary for this project from all sources."""
+        return sum([x.salary for x in self.funding_sources.all()])
+
+    @property
     def total_cost(self):
         '''a little helper function to calculate the total cost of a project
         (sum of salary and odoe)'''
-        salary = self.salary if self.salary is not None else 0
-        odoe = self.odoe if self.odoe is not None else 0
-        return salary + odoe
+
+        return sum([(x.salary + x.odoe) for x in self.funding_sources.all()])
 
 
 class SamplePoint(models.Model):

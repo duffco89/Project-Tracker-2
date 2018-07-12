@@ -877,6 +877,129 @@ class ReOpenProjectTestCase(TestCase):
         self.user.delete()
 
 
+class TestProjectFundingProjectDetail(TestCase):
+    """The project detail page will contain (or not contain) elements
+    assocaited with funding depending on whether or not there is fundind
+    associated with a project and if there are more than one funding
+    source.
+
+    """
+
+    def setUp(self):
+
+
+        self.project0 = ProjectFactory.create(prj_cd="LHA_IA99_000")
+        self.project1 = ProjectFactory.create(prj_cd="LHA_IA99_111")
+        self.project2 = ProjectFactory.create(prj_cd="LHA_IA99_222")
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project0, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project1, milestone=signoff)
+        ProjectMilestonesFactory(project=self.project2, milestone=signoff)
+
+
+        self.source1 = FundingSourceFactory.create(abbrev='spa')
+        self.source2 = FundingSourceFactory.create(name='COA',
+                                                   abbrev='coa')
+
+        self.projectfunding1 = ProjectFundingFactory.create(
+            project=self.project1,
+            source=self.source1,
+            odoe = 1500,
+            salary = 5000)
+
+        self.projectfunding2 = ProjectFundingFactory.create(
+            project=self.project2,
+            source=self.source1,
+            odoe = 1500,
+            salary = 5000)
+
+        self.projectfunding3 = ProjectFundingFactory.create(
+            project=self.project2,
+            source=self.source2,
+            odoe = 2000,
+            salary = 8000)
+
+
+
+
+    def test_project_detail_no_funding_provided(self):
+        """If whe access the details page for a project which does not report
+        any associted funding, the panel containing the funding information
+        should not be rendered."""
+
+
+        response = self.client.get(reverse('project_detail',
+                                        kwargs={'slug':self.project0.slug}))
+        self.assertEqual(response.status_code,200)
+
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        self.assertNotContains(response, 'Funding')
+        self.assertNotContains(response, 'Salary')
+        self.assertNotContains(response, 'ODOE')
+
+
+    def test_project_detail_one_funding_source(self):
+        """If we access the detail page for a project with one funding source,
+        the response should contain the strings 'Funding', 'Salary'
+        and 'ODOE' and a comma formatted numbers for these values and
+        their total, as well as the abbreviation of the funding source."""
+
+        response = self.client.get(reverse('project_detail',
+                                        kwargs={'slug':self.project1.slug}))
+        self.assertEqual(response.status_code,200)
+
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        self.assertContains(response, 'Funding')
+        self.assertContains(response, 'Salary')
+        self.assertContains(response, 'ODOE')
+        self.assertContains(response, 'spa')
+        self.assertContains(response, '1,500')
+        self.assertContains(response, '5,000')
+        self.assertContains(response, '6,500')
+
+
+    def test_project_detail_several_funding_sources(self):
+        """If we access the details view a project with two or more funding
+        sources, the response should contains the strings 'Funding',
+        'Salary' and 'ODOE', comma formatted numbers for these values
+        for each of the sources and their totals, a totals lines
+        summarizing the total salary, total odoe and grand total for
+        the project.  The abbreviations for each of the funding
+        sources should also be included.
+        """
+
+        response = self.client.get(reverse('project_detail',
+                                           kwargs={'slug':self.project2.slug}))
+        self.assertEqual(response.status_code,200)
+
+        self.assertTemplateUsed(response, 'pjtk2/projectdetail.html')
+
+        self.assertContains(response, 'Funding')
+        self.assertContains(response, 'Salary')
+        self.assertContains(response, 'ODOE')
+        self.assertContains(response, 'spa')
+        self.assertContains(response, '1,500')
+        self.assertContains(response, '5,000')
+        self.assertContains(response, '6,500')
+
+        self.assertContains(response, 'spa')
+        self.assertContains(response, '2,000')
+        self.assertContains(response, '8,000')
+        self.assertContains(response, '10,000')
+
+        self.assertContains(response, 'Total')
+        self.assertContains(response, '3,500')
+        self.assertContains(response, '13,000')
+        self.assertContains(response, '16,500')
+
+
+
+
+    def tearDown(self):
+        pass
 
 
 
@@ -924,6 +1047,7 @@ class TestDetailPageReOpenProject(TestCase):
 
 
     def test_no_reopen_btn_active_project_manager(self):
+
         """If the manager views an active project, there will not be a re-open
         project button, but there will be buttons to edit, sign-off
         and cancel project.
