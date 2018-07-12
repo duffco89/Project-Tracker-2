@@ -134,8 +134,8 @@ class TestProjectForm(TestCase):
             tags = "red, blue, green",
             owner = self.user.id,
             dba = self.dba.id,
-            odoe = 1000,
-            salary = 1000
+            #odoe = 1000,
+            #salary = 1000
            )
 
         form = ProjectForm(data=proj)
@@ -164,8 +164,8 @@ class TestProjectForm(TestCase):
             tags = "red, blue, green",
             owner = self.user.id,
             dba = self.dba.id,
-            odoe = 1000,
-            salary = 1000,
+            #odoe = 1000,
+            #salary = 1000,
             project_team = [self.user_bart.id, self.user_lisa.id]
            )
 
@@ -510,55 +510,55 @@ class TestProjectForm(TestCase):
         self.assertEqual(form.is_valid(), False)
 
 
-    def test_odoe_decimal_data(self):
-        """odoe does not need to be an integer"""
-        proj = dict(
-            prj_cd = "LHA_IA12_103",
-            prj_nm = "Fake Project",
-            prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("January 15, 2012",
-                                                   "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
-            abstract = "This is a fake project",
-            project_type = self.ptype.id,
-            master_database = self.dbase.id,
-            lake = self.lake.id,
-            tags = "red, blue, green",
-            owner = self.user.id,
-            dba = self.dba.id,
-            odoe = 3.14,
-            salary = 1000
-           )
+#    def test_odoe_decimal_data(self):
+#        """odoe does not need to be an integer"""
+#        proj = dict(
+#            prj_cd = "LHA_IA12_103",
+#            prj_nm = "Fake Project",
+#            prj_ldr = self.user.id,
+#            prj_date0 = datetime.datetime.strptime("January 15, 2012",
+#                                                   "%B %d, %Y"),
+#            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
+#            abstract = "This is a fake project",
+#            project_type = self.ptype.id,
+#            master_database = self.dbase.id,
+#            lake = self.lake.id,
+#            tags = "red, blue, green",
+#            owner = self.user.id,
+#            dba = self.dba.id,
+#            odoe = 3.14,
+#            salary = 1000
+#           )
+#
+#        form = ProjectForm(data=proj)
+#        valid = form.is_valid()
+#        self.assertEqual(valid, True)
 
-        form = ProjectForm(data=proj)
-        valid = form.is_valid()
-        self.assertEqual(valid, True)
-
-    def test_bad_salary_data(self):
-        """salary cannot be a string"""
-        proj = dict(
-            prj_cd = "LHA_IA12_103",
-            prj_nm = "Fake Project",
-            prj_ldr = self.user.id,
-            prj_date0 = datetime.datetime.strptime("January 15, 2012",
-                                                   "%B %d, %Y"),
-            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
-            comment = "This is a fake project",
-            project_type = self.ptype.id,
-            master_database = self.dbase.id,
-            lake = self.lake.id,
-            tags = "red, blue, green",
-            owner = self.user.id,
-            dba = self.dba.id,
-            odoe = 3000,
-            salary = 'nice try.'
-           )
-
-        form = ProjectForm(data=proj)
-        valid = form.is_valid()
-        errmsg = "Enter a number."
-        self.assertIn(errmsg, str(form.errors['salary']))
-        self.assertEqual(valid, False)
+#    def test_bad_salary_data(self):
+#        """salary cannot be a string"""
+#        proj = dict(
+#            prj_cd = "LHA_IA12_103",
+#            prj_nm = "Fake Project",
+#            prj_ldr = self.user.id,
+#            prj_date0 = datetime.datetime.strptime("January 15, 2012",
+#                                                   "%B %d, %Y"),
+#            prj_date1 = datetime.datetime.strptime("May 15, 2012", "%B %d, %Y"),
+#            comment = "This is a fake project",
+#            project_type = self.ptype.id,
+#            master_database = self.dbase.id,
+#            lake = self.lake.id,
+#            tags = "red, blue, green",
+#            owner = self.user.id,
+#            dba = self.dba.id,
+#            odoe = 3000,
+#            salary = 'nice try.'
+#           )
+#
+#        form = ProjectForm(data=proj)
+#        valid = form.is_valid()
+#        errmsg = "Enter a number."
+#        self.assertIn(errmsg, str(form.errors['salary']))
+#        self.assertEqual(valid, False)
 
 
 
@@ -583,8 +583,8 @@ class TestProjectForm(TestCase):
             tags = ', '.join(tags),
             owner = self.user.id,
             dba = self.dba.id,
-            odoe = 1000,
-            salary = 1000
+            #odoe = 1000,
+            #salary = 1000
            )
 
         form = ProjectForm(data=proj)
@@ -622,8 +622,8 @@ class TestProjectForm(TestCase):
             tags = ', '.join(tags),
             owner = self.user.id,
             dba = self.dba.id,
-            odoe = 1000,
-            salary = 1000
+            #odoe = 1000,
+            #salary = 1000
            )
 
         form = ProjectForm(data=proj)

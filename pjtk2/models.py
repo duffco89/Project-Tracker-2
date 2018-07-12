@@ -270,12 +270,6 @@ class Project(models.Model):
     '''Class to hold a record for each project
     '''
 
-    #(database, display)
-    FUNDING_CHOICES = {
-        ('spa', 'SPA'),
-        ('coa', 'COA'),
-        ('other', 'other'),
-    }
 
     active  = models.BooleanField(default=True)
     cancelled  = models.BooleanField(default=False)
@@ -330,12 +324,6 @@ class Project(models.Model):
     lake = models.ForeignKey(Lake, on_delete=models.CASCADE, default=1)
 
 
-    funding = models.CharField("Funding Source", max_length=30,
-                               choices=FUNDING_CHOICES, default="spa")
-    odoe = models.DecimalField("ODOE", max_digits=8, default=0,
-                                     decimal_places=2, null=True, blank=True)
-    salary = models.DecimalField("Salary", max_digits=8, default=0,
-                                     decimal_places=2, null=True, blank=True)
 
 
     slug = models.SlugField(blank=True, editable=False)
