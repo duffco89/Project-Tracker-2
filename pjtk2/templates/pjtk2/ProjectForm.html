@@ -173,46 +173,47 @@
 
                         <div  class="row" >
 
-                            <div  class="col-md-4" >
-                                <div class="form-group {% if form.funding.errors %}has-error{% endif %}">
-                                    {{ form.funding.label_tag }}
-                                    {{ form.funding }}
-                                    {% if form.funding.errors %}
-                                    {% for error in form.funding.errors %}
-                                    <div class="has-error help-block text-danger">{{ error }}</div>
-                                    {% endfor %}
+
+                            <div  class="col-md-12" >
+
+                                {{ funding_formset.non_form_errors.as_ul }}
+                                {{ funding_formset.management_form }}
+                                <table id="funding_formset" class="table form">
+                                    {% for form in funding_formset.forms %}
+                                    {% if forloop.first %}
+                                    <thead><tr>
+                                        {% for field in form.visible_fields %}
+                                        <th>{{ field.label|capfirst }}</th>
+                                        {% endfor %}
+                                    </tr></thead>
                                     {% endif %}
-                                </div>
-                            </div> <!-- column  -->
 
-                            <div  class="col-md-4" >
-                                <div class="form-group {% if form.odoe.errors %}has-error{% endif %}">
-                                    {{ form.odoe.label_tag }}
-                                    {{ form.odoe }}
-                                    {% if form.odoe.errors %}
-                                    {% for error in form.odoe.errors %}
-                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                    <tr>
+                                        {% for field in form.visible_fields %}
+                                        <td>
+                                            {# Include the hidden fields in the form #}
+                                            {% if forloop.first %}
+                                              {% for hidden in form.hidden_fields %}
+                                                {{ hidden }}
+                                              {% endfor %}
+                                            {% endif %}
+
+                                            {{ field.errors.as_ul }}
+                                            {{ field }}
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
+
                                     {% endfor %}
-                                    {% endif %}
-                                </div>
-                            </div> <!-- column  -->
+                                </table>
 
+                            </div>
 
-
-                            <div  class="col-md-4" >
-                                <div class="form-group {% if form.salary.errors %}has-error{% endif %}">
-                                    {{ form.salary.label_tag }}
-                                    {{ form.salary }}
-                                    {% if form.salary.errors %}
-                                    {% for error in form.salary.errors %}
-                                    <div class="has-error help-block text-danger">{{ error }}</div>
-                                    {% endfor %}
-                                    {% endif %}
-                                </div>
-                            </div> <!-- column  -->
 
 
                         </div>
+
+
                     </div> <!-- panel body  -->
                 </div>  <!-- panel -->
 
