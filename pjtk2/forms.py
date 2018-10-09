@@ -35,7 +35,7 @@ from crispy_forms.bootstrap import PrependedText
 from taggit.forms import *
 from pjtk2.models import (Milestone, Project, ProjectMilestones, Report,
                           ProjectType, Database, Lake, Messages2Users,
-                          AssociatedFile)
+                          AssociatedFile, ProjectFunding, FundingSource)
 
 
 #==================================
@@ -886,6 +886,37 @@ class ProjectForm(forms.ModelForm):
                 raise forms.ValidationError(errmsg)
         return cleaned_data
 
+
+
+class ProjectFundingForm(forms.ModelForm):
+    """Form for funding sources and amounts for each source of funding
+    for each project
+
+    """
+
+
+    source = forms.ModelChoiceField(
+        label="Funding Source:",
+        queryset=FundingSource.objects.all(),
+        required=True,
+    )
+
+    salary = forms.DecimalField(required=False, decimal_places=2)
+    odoe = forms.DecimalField(required=False, decimal_places=2)
+
+    class Meta:
+        model = ProjectFunding
+        fields = ['source', 'salary', 'odoe']
+        exclude = ['project']
+
+    def __init__(self, *args, **kwargs):
+        super(ProjectFundingForm, self).__init__(*args, **kwargs)
+        for fld in self.visible_fields():
+            if 'class' in fld.field.widget.attrs.keys():
+                class_attrs = fld.field.widget.attrs['class']
+            else:
+                class_attrs = ""
+            fld.field.widget.attrs['class'] = 'form-control ' + class_attrs
 
 
 class SisterProjectsForm(forms.Form):

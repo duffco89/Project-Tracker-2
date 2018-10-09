@@ -16,7 +16,8 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import reverse
 from django.db.models import Q
 from django.forms.models import modelformset_factory
-from django.forms.formsets import formset_factory
+from django.forms import formset_factory
+from django.forms import inlineformset_factory
 from django.http import (Http404, HttpResponseRedirect, HttpResponse,
                          StreamingHttpResponse)
 from django.shortcuts import render, get_object_or_404
@@ -32,7 +33,7 @@ from pjtk2.functions import get_minions, my_messages, get_messages_dict
 from pjtk2.filters import ProjectFilter
 
 from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
-                          Bookmark, Employee, AssociatedFile,
+                          Bookmark, Employee, AssociatedFile, ProjectFunding,
                           SamplePoint)#, my_messages)
 
 from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
@@ -40,6 +41,7 @@ from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
                          #make_report_upload_form,
                          ReportUploadForm,
                          #ReportUploadFormSet,
+                         ProjectFundingForm,
                          NoticesForm,
                          AssociatedFileUploadForm, GeoForm)
 
@@ -469,27 +471,40 @@ def crud_project(request, slug, action='New'):
     else:
         readonly = False
 
+
+    ProjectFundingFormset = inlineformset_factory(Project, ProjectFunding,
+                                                  form=ProjectFundingForm,
+                                                  extra=2)
+
     if request.method == 'POST':
         if action == 'Copy':
             instance = None
         form = ProjectForm(request.POST, instance=instance,
                            milestones=milestones,
                            readonly=readonly, manager=manager)
+
+        funding_formset = ProjectFundingFormset(request.POST,request.FILES,
+                                                instance=instance)
+
         if form.is_valid():
             tags = form.cleaned_data['tags']
             form_ms = form.cleaned_data.get('milestones', None)
             form = form.save(commit=False)
             if action == 'Copy' or action == 'New':
                 form.owner = request.user
-            form.save()
-            form.tags.set(*tags)
-            if form_ms:
-                update_milestones(form_ms=form_ms, milestones=milestones)
-            proj = Project.objects.get(slug=form.slug)
-            return HttpResponseRedirect(proj.get_absolute_url())
+            funding_formset = ProjectFundingFormset(request.POST, instance=form)
+            if funding_formset.is_valid():
+                form.save()
+                funding_formset.save()
+                form.tags.set(*tags)
+                if form_ms:
+                    update_milestones(form_ms=form_ms, milestones=milestones)
+                proj = Project.objects.get(slug=form.slug)
+                return HttpResponseRedirect(proj.get_absolute_url())
         else:
             return render(request, 'pjtk2/ProjectForm.html',
                           {'form': form,
+                           'funding_formset':funding_formset,
                            'action': action, 'project': instance})
     else:
         form = ProjectForm(instance=instance, readonly=readonly,
@@ -497,8 +512,10 @@ def crud_project(request, slug, action='New'):
 
     return render(request, 'pjtk2/ProjectForm.html',
                   {'form': form,
+                   'funding_formset':ProjectFundingFormset(instance=instance),
                    'milestones': milestones,
-                   'action': action, 'project': instance})
+                   'action': action,
+                   'project': instance})
 
 
 
