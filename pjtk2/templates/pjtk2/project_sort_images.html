@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %} Order Project Images  {% endblock %}
+
+{% block content %}
+
+<h2>Images for {{ project.name }}</h2>
+
+<p>Drag and Images to re-order the images:</p>
+<ul id="sortable">
+    {% for img in project.images.all %}
+    <li id="image_{{ img.pk }}" class="ui-state-default">
+        <img src="{{ img.thumbnail.url }}" width="200"  height="200" class="img-thumbnail">
+        <span class="move">&#x1F503;</span>
+    </li>
+
+    {% endfor %}
+</ul>
+
+<a class="btn btn-success" href="{% url 'imadeit:project_detail' project.slug %}" role="button">Done</a>
+
+
+
+{% endblock %}
+
+
+{% block scripts %}
+
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+ // Sortable photos
+ $(document).ready(function() {
+     $("#sortable").sortable({
+         update: function(event, ui) {
+             var serial = $('#sortable').sortable('serialize');
+             $.ajax({
+                 url: "{% url 'imadeit:project_sort_images' project.slug %}",
+                 type: "post",
+                 data: serial
+             });
+         },
+     }).disableSelection();
+ });
+
+
+</script>
+{% endblock %}
