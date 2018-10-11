@@ -1,0 +1,74 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+
+{% load static %}
+{% load pjtk2_tags %}
+
+{% block content %}
+
+<div  class="container" >
+
+
+    <div class="row">
+        <div class="col-md-6 col-md-offset-3">
+            <div class="panel panel-default" >
+                <div  class="panel-body" >
+
+                    <div  class="row" >
+                        <div  class="col-md-12" >
+                            <h4>Add an image or graph for {{ object.name }}</h4>
+                        </div>
+                    </div>
+
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {% if form.errors %}
+                        <div class="alert alert-danger">
+                            Please fix the errors in the form below.
+                            {% for error in form.non_field_errors %}
+                            <p class="error">{{ error }}</p>
+                            {% endfor %}
+                            {% for error in form.errors %}
+                            <p class="error">{{ error }}</p>
+                            {% endfor %}
+
+                        </div>
+                        {% endif %}
+
+
+                        <div class="form-group {% if form.image_path.errors %}has-error{% endif %}">
+                            {{ form.image_path.label_tag }}
+                            {{ form.image_path|addcss:"form-control form-control-file"}}
+                            {% if form.image_path.errors %}
+                            {% for error in form.image_path.errors %}
+                            <div class="has-error help-block text-danger">{{ error }}</div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group {% if form.caption.errors %}has-error{% endif %}">
+                            {{ form.caption.label_tag }}
+                            {{ form.caption|addcss:"form-control"}}
+                            {% if form.caption.errors %}
+                            {% for error in form.caption.errors %}
+                            <div class="has-error help-block text-danger">{{ error }}</div>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                        <hr />
+                        <div  class="row" >
+                            <div  class="col-md-6" >
+                                <a href="{{ object.get_absolute_url }}">Cancel</a>
+                            </div>
+                            <div  class="col-md-6" >
+                                <input class="btn btn-primary float-right" type="submit" value="Submit">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
