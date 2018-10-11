@@ -132,3 +132,10 @@ def fisheye_button(project):
                 return mark_safe(link)
             else:
                 return ""
+
+
+
+@register.filter(name='addcss')
+def addcss(field, css):
+    """from http://vanderwijk.info/blog/adding-css-classes-formfields-in-django-templates/"""
+    return field.as_widget(attrs={"class":css})

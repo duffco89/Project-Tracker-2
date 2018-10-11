@@ -23,7 +23,7 @@ from pjtk2.views import (
     delete_report, report_upload,
     associated_file_upload, delete_associated_file,
     serve_file, bookmark_project, unbookmark_project,
-
+    project_add_image, project_sort_images
 )
 
 
@@ -114,6 +114,17 @@ urlpatterns = [
 
     url((r'^sisterprojects/' + PRJ_CD_REGEX),
         sisterprojects, name='SisterProjects'),
+
+
+    # images
+    url((r'project/add_image/' + PRJ_CD_REGEX), project_add_image,
+         name='project_add_image'),
+
+    #path('project/images/<slug:slug>', views.project_images,
+    #     name='project_images'),
+
+    url((r'project/sort_images/' + PRJ_CD_REGEX), project_sort_images,
+         name='project_sort_images'),
 
 
     #tagging/keywords

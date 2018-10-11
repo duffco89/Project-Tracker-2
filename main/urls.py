@@ -33,6 +33,9 @@ urlpatterns = [
             serve_static,
             {'document_root': settings.STATIC_ROOT}),
 
+    url(r'^uploads/(?P<path>.*)$',
+            serve_static,
+            {'document_root': settings.MEDIA_ROOT}),
 
 ]
 

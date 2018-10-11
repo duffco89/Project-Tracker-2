@@ -52,7 +52,6 @@ USE_L10N = True
 USE_TZ = True
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
-# Example: "/home/media/media.lawrence.com/media/"
 MEDIA_ROOT = root("uploads/")
 
 #print "MEDIA_ROOT = %s" % MEDIA_ROOT
@@ -61,8 +60,8 @@ MEDIA_ROOT = root("uploads/")
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 #MEDIA_URL = root()
-#MEDIA_URL = 'uploads/'
-MEDIA_URL = 'milestone_reports/'
+MEDIA_URL = 'uploads/'
+#MEDIA_URL = 'milestone_reports/'
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
 

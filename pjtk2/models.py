@@ -1018,6 +1018,38 @@ class SamplePoint(models.Model):
         return "%s - %s" % (self.project.prj_cd, self.sam)
 
 
+
+
+
+class ProjectImage(models.Model):
+    '''A class to hold images of our projects.'''
+
+
+    def get_image_path(self, image_path):
+        '''a little helper function used by "upload_to" for pictures.
+        It will save all of the images associated with a project in a project
+        specific directory (named using the project code)
+        '''
+        val = "project_images/{}/{}".format(self.project.prj_cd, image_path)
+        return val
+
+    project = models.ForeignKey(Project, on_delete=models.CASCADE,
+                                related_name='images')
+    order = models.IntegerField(default=0)
+    image_path = models.ImageField(upload_to=get_image_path)
+    caption = models.CharField(max_length=250, blank=True, null=True)
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        """
+        Arguments:
+        - `self`:
+        """
+        return "{} - {} ".format(self.project, self.caption)
+
+
 class ProjectPolygon(models.Model):
     '''A class to hold the convex hull derived from the sampling locations
     of a project.  Calculated when sample points are uploaded into

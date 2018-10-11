@@ -2,10 +2,15 @@
 # E1120 - No value passed for parameter 'cls' in function call
 #pylint: disable=E1101, E1120
 
+import datetime
+import pytz
+import mimetypes
+import os
+
+from wsgiref.util import FileWrapper
+from functools import partial, wraps
 from collections import OrderedDict
 
-from django.views.generic import ListView
-from django.views.generic.base import TemplateView
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -23,38 +28,33 @@ from django.http import (Http404, HttpResponseRedirect, HttpResponse,
 from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
 from django.utils.decorators import method_decorator
-
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import ListView
+from django.views.generic.base import TemplateView
 
 
 from taggit.models import Tag
 
-from pjtk2.functions import get_minions, my_messages, get_messages_dict
+from .functions import get_minions, my_messages, get_messages_dict
 
-from pjtk2.filters import ProjectFilter
+from .filters import ProjectFilter
 
-from pjtk2.models import (Milestone, Project, Report, ProjectMilestones,
-                          Bookmark, Employee, AssociatedFile, ProjectFunding,
-                          SamplePoint)#, my_messages)
+from .models import (Milestone, Project, Report, ProjectMilestones,
+                     Bookmark, Employee, AssociatedFile, ProjectFunding,
+                     ProjectImage, SamplePoint)#, my_messages)
 
-from pjtk2.forms import (ProjectForm, ApproveProjectsForm,
-                         ReportsForm, SisterProjectsForm,
-                         #make_report_upload_form,
-                         ReportUploadForm,
-                         #ReportUploadFormSet,
-                         ProjectFundingForm,
-                         NoticesForm,
-                         AssociatedFileUploadForm, GeoForm)
+from .forms import (ProjectForm, ApproveProjectsForm,
+                    ReportsForm, SisterProjectsForm,
+                    #make_report_upload_form,
+                    ReportUploadForm,
+                    #ReportUploadFormSet,
+                    ProjectFundingForm,
+                    ProjectImageForm,
+                    NoticesForm,
+                    AssociatedFileUploadForm, GeoForm)
 
-from pjtk2.spatial_utils import find_roi_projects#,  get_map
+from .spatial_utils import find_roi_projects#,  get_map
 
-from wsgiref.util import FileWrapper
-
-from functools import partial, wraps
-
-import datetime
-import pytz
-import mimetypes
-import os
 
 
 def get_or_none(model, **kwargs):
@@ -889,6 +889,59 @@ def delete_associated_file(request, id):
         return render(request, 'pjtk2/confirm_file_delete.html',
                       { 'associated_file': associated_file,
                         'project': project})
+
+
+
+
+#=================================================
+#             IMAGE UPLOADING AND SORTING
+
+@login_required
+def project_add_image(request, slug):
+    """
+
+    Arguments:
+    - `request`:
+    - `slug`:
+    """
+
+    project = get_object_or_404(Project, slug=slug)
+    if request.method == 'POST':
+        form = ProjectImageForm(request.POST, request.FILES)
+        form.project = project
+        if form.is_valid():
+            image = form.save(commit=False)
+            image.order = project.images.count() + 1
+            image.project = project
+            image.save()
+            return HttpResponseRedirect(project.get_absolute_url())
+    else:
+        form = ProjectImageForm()
+    return render(request, 'pjtk2/project_image_upload.html', {
+        'form': form, 'object': project
+    })
+
+
+def project_images(request, slug):
+    project = get_object_or_404(Project, slug=slug)
+    return render(request, 'pjtk2/project_sort_images.html', {
+        'project': project}
+    )
+
+
+@login_required
+@csrf_exempt
+def project_sort_images(request, slug):
+    for index, image_pk in enumerate(request.POST.getlist('image[]')):
+        image = ProjectImage.objects.filter(id=int(str(image_pk))).first()
+        if image:
+            image.order = index
+            image.save()
+    return HttpResponse('')
+
+#=================================================
+
+
 
 
 

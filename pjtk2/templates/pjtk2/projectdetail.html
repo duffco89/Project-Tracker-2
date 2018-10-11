@@ -1,8 +1,8 @@
 {% extends "pjtk2/pjtk2_base.html" %}
+{% load static %}
 {% load humanize %}
 {% load leaflet_tags %}
 {% load pjtk2_tags %}
-
 
 {% block extrahead %}
 
@@ -10,6 +10,26 @@
 {% leaflet_css %}
 
 <script src="{{ STATIC_URL }}Leaflet.MakiMarkers.js"></script>
+
+<style type="text/css" media="screen">
+
+
+
+ .carousel-control {
+     background-image: none !important; /* remove background gradients on controls */
+ }
+
+.carousel-indicators li {
+    display: inline-block;
+    background-color: #b3b2b2;
+}
+.carousel-indicators .active {
+    background-color: #636161;
+}
+
+
+</style>
+
 
 {% endblock %}
 
@@ -26,7 +46,6 @@
             {% if project.cancelled %}
             <div class="alert alert-danger" role="alert"> This project was cancelled.</div>
             {% endif %}
-
 
 
             <div class="panel panel-default">
@@ -261,7 +280,17 @@
         </div>
         <div class="col-md-7" >
 
-            <div id="main_map" style="width: 600px; height: 600px;"></div>
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div id="main_map" style="width: 600px; height: 600px;"></div>
+                </div>
+            </div>
+
+            <!-- IMAGES -->
+            {% if project.images.all %}
+            {% include 'pjtk2/_carousel.html' %}
+            {% endif %}
 
         </div>
     </div>
@@ -290,6 +319,10 @@
             <a href="{% url 'EditProject' project.slug %}"
                onclick="javascript:window.location=this.href">
                 <button type="button" class="btn btn-default">Edit Information</button> </a>
+
+            <a href="{% url 'project_add_image' project.slug %}"
+               onclick="javascript:window.location=this.href">
+                <button type="button" class="btn btn-success">Add Image</button> </a>
 
             {% if project.is_approved %}
             <a href="{% url 'SisterProjects' project.slug %}">

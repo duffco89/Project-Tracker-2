@@ -14,7 +14,8 @@ from django.contrib.gis.forms.fields import PolygonField
 from django.contrib.auth.models import User
 from django.db.models.aggregates import Max, Min
 from django.forms.formsets import BaseFormSet
-from django.forms import ModelChoiceField, CharField, ModelMultipleChoiceField
+from django.forms import (ModelForm, ModelChoiceField, CharField,
+                          ModelMultipleChoiceField)
 from django.forms.widgets import (CheckboxSelectMultiple, Select,
                                   CheckboxInput, mark_safe)
 
@@ -33,9 +34,10 @@ from crispy_forms.layout import (Submit, Layout, Fieldset, Field, ButtonHolder,
 from crispy_forms.bootstrap import PrependedText
 
 from taggit.forms import *
-from pjtk2.models import (Milestone, Project, ProjectMilestones, Report,
-                          ProjectType, Database, Lake, Messages2Users,
-                          AssociatedFile, ProjectFunding, FundingSource)
+from .models import (Milestone, Project, ProjectMilestones, Report,
+                     ProjectType, Database, Lake, Messages2Users,
+                     AssociatedFile, ProjectFunding, FundingSource,
+                     ProjectImage)
 
 
 #==================================
@@ -1094,3 +1096,12 @@ class GeoForm(forms.Form):
                 msg = "'First Year' occurs after 'Last Year'."
                 raise forms.ValidationError(msg)
         return cleaned_data
+
+
+
+
+
+class ProjectImageForm(ModelForm):
+    class Meta:
+        model = ProjectImage
+        fields = ('image_path', 'caption')
