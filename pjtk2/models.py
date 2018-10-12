@@ -1037,7 +1037,8 @@ class ProjectImage(models.Model):
                                 related_name='images')
     order = models.IntegerField(default=0)
     image_path = models.ImageField(upload_to=get_image_path)
-    caption = models.CharField(max_length=250, blank=True, null=True)
+    caption = models.CharField(max_length=1000)
+    report = models.BooleanField(default=True)
 
     class Meta:
         ordering = ['order']
@@ -1048,6 +1049,8 @@ class ProjectImage(models.Model):
         - `self`:
         """
         return "{} - {} ".format(self.project, self.caption)
+
+
 
 
 class ProjectPolygon(models.Model):

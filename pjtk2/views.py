@@ -18,7 +18,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ImproperlyConfigured
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, resolve, Resolver404
 from django.db.models import Q
 from django.forms.models import modelformset_factory
 from django.forms import formset_factory
@@ -49,11 +49,15 @@ from .forms import (ProjectForm, ApproveProjectsForm,
                     ReportUploadForm,
                     #ReportUploadFormSet,
                     ProjectFundingForm,
-                    ProjectImageForm,
+                    ProjectImageForm, EditImageForm,
                     NoticesForm,
                     AssociatedFileUploadForm, GeoForm)
 
 from .spatial_utils import find_roi_projects#,  get_map
+
+
+#the maximum number of images to include in the report for each project.
+MAX_REPORT_IMG_COUNT = 2
 
 
 
@@ -906,6 +910,7 @@ def project_add_image(request, slug):
     """
 
     project = get_object_or_404(Project, slug=slug)
+
     if request.method == 'POST':
         form = ProjectImageForm(request.POST, request.FILES)
         form.project = project
@@ -914,14 +919,57 @@ def project_add_image(request, slug):
             image.order = project.images.count() + 1
             image.project = project
             image.save()
-            return HttpResponseRedirect(project.get_absolute_url())
-    else:
-        form = ProjectImageForm()
+            #if we subitted with the save button, return to the
+            #project detail, otherwise return to the form (save and
+            #add another)
+            if 'save' in request.POST:
+                return HttpResponseRedirect(project.get_absolute_url())
+
+    form = ProjectImageForm()
     return render(request, 'pjtk2/project_image_upload.html', {
         'form': form, 'object': project
     })
 
 
+@login_required
+def edit_image(request, pk):
+    """
+
+    Arguments:
+    - `request`:
+    - `slug`:
+    """
+
+    image = get_object_or_404(ProjectImage, pk=pk)
+    project = image.project
+
+    if request.method == 'POST':
+        form = EditImageForm(request.POST, instance=image)
+        if form.is_valid():
+            form.save()
+
+            extra_images = project.images\
+                                  .filter(report=True)\
+                                  .order_by('order')[MAX_REPORT_IMG_COUNT:]
+            if extra_images:
+                for img in extra_images:
+                    img.report =False
+                    img.save()
+
+            url = request.GET.get("next")
+            try:
+                resolve(url)
+                return HttpResponseRedirect(url)
+            except Resolver404:
+                return HttpResponseRedirect(project.get_absolute_url())
+
+    form = EditImageForm(instance=image)
+    return render(request, 'pjtk2/edit_image.html', {
+        'form': form, 'image': image, 'project':project
+    })
+
+
+@login_required
 def project_images(request, slug):
     project = get_object_or_404(Project, slug=slug)
     return render(request, 'pjtk2/project_sort_images.html', {
@@ -938,6 +986,36 @@ def project_sort_images(request, slug):
             image.order = index
             image.save()
     return HttpResponse('')
+
+
+
+@login_required
+def delete_image_file(request, id):
+    """this view deletes an image
+
+    If this is a get request, redirect to a confirmation page.  If it
+    is a post, delete the associated image and return to the project
+    detail page.
+
+    Arguments:
+    - `request`:
+    - `slug`:
+    - `pk`:
+
+    """
+    image = get_object_or_404(ProjectImage, id=id)
+    project = image.project
+
+    if not can_edit(request.user, project):
+        return HttpResponseRedirect(project.get_absolute_url())
+
+    if request.method == 'POST':
+        image.delete()
+        return HttpResponseRedirect(project.get_absolute_url())
+    else:
+        return render(request, 'pjtk2/confirm_image_delete.html',
+                      { 'image': image,
+                        'project': project})
 
 #=================================================
 

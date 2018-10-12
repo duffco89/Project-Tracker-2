@@ -1,0 +1,33 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+
+{% block title  %} {{ block.super }}| Delete Image  {% endblock %}
+
+
+{% block content  %}
+
+<div class="container" >
+    <h3>Project: {{ project.prj_nm }} (<a href="{{ project.get_absolute_url }}">{{ project.prj_cd  }}</a>)  </h3>
+    <br />
+    <div class="alert alert-warning">
+        <h4> Are you sure you want to permanently delete this image?</h4>
+        <form method="post", action="">
+        {% csrf_token %}
+        <a href="{{ project.get_absolute_url }}" class="btn btn-default float-right">No - Keep this image</a>
+        <input type="submit" value="Yes - Delete the image" class="btn btn-danger"/>
+        </form>
+
+        <br />
+        <div class="panel panel-default">
+            <div class="panel-body">
+
+                <img class="img-responsive center-block"  src="../../../../{{ image.image_path.url }}">
+                <p  style="text-align:center">{{ image.caption }}
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

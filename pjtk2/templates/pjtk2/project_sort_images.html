@@ -1,32 +1,62 @@
-{% extends 'base.html' %}
+{% extends "pjtk2/pjtk2_base.html" %}
 
 {% block title %} Order Project Images  {% endblock %}
 
 {% block content %}
 
-<h2>Images for {{ project.name }}</h2>
-
-<p>Drag and Images to re-order the images:</p>
-<ul id="sortable">
-    {% for img in project.images.all %}
-    <li id="image_{{ img.pk }}" class="ui-state-default">
-        <img src="{{ img.thumbnail.url }}" width="200"  height="200" class="img-thumbnail">
-        <span class="move">&#x1F503;</span>
-    </li>
-
-    {% endfor %}
-</ul>
-
-<a class="btn btn-success" href="{% url 'imadeit:project_detail' project.slug %}" role="button">Done</a>
+<div  class="container">
 
 
+    <h2>Images for {{ project.name }}</h2>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <div  class="row">
+                <div  class="col-md-11" >
+            <h3 class="panel-title">Drag to re-order the images. Double click to edit.</h3>
+                </div>
+                <div  class="col-md-1" >
+                    <a class="btn btn-success btn-sm pull-right" href="{% url 'project_detail' project.slug %}" role="button">
+                        <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> Done</a>
+                </div>
+            </div>
+
+        </div>
+        <div class="panel-body">
+            <ol id="sortable">
+                {% for img in project.images.all %}
+                <li id="image_{{ img.pk }}" class="ui-state-default">
+
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <a href="{% url 'edit_image' img.id %}?next={{ request.path }}">
+                                <div class="row" >
+                                    <div  class="col-md-3" >
+                                        <img src="../../../../{{ img.image_path.url }}" width="200"  height="200" class="img-thumbnail">
+                                    </div>
+                                    <div  class="col-md-7" >
+                                        <p><strong>Caption:</strong></p><p>{{ img.caption }}</p>
+                                    </div>
+                                    <div  class="col-md-2" >
+                                        <strong>Report:</strong>{{ img.report }}
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
 
-{% block scripts %}
+{% block extrascripts %}
 
-<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 
 <script type="text/javascript" charset="utf-8">
@@ -36,7 +66,7 @@
          update: function(event, ui) {
              var serial = $('#sortable').sortable('serialize');
              $.ajax({
-                 url: "{% url 'imadeit:project_sort_images' project.slug %}",
+                 url: "{% url 'project_sort_images' project.slug %}",
                  type: "post",
                  data: serial
              });
