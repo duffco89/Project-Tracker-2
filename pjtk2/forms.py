@@ -1099,9 +1099,21 @@ class GeoForm(forms.Form):
 
 
 
-
-
 class ProjectImageForm(ModelForm):
     class Meta:
         model = ProjectImage
-        fields = ('image_path', 'caption')
+        fields = ('image_path', 'caption', 'report')
+        widgets = {
+          'caption': forms.Textarea(attrs={'rows':4}),
+        }
+
+
+
+class EditImageForm(ModelForm):
+
+    class Meta:
+        model = ProjectImage
+        fields = ('caption','report')
+        widgets = {
+            'caption': forms.Textarea(attrs={'rows':4}),
+        }

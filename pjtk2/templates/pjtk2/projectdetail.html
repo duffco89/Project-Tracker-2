@@ -14,11 +14,20 @@
 <style type="text/css" media="screen">
 
 
-
+ /* remove background gradients on controls */
  .carousel-control {
-     background-image: none !important; /* remove background gradients on controls */
+     background-image: none !important;
  }
 
+ /* shrinks area around arrows to something reasonable */
+ a.carousel-control {
+     height: 50%;
+     top: 25%;
+     width: 86px;
+
+ }
+
+ /* makes controls visible on white background */
 .carousel-indicators li {
     display: inline-block;
     background-color: #b3b2b2;
@@ -26,6 +35,21 @@
 .carousel-indicators .active {
     background-color: #636161;
 }
+
+.carousel-indicators {
+    top: 0px;
+}
+
+
+
+/* Description text */
+ .carousel-caption p {
+     font-family:    sans-sarif;
+     font-size:      em;
+     color:          black !important;
+ }
+
+
 
 
 </style>
@@ -60,6 +84,7 @@
                             <td><strong>Project Code:</strong></td>
                             <td>{{ project.prj_cd }}</td>
                         </tr>
+
 
 
                         <tr>
@@ -322,7 +347,7 @@
 
             <a href="{% url 'project_add_image' project.slug %}"
                onclick="javascript:window.location=this.href">
-                <button type="button" class="btn btn-success">Add Image</button> </a>
+                <button type="button" class="btn btn-success">Add Image(s)</button> </a>
 
             {% if project.is_approved %}
             <a href="{% url 'SisterProjects' project.slug %}">
