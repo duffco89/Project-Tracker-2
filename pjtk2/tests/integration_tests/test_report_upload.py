@@ -19,6 +19,9 @@ from pjtk2.tests.factories import *
 
 import pytest
 
+
+UPLOAD_TO = 'milestone_reports'
+
 @pytest.fixture(scope="module", autouse=True)
 def disconnect_signals():
     '''disconnect the signals before each test - not needed here'''
@@ -170,7 +173,7 @@ class BasicReportUploadTestCase(WebTest):
         #finally get rid of the temporary file if it was created in
         #this test
         #mock_file1
-        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+        filepath = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO,
                                 os.path.split(self.mock_file.name)[1])
         try:
             os.remove(filepath)
@@ -178,7 +181,7 @@ class BasicReportUploadTestCase(WebTest):
             pass
 
         #mock_file2
-        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+        filepath = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO,
                                 os.path.split(self.mock_file2.name)[1])
         try:
             os.remove(filepath)
@@ -186,7 +189,7 @@ class BasicReportUploadTestCase(WebTest):
             pass
 
         #mock_file3
-        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+        filepath = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO,
                                 os.path.split(self.mock_file3.name)[1])
         try:
             os.remove(filepath)
@@ -195,13 +198,14 @@ class BasicReportUploadTestCase(WebTest):
 
         #finally, clean out any test files that may have been
         #duplicates and named slightly differently than the others.
-        media_dir = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL)
+        media_dir = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO)
         pattern = r'fake_test_file.*\.txt'
         files = [f for f in os.listdir(media_dir) if re.match(pattern, f)]
 
         for fname in files:
-            filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL, fname)
+            filepath = os.path.join(settings.MEDIA_ROOT, fname)
             try:
+                print('deleting={}'.format(fname))
                 os.remove(filepath)
             except:
                 pass
@@ -283,11 +287,12 @@ class TestActualFileUpload(TestCase):
         report_count = Report.objects.all().count()
         self.assertEqual(report_count,1)
 
-        filepath = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file0.name)[1])
+        filepath = os.path.join("milestone_reports",
+                                os.path.split(self.mock_file0.name)[1]).\
+                                replace('\\', '/')
 
         reports = self.project1.get_uploaded_reports()
-        self.assertEqual(reports.values()[0]['report_path'],filepath)
+        self.assertEqual(reports.values()[0]['report_path'], filepath)
 
         #make sure that the milestone is what we think it is:
         pr = ProjectMilestones.objects.get(report=reports.select_related())
@@ -328,7 +333,7 @@ class TestActualFileUpload(TestCase):
 
         #verify that we can download the file we just uploaded:
 
-        filepath = os.path.join(settings.MEDIA_URL,
+        filepath = os.path.join(UPLOAD_TO,
                                 os.path.split(self.mock_file0.name)[1])
 
         url = reverse('serve_file', args=(filepath,))
@@ -383,9 +388,10 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(reports.count(),3)
 
         #first file:
-        filepath1 = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file0.name)[1])
-        self.assertEqual(reports.values()[0]['report_path'],filepath1)
+        filepath1 = os.path.join(UPLOAD_TO,
+                                os.path.split(self.mock_file0.name)[1]).\
+                                replace('\\', '/')
+        self.assertEqual(reports.values()[0]['report_path'], filepath1)
 
         #make sure that the milestone is what we think it is:
         #there should only be one projectreport record associate with
@@ -396,9 +402,11 @@ class TestActualFileUpload(TestCase):
 
         #=============
         #second file:
-        filepath2 = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file1.name)[1])
-        self.assertEqual(reports.values()[1]['report_path'],filepath2)
+        filepath2 = os.path.join(UPLOAD_TO,
+                                 os.path.split(self.mock_file1.name)[1]).\
+                                 replace('\\', '/')
+
+        self.assertEqual(reports.values()[1]['report_path'], filepath2)
         report_id = reports.values_list()[1][0]
 
         #make sure that the milestone is what we think it is:
@@ -413,9 +421,10 @@ class TestActualFileUpload(TestCase):
 
         #=============
         #third file:
-        filepath3 = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file2.name)[1])
-        self.assertEqual(reports.values()[2]['report_path'],filepath3)
+        filepath3 = os.path.join(UPLOAD_TO,
+                                os.path.split(self.mock_file2.name)[1]).\
+                                replace('\\', '/')
+        self.assertEqual(reports.values()[2]['report_path'], filepath3)
         report_id = reports.values_list()[2][0]
         #make sure that the milestone is what we think it is:
         #there should only be one projectreport record associate with
@@ -491,6 +500,7 @@ class TestActualFileUpload(TestCase):
     def test_upload_report_sister_projects(self):
         '''verify that we can upload more than 1 file'''
 
+
         #set up the sister relationship:
         self.project1.add_sister(self.project2.slug)
 
@@ -514,11 +524,12 @@ class TestActualFileUpload(TestCase):
         report_count = Report.objects.all().count()
         self.assertEqual(report_count,1)
 
-        filepath = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file0.name)[1])
+        filepath = os.path.join(UPLOAD_TO,
+                                os.path.split(self.mock_file0.name)[1]).\
+                                replace('\\', '/')
 
         reports = self.project1.get_uploaded_reports()
-        self.assertEqual(reports.values()[0]['report_path'],filepath)
+        self.assertEqual(reports.values()[0]['report_path'], filepath)
 
         #make sure that the milestone is what we think it is:
         pr = ProjectMilestones.objects.filter(report=reports.select_related())
@@ -588,9 +599,11 @@ class TestActualFileUpload(TestCase):
         self.assertEqual(reports.count(),3)
 
         #first file:
-        filepath1 = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file0.name)[1])
-        self.assertEqual(reports.values()[0]['report_path'],filepath1)
+        filepath1 = os.path.join(UPLOAD_TO,
+                                 os.path.split(self.mock_file0.name)[1]).\
+                                 replace('\\', '/')
+
+        self.assertEqual(reports.values()[0]['report_path'], filepath1)
 
         #make sure that the milestone is what we think it is: there
         #should TWO projectreport records associate with this report -
@@ -608,16 +621,17 @@ class TestActualFileUpload(TestCase):
 
         #=============
         #second file:
-        filepath2 = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file1.name)[1])
-        self.assertEqual(reports.values()[1]['report_path'],filepath2)
+        filepath2 = os.path.join(UPLOAD_TO,
+                                 os.path.split(self.mock_file1.name)[1]).\
+                                 replace('\\','/')
+        self.assertEqual(reports.values()[1]['report_path'], filepath2)
         report_id = reports.values_list()[1][0]
 
         #make sure that the milestone is what we think it is:
         #there should only be one projectreport record associate with
         #this report, and its report type should match that of rep1
         pr = ProjectMilestones.objects.filter(report__id=report_id)
-        self.assertEqual(pr.count(),1)
+        self.assertEqual(pr.count(), 1)
         #we skipped a file on the form - this should be associated
         #with the 3rd milestone
         self.assertEqual(pr[0].milestone, self.rep1)
@@ -625,9 +639,11 @@ class TestActualFileUpload(TestCase):
 
         #=============
         #third file:
-        filepath3 = os.path.join(settings.MEDIA_URL,
-                                os.path.split(self.mock_file2.name)[1])
-        self.assertEqual(reports.values()[2]['report_path'],filepath3)
+        filepath3 = os.path.join(UPLOAD_TO,
+                                 os.path.split(self.mock_file2.name)[1]).\
+                                 replace('\\','/')
+
+        self.assertEqual(reports.values()[2]['report_path'], filepath3)
         report_id = reports.values_list()[2][0]
 
         #make sure that the milestone is what we think it is:
@@ -717,7 +733,9 @@ class TestActualFileUpload(TestCase):
         #finally get rid of the temporary file if it was created in
         #this test
         #mock_file0
-        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+
+
+        filepath = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO,
                                 os.path.split(self.mock_file0.name)[1])
         try:
             os.remove(filepath)
@@ -725,7 +743,7 @@ class TestActualFileUpload(TestCase):
             pass
 
         #mock_file1
-        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+        filepath = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO,
                                 os.path.split(self.mock_file1.name)[1])
         try:
             os.remove(filepath)
@@ -733,7 +751,7 @@ class TestActualFileUpload(TestCase):
             pass
 
         #mock_file2
-        filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+        filepath = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO,
                                 os.path.split(self.mock_file2.name)[1])
         try:
             os.remove(filepath)
@@ -742,12 +760,12 @@ class TestActualFileUpload(TestCase):
 
         #finally, clean out any test files that may have been
         #duplicates and named slightly differently than the others.
-        media_dir = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL)
+        media_dir = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO)
         pattern = r'fake_test_file.*\.txt'
         files = [f for f in os.listdir(media_dir) if re.match(pattern, f)]
 
         for fname in files:
-            filepath = os.path.join(settings.MEDIA_ROOT, settings.MEDIA_URL,
+            filepath = os.path.join(settings.MEDIA_ROOT, UPLOAD_TO,
                                     fname)
             try:
                 os.remove(filepath)
