@@ -145,6 +145,7 @@ class Milestone(models.Model):
     types (field projects vs synthesis projects).
 
     Protected is used to limit who can update various milestones.
+
     '''
 
     #(database, display)

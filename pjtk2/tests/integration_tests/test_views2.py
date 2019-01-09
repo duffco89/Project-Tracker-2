@@ -549,7 +549,8 @@ class UpdateReportsTestCase(WebTest):
         self.user2.delete()
 
 class MyProjectViewTestCase(WebTest):
-    '''Verify that the managers see projects of their reports in the list
+    '''
+    Verify that the managers see projects of their reports in the list
     of 'MyProjects'.  Emplyees will be able to see their projects but
     not their supervisors.  When the supervisors view MyProjects, they
     will have a column 'Project Leader'and will be able to see
@@ -558,20 +559,32 @@ class MyProjectViewTestCase(WebTest):
     '''
 
     def setUp(self):
-        '''create two employees, one supervises the other. Additionally,
-        create 3 projects, one run by the supervisor, 2 by the employee.'''
+        '''
+        Rreate three users, two will be employees, one supervises the
+        other, the third will not be an employee. Additionally, create
+        3 projects, one run by the supervisor, 2 by the employee.
+
+        '''
 
         year = str(datetime.datetime.today().year - 3)[2:]
 
         #self.client = Client()
 
-        self.user = UserFactory(username = 'hsimpson',
-                                first_name = 'Homer',
-                                last_name = 'Simpson')
+        self.user = UserFactory(username='hsimpson',
+                                first_name='Homer',
+                                last_name='Simpson')
 
-        self.user2 = UserFactory.create(username = 'mburns',
-                                first_name = 'Burns',
-                                last_name = 'Montgomery',
+        #bart will be user - but not an employee and should get an
+        # admin error
+        self.user1 = UserFactory(username='bsimpson',
+                                first_name='Bart',
+                                last_name='Simpson')
+
+
+
+        self.user2 = UserFactory.create(username='mburns',
+                                first_name='Burns',
+                                last_name='Montgomery',
                                        )
 
         #mr. burns is an employee without a boss
@@ -580,34 +593,53 @@ class MyProjectViewTestCase(WebTest):
         self.employee = EmployeeFactory(user=self.user,
                                         supervisor=self.employee2)
 
-        self.ProjType = ProjTypeFactory(project_type = "Nearshore Index")
+        self.ProjType = ProjTypeFactory(project_type="Nearshore Index")
 
         #we need approved and sign off milestones
         self.milestone1 = MilestoneFactory.create(label="Approved",
-                                             category = 'Core', order=1,
+                                             category='Core', order=1,
                                              report=False)
         self.milestone2 = MilestoneFactory.create(label="Sign off",
-                                        category = 'Core', order=999,
+                                        category='Core', order=999,
                                              report=False)
 
         prj_cd = "LHA_IA{}_111".format(year)
-        self.project1 = ProjectFactory.create(prj_cd=prj_cd,
+        self.project1=ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user,
                                               owner=self.user,
-                                              project_type = self.ProjType)
+                                              project_type=self.ProjType)
 
         prj_cd = "LHA_IA{}_222".format(year)
         self.project2 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user,
                                               owner=self.user,
-                                              project_type = self.ProjType)
+                                              project_type=self.ProjType)
         #this one is run by mr. burns
         prj_cd = "LHA_IA{}_333".format(year)
         self.project3 = ProjectFactory.create(prj_cd=prj_cd,
                                               prj_ldr=self.user2,
                                               owner=self.user2,
-                                              project_type = self.ProjType)
+                                              project_type=self.ProjType)
 
+
+
+    def test_myprojects_misconfigured(self):
+        '''
+        If we forget to create an employee profile for a user, they should
+        see a message that states that they should see the site
+        administrators.
+        '''
+
+        login = self.client.login(username=self.user1.username, password='abc')
+        self.assertTrue(login)
+        response = self.client.get(reverse('MyProjects'))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertTemplateUsed(response, "404.html")
+
+        # messsage are not visible in production:
+        # msg = 'Please contact the site administrators.'
+        # self.assertNotContains(response, msg)
 
 
     def test_employee_version_myprojects(self):

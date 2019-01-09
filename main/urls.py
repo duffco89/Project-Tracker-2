@@ -18,7 +18,12 @@ urlpatterns = [
     url(r'^$', project_list, name='home'),
     url(r'^$', project_list, name='index'),
 
+    url(r'^admin/doc/',
+        include('django.contrib.admindocs.urls')),
+
     url(r'^coregonusclupeaformis/admin/', admin.site.urls),
+
+
 
     url(r'^accounts/', include('simple_auth.urls')),
     url(r'^password_reset/',

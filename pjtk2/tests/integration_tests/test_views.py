@@ -99,10 +99,6 @@ class TestCanEditFunction(TestCase):
         self.user1.delete()
 
 
-
-
-
-
 ###Views
 ##class IndexViewTestCase(TestCase):
 ##    '''verfiy that we can view the site index page'''
