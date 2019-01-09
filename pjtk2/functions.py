@@ -1,38 +1,70 @@
-'''This file contains a number of helper functions.  Most of the
-functions are used in views.py,but they are not views themselves.'''
+'''
+This file contains a number of helper functions.  Most of the
+functions are used in views.py,but they are not views themselves.
+
+'''
+
 
 import re
 
 
+def make_possessive(string):
+    """
+    A supper simple helper function that will used to make people's
+    names possessive.
+
+    If the last letter of the name is an 's', simply append an
+    appostrophy, if it is anything else append 's.
+
+    Arguments:
+    - `string`:
+
+    """
+
+    if string[-1] == 's':
+        string = string + "'"
+    else:
+        string = string + "'s"
+    return string
+
+
+
+
 def strip_carriage_returns(my_string):
-    """A little helper function to remove carriage returns from text.
+    '''
+    A little helper function to remove carriage returns from text.
     This function is intended to help with artifacts introduced by cutting
     and pasting from word - if people do that, carriage returns are added
     to end of each line.  This fucntion removes those carriage returns
     without disrupting the paragraph structure or markdown.
 
-    Arguments: - `my_string`: the string from which to remove
-    extranious carriage returns.
+    Arguments:
 
-    """
+    - `my_string`: the string from which to remove extranious
+    carriage returns.
+
+    '''
 
     if my_string is None:
         return None
 
     my_lines = my_string.splitlines()
     for i, x in enumerate(my_lines):
-        if x=='' or re.match('\s', x):
+        if x == '' or re.match(r'\s', x):
             my_lines[i] = "\r\n\r\n"
         else:
-            my_lines[i] +=" "
+            my_lines[i] += " "
     return "".join(my_lines).strip()
 
 
 
 
 def get_supervisors(employee):
-    '''Given an employee object, return a list of supervisors.  the first
-    element of list will be the intial employee.'''
+    '''
+    Given an employee object, return a list of supervisors.  the first
+    element of list will be the intial employee.
+    '''
+
     if employee.supervisor:
         return [employee] + get_supervisors(employee.supervisor)
     else:
@@ -40,10 +72,12 @@ def get_supervisors(employee):
 
 
 def get_minions(employee):
-    '''Given an employee objects, return a list of employees under his/her
+    '''
+    Given an employee objects, return a list of employees under his/her
     supervision.  The first element of list will be the intial
     employee.
     '''
+
     ret = [employee]
     for minion in employee.employee_set.all():
         #ret.append(get_minions(minion))
@@ -52,9 +86,11 @@ def get_minions(employee):
 
 
 def my_messages(user, all=False):
-    '''Return a queryset of messages for the user, sorted in reverse
+    '''
+Return a queryset of messages for the user, sorted in reverse
     chronological order (newest first).  By default, only unread messages
     are returned, but all messages can be retrieved.'''
+
 
     from pjtk2.models import Messages2Users
 
@@ -70,13 +106,15 @@ def my_messages(user, all=False):
 
 
 def get_messages_dict(messages):
-    '''given  notification message, pull out the project, url, id and
+    '''
+given  notification message, pull out the project, url, id and
     message.  wrap them up in a dict and return it.  The dict is then
     passed to the notifcation form so that each message can be displayed
     and marked as read by the user.
 
     messages is a list of Messages2Users objects
 '''
+
 
     initial = []
 
@@ -92,12 +130,9 @@ def get_messages_dict(messages):
 
     return initial
 
-
-
-
-
 def replace_links(text, link_patterns):
-    """a little function that will replace string patterns in text with
+    '''
+    A little function that will replace string patterns in text with
     supplied hyperlinks.  'text' is just a string, most often a field
     in a django or flask model.  link_pattern is a list of two element
     dictionaries.  Each dicationary must have keys 'pattern' and
@@ -109,7 +144,7 @@ def replace_links(text, link_patterns):
     Note: The function does not make any attempt to validate the link or
     the regex pattern.
 
-    """
+    '''
 
     import re
     from markdown2 import markdown
@@ -123,7 +158,7 @@ def replace_links(text, link_patterns):
             for x in prj_codes:
                 link = pattern['url']
                 href = link.format(x.lower(), x.upper())
-                text = text.replace(x,href)
+                text = text.replace(x, href)
         else:
             text = re.sub(regex, pattern['url'], text)
     return text

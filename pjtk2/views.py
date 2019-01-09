@@ -35,7 +35,8 @@ from django.views.generic.base import TemplateView
 
 from taggit.models import Tag
 
-from .functions import get_minions, my_messages, get_messages_dict
+from .functions import (get_minions, my_messages, get_messages_dict,
+                        make_possessive)
 
 from .filters import ProjectFilter
 
@@ -1085,8 +1086,8 @@ def my_projects(request):
     except:
         msg = '''Your employee profile does not appear to be propery
                  configured.\nPlease contact the site administrators.'''
-        messages.error(request, msg)
-        raise Http404("Error")
+        #messages.error(request, msg)
+        raise Http404(msg)
 
     employees = get_minions(myself)
     employees = [x.user.username for x in employees]
@@ -1207,10 +1208,8 @@ def employee_projects(request, employee_name):
     #create a label that will be the possessive form of the employees
     #first and last name
     label = ' '.join([my_employee.first_name, my_employee.last_name])
-    if label[-1]=='s':
-        label=label + "'"
-    else:
-        label=label + "'s"
+
+    label = make_possessive(label)
 
     return render(request, template_name,
                   {'employee': my_employee,

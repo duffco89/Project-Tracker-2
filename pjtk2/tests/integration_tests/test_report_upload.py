@@ -36,8 +36,10 @@ def disconnect_signals():
 #    pre_save.disconnect(send_notice_prjms_changed, sender=ProjectMilestones)
 #
 
+
 class BasicReportUploadTestCase(WebTest):
-    '''NOTE - actual file upload tests moved to the bottom of the is
+    '''
+    NOTE - actual file upload tests moved to the bottom of the is
     file couldn't get webtest to include uploaded files in
     request.FILEs.  These webtest tests verify that the report upload
     form is rendered correctly.'''
@@ -812,3 +814,33 @@ class TestActualFileUpload(TestCase):
 ##              os.remove(filepath)
 ##          except:
 ##              pass
+
+
+
+
+class TestServeMissingFile(TestCase):
+    '''
+    If we try serve a file that does exists, we should get help error message.
+    '''
+
+    def test_serve_missing_file(self):
+        '''
+        If we try serve a file that does exists, we should get help error message.
+        '''
+
+        filename = "MissingFile.doc"
+        url = reverse('serve_file', args=(filename,))
+        response = self.client.get(url)
+
+        assert response.status_code == 200
+        self.assertTemplateUsed(response, 'pjtk2/MissingFile.html')
+
+        self.assertContains(response, filename)
+
+        print('response={}'.format(response.content))
+
+        msg = '''This is embarassing.  I can't seem the find a file
+        named "{}". It is possible that the file has been moved,
+        renamed or deleted.'''
+
+        self.assertContains(response, msg.format(filename), html=True)

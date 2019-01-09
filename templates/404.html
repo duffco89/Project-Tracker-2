@@ -7,9 +7,18 @@
 </head>
 
 <body>
- <h1>404 Page Not Found</h1>
+ <h1>404 Page Not Found!</h1>
 
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% else %}
  <p>Sorry, but the requested page could not be found.</p>
+{% endif %}
+
 </body>
 
 </html>
