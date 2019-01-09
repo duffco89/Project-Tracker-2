@@ -948,6 +948,8 @@ def edit_image(request, pk):
         if form.is_valid():
             form.save()
 
+            #this should be moved to project model:
+            #project.trim_report_images(MAX_REPORT_IMG_COUNT)
             extra_images = project.images\
                                   .filter(report=True)\
                                   .order_by('order')[MAX_REPORT_IMG_COUNT:]

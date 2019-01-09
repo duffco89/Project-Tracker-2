@@ -103,8 +103,10 @@ class MilestoneManager(models.Manager):
     '''
 
     def shared(self):
-        '''return only those milestones that are shared among sister
-        projects'''
+        '''
+        return only those milestones that are shared among sister
+        projects
+        '''
         return super(MilestoneManager, self).get_queryset().filter(
                      shared=True)
 
@@ -115,7 +117,8 @@ class MilestoneManager(models.Manager):
 
 
 class MessageManager(models.Manager):
-    '''We only want messages for projects that continue to be active.
+    '''
+    We only want messages for projects that continue to be active.
     '''
     def get_queryset(self):
         use_for_related_fields = True
@@ -124,7 +127,8 @@ class MessageManager(models.Manager):
 
 
 class Messages2UsersManager(models.Manager):
-    '''We only want messages for projects that continue to be active.
+    '''
+    We only want messages for projects that continue to be active.
     '''
     def get_queryset(self):
         use_for_related_fields = True
@@ -133,7 +137,8 @@ class Messages2UsersManager(models.Manager):
 
 
 class Milestone(models.Model):
-    '''Look-up table of reporting milestone and their attributes.  Not all
+    '''
+    Look-up table of reporting milestone and their attributes.  Not all
     milestones will have a report associated with them.  Keeping
     milestones in a separate tables allows us to dynamically add and
     remove milestones associated with individual projects or project
@@ -174,7 +179,9 @@ class Milestone(models.Model):
 
 
 class ProjectType(models.Model):
-    '''A look-up table to hold project types'''
+    '''
+    A look-up table to hold project types
+    '''
     project_type = models.CharField(max_length=150)
     field_component  = models.BooleanField(default=True)
 
@@ -187,7 +194,9 @@ class ProjectType(models.Model):
 
 
 class Database(models.Model):
-    '''A lookup table to hole list of master databases.'''
+    '''
+    A lookup table to hole list of master databases.
+    '''
     master_database = models.CharField(max_length=250)
     path = models.CharField(max_length=250)
 
@@ -200,7 +209,10 @@ class Database(models.Model):
 
 
 class Lake(models.Model):
-    '''A lookup table to hold the names of the different lakes'''
+    '''
+    A lookup table to hold the names of the different lakes
+    '''
+
     lake = models.CharField(max_length=50)
 
     class Meta:
@@ -213,7 +225,9 @@ class Lake(models.Model):
 
 
 class FundingSource(models.Model):
-    '''A lookup table to hold the names of the different funding sources'''
+    '''
+    A lookup table to hold the names of the different funding sources
+    '''
 
     name = models.CharField(max_length=150, unique=True,
                               blank=False)
@@ -229,7 +243,8 @@ class FundingSource(models.Model):
 
 
 class ProjectFunding(models.Model):
-    '''A lookup table to hold the names of the different funding sources
+    '''
+    A lookup table to hold the names of the different funding sources
     and how the funding was used.  Originally this data was maintained
     as fields in Project Model.  Moved to a seperate table to
     accomodate multiple funding sources that could be used to fund a
@@ -267,9 +282,9 @@ class ProjectFunding(models.Model):
 
 
 class Project(models.Model):
-    '''Class to hold a record for each project
     '''
-
+    Class to hold a record for each project
+    '''
 
     active  = models.BooleanField(default=True)
     cancelled  = models.BooleanField(default=False)
@@ -340,7 +355,8 @@ class Project(models.Model):
         ordering = ['-prj_date1']
 
     def approve(self):
-        '''a helper method to make approving projects easier.  A
+        '''
+        a helper method to make approving projects easier.  A
         project-milestone object will be created if it doesn't
         exist.
         '''
@@ -364,7 +380,8 @@ class Project(models.Model):
                                                  completed=now)
 
     def unapprove(self):
-        '''a helper method to reverse project.approved(), a project-milestone
+        '''
+        a helper method to reverse project.approved(), a project-milestone
         object will be created if it doesn't exist.'''
         try:
             #ProjectMilestones.objects.filter(project=self,
@@ -381,7 +398,7 @@ class Project(models.Model):
 
 
     def is_approved(self):
-        '''Is the current project approved?  Returns true if it is, otherwize
+        '''Is the current project approved?  Returns true if it is, otherwise
         false.'''
         approved = ProjectMilestones.objects.get(project=self,
                                                  milestone__label='Approved')
@@ -433,15 +450,16 @@ class Project(models.Model):
 
 
     def status(self):
-        """The status of a project must be one of: 'Submitted', 'Ongoing',
-        'Cancelled' or 'Complete'
-        Submitted - not approved
-        Ongoing - approved, but not cancelled or signed off
-        Cancelled - cancelled==True
-        Complete - signoff==True
+        """
+        The status of a project must be one of:
 
-        NOTE - projects cannot be completed or caneled withouth being
-        approved first!  Similarly, cancelled projects cannot be complete.
+        + Submitted - not approved
+        + Ongoing - approved, but not cancelled or signed off
+        + Cancelled - cancelled==True
+        + Complete - signoff==True
+
+        NOTE - projects cannot be completed or cancelled withouth being
+        approved first!  Similarly, cancelled projects cannot be completed.
 
         """
 
@@ -455,27 +473,37 @@ class Project(models.Model):
             return('Ongoing')
 
     def project_suffix(self):
-        '''return the prject suffix for the given project'''
+        '''
+        return the prject suffix for the given project'''
+
         return self.prj_cd[-3:]
 
     def name(self):
-        '''alias for prj_nm - maintains fishnetII name in model but works
+        '''
+        alias for prj_nm - maintains fishnetII name in model but works
          with django convention of obj.name.'''
+
         return self.prj_nm
 
     def description(self):
-        '''alias for comment - maintains fishnetII comment in model but works
+        '''
+        alias for comment - maintains fishnetII comment in model but works
          with django convention of obj.description.'''
+
         return self.abstract
 
     def __str__(self):
-        '''Return the name of the project and it's project code'''
+        '''
+        Return the name of the project and it's project code'''
+
         ret = "%s (%s)" % (self.prj_nm, self.prj_cd)
         return ret
 
     def get_milestones(self, required=True):
-        '''get all of the milestone events that have been assigned to
+        '''
+        get all of the milestone events that have been assigned to
         this project - (these are just milestone events where report==False)'''
+
         if required is True:
             return ProjectMilestones.objects.filter(project=self,
                                                     required=True,
@@ -487,39 +515,47 @@ class Project(models.Model):
                                                   ).order_by('milestone__order')
 
     def get_reporting_requirements(self):
-        '''get all of the reports have been assigned to
+        '''
+        get all of the reports have been assigned to
         this project - no distinction between core or custom reports'''
+
         return ProjectMilestones.objects.filter(project=self,
                                                 milestone__report=True
                                                 ).order_by('milestone__order')
 
     def get_uploaded_reports(self):
-        '''get all of the CURRENT reports that are associated with this
+        '''
+        get all of the CURRENT reports that are associated with this
         project.  Non-current reports are not included in this
         recordset.
         '''
+
         #TODO Filter for report=True
         return Report.objects.filter(current=True,
                                      projectreport__project=self)
 
 
     def get_associated_files(self):
-        '''get all of the associated files associated with this project
+        '''
+        get all of the associated files associated with this project
         Associated files are not associated with a milesone and are
         likely to be different for each project..
 
         '''
+
 
         return AssociatedFile.objects.filter(project=self)
 
 
 
     def get_core_assignments(self, all_reports=True):
-        '''get all of the core reports have been assigned to this project, if
+        '''
+        get all of the core reports have been assigned to this project, if
         'all_reports' is true, all assignements are returned, if 'all_reports'
         is False, only required assignments are returned.
 
         '''
+
 
         if all_reports is True:
             assignments = self.get_reporting_requirements().filter(
@@ -533,16 +569,17 @@ class Project(models.Model):
 
 
     def get_milestone_status_dict(self):
-        '''in order to impoved the performance of the myProjects view we
-         need a function that will take a project return a dictionary of
-         milestones the keys of the dictionary will be the abbreviated label
-         of the milestone, in lower case with spaces replaced by dashes.  the
-         value of each dictionary key will be the status of the milestone:
+        '''
+        In order to impoved the performance of the myProjects view we
+        need a function that will take a project return a dictionary of
+        milestones the keys of the dictionary will be the abbreviated label
+        of the milestone, in lower case with spaces replaced by dashes.  the
+        value of each dictionary key will be the status of the milestone:
 
-         required-done
-         required-notDone
-         notRequired-done
-         notRequired-notDone
+        + required-done
+        + required-notDone
+        + notRequired-done
+        + notRequired-notDone
 
         The status of all custom reports is tacked on to the end of
         the ordered dictionary and reflects the status of all required
@@ -620,15 +657,19 @@ class Project(models.Model):
                 milestone__category='Core')
 
     def get_complete(self):
-        '''get the project reports that have uploaded reports
+        '''
+        get the project reports that have uploaded reports
         associated with them.'''
+
         #TODO Filter for report=True
         return ProjectMilestones.objects.filter(project=self).filter(
             report__in=Report.objects.filter(current=True,
                                              projectreport__project=self))
 
     def get_outstanding(self):
-        '''these are the required reports that have not been submitted yet'''
+        '''
+        these are the required reports that have not been submitted yet'''
+
         #TODO Filter for report=True
         return ProjectMilestones.objects.filter(project=self,
                                                 milestone__report=True).exclude(
@@ -637,9 +678,11 @@ class Project(models.Model):
 
 
     def get_milestone_dicts(self):
-        '''return a dictionary of dictionaries containing elements of
+        '''
+        return a dictionary of dictionaries containing elements of
         all milestones, core and custom reports as well as vectors indicating
         which ones have been assigned to this project.'''
+
 
         #TODO Filter for report=True
 
@@ -678,7 +721,8 @@ class Project(models.Model):
 
 
     def milestone_complete(self, milestone):
-        """This is a helper function used in to manage project reporting
+        """
+        This is a helper function used in to manage project reporting
         requirements. It returns True if the milestone has been
         completed for a project, it returns False if a require element
         has not been completed, and returns None if the milestone does
@@ -708,7 +752,8 @@ class Project(models.Model):
 
 
     def initialize_milestones(self):
-        '''A function that will add a record into "ProjectMilestones" for
+        '''
+        A function that will add a record into "ProjectMilestones" for
         each of the core reports and milestones for newly created projects'''
 
         corereports = Milestone.allmilestones.filter(category='Core')
@@ -722,7 +767,8 @@ class Project(models.Model):
                                                     completed = now)
 
     def get_family(self):
-        '''If this project belongs to a familiy (i.e. - has sisters) return
+        '''
+        If this project belongs to a familiy (i.e. - has sisters) return
         the family, otherwise return None.'''
 
         try:
@@ -732,7 +778,8 @@ class Project(models.Model):
         return family
 
     def add_sister(self, slug):
-        '''Add the project identified by slug to the familiy of the current
+        '''
+        Add the project identified by slug to the familiy of the current
         project.  If the current project, doesn't belong to a family, create
         it first then add the sister.
         '''
@@ -747,9 +794,11 @@ class Project(models.Model):
         ProjectSisters.objects.create(project=project, family=family)
 
     def get_sisters(self, excludeself = True):
-        '''return a queryset of sister projects associated with this
+        '''
+        Return a queryset of sister projects associated with this
         project. - By default, the current project is not incuded in
         the recordset'''
+
         family = self.get_family()
         if family:
             try:
@@ -766,26 +815,30 @@ class Project(models.Model):
         return sisters
 
     def has_sister(self):
-        '''a simple little helper function - returns True if this project has
+        '''
+        a simple little helper function - returns True if this project has
         one or more sisters, False otherwise.  Used in templates to
         issue warnings about cascading effects on other projects.
         '''
+
         if len(self.get_sisters()):
             return(True)
         else:
             return(False)
 
     def get_sister_candidates(self):
-        '''return a querset of projects that could be sisters to this
+        '''
+        return a querset of projects that could be sisters to this
         project.  To be a candidates for sisterhood, a project must be
         approved, be the same project type, run in the same year and
         not be a sister to another project. If the current project
         isn't approved, no candidates will be returned regardless.'''
+
         if self.is_approved():
             try:
                 candidates = Project.objects.approved().filter(
                     project_type=self.project_type,
-                    year = self.year,
+                    year=self.year,
                     projectsisters__isnull=True).exclude(
                         slug=self.slug).order_by('slug')
             except Project.DoesNotExist:
@@ -795,11 +848,13 @@ class Project(models.Model):
         return candidates
 
     def delete_sister(self, slug):
-        '''remove the project identified by "slug" from the familiy associated
+        '''
+        remove the project identified by "slug" from the familiy associated
         with this project.  If this project is now the only member of
         teh familiy, delete the family so we don't end-up with a bunch
         of single member families.
         '''
+
         project = Project.objects.get(slug=slug)
         ProjectSisters.objects.filter(project=project).delete()
         family = self.get_family()
@@ -812,8 +867,10 @@ class Project(models.Model):
 
 
     def disown(self):
-        '''the special case when we want to remove this project from an
+        '''
+        the special case when we want to remove this project from an
         existing family, but keep the other sister relationships intact.'''
+
 
         family = self.get_family()
 
@@ -827,7 +884,10 @@ class Project(models.Model):
 
     #@models.permalink
     def get_absolute_url(self):
-        '''return the url for the project'''
+        '''
+        return the url for the project
+        '''
+
         url = reverse('project_detail', kwargs={'slug':self.slug})
         return url
 
@@ -876,11 +936,13 @@ class Project(models.Model):
 
 
     def get_sample_points(self):
-        '''get the coordinates of sample points associated with this
+        '''
+        get the coordinates of sample points associated with this
         project.  Returns a list of tuples.  Each tuple contains the
         sample id, dd_lat and dd_lon
 
         '''
+
         points = SamplePoint.objects.filter(project__id=self.id).values_list(
             'sam', 'geom')
 
@@ -888,7 +950,8 @@ class Project(models.Model):
 
 
     def update_convex_hull(self):
-        """a method to update the assocaited table containing the project
+        """
+        A method to update the assocaited table containing the project
         polygon object.  If there are points, get or create a polygon
         object.  If there aren't any points, or the points don't form
         a polygon, don't create a polygon object, or delete one if it
@@ -955,28 +1018,37 @@ class Project(models.Model):
 
     @property
     def total_odoe(self):
-        """Return the total odoe for this project from all sources."""
+        """
+        Return the total odoe for this project from all sources.
+        """
 
         return sum([x.odoe for x in self.funding_sources.all()])
 
     @property
     def total_salary(self):
-        """Return the total salary for this project from all sources."""
+        """
+        Return the total salary for this project from all sources.
+        """
+
         return sum([x.salary for x in self.funding_sources.all()])
 
     @property
     def total_cost(self):
-        '''a little helper function to calculate the total cost of a project
-        (sum of salary and odoe)'''
+        '''
+        A little helper function to calculate the total cost of a project
+        (sum of salary and odoe)
+        '''
 
         return sum([(x.salary + x.odoe) for x in self.funding_sources.all()])
 
 
 class SamplePoint(models.Model):
-    '''A class to hold the sampling locations of a project.  In most
-    cases, a samplePoint instance represents a net in the water, but
+    '''
+    A class to hold the sampling locations of a :model:`Project`.  In most
+    cases, a SamplePoint instance represents a net in the water, but
     can have different meaning for different projects.
     '''
+
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
     sam  = models.CharField(max_length=30, null=True, blank=True)
     geom = models.PointField(srid=4326,
@@ -1005,7 +1077,8 @@ class SamplePoint(models.Model):
 
     @property
     def popup_text(self):
-        """Pop-up text should include a hyperlink to project detail so that
+        """
+        Pop-up text should include a hyperlink to project detail so that
         when we find projects by region, the leaflet map will provide
         us with a way to get more inforamtion about specific net
         sets.
@@ -1014,7 +1087,9 @@ class SamplePoint(models.Model):
 
 
     def __str__(self):
-        '''Return a string that include the project code and sample'''
+        '''
+        Return a string that include the project code and sample
+        '''
         return "%s - %s" % (self.project.prj_cd, self.sam)
 
 
@@ -1022,14 +1097,18 @@ class SamplePoint(models.Model):
 
 
 class ProjectImage(models.Model):
-    '''A class to hold images of our projects.'''
+    '''
+    A class to hold images of our projects.
+    '''
 
 
     def get_image_path(self, image_path):
-        '''a little helper function used by "upload_to" for pictures.
+        '''
+        A little helper function used by "upload_to" for pictures.
         It will save all of the images associated with a project in a project
         specific directory (named using the project code)
         '''
+
         val = "project_images/{}/{}".format(self.project.prj_cd, image_path)
         return val
 
@@ -1054,7 +1133,8 @@ class ProjectImage(models.Model):
 
 
 class ProjectPolygon(models.Model):
-    '''A class to hold the convex hull derived from the sampling locations
+    '''
+    A class to hold the convex hull derived from the sampling locations
     of a project.  Calculated when sample points are uploaded into
     project tracker.  Makes spatial queries much faster - query few
     polygons instead of lots and lots of individual points.
@@ -1067,12 +1147,17 @@ class ProjectPolygon(models.Model):
     objects = models.GeoManager()
 
     def __str__(self):
-        '''Return a string that include the project code'''
+        '''
+        Return a string that include the project code
+        '''
         return "<{}>".format(self.project.prj_cd)
 
 
 class ProjectMilestones(models.Model):
-    '''list of reporting requirements for each project'''
+    '''
+    List of reporting requirements for each project
+    '''
+
     #aka - project milestones
     project = models.ForeignKey('Project', on_delete=models.CASCADE)
     #report_type = models.ForeignKey('Milestone')
@@ -1092,8 +1177,10 @@ class ProjectMilestones(models.Model):
 
 
 class Report(models.Model):
-    '''class for reports.  A single report can be linked to multiple
+    '''
+    A class for reports.  A single report can be linked to multiple
     entries in Project Reports'''
+
     current = models.BooleanField(default=True)
     projectreport = models.ManyToManyField('ProjectMilestones')
 
