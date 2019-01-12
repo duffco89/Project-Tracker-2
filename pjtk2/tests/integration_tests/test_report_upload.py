@@ -348,9 +348,6 @@ class TestActualFileUpload(TestCase):
             )
 
 
-
-
-
     def test_upload_multiple_reports(self):
         '''verify that we can upload more than 1 file'''
 
@@ -825,22 +822,19 @@ class TestServeMissingFile(TestCase):
 
     def test_serve_missing_file(self):
         '''
-        If we try serve a file that does exists, we should get help error message.
+        If we try serve a file that does exists, we should get help
+        error message.
         '''
 
-        filename = "MissingFile.doc"
-        url = reverse('serve_file', args=(filename,))
+        missingfile = 'MissingFile.doc'
+        url = reverse('serve_file', args=(missingfile,))
+
         response = self.client.get(url)
-
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'pjtk2/MissingFile.html')
+        self.assertContains(response, missingfile)
 
-        self.assertContains(response, filename)
-
-        print('response={}'.format(response.content))
-
-        msg = '''This is embarassing.  I can't seem the find a file
+        msg = """<p>This is embarrassing.  I can't seem the find a file
         named "{}". It is possible that the file has been moved,
-        renamed or deleted.'''
-
-        self.assertContains(response, msg.format(filename), html=True)
+        renamed or deleted.</p>"""
+        self.assertContains(response, msg.format(missingfile), html=True)

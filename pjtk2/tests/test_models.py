@@ -22,6 +22,26 @@ def print_err(*args):
 
 
 
+@pytest.mark.django_db
+def test_project_image_str():
+    """The string method of a project images should return the string
+    representation of the project followed by the figure catption.
+
+    'Fake Project (LHA_IA12_345) - My cool picture.'
+
+    """
+
+    prj_cd = 'LHA_IA12_345'
+    prj_nm = 'Fake Project'
+    figure_caption = 'My cool picture.'
+
+    project = ProjectFactory(prj_cd=prj_cd, prj_nm=prj_nm)
+    image = ProjectImage(caption=figure_caption,
+                         project=project)
+    shouldbe = '{} ({}) - {}'.format(prj_nm, prj_cd, figure_caption)
+    assert str(image) == shouldbe
+
+
 class TestProjectApproveUnapproveMethods(TestCase):
     '''Project instances have been given class methods to approve,
     rove and sign off.  These tests verify that they work as

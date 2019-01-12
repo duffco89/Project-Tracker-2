@@ -130,10 +130,10 @@ urlpatterns = [
     # images
     url((r'project/edit_image/(?P<pk>\d+)'),
         edit_image,
-         name='edit_image'),
+         name='project_edit_image'),
 
    url((r'^project/delete_image/'
-        '(?P<id>\d+)/$'),
+        '(?P<pk>\d+)/$'),
         view=delete_image_file,
         name='delete_image_file'),
 

@@ -1099,7 +1099,8 @@ class SamplePoint(models.Model):
 
 class ProjectImage(models.Model):
     '''
-    A class to hold images of our projects.
+    A class to hold images of our projects.  Each image has a foreign key back
+    to :model:`pjtk2.Project`.
     '''
 
 
@@ -1115,10 +1116,13 @@ class ProjectImage(models.Model):
 
     project = models.ForeignKey(Project, on_delete=models.CASCADE,
                                 related_name='images')
-    order = models.IntegerField(default=0)
+    order = models.IntegerField(
+        'the order that the images are presented', default=0)
     image_path = models.ImageField(upload_to=get_image_path)
-    caption = models.CharField(max_length=1000)
-    report = models.BooleanField(default=True)
+    caption = models.CharField('figure caption', max_length=1000)
+    report = models.BooleanField(
+        'should this image be included in the annual report too?',
+        default=True)
 
     class Meta:
         ordering = ['order']
@@ -1128,7 +1132,7 @@ class ProjectImage(models.Model):
         Arguments:
         - `self`:
         """
-        return "{} - {} ".format(self.project, self.caption)
+        return "{} - {}".format(self.project, self.caption)
 
 
 

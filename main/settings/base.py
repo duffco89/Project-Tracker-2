@@ -237,6 +237,11 @@ LINK_PATTERNS = [{'pattern':
                  {'pattern': r'ticket:\s?(\d+)',
                   'url': r'<a href="/tickets/\1">ticket \1</a>'}]
 
+
+#the maximum number of images to include in the report for each project.
+MAX_REPORT_IMG_COUNT = 2
+
+
 #a dictionary of attributes used to create links to project details in
 # associated (but currently distinct) apps - fisheye, fsis-II and
 # creel portal:
