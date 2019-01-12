@@ -131,29 +131,52 @@ class ProjectFactory(factory.DjangoModelFactory):
 
     lake = factory.SubFactory(LakeFactory)
 
-
     @factory.lazy_attribute
-    def prj_date0(a):
-        yr = a.prj_cd[6:8]
-        year = '19' + yr if int(yr)>50 else '20' + yr
+    def prj_date0(self):
+        '''
+        create the start date from the project code
+        '''
+        yr_string = self.prj_cd[6:8]
+        year = '19' + yr_string if int(yr_string) > 50 else '20' + yr_string
         datestring = "January 15, {0}".format(year)
         prj_date0 = datetime.datetime.strptime(datestring, "%B %d, %Y")
-        return(prj_date0)
+        return prj_date0
 
     @factory.lazy_attribute
-    def prj_date1(a):
-        yr = a.prj_cd[6:8]
-        year = '19' + yr if int(yr)>50 else '20' + yr
+    def prj_date1(self):
+        '''
+        create the end date from the project code
+        '''
+        yr_string = self.prj_cd[6:8]
+        year = '19' + yr_string if int(yr_string) > 50 else '20' + yr_string
         datestring = "January 16, {0}".format(year)
         prj_date1 = datetime.datetime.strptime(datestring, "%B %d, %Y")
-        return(prj_date1)
+        return prj_date1
 
     @factory.lazy_attribute
-    def year(a):
-        'calculate a based on project code'
-        yr = a.prj_cd[6:8]
-        year = '19' + yr if int(yr)>50 else '20' + yr
-        return(year)
+    def year(self):
+        '''
+        calculate a based on project code
+        '''
+
+        yr_string = self.prj_cd[6:8]
+        year = '19' + yr_string if int(yr_string) > 50 else '20' + yr_string
+        return year
+
+
+class ProjectImageFactory(factory.DjangoModelFactory):
+    '''
+    A factory to create fake images for our projects.
+    '''
+
+    class Meta:
+        model = ProjectImage
+
+    project = factory.SubFactory(ProjectFactory)
+    order = 0
+    image_path = factory.Sequence(lambda n:"FakeImage-{}.png".format(n))
+    caption = 'Image caption placeholder'
+    report = True
 
 
 class ProjectSisters(factory.DjangoModelFactory):
@@ -165,10 +188,12 @@ class ProjectSisters(factory.DjangoModelFactory):
 
 
 class MilestoneFactory(factory.DjangoModelFactory):
+    '''
+    Look-up table of reporting milestones
+    '''
     class Meta:
         model = Milestone
 
-    '''Look-up table of reporting milestone'''
     label = "Completion Report"
     label_abbrev = factory.Sequence(lambda n: 'milestone {0}'.format(n))
     shared = False

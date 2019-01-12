@@ -57,8 +57,6 @@ from .forms import (ProjectForm, ApproveProjectsForm,
 from .spatial_utils import find_roi_projects#,  get_map
 
 
-#the maximum number of images to include in the report for each project.
-MAX_REPORT_IMG_COUNT = 2
 
 
 
@@ -912,6 +910,11 @@ def project_add_image(request, slug):
 
     project = get_object_or_404(Project, slug=slug)
 
+    if can_edit(request.user, project) is False:
+        return HttpResponseRedirect(project.get_absolute_url())
+
+    form = ProjectImageForm()
+
     if request.method == 'POST':
         form = ProjectImageForm(request.POST, request.FILES)
         form.project = project
@@ -925,8 +928,10 @@ def project_add_image(request, slug):
             #add another)
             if 'save' in request.POST:
                 return HttpResponseRedirect(project.get_absolute_url())
+            else:
+                #create an empty form to add another image.
+                form = ProjectImageForm()
 
-    form = ProjectImageForm()
     return render(request, 'pjtk2/project_image_upload.html', {
         'form': form, 'object': project
     })
@@ -944,29 +949,33 @@ def edit_image(request, pk):
     image = get_object_or_404(ProjectImage, pk=pk)
     project = image.project
 
+    if can_edit(request.user, project) is False:
+        return HttpResponseRedirect(project.get_absolute_url())
+
+    form = EditImageForm(instance=image)
+
     if request.method == 'POST':
         form = EditImageForm(request.POST, instance=image)
         if form.is_valid():
             form.save()
-
+            report_cnt = settings.MAX_REPORT_IMG_COUNT
             #this should be moved to project model:
             #project.trim_report_images(MAX_REPORT_IMG_COUNT)
             extra_images = project.images\
                                   .filter(report=True)\
-                                  .order_by('order')[MAX_REPORT_IMG_COUNT:]
+                                  .order_by('order')[report_cnt:]
             if extra_images:
                 for img in extra_images:
                     img.report =False
                     img.save()
 
-            url = request.GET.get("next")
+            url = request.POST.get("next")
             try:
                 resolve(url)
                 return HttpResponseRedirect(url)
             except Resolver404:
                 return HttpResponseRedirect(project.get_absolute_url())
 
-    form = EditImageForm(instance=image)
     return render(request, 'pjtk2/edit_image.html', {
         'form': form, 'image': image, 'project':project
     })
@@ -974,7 +983,12 @@ def edit_image(request, pk):
 
 @login_required
 def project_images(request, slug):
+
     project = get_object_or_404(Project, slug=slug)
+
+    if can_edit(request.user, project) is False:
+        return HttpResponseRedirect(project.get_absolute_url())
+
     return render(request, 'pjtk2/project_sort_images.html', {
         'project': project}
     )
@@ -983,6 +997,7 @@ def project_images(request, slug):
 @login_required
 @csrf_exempt
 def project_sort_images(request, slug):
+
     for index, image_pk in enumerate(request.POST.getlist('image[]')):
         image = ProjectImage.objects.filter(id=int(str(image_pk))).first()
         if image:
@@ -993,7 +1008,7 @@ def project_sort_images(request, slug):
 
 
 @login_required
-def delete_image_file(request, id):
+def delete_image_file(request, pk):
     """this view deletes an image
 
     If this is a get request, redirect to a confirmation page.  If it
@@ -1006,10 +1021,10 @@ def delete_image_file(request, id):
     - `pk`:
 
     """
-    image = get_object_or_404(ProjectImage, id=id)
+    image = get_object_or_404(ProjectImage, pk=pk)
     project = image.project
 
-    if not can_edit(request.user, project):
+    if can_edit(request.user, project) is False:
         return HttpResponseRedirect(project.get_absolute_url())
 
     if request.method == 'POST':
