@@ -13,8 +13,8 @@ app_name='api'
 router = routers.DefaultRouter()
 
 router.register(r'projects', ProjectViewSet)
-router.register(r'project_leads', UserViewSet, base_name='project_lead')
-router.register(r'project_types', ProjectTypeViewSet, base_name='project_type')
+router.register(r'project_leads', UserViewSet, basename='project_lead')
+router.register(r'project_types', ProjectTypeViewSet, basename='project_type')
 
 urlpatterns = [
 

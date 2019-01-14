@@ -14,7 +14,6 @@ from collections import OrderedDict
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ImproperlyConfigured

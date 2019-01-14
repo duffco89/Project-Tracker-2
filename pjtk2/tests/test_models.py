@@ -1533,13 +1533,13 @@ class TestProjdectFundingProperties(TestCase):
         """the total odoe should be sum of the odoe of the funding sources
         assocaited with our project."""
 
-        self.assertEquals(self.project.total_odoe, 3000)
+        self.assertEqual(self.project.total_odoe, 3000)
 
     def test_project_total_salary(self):
         """the total salary should be sum of the salary of the funding sources
         assocaited with our project."""
 
-        self.assertEquals(self.project.total_salary, 13000)
+        self.assertEqual(self.project.total_salary, 13000)
 
     def test_project_total_cost(self):
         """the total cost of should be sum of the salary and odoe of the
@@ -1547,7 +1547,7 @@ class TestProjdectFundingProperties(TestCase):
 
         """
 
-        self.assertEquals(self.project.total_cost, 16000)
+        self.assertEqual(self.project.total_cost, 16000)
 
     def tearDown(self):
 

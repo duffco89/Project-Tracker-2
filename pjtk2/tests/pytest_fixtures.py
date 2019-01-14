@@ -34,6 +34,7 @@ def user(db):
                                first_name='Homer',
                                last_name='Simpson',
                                password=password)
+    homer.save()
     return homer
 
 

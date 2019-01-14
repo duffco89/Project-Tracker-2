@@ -1,0 +1,39 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+django-pytest = "*"
+django-webtest = "*"
+v = {editable = true,version = "*"}
+django-extensions = "*"
+pytest = "*"
+docutils = "*"
+sphinx = "*"
+pytest-cov = "*"
+factory-boy = "*"
+pytest-django = "*"
+django-debug-toolbar = "*"
+pillow = "*"
+
+[packages]
+django = "==1.11.18"
+django-haystack = "*"
+django-rest-framework = "*"
+django-filters = "*"
+django-crispy-forms = "*"
+cherrypy = "*"
+psycopg2 = "*"
+djangorestframework = "*"
+django-filter = "*"
+django-taggit = "*"
+django-passwords = "*"
+django-password-reset = "*"
+django-leaflet = "*"
+django-geojson = "*"
+markdown2 = "*"
+elasticsearch = ">=2,<3"
+
+[requires]
+python_version = "3.7"

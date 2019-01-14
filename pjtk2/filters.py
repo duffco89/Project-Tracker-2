@@ -5,7 +5,7 @@ import django_filters
 from pjtk2.models import Project, ProjectType, Lake, SamplePoint
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout,  Field, Submit
+from crispy_forms.layout import Layout, Field, Submit
 
 
 def get_year_choices():

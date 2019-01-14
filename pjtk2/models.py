@@ -32,7 +32,7 @@ LINK_PATTERNS = getattr(settings, "LINK_PATTERNS", None)
 DEMOTE_HEADERS = 2
 
 
-class ProjectsManager(models.GeoManager):
+class ProjectsManager(models.Manager):
     '''Custom extensions to the base manager for project objects to
     return approved and completed projects.'''
 
@@ -1061,7 +1061,7 @@ class SamplePoint(models.Model):
     #dd_lat
     #popup_html = models.TextField()
 
-    objects = models.GeoManager()
+    objects = models.Manager()
 
     class Meta:
         indexes = [
@@ -1149,7 +1149,7 @@ class ProjectPolygon(models.Model):
                                 related_name='convex_hull')
     geom = models.PolygonField(srid=4326)
 
-    objects = models.GeoManager()
+    objects = models.Manager()
 
     def __str__(self):
         '''
