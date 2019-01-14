@@ -630,7 +630,8 @@ class MyProjectViewTestCase(WebTest):
         administrators.
         '''
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('MyProjects'))
 
@@ -644,7 +645,8 @@ class MyProjectViewTestCase(WebTest):
 
     def test_employee_version_myprojects(self):
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
@@ -659,7 +661,8 @@ class MyProjectViewTestCase(WebTest):
 
     def test_supervisor_version_myprojects(self):
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
@@ -690,7 +693,8 @@ class MyProjectViewTestCase(WebTest):
         self.project2.approve()
         self.project1.signoff(self.user2)
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('MyProjects'),follow=True)
         self.assertEqual(response.status_code, 200)
@@ -782,7 +786,8 @@ class EmployeeProjectsTestCase(WebTest):
 
         self.project1.approve()
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('EmployeeProjects',
                       kwargs={'employee_name':self.user.username},)
@@ -819,7 +824,8 @@ class EmployeeProjectsTestCase(WebTest):
         - `self`:
         """
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('EmployeeProjects',
                       kwargs={'employee_name':self.user.username},)
@@ -928,7 +934,8 @@ class TestProjectDetailForm(WebTest):
         completed = [x.completed!=None for x in milestones]
 
         #now homer views the page form:
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -960,7 +967,8 @@ class TestProjectDetailForm(WebTest):
         completed = [x.completed!=None for x in milestones]
 
         #now homer views the page form:
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -983,7 +991,8 @@ class TestProjectDetailForm(WebTest):
         project project - 'Fieldwork complete'.  'Approve' and
         'Sign off' should not be editable for Homer
         '''
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1026,7 +1035,8 @@ class TestProjectDetailForm(WebTest):
         '''
 
         #now Mr Burns edits the form
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1080,7 +1090,8 @@ class TestProjectDetailForm(WebTest):
                                  lambda a:a.completed!=None)
 
         #now Mr Burns edits the form
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1110,7 +1121,8 @@ class TestProjectDetailForm(WebTest):
         update protected milestones. Verify that the check boxes
         render with a 'disabled' attribute
         '''
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1137,7 +1149,8 @@ class TestProjectDetailForm(WebTest):
         do NOT render with a 'disabled' attribute
         '''
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1165,7 +1178,8 @@ class TestProjectDetailForm(WebTest):
         project detail page
         '''
 
-        login = self.client.login(username=self.user3.username, password='abc')
+        login = self.client.login(username=self.user3.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1186,7 +1200,8 @@ class TestProjectDetailForm(WebTest):
         self.project1.approve()
         self.assertTrue(self.project1.is_approved())
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1228,7 +1243,8 @@ class TestProjectDetailForm(WebTest):
         self.project1.unapprove()
         self.assertFalse(self.project1.is_approved())
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1313,7 +1329,8 @@ class TestCanCopyProject(WebTest):
         old_year = self.project1.year
 
         #barney logs and chooses to copy the existing project
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('CopyProject',
                                         args=(self.project1.slug,)),
@@ -1451,7 +1468,8 @@ class TestFieldLeader(WebTest):
         re-drect back the project detail page and user2 should not appear on
         the page.'''
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         response = self.app.get(reverse('EditProject',
@@ -1483,7 +1501,8 @@ class TestFieldLeader(WebTest):
 #        odoe = 1000
 #        salary = 3000
 #
-#        login = self.client.login(username=self.user1.username, password='abc')
+#        login = self.client.login(username=self.user1.username,
+ #                                 password='Abcd1234')
 #        self.assertTrue(login)
 #
 #        response = self.app.get(reverse('EditProject',
@@ -1551,7 +1570,7 @@ class TestUserChoiceFilesProjectForm(WebTest):
         listed in the drop down lists for users.'''
 
         #homer logs in and chooses to EDIT an existing project
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username, password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('EditProject',
                                         args=(self.project1.slug,)),
@@ -1584,7 +1603,8 @@ class TestUserChoiceFilesProjectForm(WebTest):
         limited to only those who are currenly active.'''
 
         #homer logs in and chooses to COPY the existing project
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('CopyProject',
                                         args=(self.project1.slug,)),
@@ -1617,7 +1637,8 @@ class TestUserChoiceFilesProjectForm(WebTest):
         limited to only those who are currenly active.'''
 
         #barney logs and chooses to copy the existing project
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('NewProject'), user=self.user1)
         form = response.forms['ProjectForm']

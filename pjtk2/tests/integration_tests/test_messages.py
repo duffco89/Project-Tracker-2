@@ -77,7 +77,8 @@ class MessagesRenderTestCase(WebTest):
         '''
         myuser = self.user1
 
-        login = self.client.login(username=myuser.username, password='abc')
+        login = self.client.login(username=myuser.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('MyProjects'), user=myuser)
         self.assertEqual(response.status_code, 200)
@@ -107,7 +108,8 @@ class MessagesRenderTestCase(WebTest):
         '''
         myuser = self.user2
 
-        login = self.client.login(username=myuser.username, password='abc')
+        login = self.client.login(username=myuser.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('MyProjects'), user=myuser)
         self.assertEqual(response.status_code, 200)
@@ -138,7 +140,8 @@ class MessagesRenderTestCase(WebTest):
         '''
         myuser = self.user3
 
-        login = self.client.login(username=myuser.username, password='abc')
+        login = self.client.login(username=myuser.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('MyProjects'), user=myuser)
         self.assertEqual(response.status_code, 200)
@@ -165,7 +168,8 @@ class MessagesRenderTestCase(WebTest):
         '''
         myuser = self.user4
 
-        login = self.client.login(username=myuser.username, password='abc')
+        login = self.client.login(username=myuser.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.app.get(reverse('MyProjects'), user=myuser)
         self.assertEqual(response.status_code, 200)

@@ -23,16 +23,14 @@ urlpatterns = [
 
     url(r'^coregonusclupeaformis/admin/', admin.site.urls),
 
-
-
     url(r'^accounts/', include('simple_auth.urls')),
+    #url(r'^accounts/', include('django.contrib.auth.urls')),
     url(r'^password_reset/',
         include('password_reset.urls')),
 
     url(r'^projects/', include('pjtk2.urls')),
 
     url(r'^tickets/', include('tickets.urls')),
-
 
     url(r'^static/(?P<path>.*)$',
             serve_static,

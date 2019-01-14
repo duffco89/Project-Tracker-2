@@ -163,26 +163,26 @@ DJANGO_APPS = (
 
 THIRDPARTY_APPS = (
     'crispy_forms',
+    'rest_framework',
     'django_filters',
     'taggit',
     'haystack',
-    'passwords',
-    'password_reset',
+#    'passwords',
+#    'password_reset',
     'leaflet',
     'djgeojson',
-    'rest_framework',
+
     )
 
 CRISPY_FAIL_SILENTLY = not DEBUG
 
 MY_APPS = (
     'tickets',
-    'simple_auth',
+    #'simple_auth',
     'pjtk2',
     )
 
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
-
 
 
 engine = 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine'

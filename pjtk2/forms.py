@@ -92,7 +92,7 @@ class UserReadOnlyText(forms.TextInput):
 
     input_type = 'text'
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         user = User.objects.get(id=value)
         if user.first_name:
             value = "{0} {1}".format(user.first_name, user.last_name)
@@ -110,7 +110,7 @@ class ReadOnlyText(forms.TextInput):
 
     input_type = 'text'
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         if name.startswith('projectmilestone'):
             value = Milestone.objects.get(id=value).label
         elif value is None:
@@ -127,7 +127,7 @@ class HyperlinkWidget(forms.Widget):
         self.text = text
         super(HyperlinkWidget, self).__init__(*args, **kwargs)
 
-    def render(self, name, value, attrs=None):
+    def render(self, name, value, attrs=None, renderer=None):
         output = []
         output.append('<a href="%s">%s</a>' % (self.url, self.text))
         return mark_safe(u''.join(output))
@@ -140,7 +140,7 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
     label', 'disabled': True}
     """
     #from http://djangosnippets.org/snippets/2786/
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, choices=(), renderer=None):
         if value is None:
             value = []
         has_id = attrs and 'id' in attrs

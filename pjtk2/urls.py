@@ -28,7 +28,7 @@ from pjtk2.views import (
 )
 
 
-PRJ_CD_REGEX = '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'
+PRJ_CD_REGEX = r'(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$'
 
 urlpatterns = [
 
@@ -133,7 +133,7 @@ urlpatterns = [
          name='project_edit_image'),
 
    url((r'^project/delete_image/'
-        '(?P<pk>\d+)/$'),
+        '(?P<pk>\\d+)/$'),
         view=delete_image_file,
         name='delete_image_file'),
 
@@ -178,8 +178,8 @@ urlpatterns = [
 
 
    url((r'^delete_report/'
-        '(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/'
-        '(?P<pk>\d+)/$'),
+        r'(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/'
+        r'(?P<pk>\d+)/$'),
         view=delete_report,
         name='delete_report'),
 
@@ -193,7 +193,7 @@ urlpatterns = [
         name='associated_file_upload'),
 
    url((r'^delete_associated_file/'
-        '(?P<id>\d+)/$'),
+        r'(?P<id>\d+)/$'),
         view=delete_associated_file,
         name='delete_associated_file'),
 

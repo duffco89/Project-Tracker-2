@@ -59,7 +59,7 @@ import pytest
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.urlresolvers import reverse
-from django.test.client import Client
+
 
 from pjtk2.models import ProjectImage
 from pjtk2.tests.factories import ProjectImageFactory

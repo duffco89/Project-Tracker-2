@@ -17,19 +17,27 @@ class UserFactory(factory.DjangoModelFactory):
     username = factory.Sequence(lambda n: 'User {0}'.format(n))
     email = 'johndoe@hotmail.com'
     #admin = False
-    password = 'abc'
+    password = 'Abcd1234'
 
     #from: http://www.rkblog.rk.edu.pl/w/p/
     #               using-factory-boy-django-application-tests/
+#    @classmethod
+#    def _prepare(cls, create, **kwargs):
+#        password = kwargs.pop('password', None)
+#        user = super(UserFactory, cls)._prepare(create, **kwargs)
+#        if password:
+#            user.set_password(password)
+#            if create:
+#                user.save()
+#        return user
+
+
     @classmethod
-    def _prepare(cls, create, **kwargs):
-        password = kwargs.pop('password', None)
-        user = super(UserFactory, cls)._prepare(create, **kwargs)
-        if password:
-            user.set_password(password)
-            if create:
-                user.save()
-        return user
+    def _create(cls, model_class, *args, **kwargs):
+        """Override the default ``_create`` with our custom call."""
+        manager = cls._get_manager(model_class)
+        # The default would use ``manager.create(*args, **kwargs)``
+        return manager.create_user(*args, **kwargs)
 
 
 class DBA_Factory(factory.DjangoModelFactory):
@@ -44,15 +52,22 @@ class DBA_Factory(factory.DjangoModelFactory):
     is_superuser = True
     is_active = True
 
+#    @classmethod
+#    def _prepare(cls, create, **kwargs):
+#        password = kwargs.pop('password', None)
+#        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
+#        if password:
+#            user.set_password(password)
+#            if create:
+#                user.save()
+#        return user
+
     @classmethod
-    def _prepare(cls, create, **kwargs):
-        password = kwargs.pop('password', None)
-        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
-        if password:
-            user.set_password(password)
-            if create:
-                user.save()
-        return user
+    def _create(cls, model_class, *args, **kwargs):
+        """Override the default ``_create`` with our custom call."""
+        manager = cls._get_manager(model_class)
+        # The default would use ``manager.create(*args, **kwargs)``
+        return manager.create_user(*args, **kwargs)
 
 
 class ManagerFactory(factory.DjangoModelFactory):
@@ -65,15 +80,22 @@ class ManagerFactory(factory.DjangoModelFactory):
     email = 'bosshogg@hotmail.com'
     #manager = True
 
+#    @classmethod
+#    def _prepare(cls, create, **kwargs):
+#        password = kwargs.pop('password', None)
+#        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
+#        if password:
+#            user.set_password(password)
+#            if create:
+#                user.save()
+#        return user
+
     @classmethod
-    def _prepare(cls, create, **kwargs):
-        password = kwargs.pop('password', None)
-        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
-        if password:
-            user.set_password(password)
-            if create:
-                user.save()
-        return user
+    def _create(cls, model_class, *args, **kwargs):
+        """Override the default ``_create`` with our custom call."""
+        manager = cls._get_manager(model_class)
+        # The default would use ``manager.create(*args, **kwargs)``
+        return manager.create_user(*args, **kwargs)
 
 
 class LakeFactory(factory.DjangoModelFactory):

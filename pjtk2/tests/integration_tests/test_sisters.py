@@ -514,7 +514,8 @@ class SisterProjectsTestCase(WebTest):
 
     def test_sisterbtn(self):
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         url = reverse('SisterProjects', args =(self.project1.slug,))

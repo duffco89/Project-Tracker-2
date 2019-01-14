@@ -53,7 +53,7 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = StandardResultsSetPagination
     lookup_field = 'slug'
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = ProjectFilter
+    filterset_class = ProjectFilter
 
 
 class ProjectPointViewSet(viewsets.ReadOnlyModelViewSet):

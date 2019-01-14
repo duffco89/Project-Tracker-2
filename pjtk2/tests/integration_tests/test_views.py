@@ -142,13 +142,15 @@ class ProjectListTestCase(TestCase):
 
     def test_bad_Password_Login(self):
         '''verify that the login actually stops someone'''
-        login = self.client.login(username=self.user.username, password='abcd')
+        login = self.client.login(username=self.user.username,
+                                  password='Wrong1234')
         self.assertFalse(login)
 
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
         the page'''
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
@@ -164,7 +166,8 @@ class ProjectListTestCase(TestCase):
         '''
         self.user.is_staff = True
         self.user.save()
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('ProjectList'))
         self.assertEqual(response.status_code, 200)
@@ -201,7 +204,8 @@ class LoginTestCase(TestCase):
                                              'johnpassword')
 
     def testLogin(self):
-        self.client.login(username='john2', password='johnpassword')
+        self.client.login(username='john2',
+                          password='johnpassword')
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
 
@@ -219,7 +223,8 @@ class LogoutTestCase(TestCase):
 
     def testLogout(self):
         #first login a user
-        login = self.client.login(username='hsimpson', password='abc')
+        login = self.client.login(username='hsimpson',
+                                  password='Abcd1234')
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
         self.assertTrue(login)
@@ -251,7 +256,8 @@ class FactoryBoyLoginTestCase(unittest.TestCase):
 
     @pytest.mark.django_db()
     def testLogin(self):
-        self.client.login(username=self.user.username, password=self.password)
+        self.client.login(username=self.user.username,
+                          password=self.password)
         response = self.client.get(reverse('login'))
         self.assertEqual(response.status_code, 200)
 
@@ -276,7 +282,8 @@ class ProjectDetailownerTestCase(TestCase):
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
         the page'''
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                         kwargs={'slug':self.project.slug}))
@@ -421,7 +428,8 @@ class ProjectDetailJoeUserTestCase(TestCase):
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
         the page'''
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project.slug}))
@@ -490,7 +498,8 @@ class CancelProjectTestCase(TestCase):
         proj = Project.objects.get(slug=self.project.slug)
         self.assertFalse(proj.cancelled)
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('cancel_project',
                                            kwargs={'slug':self.project.slug}),
@@ -522,7 +531,8 @@ class CancelProjectTestCase(TestCase):
         proj = Project.objects.get(slug=self.project.slug)
         self.assertFalse(proj.cancelled)
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('cancel_project',
                                            kwargs={'slug':self.project.slug}),
@@ -542,7 +552,8 @@ class CancelProjectTestCase(TestCase):
         proj = Project.objects.get(slug=self.project.slug)
         self.assertFalse(proj.cancelled)
 
-        #login = self.client.login(username=self.user1.username, password='abc')
+        #login = self.client.login(username=self.user1.username,
+        #                          password='Abcd1234')
         #self.assertTrue(login)
         response = self.client.get(reverse('cancel_project',
                                            kwargs={'slug':self.project.slug}),
@@ -614,7 +625,8 @@ class TestDetailPageCancelledProjects(TestCase):
 
         """
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -647,7 +659,8 @@ class TestDetailPageCancelledProjects(TestCase):
         self.assertTrue(self.project1.is_approved())
         self.assertFalse(self.project1.cancelled)
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -676,7 +689,8 @@ class TestDetailPageCancelledProjects(TestCase):
         self.assertTrue(self.project1.is_approved())
         self.assertTrue(self.project1.cancelled)
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -702,7 +716,8 @@ class TestDetailPageCancelledProjects(TestCase):
         self.assertTrue(self.project1.is_approved())
         self.assertFalse(self.project1.cancelled)
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -731,7 +746,8 @@ class TestDetailPageCancelledProjects(TestCase):
         self.assertTrue(self.project1.is_approved())
         self.assertTrue(self.project1.cancelled)
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -789,7 +805,8 @@ class ReOpenProjectTestCase(TestCase):
         exist, the response should be a 404.
         """
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('reopen_project',
                                            kwargs={'slug':"LHA_IA13_999"}),
@@ -806,7 +823,8 @@ class ReOpenProjectTestCase(TestCase):
         proj = Project.objects.get(slug=self.project.slug)
         self.assertTrue(proj.is_complete())
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('reopen_project',
                                            kwargs={'slug':self.project.slug}),
@@ -835,7 +853,8 @@ class ReOpenProjectTestCase(TestCase):
         proj = Project.objects.get(slug=self.project.slug)
         self.assertTrue(proj.is_complete())
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('reopen_project',
                                            kwargs={'slug':self.project.slug}),
@@ -855,7 +874,8 @@ class ReOpenProjectTestCase(TestCase):
 
         """
 
-        #login = self.client.login(username=self.user1.username, password='abc')
+        #login = self.client.login(username=self.user1.username,
+        #                          password='Abcd1234')
         #self.assertTrue(login)
         response = self.client.get(reverse('reopen_project',
                                            kwargs={'slug':self.project.slug}),
@@ -1050,7 +1070,8 @@ class TestDetailPageReOpenProject(TestCase):
 
         """
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -1079,7 +1100,8 @@ class TestDetailPageReOpenProject(TestCase):
         pms.completed = datetime.datetime.now(pytz.utc)
         pms.save()
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -1108,7 +1130,8 @@ class TestDetailPageReOpenProject(TestCase):
         pms.completed = datetime.datetime.now(pytz.utc)
         pms.save()
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -1133,7 +1156,8 @@ class TestDetailPageReOpenProject(TestCase):
         sign-off, cancel, or re-open the project.
         """
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                            kwargs={'slug':self.project1.slug}),
@@ -1177,7 +1201,8 @@ class ProjectDetailManagerTestCase(TestCase):
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
         the page'''
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('project_detail',
                                         kwargs={'slug':self.project.slug}))
@@ -1241,7 +1266,8 @@ class ApprovedProjectListUserTestCase(TestCase):
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
         the page'''
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('ApprovedProjectsList'))
         self.assertEqual(response.status_code, 200)
@@ -1319,7 +1345,8 @@ class ApprovedProjectListManagerTestCase(TestCase):
     def test_with_Login(self):
         '''if we login with a valid user, we will be allowed to view
         the page'''
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('ApprovedProjectsList'))
         self.assertEqual(response.status_code, 200)
@@ -1453,7 +1480,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         to log in to the approved projects view.'''
 
 
-        login = self.client.login(username=self.user1.username, password='abc')
+        login = self.client.login(username=self.user1.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('ApproveProjects'), follow=True)
         self.assertEqual(response.status_code, 200)
@@ -1467,7 +1495,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
     def test_that_only_managers_can_login(self):
         '''verify that Mr Burns is able to successful view the form'''
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('ApproveProjects'), follow=True)
         self.assertEqual(response.status_code, 200)
@@ -1486,7 +1515,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         respective detail pages.'''
 
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('ApproveProjects'), follow=True)
 
@@ -1538,7 +1568,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
                                  lambda a:a.is_approved())
 
         #now login and make the changes
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         form_data = {
@@ -1571,7 +1602,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         '''Oops - funding was cut.  A project from this year that was
         approved must be unapproved.'''
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         #verify database settings before submitting form
@@ -1651,7 +1683,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         self.assertQuerysetEqual(projects, [False, False],
                                  lambda a:a.is_approved())
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         #verify database settings before submitting form
@@ -1692,7 +1725,8 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         project from last year that was accidentally approved.'''
 
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         #verify database settings before submitting form
@@ -1776,7 +1810,8 @@ class ApproveProjectsEmptyTestCase(TestCase):
         the page, but it should give us a pleasant notice that no
         projects are pending our approval
         .'''
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         response = self.client.get(reverse('ApproveProjects'))
         self.assertEqual(response.status_code, 200)
@@ -1834,7 +1869,8 @@ class ChangeReportingRequirementsTestCase2(TestCase):
         '''verify that we can add new report reporting requirements
         using the second form on the UpdateReporting form.'''
 
-        login = self.client.login(username=self.user2.username, password='abc')
+        login = self.client.login(username=self.user2.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('Reports', args=(self.project1.slug,))
         response = self.client.get(url,follow=True)
@@ -1884,7 +1920,8 @@ class TestTagListView(TestCase):
         '''verify that we can add and remove tags to a project'''
 
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         url = reverse('project_tag_list')
@@ -1924,7 +1961,8 @@ class ProjectQuickSearch(TestCase):
     def test_project_quick_search_all(self):
         '''a quick search pattern that matches all of our projects'''
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         url = reverse('ProjectList_q')
@@ -1953,7 +1991,8 @@ class ProjectQuickSearch(TestCase):
         be returned.
         '''
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         url = reverse('ProjectList_q')
@@ -1982,7 +2021,8 @@ class ProjectQuickSearch(TestCase):
 
         '''
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         url = reverse('ProjectList_q')
@@ -1998,7 +2038,8 @@ class ProjectQuickSearch(TestCase):
         projects.  It should be the only one in the response.
         '''
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
 
         url = reverse('ProjectList_q')

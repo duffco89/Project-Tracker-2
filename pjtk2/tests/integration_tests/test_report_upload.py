@@ -271,7 +271,8 @@ class TestActualFileUpload(TestCase):
         is associated with the correct project and has the correct
         report-type.'''
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url)
@@ -315,7 +316,8 @@ class TestActualFileUpload(TestCase):
     def test_can_download_a_single_report(self):
         '''verify that a user can actually download.'''
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url)
@@ -356,7 +358,8 @@ class TestActualFileUpload(TestCase):
         ProjectMilestones.objects.create(project=self.project1,
                                       milestone = self.rep3)
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url)
@@ -467,7 +470,8 @@ class TestActualFileUpload(TestCase):
         #set up the sister relationship:
         self.project1.add_sister(self.project2.slug)
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url)
@@ -484,7 +488,8 @@ class TestActualFileUpload(TestCase):
         without sisters.
         '''
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url)
@@ -503,7 +508,8 @@ class TestActualFileUpload(TestCase):
         #set up the sister relationship:
         self.project1.add_sister(self.project2.slug)
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url)
@@ -572,7 +578,8 @@ class TestActualFileUpload(TestCase):
         #set up the sister relationship:
         self.project1.add_sister(self.project2.slug)
 
-        login = self.client.login(username=self.user.username, password='abc')
+        login = self.client.login(username=self.user.username,
+                                  password='Abcd1234')
         self.assertTrue(login)
         url = reverse('ReportUpload', args = (self.project1.slug,))
         response = self.client.get(url)
