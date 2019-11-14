@@ -9,36 +9,64 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('pjtk2', '0001_initial'),
-    ]
+    dependencies = [("pjtk2", "0001_initial")]
 
     operations = [
         migrations.CreateModel(
-            name='ProjectPoly',
+            name="ProjectPoly",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('geom', django.contrib.gis.db.models.fields.PolygonField(srid=4326)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("geom", django.contrib.gis.db.models.fields.PolygonField(srid=4326)),
             ],
         ),
         migrations.AlterField(
-            model_name='employee',
-            name='role',
-            field=models.CharField(choices=[('dba', 'DBA'), ('employee', 'Employee'), ('manager', 'Manager')], default='Employee', max_length=30),
+            model_name="employee",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("dba", "DBA"),
+                    ("employee", "Employee"),
+                    ("manager", "Manager"),
+                ],
+                default="Employee",
+                max_length=30,
+            ),
         ),
         migrations.AlterField(
-            model_name='message',
-            name='level',
-            field=models.CharField(choices=[('info', 'Info'), ('actionrequired', 'Action Required')], default='info', max_length=30),
+            model_name="message",
+            name="level",
+            field=models.CharField(
+                choices=[("info", "Info"), ("actionrequired", "Action Required")],
+                default="info",
+                max_length=30,
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='funding',
-            field=models.CharField(choices=[('spa', 'SPA'), ('coa', 'COA'), ('other', 'other')], default='spa', max_length=30, verbose_name='Funding Source'),
+            model_name="project",
+            name="funding",
+            field=models.CharField(
+                choices=[("spa", "SPA"), ("coa", "COA"), ("other", "other")],
+                default="spa",
+                max_length=30,
+                verbose_name="Funding Source",
+            ),
         ),
         migrations.AddField(
-            model_name='projectpoly',
-            name='project',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='project', to='pjtk2.Project'),
+            # model_name="projectpoly",
+            model_name="projectpolygon",
+            name="project",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="project",
+                to="pjtk2.Project",
+            ),
         ),
     ]

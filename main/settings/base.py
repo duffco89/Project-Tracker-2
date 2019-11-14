@@ -167,8 +167,6 @@ THIRDPARTY_APPS = (
     "djgeojson",
 )
 
-CRISPY_FAIL_SILENTLY = not DEBUG
-
 MY_APPS = (
     #'simple_auth',
     "pjtk2",
@@ -177,6 +175,7 @@ MY_APPS = (
 
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
 
+CRISPY_FAIL_SILENTLY = not DEBUG
 
 engine = "haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine"
 HAYSTACK_CONNECTIONS = {
