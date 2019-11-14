@@ -93,6 +93,18 @@ MASTERS = {
         'groupby': True,
      },
 
+
+
+    'fishway_eggs': {
+        'path': 'Z:\Data Warehouse\Assessment\Fishway\Fishway_Master.mdb',
+        'table': 'IM121_EGGS',
+        'sam': 'SAM',
+        'ddlat': 'DD_LAT',
+        'ddlon': 'DD_LON',
+        'groupby': True,
+     },
+
+
      'sturgeon': {
          #'path':('Z:/Data Warehouse/Derived Datasets/UNIT PROJECTS/' +
          #        'Sturgeon/Sturgeon Master.mdb'),
@@ -132,7 +144,7 @@ MASTERS = {
      },
 
     'creel': {
-        'path':('Y:/File Transfer/Jephf/Creesys 4.1.mdb'),
+        'path':'Y:/File Transfer/Jeff/Creesys/Creesys 4.1.mdb',
         'table': 'FN121',
         'sam': 'SAM',
         'ddlat': 'DD_LAT',
