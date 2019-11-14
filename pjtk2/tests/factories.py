@@ -11,26 +11,25 @@ class UserFactory(factory.DjangoModelFactory):
     class Meta:
         model = User
 
-    first_name = 'John'
-    last_name = 'Doe'
-    #username = 'johndoe'
-    username = factory.Sequence(lambda n: 'User {0}'.format(n))
-    email = 'johndoe@hotmail.com'
-    #admin = False
-    password = 'Abcd1234'
+    first_name = "John"
+    last_name = "Doe"
+    # username = 'johndoe'
+    username = factory.Sequence(lambda n: "User {0}".format(n))
+    email = "johndoe@hotmail.com"
+    # admin = False
+    password = "Abcd1234"
 
-    #from: http://www.rkblog.rk.edu.pl/w/p/
+    # from: http://www.rkblog.rk.edu.pl/w/p/
     #               using-factory-boy-django-application-tests/
-#    @classmethod
-#    def _prepare(cls, create, **kwargs):
-#        password = kwargs.pop('password', None)
-#        user = super(UserFactory, cls)._prepare(create, **kwargs)
-#        if password:
-#            user.set_password(password)
-#            if create:
-#                user.save()
-#        return user
-
+    #    @classmethod
+    #    def _prepare(cls, create, **kwargs):
+    #        password = kwargs.pop('password', None)
+    #        user = super(UserFactory, cls)._prepare(create, **kwargs)
+    #        if password:
+    #            user.set_password(password)
+    #            if create:
+    #                user.save()
+    #        return user
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
@@ -44,23 +43,23 @@ class DBA_Factory(factory.DjangoModelFactory):
     class Meta:
         model = User
 
-    first_name = 'Bill'
-    last_name = 'Gates'
-    #username = 'billgates'
-    username = factory.Sequence(lambda n: 'DBA {0}'.format(n))
-    email = 'microsoft@sucks.com'
+    first_name = "Bill"
+    last_name = "Gates"
+    # username = 'billgates'
+    username = factory.Sequence(lambda n: "DBA {0}".format(n))
+    email = "microsoft@sucks.com"
     is_superuser = True
     is_active = True
 
-#    @classmethod
-#    def _prepare(cls, create, **kwargs):
-#        password = kwargs.pop('password', None)
-#        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
-#        if password:
-#            user.set_password(password)
-#            if create:
-#                user.save()
-#        return user
+    #    @classmethod
+    #    def _prepare(cls, create, **kwargs):
+    #        password = kwargs.pop('password', None)
+    #        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
+    #        if password:
+    #            user.set_password(password)
+    #            if create:
+    #                user.save()
+    #        return user
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
@@ -74,21 +73,21 @@ class ManagerFactory(factory.DjangoModelFactory):
     class Meta:
         model = User
 
-    first_name = 'Boss'
-    last_name = 'Hogg'
-    username = 'bosshogg'
-    email = 'bosshogg@hotmail.com'
-    #manager = True
+    first_name = "Boss"
+    last_name = "Hogg"
+    username = "bosshogg"
+    email = "bosshogg@hotmail.com"
+    # manager = True
 
-#    @classmethod
-#    def _prepare(cls, create, **kwargs):
-#        password = kwargs.pop('password', None)
-#        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
-#        if password:
-#            user.set_password(password)
-#            if create:
-#                user.save()
-#        return user
+    #    @classmethod
+    #    def _prepare(cls, create, **kwargs):
+    #        password = kwargs.pop('password', None)
+    #        user = super(DBA_Factory, cls)._prepare(create, **kwargs)
+    #        if password:
+    #            user.set_password(password)
+    #            if create:
+    #                user.save()
+    #        return user
 
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
@@ -101,28 +100,32 @@ class ManagerFactory(factory.DjangoModelFactory):
 class LakeFactory(factory.DjangoModelFactory):
     class Meta:
         model = Lake
+
     lake = "Lake Huron"
 
 
 class EmployeeFactory(factory.DjangoModelFactory):
     class Meta:
         model = Employee
+
     user = factory.SubFactory(UserFactory)
-    position = 'worker bee'
-    role = 'employee'
-    #lake = factory.SubFactory(LakeFactory)
+    position = "worker bee"
+    role = "employee"
+    # lake = factory.SubFactory(LakeFactory)
     supervisor = None
 
 
 class ProjTypeFactory(factory.DjangoModelFactory):
     class Meta:
         model = ProjectType
+
     project_type = "Offshore Index"
 
 
 class DatabaseFactory(factory.DjangoModelFactory):
     class Meta:
         model = Database
+
     master_database = "Offshore Master"
     path = "C:/Path/to/somedb.mdb"
 
@@ -130,17 +133,19 @@ class DatabaseFactory(factory.DjangoModelFactory):
 class FamilyFactory(factory.DjangoModelFactory):
     class Meta:
         model = Family
-    id = factory.Sequence(lambda n:n)
+
+    id = factory.Sequence(lambda n: n)
 
 
 class ProjectFactory(factory.DjangoModelFactory):
-    '''year and slug are built by the project save method'''
+    """year and slug are built by the project save method"""
+
     class Meta:
         model = Project
 
     prj_cd = "LHA_IA12_123"
     prj_nm = "Fake Project"
-    #prj_ldr = "Bob Sakamano"
+    # prj_ldr = "Bob Sakamano"
     prj_ldr = factory.SubFactory(UserFactory)
     field_ldr = factory.SubFactory(UserFactory)
     abstract = "This is the abstract for a fake project"
@@ -155,49 +160,49 @@ class ProjectFactory(factory.DjangoModelFactory):
 
     @factory.lazy_attribute
     def prj_date0(self):
-        '''
+        """
         create the start date from the project code
-        '''
+        """
         yr_string = self.prj_cd[6:8]
-        year = '19' + yr_string if int(yr_string) > 50 else '20' + yr_string
+        year = "19" + yr_string if int(yr_string) > 50 else "20" + yr_string
         datestring = "January 15, {0}".format(year)
         prj_date0 = datetime.datetime.strptime(datestring, "%B %d, %Y")
         return prj_date0
 
     @factory.lazy_attribute
     def prj_date1(self):
-        '''
+        """
         create the end date from the project code
-        '''
+        """
         yr_string = self.prj_cd[6:8]
-        year = '19' + yr_string if int(yr_string) > 50 else '20' + yr_string
+        year = "19" + yr_string if int(yr_string) > 50 else "20" + yr_string
         datestring = "January 16, {0}".format(year)
         prj_date1 = datetime.datetime.strptime(datestring, "%B %d, %Y")
         return prj_date1
 
     @factory.lazy_attribute
     def year(self):
-        '''
+        """
         calculate a based on project code
-        '''
+        """
 
         yr_string = self.prj_cd[6:8]
-        year = '19' + yr_string if int(yr_string) > 50 else '20' + yr_string
+        year = "19" + yr_string if int(yr_string) > 50 else "20" + yr_string
         return year
 
 
 class ProjectImageFactory(factory.DjangoModelFactory):
-    '''
+    """
     A factory to create fake images for our projects.
-    '''
+    """
 
     class Meta:
         model = ProjectImage
 
     project = factory.SubFactory(ProjectFactory)
     order = 0
-    image_path = factory.Sequence(lambda n:"FakeImage-{}.png".format(n))
-    caption = 'Image caption placeholder'
+    image_path = factory.Sequence(lambda n: "FakeImage-{}.png".format(n))
+    caption = "Image caption placeholder"
     report = True
 
 
@@ -210,14 +215,15 @@ class ProjectSisters(factory.DjangoModelFactory):
 
 
 class MilestoneFactory(factory.DjangoModelFactory):
-    '''
+    """
     Look-up table of reporting milestones
-    '''
+    """
+
     class Meta:
         model = Milestone
 
     label = "Completion Report"
-    label_abbrev = factory.Sequence(lambda n: 'milestone {0}'.format(n))
+    label_abbrev = factory.Sequence(lambda n: "milestone {0}".format(n))
     shared = False
     category = "Core"
     order = 1
@@ -227,7 +233,7 @@ class FundingSourceFactory(factory.DjangoModelFactory):
     class Meta:
         model = FundingSource
 
-    '''Funding Source(s)'''
+    """Funding Source(s)"""
 
     name = "Special Purpose Account"
     abbrev = "spa"
@@ -237,7 +243,7 @@ class ProjectFundingFactory(factory.DjangoModelFactory):
     class Meta:
         model = ProjectFunding
 
-    '''Funding Source(s) for each project'''
+    """Funding Source(s) for each project"""
 
     project = factory.SubFactory(ProjectFactory)
     source = factory.SubFactory(FundingSourceFactory)
@@ -250,7 +256,7 @@ class ProjectMilestonesFactory(factory.DjangoModelFactory):
     class Meta:
         model = ProjectMilestones
 
-    '''list of reporting requirements for each project'''
+    """list of reporting requirements for each project"""
     project = factory.SubFactory(ProjectFactory)
     milestone = factory.SubFactory(MilestoneFactory)
 
@@ -258,15 +264,16 @@ class ProjectMilestonesFactory(factory.DjangoModelFactory):
 class ReportFactory(factory.DjangoModelFactory):
     class Meta:
         model = Report
+
     current = True
-    #projectreport = factory.SubFactory(ProjectMilestonesFactory)
+    # projectreport = factory.SubFactory(ProjectMilestonesFactory)
     report_path = "some/fake/file.txt"
-    #uploaded_by = "Bob"
+    # uploaded_by = "Bob"
     uploaded_by = factory.SubFactory(UserFactory)
     report_hash = "1234"
 
-    #@factory.post_generation
-    #def projectreport(self, create, extracted, **kwargs):
+    # @factory.post_generation
+    # def projectreport(self, create, extracted, **kwargs):
     #    if not create:
     #        # Simple build, do nothing.
     #        return
@@ -279,14 +286,14 @@ class ReportFactory(factory.DjangoModelFactory):
     #            self.projectmilestones.add(extracted)
 
 
-
 class AssociatedFactory(factory.DjangoModelFactory):
     class Meta:
         model = AssociatedFile
+
     current = True
     project = factory.SubFactory(Project)
     file_path = "some/fake/file.txt"
-    #uploaded_by = "Bob"
+    # uploaded_by = "Bob"
     uploaded_by = factory.SubFactory(UserFactory)
     report_hash = "1234"
 
@@ -296,6 +303,6 @@ class SamplePointFactory(factory.DjangoModelFactory):
         model = SamplePoint
 
     project = factory.SubFactory(ProjectFactory)
-    sam = '123'
-    #centroid of grid 2826
-    geom = GEOSGeometry('POINT(-82.0416679344936 44.041664015521)')
+    sam = "123"
+    # centroid of grid 2826
+    geom = GEOSGeometry("POINT(-82.0416679344936 44.041664015521)")

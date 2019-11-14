@@ -9,7 +9,7 @@ django-webtest = "*"
 v = {editable = true,version = "*"}
 django-extensions = "*"
 pytest = "*"
-docutils = "*"
+docutils = {path = "C:/Users/COTTRILLAD/Documents/1work/ScrapBook/pip/docutils-0.13.1-py3-none-any.whl"}
 sphinx = "*"
 pytest-cov = "*"
 factory-boy = "*"
