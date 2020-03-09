@@ -5,6 +5,7 @@ from django.template.defaultfilters import slugify
 from django.contrib.gis.geos import GEOSGeometry
 
 from pjtk2.models import *
+from common.models import Lake
 
 
 class UserFactory(factory.DjangoModelFactory):
@@ -100,8 +101,10 @@ class ManagerFactory(factory.DjangoModelFactory):
 class LakeFactory(factory.DjangoModelFactory):
     class Meta:
         model = Lake
+        django_get_or_create = ("abbrev",)
 
-    lake = "Lake Huron"
+    lake_name = "Lake Huron"
+    abbrev = "HU"
 
 
 class EmployeeFactory(factory.DjangoModelFactory):

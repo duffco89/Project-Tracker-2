@@ -1,90 +1,109 @@
 from leaflet.admin import LeafletGeoAdmin
 from django.contrib import admin
 
-from pjtk2.models import (Milestone, ProjectType, Database, Project,
-                          Report, Lake, Family, Employee, ProjectMilestones,
-                          ProjectSisters, Message, Messages2Users,
-                          FundingSource, ProjectFunding)
+from pjtk2.models import (
+    Milestone,
+    ProjectType,
+    Database,
+    Project,
+    Report,
+    Family,
+    Employee,
+    ProjectMilestones,
+    ProjectSisters,
+    Message,
+    Messages2Users,
+    FundingSource,
+    ProjectFunding,
+)
 
 
 class Admin_Milestone(admin.ModelAdmin):
-    '''Admin class for milestones'''
-    list_display = ('label', 'order', 'report', 'category', 'protected',)
-    ordering = ('order',)
+    """Admin class for milestones"""
+
+    list_display = ("label", "order", "report", "category", "protected")
+    ordering = ("order",)
 
     def queryset(self, request):
-         return Milestone.allmilestones
+        return Milestone.allmilestones
 
 
 class Admin_ProjectType(admin.ModelAdmin):
-    '''Admin class for Project Types'''
-    list_display = ('project_type', 'field_component',)
+    """Admin class for Project Types"""
+
+    list_display = ("project_type", "field_component")
 
 
 class Admin_Database(admin.ModelAdmin):
-    '''Admin class for databases'''
-    pass
+    """Admin class for databases"""
 
-
-class Admin_Lake(admin.ModelAdmin):
-    '''Admin class for lakes'''
     pass
 
 
 class Admin_Project(admin.ModelAdmin):
-    '''Admin class for Projects'''
-    list_display = ('year', 'prj_cd', 'prj_nm','prj_ldr', 'project_type')
-    list_filter = ('project_type','year', 'prj_ldr', 'lake')
+    """Admin class for Projects"""
+
+    list_display = ("year", "prj_cd", "prj_nm", "prj_ldr", "project_type")
+    list_filter = ("project_type", "year", "prj_ldr", "lake")
 
 
 class Admin_FundingSource(admin.ModelAdmin):
-    '''Admin class for our funding sources'''
+    """Admin class for our funding sources"""
+
     pass
+
 
 class Admin_ProjectFunding(admin.ModelAdmin):
-    '''Admin class for our funding sources for each project'''
-    pass
+    """Admin class for our funding sources for each project"""
 
+    pass
 
 
 class Admin_Family(admin.ModelAdmin):
-    '''Admin class for familiy table'''
+    """Admin class for familiy table"""
+
     pass
 
 
 class Admin_ProjectSisters(admin.ModelAdmin):
-    '''Admin class for project-sisters table'''
+    """Admin class for project-sisters table"""
+
     pass
 
 
 class Admin_ProjectMilestones(admin.ModelAdmin):
-    '''Admin class for project - milestones'''
-    list_display = ('project', 'milestone',)
-    list_filter = ('project', 'milestone')
+    """Admin class for project - milestones"""
+
+    list_display = ("project", "milestone")
+    list_filter = ("project", "milestone")
 
 
 class Admin_Report(admin.ModelAdmin):
-    '''Admin class for reprorts'''
-    list_display = ('current', 'report_path', 'uploaded_on', 'uploaded_by')
+    """Admin class for reprorts"""
+
+    list_display = ("current", "report_path", "uploaded_on", "uploaded_by")
 
 
 class Admin_Employee(admin.ModelAdmin):
-    '''Admin class for Employees'''
-    list_display = ('user', 'position', 'role','get_lakes', 'supervisor')
+    """Admin class for Employees"""
+
+    list_display = ("user", "position", "role", "get_lakes", "supervisor")
 
 
 class Admin_Message(admin.ModelAdmin):
-    '''Admin class for Messages'''
-    list_display = ('msgtxt', 'prj_cd')
+    """Admin class for Messages"""
+
+    list_display = ("msgtxt", "prj_cd")
 
     def prj_cd(self, obj):
         return obj.project_milestone.project.prj_cd
 
 
 class Admin_Messages2Users(admin.ModelAdmin):
-    '''Admin class for Messages2Users'''
-    list_display = ('message', 'user', 'prj_cd', 'milestone')
-    list_filter = ('user', 'message')
+    """Admin class for Messages2Users"""
+
+    list_display = ("message", "user", "prj_cd", "milestone")
+    list_filter = ("user", "message")
 
     def prj_cd(self, obj):
         return obj.message.project_milestone.project.prj_cd
@@ -93,11 +112,9 @@ class Admin_Messages2Users(admin.ModelAdmin):
         return obj.message.project_milestone.milestone
 
 
-
 admin.site.register(Milestone, Admin_Milestone)
 admin.site.register(ProjectType, Admin_ProjectType)
 admin.site.register(Database, Admin_Database)
-admin.site.register(Lake, Admin_Lake)
 admin.site.register(Project, Admin_Project)
 admin.site.register(ProjectMilestones, Admin_ProjectMilestones)
 admin.site.register(Report, Admin_Report)
