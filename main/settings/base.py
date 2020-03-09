@@ -165,12 +165,13 @@ THIRDPARTY_APPS = (
     #    'password_reset',
     "leaflet",
     "djgeojson",
+    "tickets",
+    "common",
 )
 
 MY_APPS = (
     #'simple_auth',
     "pjtk2",
-    "tickets",
 )
 
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS

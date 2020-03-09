@@ -21,6 +21,8 @@ from taggit.managers import TaggableManager
 
 from markdown2 import markdown
 
+from common.models import Lake
+
 import datetime
 import os
 import pytz
@@ -232,21 +234,6 @@ class Database(models.Model):
     def __str__(self):
         """return the database name as its string representation"""
         return self.master_database
-
-
-class Lake(models.Model):
-    """
-    A lookup table to hold the names of the different lakes
-    """
-
-    lake = models.CharField(max_length=50)
-
-    class Meta:
-        verbose_name = "Lake"
-
-    def __str__(self):
-        """return the lake name as its string representation"""
-        return self.lake
 
 
 class FundingSource(models.Model):
@@ -1338,7 +1325,7 @@ class Employee(models.Model):
     role = models.CharField(
         max_length=30, choices=ROLL_CHOICES, default="Employee", db_index=True
     )
-    lake = models.ManyToManyField("Lake")
+    lake = models.ManyToManyField(Lake)
     supervisor = models.ForeignKey(
         "self", on_delete=models.CASCADE, blank=True, null=True
     )
