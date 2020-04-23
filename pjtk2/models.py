@@ -196,8 +196,6 @@ class Milestone(models.Model):
     allmilestones = models.Manager()
 
     class Meta:
-        verbose_name = "Milestone List"
-        verbose_name_plural = "Milestones List"
         ordering = ["-report", "order"]
 
     def __str__(self):
@@ -205,12 +203,22 @@ class Milestone(models.Model):
 
 
 class ProjectType(models.Model):
-    """
-    A look-up table to hold project types
+    """A look-up table to hold project type and attributes of those
+    project types. For example - is the project type dependent or
+    independent of a fishery, and should there be field data
+    associated with it? (E.I. - FN011 and FN121 records)
+
     """
 
-    project_type = models.CharField(max_length=150)
+    PROJECT_SCOPE_CHOICES = {
+        ("FD", "Fishery Dependent"),
+        ("FI", "Fishery Independent"),
+        ("MS", "Multiple Sources"),
+    }
+
+    project_type = models.CharField(max_length=150, unique=True, blank=False)
     field_component = models.BooleanField(default=True)
+    scope = models.CharField(max_length=30, choices=PROJECT_SCOPE_CHOICES, default="FI")
 
     class Meta:
         verbose_name = "Project Type"
@@ -220,11 +228,34 @@ class ProjectType(models.Model):
         return self.project_type
 
 
+class ProjectProtocol(models.Model):
+    """A table to hold our project protocols - allow us to track and
+    filter by protocol.
+
+    """
+
+    project_type = models.ForeignKey(
+        "ProjectType", related_name="protocols", on_delete=models.CASCADE
+    )
+
+    protocol = models.CharField(max_length=150)
+    abbrev = models.CharField(max_length=10, unique=True, blank=False)
+    deprecated = models.DateField(blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Project Protocol"
+
+    def __str__(self):
+        """return the project protocol as its string representation"""
+        return "{} ({})".format(self.protocol, self.abbrev)
+
+
 class Database(models.Model):
     """
     A lookup table to hole list of master databases.
     """
 
+    # thes should be unique!!
     master_database = models.CharField(max_length=250)
     path = models.CharField(max_length=250)
 
@@ -278,6 +309,7 @@ class ProjectFunding(models.Model):
     )
 
     class Meta:
+        verbose_name = "Project Funding Source"
         unique_together = ("project", "source")
 
     def __str__(self):
@@ -347,6 +379,15 @@ class Project(models.Model):
     project_type = models.ForeignKey(
         "ProjectType", on_delete=models.CASCADE, null=True, blank=True
     )
+
+    protocol = models.ForeignKey(
+        "ProjectProtocol",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="Projects",
+    )
+
     owner = models.ForeignKey(
         User, on_delete=models.CASCADE, blank=True, related_name="ProjectOwner"
     )
@@ -360,13 +401,12 @@ class Project(models.Model):
     tags = TaggableManager()
 
     # managers
-    # objects = models.Manager()
+    all_objects = models.Manager()
     objects = ProjectsManager()
     last_year = ProjectsLastYear()
     this_year = ProjectsThisYear()
 
     class Meta:
-        verbose_name = "Project List"
         ordering = ["-prj_date1"]
 
     def approve(self):

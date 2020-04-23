@@ -152,6 +152,7 @@ DJANGO_APPS = (
     "django.contrib.admindocs",
     "django.contrib.admin",
     "django.contrib.humanize",
+    "django.contrib.postgres",
     "django.contrib.gis",
 )
 

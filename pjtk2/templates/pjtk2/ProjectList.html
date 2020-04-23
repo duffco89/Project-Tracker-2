@@ -22,14 +22,6 @@
 
 <p>N = {{ project_count }}</p>
 
-  <a href="#" onclick="toggle_visibility('filter');">Filter List: </a>
-  <div id="filter" style="display:none">
-    <div style="border: 1px solid #CCCCCC; padding:10px; border-radius: 15px;">
-       {% crispy filter.form %}
-    </div>
-    <hr />
-  </div>
-
   {% if object_list %}
 
   <table cellspacing="0" class="tablesorter">

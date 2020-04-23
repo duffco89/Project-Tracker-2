@@ -121,6 +121,7 @@ class EmployeeFactory(factory.DjangoModelFactory):
 class ProjTypeFactory(factory.DjangoModelFactory):
     class Meta:
         model = ProjectType
+        django_get_or_create = ("project_type",)
 
     project_type = "Offshore Index"
 
