@@ -3,9 +3,12 @@ from django.contrib import admin
 
 from pjtk2.models import (
     Milestone,
-    ProjectType,
     Database,
+    FundingSource,
+    ProjectType,
+    ProjectProtocol,
     Project,
+    ProjectFunding,
     Report,
     Family,
     Employee,
@@ -13,8 +16,6 @@ from pjtk2.models import (
     ProjectSisters,
     Message,
     Messages2Users,
-    FundingSource,
-    ProjectFunding,
 )
 
 
@@ -28,10 +29,26 @@ class Admin_Milestone(admin.ModelAdmin):
         return Milestone.allmilestones
 
 
+class ProtocolInline(admin.TabularInline):
+    """Admin class for Project Protocols"""
+
+    model = ProjectProtocol
+
+
+class Admin_ProjectProtocol(admin.ModelAdmin):
+    """Admin class for Project Protocols"""
+
+    search_fields = ["abbrev", "protocol"]
+    list_filter = ("project_type",)
+    list_display = ("abbrev", "protocol", "project_type")
+
+
 class Admin_ProjectType(admin.ModelAdmin):
     """Admin class for Project Types"""
 
     list_display = ("project_type", "field_component")
+
+    inlines = [ProtocolInline]
 
 
 class Admin_Database(admin.ModelAdmin):
@@ -43,8 +60,9 @@ class Admin_Database(admin.ModelAdmin):
 class Admin_Project(admin.ModelAdmin):
     """Admin class for Projects"""
 
-    list_display = ("year", "prj_cd", "prj_nm", "prj_ldr", "project_type")
-    list_filter = ("project_type", "year", "prj_ldr", "lake")
+    search_fields = ["prj_cd", "prj_nm"]
+    list_display = ("prj_cd", "prj_nm", "prj_ldr", "project_type", "year")
+    list_filter = ("lake", "project_type", "year", "prj_ldr")
 
 
 class Admin_FundingSource(admin.ModelAdmin):
@@ -114,6 +132,7 @@ class Admin_Messages2Users(admin.ModelAdmin):
 
 admin.site.register(Milestone, Admin_Milestone)
 admin.site.register(ProjectType, Admin_ProjectType)
+admin.site.register(ProjectProtocol, Admin_ProjectProtocol)
 admin.site.register(Database, Admin_Database)
 admin.site.register(Project, Admin_Project)
 admin.site.register(ProjectMilestones, Admin_ProjectMilestones)
