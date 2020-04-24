@@ -1,0 +1,409 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+{% load pjtk2_tags %}
+
+{% block extrahead  %}
+
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
+
+{% endblock %}
+
+{% block title  %} {{ block.super }}| Projects  {% endblock %}
+
+
+{% block content  %}
+
+
+    <div class="container-fluid" >
+
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h2>Search For Projects By Any Keyword</h2>
+                <form id="search" class="form-search" 
+                      method="get">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="search" placeholder =
+                                     "keywords or phrases" {% if search  %}value="{{ search }}" {% endif %}>
+
+                        {% include "pjtk2/_search_hidden_inputs.html" %}
+                        
+                        {% if filters.prj_cd %}
+                            <input type="hidden" name="prj_cd" value="{{filters.prj_cd}}" />
+                        {% endif %}
+                                        
+                        <span class="input-group-btn">
+                            <button class="btn btn-default" type="submit">
+                                <i class="glyphicon glyphicon-search"></i>
+                            </button>
+                        </span>
+                    </div><!-- /input-group -->
+                </form>
+            </div>
+        </div>
+
+        <hr />
+
+        <div class="row">
+            <div class="col-md-2">
+                <h3>Refine By:</h3>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">Lake
+                        {% if 'lake' in filters %}
+                            <a class="pull-right" href="{% strip_parameter 'lake' %}">Reset</a>
+                        {% endif %}
+                    </div>
+                    <div class="panel-body">
+                        <ul>
+                            {% for lake in lakes %}
+                                <li> <a href="?{% query_transform lake=lake.lakeAbbrev %}">
+                                    {{  lake.lakeName }} (n={{lake.N}})
+                                </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">Years
+                        {% if filters.first_year or filters.last_year %}
+                            <a class="pull-right" onClick=resetYears()>Reset</a>
+                        {% endif %}
+
+                    </div>
+                    <div class="panel-body">
+
+                        <form id="years" action={{request.get_full_path}} method="get">
+
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="first-year" name="first_year" placeholder =
+                                             "first year">
+                            </div>
+                            <div class="form-group">                                
+                                <input type="text" class="form-control" id="last-year" name="last_year" placeholder =
+                                             "last year">
+                            </div>
+                            <button class="btn btn-default btn-sm" type="button" onClick=handleClick()>
+                                Update years
+                            </button>
+
+                        </form>
+                        
+                    </div>
+                </div>
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">Project Code
+                        {% if 'prj_cd' in filters %}
+                            <a class="pull-right" href="{% strip_parameter 'prj_cd' %}">Reset</a>
+                        {% endif %}
+                    </div>
+                    <div class="panel-body">
+
+                        <form id="prj_cd" method="get">
+
+                            <div class="form-group">
+                                <input type="text" class="form-control"  name="prj_cd" placeholder = 
+                                             "Project Code Contains..." value="{{filters.prj_cd}}">
+                            </div>
+
+                            {% include "pjtk2/_search_hidden_inputs.html" %}
+                            
+                            {% if filters.search %}
+                                <input type="hidden" name="search" value="{{filters.search}}" />
+                            {% endif %}
+                                                                                       
+                            <button class="btn btn-default btn-sm" type="submit" >
+                                Update
+                            </button>
+
+                        </form>
+                        
+                    </div>
+                </div>
+
+                
+
+                
+                <div class="panel panel-default">
+                    <div class="panel-heading">Project Scope
+                        {% if 'scope' in filters %}
+                            <a class="pull-right" href="{% strip_parameter 'scope' %}">Reset</a>
+                        {% endif %}
+                    </div>
+                    <div class="panel-body">
+
+                        <ul>
+                            {% for item in project_scope %}
+                                <li> 
+                                    <a href="?{% query_transform scope=item.projScope %}">
+                                        {{  item.name }} (n={{item.N}})
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">Project Type
+                        {% if 'project_type' in filters %}
+                            <a class="pull-right" href="{% strip_parameter 'project_type' %}">Reset</a>
+                        {% endif %}
+                    </div>
+                    <div class="panel-body">
+
+                        <ul>
+                            {% for item in project_types %}
+                                <li>
+                                    <a href="?{% query_transform project_type=item.projTypeId %}">
+                                        {{  item.projType }} (n={{item.N}})
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                        
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">Protocol
+                        {% if 'protocol' in filters %}
+                            <a class="pull-right" href="{% strip_parameter 'protocol' %}">Reset</a>
+                        {% endif %}
+                    </div>
+                    <div class="panel-body">
+                        <ul>
+                            {% for item in protocols %}
+                                <li> 
+                                    <a href="?{% query_transform protocol=item.protocolAbbrev %}">
+                                        {{  item.projProtocol }} ({{ item.protocolAbbrev  }}) (n={{item.N}})
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+
+                        
+                    </div>
+                </div>
+
+                
+                
+                
+            </div>
+            <div class="col-md-9">
+                
+                {% if search %}
+                    <h3>{% if lake %} {{lake.lake_name}} {% endif %}Projects that contain "{{ search }}"
+                        {% if first_year %} run after {{ first_year }} {% endif %}
+                        {% if last_year %} run before {{ last_year }} {% endif %}
+                        (n={{ project_count  }})
+                    </h3>
+                {% endif %}
+                
+                
+                {% if object_list %}
+
+
+
+                    
+                    <table cellspacing="0" class="tablesorter">
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>Project Code</th>
+                                <th>Project Name</th>
+                                <th>Project Lead</th>
+                                <th>Project Type</th>
+                            </tr>
+                        </thead>
+                        {% for project in object_list %}
+                            <tr>
+                                <td> {{ project.year }} </td>
+                                <td>
+                                    <a href="{{ project.get_absolute_url }}"> {{ project.prj_cd }}</a>
+                                </td>
+                                <td>
+                                    {{ project.prj_nm  }}
+                                </td>
+                                <td><a href="{% url 'user_project_list' project.prj_ldr.username %}">
+                                    {{ project.prj_ldr.first_name}} {{ project.prj_ldr.last_name }}</a></td>
+                                <td> {{ project.project_type }} </td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+
+
+
+                    {% if is_paginated %}
+                        <ul class="pagination">
+                            {% if page_obj.has_previous %}
+                                <li><a href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}">&laquo;</a></li>
+    {% else %}
+                                <li class="disabled"><span>&laquo;</span></li>
+                            {% endif %}
+                            {% for i in paginator.page_range %}
+                                {% if page_obj.number == i %}
+                                    <li class="active"><span>{{ i }} <span class="sr-only">(current)</span></span></li>
+                                {% else %}
+                                    <li><a href="?page={{ i }}{% for key,value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}">{{ i }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                                <li><a href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% ifnotequal key 'page' %}&{{ key }}={{ value }}{% endifnotequal %}{% endfor %}">&raquo;</a></li>
+    {% else %}
+                                <li class="disabled"><span>&raquo;</span></li>
+                            {% endif %}
+                        </ul>
+                    {% endif %}
+
+
+                    
+
+                {% else %}
+                    <br />
+                    <h4>Sorry no projects available.</h4>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block extrascripts  %}
+
+
+    <!-- tablesorter plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.30.6/js/jquery.tablesorter.js" integrity="sha256-/zMRoPUv1Wfxf3urIyUFn8m1Ot0QmGwXAFHshnwubaE=" crossorigin="anonymous"></script>
+
+    <!-- tablesorter widget file - loaded after the plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.30.6/js/jquery.tablesorter.widgets.js" integrity="sha256-UIl6E2cmeTSpfPbrMkitLrbyAYUqlOz+zwC+Dc7bglI=" crossorigin="anonymous"></script>
+
+
+
+    <script type="text/javascript">
+
+     $(".tablesorter").tablesorter({
+         theme: 'bootstrap',
+         widthFixed: true,
+         showProcessing: true,
+         headerTemplate: '{content} {icon}',
+         widgets: ['zebra', 'uitheme', 'scroller'],
+         widgetOptions: {
+             scroller_height: 300,
+             scroller_barWidth: 17,
+             scroller_jumpToHeader: true,
+             scroller_idPrefix: 's_'
+         }
+     });
+
+    </script>
+
+
+    <script>
+
+     function getUrlVars() {
+         var vars = {};
+         var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+             vars[key] = value;
+         });
+         return vars;
+     }; 
+     function getUrlParam(parameter, defaultvalue){
+         var urlparameter = defaultvalue;
+         if(window.location.href.indexOf(parameter) > -1){
+             urlparameter = getUrlVars()[parameter];
+         }
+         return urlparameter;
+     };
+
+
+
+     $(document).ready(function(){
+
+         // reload the page with the updated values.
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+
+         if (urlFirstYear){
+             document.getElementById("first-year").value = urlFirstYear;
+         }
+
+         if (urlLastYear){
+             document.getElementById("last-year").value = urlLastYear;
+         }
+
+
+
+
+     })
+     
+
+     const resetYears = function() {
+         let url = window.location.href;
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+         url = url.replace("first_year="+ urlFirstYear, "")
+                  .replace("last_year="+ urlLastYear, "");
+         url = url.replace('&&', '&').replace('?&', '?');
+         url = url.endsWith("?") ? url.replace("?","") : url;
+         window.location.replace(url);
+     }
+     
+     
+     const handleClick = function() {
+         // get the value of the first year and last inputs
+
+         // if first year is null, strip the first_year parameter from the query list
+         // if last year is null, strip the last_year parameter from the query list
+         let firstYear = document.getElementById("first-year").value;
+         let lastYear = document.getElementById("last-year").value;
+
+         
+         // if first_year exists and can be parsed to an integer between 1950 and 2050, update the query string
+         // if last_year exists and can be parsed to an integer between 1950 and 2050, update the query string
+
+         // reload the page with the updated values.
+         let urlFirstYear = getUrlParam('first_year', "");
+         let urlLastYear = getUrlParam('last_year', "");
+
+         let url = window.location.href;
+
+         if (firstYear && urlFirstYear){
+             url = url.replace("first_year="+ urlFirstYear, "first_year=" + firstYear)         
+         } else if (urlFirstYear) {
+             url = url.replace("&first_year="+ urlFirstYear, "");
+         } else if (firstYear) {
+             tmp = url.indexOf("?") >=0 ? "&first_year="+ firstYear :
+                   "?first_year="+ firstYear;               
+             url = url + tmp ;
+         }
+         
+         if (lastYear && urlLastYear){
+             url = url.replace("last_year="+ urlLastYear, "last_year=" + lastYear)         
+         } else if (urlLastYear) {
+             url = url.replace("&last_year="+ urlLastYear, "");
+         } else if (lastYear) {
+             tmp = url.indexOf("?") >=0 ? "&last_year="+ lastYear :
+                   "?last_year="+ lastYear;              
+             url = url + tmp ;
+         }
+         
+         url = url.replace('&&', '&').replace('?&', '?')
+         window.location.replace(url);
+         
+
+         
+     }
+
+     
+    </script>
+
+
+
+{% endblock %}

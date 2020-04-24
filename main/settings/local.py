@@ -15,15 +15,15 @@ DATABASES = {
 }
 
 
-# MIDDLEWARE = MIDDLEWARE + ['debug_toolbar.middleware.DebugToolbarMiddleware']
+MIDDLEWARE = MIDDLEWARE + ["debug_toolbar.middleware.DebugToolbarMiddleware"]
 #
 INSTALLED_APPS += (
-    #'debug_toolbar',
+    "debug_toolbar",
     "django_extensions",
     #'werkzeug_debugger_runserver',
 )
 
-# INTERNAL_IPS = ('127.0.0.1', )   #added for debug toolbar
+INTERNAL_IPS = ("127.0.0.1",)  # added for debug toolbar
 
 
 # def show_toolbar(request):

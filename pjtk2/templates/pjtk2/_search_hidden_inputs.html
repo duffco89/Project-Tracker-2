@@ -1,0 +1,14 @@
+{% if filters.lake %}
+    <input type="hidden" name="lake" value="{{filters.lake}}" />
+{% endif %}
+{% if filters.first_year %}
+    <input type="hidden" name="first_year" value="{{filters.first_year}}" />
+{% endif %}
+{% if filters.last_year %}
+    <input type="hidden" name="last_year" value="{{filters.last_year}}" />                                         {% endif %}
+    {% if filters.scope %}
+        <input type="hidden" name="scope" value="{{filters.scope}}" />
+{% endif %}
+{% if filters.protocol %}
+    <input type="hidden" name="protocol" value="{{filters.protocol}}" />
+{% endif %}
