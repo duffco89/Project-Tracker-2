@@ -29,7 +29,7 @@
                         {% if filters.prj_cd %}
                             <input type="hidden" name="prj_cd" value="{{filters.prj_cd}}" />
                         {% endif %}
-                                        
+                        
                         <span class="input-group-btn">
                             <button class="btn btn-default" type="submit">
                                 <i class="glyphicon glyphicon-search"></i>
@@ -113,7 +113,7 @@
                             {% if filters.search %}
                                 <input type="hidden" name="search" value="{{filters.search}}" />
                             {% endif %}
-                                                                                       
+                            
                             <button class="btn btn-default btn-sm" type="submit" >
                                 Update
                             </button>
@@ -196,10 +196,12 @@
             </div>
             <div class="col-md-9">
                 
-                {% if search %}
-                    <h3>{% if lake %} {{lake.lake_name}} {% endif %}Projects that contain "{{ search }}"
-                        {% if first_year %} run after {{ first_year }} {% endif %}
-                        {% if last_year %} run before {{ last_year }} {% endif %}
+                {% if filters %}
+                    <h3>{% if lake %} {{lake.lake_name}} {% endif %} Projects
+                        {% if filters.search %} that contain "{{ search }}" {% endif %}
+                        {% if filters.first_year %} run after {{ filters.first_year }} {% endif %}
+                        {% if filters.last_year %} run before {{ filters.last_year }} {% endif %}
+                        {% if filters.prj_cd %}  have a project code like "{{ filters.prj_cd }}" {% endif %}
                         (n={{ project_count  }})
                     </h3>
                 {% endif %}
@@ -265,7 +267,7 @@
 
                 {% else %}
                     <br />
-                    <h4>No results found.</h4>
+                    <h4>Sorry, no projects match that criteria.</h4>
                 {% endif %}
 
             </div>

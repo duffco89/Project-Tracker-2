@@ -440,33 +440,6 @@ taggedprojects = ProjectList.as_view()
 user_project_list = ProjectList.as_view()
 
 
-class ProjectList_q(ListView):
-    """
-    A list view that can be filtered by django-filter
-    """
-
-    template_name = "pjtk2/ProjectList_Simple.html"
-
-    def get_context_data(self, **kwargs):
-        """
-        get any additional context information that has been passed in with
-        the request.
-        """
-        context = super(ProjectList_q, self).get_context_data(**kwargs)
-        context["q"] = self.request.GET.get("q")
-        return context
-
-    def get_queryset(self):
-        q = self.request.GET.get("q")
-        if q:
-            return Project.objects.filter(prj_cd__icontains=q)
-        else:
-            return Project.objects.all()
-
-
-project_list_q = ProjectList_q.as_view()
-
-
 class ApprovedProjectsList(ListFilteredMixin, ListView):
     """
     A CBV that will render a list of currently approved project.
