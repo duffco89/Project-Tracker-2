@@ -1,0 +1,37 @@
+* Updating Project Trakcer
+
+The files in this directory were developed to migrate the two seperate
+instances of project tracker (one for Lake Superior, and one for Lake
+Huron) to a new upgraded instance that accomodates multiple lakes.
+
+
+there is one main script that does the bulk of the work - sequentially
+querying instance from the original database (using sql) and then
+createing the django objects in the new database instance.
+
+There are other files that provide utility functions to connect to the
+source database, select queries, and return the results.
+
+
+
+** TO DO
+
+- migrate tickets
+- check on_delete attributes of foreign keys
+- check constraints and indexes on pjtk2 models and verify that they
+  are adequate.
+- turn into installable application and migrate to larger application
+  with custom user.
+- refactor pjtk2 into models and views directories with smaller
+  focused files in each. 
+  +  /pjtk2/models/__init__.py
+  +  /pjtk2/models/projects.py
+  +  /pjtk2/models/employees.py
+  +  /pjtk2/models/messages.py
+  +  /pjtk2/views/__init__.py
+  +  /pjtk2/views/???
+- move managers to their own file ~/pjtk2/models/managers.py
+- add label to project sample points
+
+- update protocols from master databases
+- revisit reverse lookup name - I think many are backwards

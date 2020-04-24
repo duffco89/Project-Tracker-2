@@ -1,0 +1,23 @@
+BEGIN;
+DROP TABLE "pjtk2_messages2users";
+DROP TABLE "pjtk2_message";
+ALTER TABLE "pjtk2_employee" DROP CONSTRAINT "supervisor_id_refs_id_856bd8d7";
+ALTER TABLE "pjtk2_employee_lake" DROP CONSTRAINT "employee_id_refs_id_d1203fb2";
+DROP TABLE "pjtk2_employee";
+DROP TABLE "pjtk2_employee_lake";
+DROP TABLE "pjtk2_projectsisters";
+DROP TABLE "pjtk2_family";
+DROP TABLE "pjtk2_bookmark";
+DROP TABLE "pjtk2_associatedfile";
+ALTER TABLE "pjtk2_report_projectreport" DROP CONSTRAINT "report_id_refs_id_4c348947";
+DROP TABLE "pjtk2_report";
+DROP TABLE "pjtk2_report_projectreport";
+DROP TABLE "pjtk2_projectmilestones";
+DROP TABLE "pjtk2_samplepoint";
+DROP TABLE "pjtk2_project";
+DROP TABLE "pjtk2_lake";
+DROP TABLE "pjtk2_database";
+DROP TABLE "pjtk2_projecttype";
+DROP TABLE "pjtk2_milestone";
+
+COMMIT;
