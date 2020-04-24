@@ -27,7 +27,7 @@ import datetime
 import os
 import pytz
 
-from pjtk2.functions import get_supervisors, replace_links, strip_carriage_returns
+from .utils.helpers import get_supervisors, replace_links, strip_carriage_returns
 
 
 LINK_PATTERNS = getattr(settings, "LINK_PATTERNS", None)

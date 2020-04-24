@@ -16,9 +16,10 @@ A. Cottrill
 
 from django.contrib.gis.geos import GEOSGeometry
 
-from pjtk2.spatial_utils import Project, SamplePoint
-from pjtk2.spatial_utils import *
-from pjtk2.tests.factories import *
+from ..utils.spatial_utils import Project, SamplePoint, find_roi_projects
+from ..models import ProjectType
+from ..tests.factories import SamplePointFactory, ProjectFactory, ProjTypeFactory
+
 
 import pytest
 
