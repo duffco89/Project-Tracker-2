@@ -23,7 +23,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # from django.core.urlresolvers import reverse, resolve, Resolver404
 from django.urls import reverse, resolve, Resolver404
-from django.db.models import Q
+from django.db.models import Q, Count, F
 from django.forms.models import modelformset_factory
 from django.forms import formset_factory
 from django.forms import inlineformset_factory
@@ -47,8 +47,11 @@ from .functions import get_minions, my_messages, get_messages_dict, make_possess
 
 from .filters import ProjectFilter
 
+from common.models import Lake
+
 from .models import (
     Milestone,
+    ProjectType,
     Project,
     Report,
     ProjectMilestones,
@@ -272,6 +275,112 @@ class ListFilteredMixin(object):
 #            data = kwargs['data'].copy() ; del data['page']
 #            kwargs['data'] = data
 #        return kwargs
+
+
+class ProjectSearch(ListView):
+    """
+    """
+
+    # modified to accept tag argument
+    #
+    filter_set = ProjectFilter
+    # filterset_class = ProjectFilter
+    template_name = "pjtk2/ProjectSearch.html"
+    paginate_by = 50
+
+    def get_queryset(self):
+
+        search = self.request.GET.get("search")
+
+        qs = Project.objects.select_related("project_type", "prj_ldr").all()
+
+        if search:
+            qs = qs.filter(content_search=search)
+
+        filtered_qs = ProjectFilter(self.request.GET, qs)
+
+        return filtered_qs.qs
+
+    def get_context_data(self, **kwargs):
+        """
+        get any additional context information that has been passed in with
+        the request.
+        """
+
+        context = super(ProjectSearch, self).get_context_data(**kwargs)
+
+        context["filters"] = self.request.GET
+        context["search"] = self.request.GET.get("search")
+        context["first_year"] = self.request.GET.get("first_year")
+        context["last_year"] = self.request.GET.get("last_year")
+
+        lake_abbrev = self.request.GET.get("lake")
+        if lake_abbrev:
+            context["lake"] = Lake.objects.filter(abbrev=lake_abbrev).first()
+
+        # need to add our factetted counts:
+        qs = self.get_queryset()
+        # calculate our facets by lake:
+        lakes = (
+            qs.select_related("lake")
+            .all()
+            .values(lakeName=F("lake__lake_name"), lakeAbbrev=F("lake__abbrev"))
+            .order_by("lake")
+            .annotate(N=Count("lake__lake_name"))
+        )
+        context["lakes"] = lakes
+
+        project_types = (
+            qs.select_related("project_type")
+            .all()
+            .values(
+                projType=F("project_type__project_type"),
+                projTypeId=F("project_type__id"),
+            )
+            .order_by("project_type")
+            .annotate(N=Count("project_type"))
+        )
+        context["project_types"] = project_types
+
+        project_scope = (
+            qs.select_related("project_type")
+            .all()
+            .values(projScope=F("project_type__scope"))
+            .order_by("project_type__scope")
+            .annotate(N=Count("project_type__scope"))
+        )
+
+        scope_lookup = dict(ProjectType.PROJECT_SCOPE_CHOICES)
+        for scope in project_scope:
+            scope["name"] = scope_lookup.get(scope["projScope"])
+
+        context["project_scope"] = project_scope
+
+        protocols = (
+            qs.select_related("protocol")
+            .all()
+            .values(
+                projProtocol=F("protocol__protocol"),
+                protocolAbbrev=F("protocol__abbrev"),
+            )
+            .order_by("protocol")
+            .annotate(N=Count("protocol"))
+        )
+        context["protocols"] = protocols
+
+        paginator = Paginator(self.object_list, self.paginate_by)
+        page = self.request.GET.get("page")
+        try:
+            paged_qs = paginator.page(page)
+        except PageNotAnInteger:
+            paged_qs = paginator.page(1)
+        except EmptyPage:
+            paged_qs = paginator.page(paginator.num_pages)
+
+        context["project_count"] = qs.count()
+        context["object_list"] = paged_qs.object_list
+
+        return context
 
 
 class ProjectList(ListFilteredMixin, ListView):

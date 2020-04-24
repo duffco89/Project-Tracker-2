@@ -34,13 +34,20 @@ class ProjectFilter(django_filters.FilterSet):
     year = django_filters.NumberFilter()
     first_year = django_filters.NumberFilter("year", lookup_expr="gte")
     last_year = django_filters.NumberFilter("year", lookup_expr="lte")
+    prj_cd = django_filters.CharFilter(lookup_expr="icontains")
 
     lake = ValueInFilter(field_name="lake__abbrev", lookup_expr="in")
+
+    protocol = ValueInFilter(field_name="protocol__abbrev", lookup_expr="in")
+    project_type = ValueInFilter(field_name="project_type__id", lookup_expr="in")
+    scope = ValueInFilter(field_name="project_type__scope", lookup_expr="in")
+
+    # scope protocol, project_type
 
     class Meta:
         model = Project
         # fields = ['year', 'project_type', 'lake', 'funding']
-        fields = ["year", "project_type", "lake__abbrev"]
+        fields = ["year", "project_type", "lake__abbrev", "protocol", "prj_cd"]
 
 
 #    def __init__(self, *args, **kwargs):

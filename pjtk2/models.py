@@ -7,12 +7,12 @@ import collections
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib import admin
-from django.contrib.gis.db.models import Collect
 
-# from django.core.urlresolvers import reverse
+from django.contrib.gis.db.models import Collect
+from django.contrib.postgres.search import SearchVectorField, SearchVector
+from django.contrib.postgres.indexes import GinIndex
+
 from django.urls import reverse
-from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
@@ -373,6 +373,9 @@ class Project(models.Model):
     help_str = "Potential risks associated with not running project."
     risk = models.TextField("Risk", null=True, blank=True, help_text=help_str)
     risk_html = models.TextField("Risk", null=True, blank=True, help_text=help_str)
+
+    content_search = SearchVectorField(null=True)
+
     master_database = models.ForeignKey(
         "Database", on_delete=models.CASCADE, null=True, blank=True
     )
@@ -408,6 +411,7 @@ class Project(models.Model):
 
     class Meta:
         ordering = ["-prj_date1"]
+        indexes = [GinIndex(fields=["content_search"])]
 
     def approve(self):
         """
