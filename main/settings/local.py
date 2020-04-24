@@ -24,8 +24,3 @@ INSTALLED_APPS += (
 )
 
 INTERNAL_IPS = ("127.0.0.1",)  # added for debug toolbar
-
-
-# def show_toolbar(request):
-#    return True
-# SHOW_TOOLBAR_CALLBACK = show_toolbar

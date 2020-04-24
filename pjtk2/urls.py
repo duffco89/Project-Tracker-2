@@ -2,19 +2,6 @@ from django.contrib.auth.decorators import login_required
 
 from django.conf.urls import include, url
 
-
-from haystack.forms import FacetedSearchForm
-from haystack.query import SearchQuerySet
-from haystack.views import FacetedSearchView
-
-sqs = (
-    SearchQuerySet()
-    .order_by("-year")
-    .facet("project_type")
-    .facet("lake")
-    .facet("funding")
-)
-
 from pjtk2.views import (
     about_view,
     report_desc_view,
@@ -59,12 +46,7 @@ PRJ_CD_REGEX = r"(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$"
 
 urlpatterns = [
     url(r"^api/", include("pjtk2.api.urls", namespace="api")),
-    url(
-        r"^search/$",
-        FacetedSearchView(form_class=FacetedSearchForm, searchqueryset=sqs),
-        name="haystack_search",
-    ),
-    url(r"^search2/$", ProjectSearch.as_view(), name="project_search"),
+    url(r"^search/$", ProjectSearch.as_view(), name="project_search"),
     url(r"^about/$", about_view, name="about_view"),
     url(r"^report_descriptions/$", report_desc_view, name="report_desc_view"),
     # CRUD Projects

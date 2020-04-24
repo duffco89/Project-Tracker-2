@@ -40,9 +40,4 @@ COVERAGE_MODULE_EXCLUDES += THIRDPARTY_APPS + DJANGO_APPS
 COVERAGE_REPORT_HTML_OUTPUT_DIR = os.path.join(__file__, "../../../coverage")
 
 
-HAYSTACK_CONNECTIONS = {
-    "default": {"ENGINE": "haystack.backends.simple_backend.SimpleEngine"}
-}
-
-
 logging.getLogger("factory").setLevel(logging.WARN)

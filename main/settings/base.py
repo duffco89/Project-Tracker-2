@@ -161,9 +161,6 @@ THIRDPARTY_APPS = (
     "rest_framework",
     "django_filters",
     "taggit",
-    "haystack",
-    #    'passwords',
-    #    'password_reset',
     "leaflet",
     "djgeojson",
     "tickets",
@@ -178,15 +175,6 @@ MY_APPS = (
 INSTALLED_APPS = DJANGO_APPS + THIRDPARTY_APPS + MY_APPS
 
 CRISPY_FAIL_SILENTLY = not DEBUG
-
-engine = "haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine"
-HAYSTACK_CONNECTIONS = {
-    "default": {
-        "ENGINE": engine,
-        "URL": "http://127.0.0.1:9200/",
-        "INDEX_NAME": "haystack",
-    }
-}
 
 
 # A sample logging configuration. The only tangible logging

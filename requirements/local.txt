@@ -15,14 +15,12 @@ django-crispy-forms==1.7.2  # via -r base.in
 django-debug-toolbar==2.0  # via -r local.in
 django-extensions==2.2.1  # via -r local.in
 django-geojson==2.12.0    # via -r base.in
-django-haystack==2.8.1    # via -r base.in
 django-leaflet==0.25.0    # via -r base.in
 django-password-reset==2.0  # via -r base.in
 django-taggit==1.1.0      # via -r base.in
 django-webtest==1.9.7     # via -r local.in
-django==2.2.11            # via -r base.in, django-debug-toolbar, django-geojson, django-haystack, django-leaflet, django-password-reset, django-taggit
+django==2.2.11            # via -r base.in, django-debug-toolbar, django-geojson, django-leaflet, django-password-reset, django-taggit
 djangorestframework==3.10.3  # via -r base.in
-elasticsearch==2.4.1      # via -r base.in
 factory-boy==2.12.0       # via -r local.in
 faker==2.0.4              # via factory-boy
 importlib-metadata==0.23  # via pluggy, pytest
@@ -44,7 +42,6 @@ six==1.13.0               # via django-extensions, django-geojson, faker, packag
 soupsieve==1.9.5          # via beautifulsoup4
 sqlparse==0.3.0           # via django, django-debug-toolbar
 text-unidecode==1.3       # via faker
-urllib3==1.25.7           # via elasticsearch
 waitress==1.3.1           # via webtest
 wcwidth==0.1.7            # via pytest
 webob==1.8.5              # via webtest
