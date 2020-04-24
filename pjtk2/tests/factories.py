@@ -124,6 +124,17 @@ class ProjTypeFactory(factory.DjangoModelFactory):
         django_get_or_create = ("project_type",)
 
     project_type = "Offshore Index"
+    scope = "FI"
+
+
+class ProjProtocolFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = ProjectProtocol
+        django_get_or_create = ("abbrev",)
+
+    project_type = factory.SubFactory(ProjTypeFactory)
+    protocol = "Broad Scale Monitoring"
+    abbrev = "BSM"
 
 
 class DatabaseFactory(factory.DjangoModelFactory):
@@ -156,6 +167,7 @@ class ProjectFactory(factory.DjangoModelFactory):
     comment = "This is a comment for our fake project"
     risk = "none"
     project_type = factory.SubFactory(ProjTypeFactory)
+    protocol = factory.SubFactory(ProjProtocolFactory)
     master_database = factory.SubFactory(DatabaseFactory)
     owner = factory.SubFactory(UserFactory)
     dba = factory.SubFactory(DBA_Factory)
