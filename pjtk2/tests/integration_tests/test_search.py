@@ -9,7 +9,7 @@ from django_webtest import WebTest
 # from django.test import TestCase
 from django.conf import settings
 
-import haystack
+# import haystack
 
 # from pjtk2.models import Bookmark
 from pjtk2.tests.factories import *
@@ -37,12 +37,12 @@ class CanViewSearchForm(WebTest):
 
     def test_RenderSearchForm(self):
         """load the search form"""
-        response = self.app.get(reverse("haystack_search"), user=self.user)
+        response = self.app.get(reverse("project_search"), user=self.user)
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed(response, "search/search.html")
+        self.assertTemplateUsed(response, "pjtk2/ProjectSearch.html")
 
-        form = response.forms["haystacksearch"]
-        form["q"] = "text"
+        form = response.forms["search"]
+        form["search"] = "text"
         response = form.submit("submit")
 
         msg = "No results found."
@@ -91,9 +91,9 @@ class CanUseSearchForm(WebTest):
     def test_SearchProjectName(self):
         """Verify that we can retrieve projects based on project name"""
 
-        response = self.app.get(reverse("haystack_search"), user=self.user)
-        form = response.forms["haystacksearch"]
-        form["q"] = "Parry Sound"
+        response = self.app.get(reverse("project_search"), user=self.user)
+        form = response.forms["search"]
+        form["search"] = "Parry Sound"
         response = form.submit("submit")
 
         # projects 1 is the only one that contains "Parry Sound" and
@@ -120,9 +120,9 @@ class CanUseSearchForm(WebTest):
         """Verify that we can retrieve projects based word in the project
         description"""
 
-        response = self.app.get(reverse("haystack_search"), user=self.user)
-        form = response.forms["haystacksearch"]
-        form["q"] = "Salvelinus"
+        response = self.app.get(reverse("project_search"), user=self.user)
+        form = response.forms["search"]
+        form["search"] = "Salvelinus"
         response = form.submit("submit")
 
         # projects 2 is the only one that contains "Salvelinus" and
@@ -155,12 +155,12 @@ class CanUseSearchForm(WebTest):
             self.project1.tags.add(tag)
             self.project2.tags.add(tag)
 
-        response = self.app.get(reverse("haystack_search"), user=self.user)
+        response = self.app.get(reverse("project_search"), user=self.user)
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed(response, "search/search.html")
+        self.assertTemplateUsed(response, "pjtk2/ProjectSearch.html")
 
-        form = response.forms["haystacksearch"]
-        form["q"] = "red"
+        form = response.forms["search"]
+        form["search"] = "red"
         response = form.submit("submit")
 
         # projects 1 and have been tagged with 'red'
@@ -185,12 +185,12 @@ class CanUseSearchForm(WebTest):
     def test_search_project_type(self):
         """Verify that we can retrieve projects based on project type"""
 
-        response = self.app.get(reverse("haystack_search"), user=self.user)
+        response = self.app.get(reverse("project_search"), user=self.user)
         self.assertEqual(response.status_int, 200)
-        self.assertTemplateUsed(response, "search/search.html")
+        self.assertTemplateUsed(response, "pjtk2/ProjectSearch.html")
 
-        form = response.forms["haystacksearch"]
-        form["q"] = "Nearshore"
+        form = response.forms["search"]
+        form["search"] = "Nearshore"
         response = form.submit("submit")
 
         # projects 1 and 2 are offshore index projects and should NOT

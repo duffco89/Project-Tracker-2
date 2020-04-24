@@ -40,7 +40,7 @@ class TestUrls(DemoTestCase):
             (reverse("logout"), {"status_code": 200}),
             (reverse("ProjectList"), {"status_code": 200}),
             (reverse("ProjectList_q"), {"status_code": 200}),
-            (reverse("haystack_search"), {"status_code": 200}),
+            (reverse("project_search"), {"status_code": 200}),
             (
                 reverse("project_detail", args=(self.project.slug,)),
                 {"status_code": 200},
