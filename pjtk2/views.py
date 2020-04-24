@@ -14,9 +14,9 @@ from functools import partial, wraps
 import collections
 
 from django.conf import settings
-from django.contrib import messages
+
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ImproperlyConfigured
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -27,14 +27,9 @@ from django.db.models import Q, Count, F
 from django.forms.models import modelformset_factory
 from django.forms import formset_factory
 from django.forms import inlineformset_factory
-from django.http import (
-    Http404,
-    HttpResponseRedirect,
-    HttpResponse,
-    StreamingHttpResponse,
-)
+from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, get_object_or_404
-from django.template import RequestContext
+
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import ListView
@@ -42,10 +37,6 @@ from django.views.generic.base import TemplateView
 
 
 from taggit.models import Tag
-
-from .functions import get_minions, my_messages, get_messages_dict, make_possessive
-
-from .filters import ProjectFilter
 
 from common.models import Lake
 
@@ -60,17 +51,14 @@ from .models import (
     AssociatedFile,
     ProjectFunding,
     ProjectImage,
-    SamplePoint,
-)  # , my_messages)
+)
 
 from .forms import (
     ProjectForm,
     ApproveProjectsForm,
     ReportsForm,
     SisterProjectsForm,
-    # make_report_upload_form,
     ReportUploadForm,
-    # ReportUploadFormSet,
     ProjectFundingForm,
     ProjectImageForm,
     EditImageForm,
@@ -79,108 +67,30 @@ from .forms import (
     GeoForm,
 )
 
+from .filters import ProjectFilter
+
 from .spatial_utils import find_roi_projects  # ,  get_map
 
+from .functions import (
+    get_minions,
+    my_messages,
+    get_messages_dict,
+    get_or_none,
+    make_possessive,
+    group_required,
+    is_manager,
+    can_edit,
+    get_assignments_with_paths,
+    update_milestones,
+    get_sisters_dict,
+)
 
-def get_or_none(model, **kwargs):
-    """
-    from http://stackoverflow.com/questions/1512059/
-    """
-    try:
-        return model.objects.get(**kwargs)
-    except model.DoesNotExist:
-        return None
-
-
-def group_required(*group_names):
-    """
-    Requires user membership in at least one of the groups passed in.
-    """
-    # from:http://djangosnippets.org/snippets/1703/
-    def in_groups(user):
-        """
-        returns true if user is in one of the groups in group_names or is a
-        superuser
-        """
-        if user.is_authenticated:
-            if bool(user.groups.filter(name__in=group_names)) | user.is_superuser:
-                return True
-        return False
-
-    return user_passes_test(in_groups)
-
-
-def is_manager(user):
-    """
-    A simple little function to find out if the current user is a
-    manager (or better)
-    """
-    manager = False
-    if user:
-        if user.groups.filter(name="manager").count() > 0 | user.is_superuser:
-            manager = True
-        # else:
-        #    manager = False
-    return manager
-
-
-def can_edit(user, project):
-    """
-    Another helper function to see if this user should be allowed
-    to edit this project.  In order to edit the use must be either the
-    project owner, a manager or a superuser.
-    """
-
-    if project.is_complete():
-        return False
-
-    if user:
-        canedit = (
-            (user.groups.filter(name="manager").count() > 0)
-            or (user.is_superuser)
-            or (user == project.owner)
-            or (user == project.field_ldr)
-        )
-    else:
-        canedit = False
-
-    if canedit:
-        return True
-    else:
-        return False
-
-
-def get_assignments_with_paths(slug, core=True):
-    """
-    function that will return a list of dictionaries for each of the
-    reporting requirements.  each dictionary will indicate what the
-    report is, whether or not it has been requested for this
-    project, and if it is available, a path to the associated
-    report.
-    """
-
-    project = Project.objects.get(slug=slug)
-
-    if core:
-        assignments = project.get_core_assignments()
-    else:
-        assignments = project.get_custom_assignments()
-
-    assign_dicts = []
-    for assignment in assignments:
-        try:
-            report = Report.objects.get(projectreport=assignment, current=True)
-        except Report.DoesNotExist:
-            report = None
-        required = assignment.required
-        milestone = assignment.milestone
-        category = assignment.milestone.category
-        assign_dicts.append(
-            dict(
-                required=required, category=category, milestone=milestone, report=report
-            )
-        )
-    return assign_dicts
+# Lists
+# CRUD
+# Managers
+# Images
+# bookmarks
+# Miss
 
 
 # ===========================
@@ -262,19 +172,6 @@ class ListFilteredMixin(object):
     def get_context_data(self, **kwargs):
         kwargs.update({"filter": self.get_constructed_filter()})
         return super(ListFilteredMixin, self).get_context_data(**kwargs)
-
-
-# from django_filters.views import FilterView
-# from django_filters.views import FilterMixin as _FilterMixin
-#
-# class FilterMixin(_FilterMixin):
-#
-#    def get_filterset_kwargs(self, filterset_class):
-#        kwargs = super(FilterMixin, self).get_filterset_kwargs(filterset_class)
-#        if kwargs['data'] is not None and 'page' in kwargs['data']:
-#            data = kwargs['data'].copy() ; del data['page']
-#            kwargs['data'] = data
-#        return kwargs
 
 
 class ProjectSearch(ListView):
@@ -479,8 +376,8 @@ def project_detail(request, slug):
     project = get_object_or_404(Project, slug=slug)
 
     milestones = project.get_milestones()
-    core = get_assignments_with_paths(slug)
-    custom = get_assignments_with_paths(slug, core=False)
+    core = get_assignments_with_paths(project)
+    custom = get_assignments_with_paths(project, core=False)
 
     # user = User.objects.get(username__exact=request.user)
     user = get_or_none(User, username__exact=request.user)
@@ -505,53 +402,6 @@ def project_detail(request, slug):
             "has_sister": has_sister,
         },
     )
-
-
-def update_milestones(form_ms, milestones):
-    """
-    a helper function to update milestones assocaited with a project.
-    events that are in form_ms but have not been completed for this
-    project will be updated with a time stamp, events associated with
-    this project that are not in form_ms will have their time stamp
-    cleared.
-
-    + milestones - queryset of milestones associated with a project
-        generated by proj.get_milestones()
-
-    + forms_ms - list of projectmilestone id numbers generated from
-        form.cleaned_data['milestones']
-
-    """
-
-    # convert the list of milestones from the form to a set of integers:
-    form_ms = set([int(x) for x in form_ms])
-
-    old_completed = milestones.filter(completed__isnull=False)
-    old_outstanding = milestones.filter(completed__isnull=True)
-
-    old_completed = set([x.id for x in old_completed])
-    old_outstanding = set([x.id for x in old_outstanding])
-
-    now = datetime.datetime.now(pytz.utc)
-
-    # these ones are now complete:
-    added_ms = old_outstanding.intersection(form_ms)
-    # ProjectMilestones.objects.filter(id__in=added_ms).update(completed=now)
-
-    # in order to trigger a signal - we need to loop over each project
-    # milestone, and mannually save them:
-    for prjms_id in added_ms:
-        prjms = ProjectMilestones.objects.get(id=prjms_id)
-        prjms.completed = now
-        prjms.save()
-
-    # these ones were done, but now they aren't
-    removed_ms = old_completed.difference(form_ms)
-    # ProjectMilestones.objects.filter(id__in=removed_ms).update(completed=None)
-    for prjms_id in removed_ms:
-        prjms = ProjectMilestones.objects.get(id=prjms_id)
-        prjms.completed = None
-        prjms.save()
 
 
 def edit_project(request, slug):
@@ -676,6 +526,10 @@ def crud_project(request, slug, action="New"):
             "project": instance,
         },
     )
+
+
+# ==========================
+#      Managers
 
 
 @login_required
@@ -952,8 +806,8 @@ def report_upload(request, slug):
     has_sister = project.has_sister()
 
     # get the core and custom reports associated with this project
-    reports = get_assignments_with_paths(slug)
-    custom = get_assignments_with_paths(slug, core=False)
+    reports = get_assignments_with_paths(project)
+    custom = get_assignments_with_paths(project, core=False)
     if custom:
         for report in custom:
             reports.append(report)
@@ -1415,7 +1269,6 @@ def employee_projects(request, employee_name):
         .filter(year__gte=this_year - 5)
         .select_related("project_type", "prj_ldr")
     )
-
     complete = (
         Project.objects.completed()
         .filter(owner__username=my_employee)
@@ -1478,47 +1331,6 @@ def unbookmark_project(request, slug):
         return render(
             request, "pjtk2/confirm_bookmark_delete.html", {"project": project}
         )
-
-
-def get_sisters_dict(slug):
-    """
-    given a slug, return a list of dictionaries of projects that
-    are (or could be) sisters to the given project.  Values returned
-    by this function are used to populate the sister project formset
-    """
-
-    project = get_object_or_404(Project, slug=slug)
-    initial = []
-
-    # family = project.get_family()
-    sisters = project.get_sisters()
-    candidates = project.get_sister_candidates()
-
-    if sisters:
-        for proj in sisters:
-            initial.append(
-                dict(
-                    sister=True,
-                    prj_cd=proj.prj_cd,
-                    slug=proj.slug,
-                    prj_nm=proj.prj_nm,
-                    prj_ldr=proj.prj_ldr,
-                    url=proj.get_absolute_url(),
-                )
-            )
-    if candidates:
-        for proj in candidates:
-            initial.append(
-                dict(
-                    sister=False,
-                    prj_cd=proj.prj_cd,
-                    slug=proj.slug,
-                    prj_nm=proj.prj_nm,
-                    prj_ldr=proj.prj_ldr,
-                    url=proj.get_absolute_url(),
-                )
-            )
-    return initial
 
 
 def sisterprojects(request, slug):
