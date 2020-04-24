@@ -3,7 +3,7 @@ from django.db.models.signals import pre_save, post_save
 from pjtk2.models import *
 from pjtk2.tests.factories import *
 
-from pjtk2.functions import get_minions, get_supervisors
+from ..utils.helpers import get_minions, get_supervisors
 
 import datetime
 import pytz

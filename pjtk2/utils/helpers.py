@@ -245,7 +245,7 @@ def get_assignments_with_paths(project, core=True):
     report.
     """
 
-    from .models import Report
+    from ..models import Report
 
     if core:
         assignments = project.get_core_assignments()
@@ -285,7 +285,7 @@ def update_milestones(form_ms, milestones):
 
     """
 
-    from .models import ProjectMilestones
+    from ..models import ProjectMilestones
 
     # convert the list of milestones from the form to a set of integers:
     form_ms = set([int(x) for x in form_ms])
@@ -325,7 +325,7 @@ def get_sisters_dict(slug):
     by this function are used to populate the sister project formset
     """
 
-    from .models import Project
+    from ..models import Project
 
     project = get_object_or_404(Project, slug=slug)
     initial = []

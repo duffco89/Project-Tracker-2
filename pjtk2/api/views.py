@@ -25,7 +25,7 @@ from pjtk2.models import Project, ProjectType, SamplePoint, ProjectPolygon, User
 
 from pjtk2.filters import SamplePointFilter, ProjectFilter
 
-from pjtk2.spatial_utils import find_roi_points
+from pjtk2.utils.spatial_utils import find_roi_points
 
 
 class StandardResultsSetPagination(PageNumberPagination):
