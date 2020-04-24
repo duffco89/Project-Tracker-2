@@ -8,7 +8,6 @@ from pjtk2.views import (
     ProjectSearch,
     project_list,
     user_project_list,
-    project_list_q,
     approved_projects_list,
     approveprojects,
     approve_project,
@@ -52,7 +51,6 @@ urlpatterns = [
     # CRUD Projects
     url(r"^projects/$", project_list, name="ProjectList"),
     url(r"^projects/(?P<username>.+)/$", user_project_list, name="user_project_list"),
-    url(r"^projects/?q=$", project_list_q, name="ProjectList_q"),
     url(r"^projects/approved$", approved_projects_list, name="ApprovedProjectsList"),
     # project formset:
     url(r"^approveprojects/$", approveprojects, name="ApproveProjects"),

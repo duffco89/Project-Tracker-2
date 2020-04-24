@@ -1869,8 +1869,8 @@ class ProjectQuickSearch(TestCase):
         login = self.client.login(username=self.user.username, password="Abcd1234")
         self.assertTrue(login)
 
-        url = reverse("ProjectList_q")
-        response = self.client.get(url, {"q": "LHA"})
+        url = reverse("project_search")
+        response = self.client.get(url, {"prj_cd": "LHA"})
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
@@ -1900,8 +1900,8 @@ class ProjectQuickSearch(TestCase):
         login = self.client.login(username=self.user.username, password="Abcd1234")
         self.assertTrue(login)
 
-        url = reverse("ProjectList_q")
-        response = self.client.get(url, {"q": "lha"})
+        url = reverse("project_search")
+        response = self.client.get(url, {"prj_cd": "lha"})
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
@@ -1931,8 +1931,8 @@ class ProjectQuickSearch(TestCase):
         login = self.client.login(username=self.user.username, password="Abcd1234")
         self.assertTrue(login)
 
-        url = reverse("ProjectList_q")
-        response = self.client.get(url, {"q": "foobar"})
+        url = reverse("project_search")
+        response = self.client.get(url, {"prj_cd": "foobar"})
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed("pjtk2/ProjectListSimple.html")
@@ -1946,8 +1946,8 @@ class ProjectQuickSearch(TestCase):
         login = self.client.login(username=self.user.username, password="Abcd1234")
         self.assertTrue(login)
 
-        url = reverse("ProjectList_q")
-        response = self.client.get(url, {"q": "000"})
+        url = reverse("project_search")
+        response = self.client.get(url, {"prj_cd": "000"})
         self.assertEqual(response.status_code, 200)
 
         self.assertTemplateUsed("pjtk2/ProjectListSimple.html")

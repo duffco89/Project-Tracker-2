@@ -45,8 +45,7 @@ class CanViewSearchForm(WebTest):
         form["search"] = "text"
         response = form.submit("submit")
 
-        msg = "No results found."
-
+        msg = "Sorry, no projects match that criteria."
         self.assertContains(response, msg)
         # assert 0==1
 
