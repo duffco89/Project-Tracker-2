@@ -446,7 +446,7 @@
                 </td>
 
                 {% if report.report %}
-                <td><a href="{% url 'serve_file' report.report %}">{{ report.report }}</a></td>
+                    <td><a href="{% url 'serve_file' filename=report.report %}">{{ report.report }}</a></td>
 
                 {% if edit %}
                 <td>

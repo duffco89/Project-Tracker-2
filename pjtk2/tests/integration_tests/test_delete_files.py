@@ -60,7 +60,7 @@ class SisterWarningRendersonConfirmationPageTestCase(WebTest):
         # milestone.  the m2m relationship makes this a little tricky -
         # can't do it directly in factoryboy.
         # get our projectmilestone:
-        self.pmst = self.project1.projectmilestones_set.get(
+        self.pmst = self.project1.projectmilestones.get(
             milestone__label=self.milestone.label
         )
 
@@ -151,7 +151,7 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
         # milestone.  the m2m relationship makes this a little tricky -
         # can't do it directly in factoryboy.
         # get our projectmilestone:
-        self.pmst = self.project.projectmilestones_set.get(
+        self.pmst = self.project.projectmilestones.get(
             milestone__label=self.milestone.label
         )
 
@@ -344,7 +344,7 @@ class DeleteReportTestCase(TestCase):
         # milestone.  the m2m relationship makes this a little tricky -
         # can't do it directly in factoryboy.
         # get our projectmilestone:
-        self.pmst = self.project.projectmilestones_set.get(
+        self.pmst = self.project.projectmilestones.get(
             milestone__label=self.milestone.label
         )
 
