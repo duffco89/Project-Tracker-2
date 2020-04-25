@@ -307,14 +307,15 @@ class ProjectTagList(ListView):
 project_tag_list = ProjectTagList.as_view()
 
 
-class ApprovedProjectsList(ListFilteredMixin, ListView):
+class ApprovedProjectsList(ListView):
     """
     A CBV that will render a list of currently approved project.
     """
 
-    queryset = Project.objects.approved()
+    # queryset = Project.objects.approved()
     filter_set = ProjectFilter
     template_name = "pjtk2/ProjectList.html"
+    paginate_by = 100
 
     def get_context_data(self, **kwargs):
         context = super(ApprovedProjectsList, self).get_context_data(**kwargs)
@@ -322,9 +323,17 @@ class ApprovedProjectsList(ListFilteredMixin, ListView):
         context["approved"] = True
         return context
 
-    def get_base_queryset(self):
+    def get_queryset(self):
         """Start with just approved projects"""
-        return Project.objects.approved()
+        qs = (
+            Project.objects.approved()
+            .select_related("project_type", "prj_ldr")
+            .prefetch_related("projectmilestones", "projectmilestones__milestone")
+        )
+
+        filtered_qs = ProjectFilter(self.request.GET, qs)
+
+        return filtered_qs.qs
 
     @method_decorator(login_required)
     def dispatch(self, *args, **kwargs):

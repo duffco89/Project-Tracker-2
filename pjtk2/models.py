@@ -60,14 +60,18 @@ class ProjectsManager(models.Manager):
         """return a queryset containing only those projects that have been
         approved, but have not been completed or cancelled.
         """
-        return self.filter(
-            active=True,
-            cancelled=False,
-            projectmilestones__milestone__label="Approved",
-            projectmilestones__completed__isnull=False,
-        ).filter(
-            projectmilestones__milestone__label="Sign off",
-            projectmilestones__completed__isnull=True,
+        return (
+            self.prefetch_related("projectmilestones__milestone")
+            .filter(
+                active=True,
+                cancelled=False,
+                projectmilestones__milestone__label="Approved",
+                projectmilestones__completed__isnull=False,
+            )
+            .filter(
+                projectmilestones__milestone__label="Sign off",
+                projectmilestones__completed__isnull=True,
+            )
         )
 
     def cancelled(self):
@@ -181,12 +185,12 @@ class Milestone(models.Model):
         ("Custom", "custom"),
     }
 
-    label = models.CharField(max_length=50, unique=True)
+    label = models.CharField(max_length=50, unique=True, db_index=True)
     label_abbrev = models.CharField(max_length=50, unique=True)
     category = models.CharField(
         max_length=30, choices=MILESTONE_CHOICES, default="Custom"
     )
-    report = models.BooleanField(default=False)
+    report = models.BooleanField(default=False, db_index=True)
     # should this milestone be shared among sister projects?
     shared = models.BooleanField(default=False)
     protected = models.BooleanField(default=False)
@@ -658,7 +662,7 @@ class Project(models.Model):
             }
 
         milestones = (
-            self.projectmilestones_set.filter(milestone__category="Core")
+            self.projectmilestones.filter(milestone__category="Core")
             .exclude(milestone__label="Submitted")
             .select_related("milestone")
             .order_by("milestone__order")
@@ -684,7 +688,7 @@ class Project(models.Model):
 
         # finally for each project, we need to know if this project has any
         # custom reporting requirements and their status:
-        milestones = self.projectmilestones_set.select_related("milestone").filter(
+        milestones = self.projectmilestones.select_related("milestone").filter(
             milestone__category="custom"
         )
         if not milestones:
@@ -1208,9 +1212,13 @@ class ProjectMilestones(models.Model):
     """
 
     # aka - project milestones
-    project = models.ForeignKey("Project", on_delete=models.CASCADE)
+    project = models.ForeignKey(
+        "Project", related_name="projectmilestones", on_delete=models.CASCADE
+    )
     # report_type = models.ForeignKey('Milestone')
-    milestone = models.ForeignKey("Milestone", on_delete=models.CASCADE)
+    milestone = models.ForeignKey(
+        "Milestone", related_name="projectmilestones", on_delete=models.CASCADE
+    )
     required = models.BooleanField(default=True, db_index=True)
     completed = models.DateTimeField(blank=True, null=True, db_index=True)
 
