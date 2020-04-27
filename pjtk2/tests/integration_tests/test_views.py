@@ -1361,7 +1361,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
 
         prj_cd = "LHA_IA%s_222" % str(self.year)[-2:]
         self.project2 = ProjectFactory.create(
-            prj_cd=prj_cd, prj_nm=self.user1, owner=self.user1
+            prj_cd=prj_cd, prj_ldr=self.user1, owner=self.user1
         )
         # Two projects from last year:
         prj_cd = "LHA_IA%s_333" % str(self.year - 1)[-2:]

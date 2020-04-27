@@ -237,6 +237,7 @@ class MilestoneFactory(factory.DjangoModelFactory):
 
     class Meta:
         model = Milestone
+        django_get_or_create = ("label",)
 
     label = "Completion Report"
     label_abbrev = factory.Sequence(lambda n: "milestone {0}".format(n))
@@ -271,6 +272,7 @@ class ProjectFundingFactory(factory.DjangoModelFactory):
 class ProjectMilestonesFactory(factory.DjangoModelFactory):
     class Meta:
         model = ProjectMilestones
+        django_get_or_create = ("project", "milestone")
 
     """list of reporting requirements for each project"""
     project = factory.SubFactory(ProjectFactory)

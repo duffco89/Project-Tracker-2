@@ -40,18 +40,18 @@ class SisterWarningRendersonConfirmationPageTestCase(WebTest):
         )
         # self.Employee = EmployeeFactory(user=self.user)
 
-        self.milestone = MilestoneFactory.create(
+        self.milestone = MilestoneFactory(
             label="Approved", category="Core", order=1, report=False
         )
-
+        signoff = MilestoneFactory(label="Sign Off")
         # a required reports
-        self.milestone = MilestoneFactory.create(
+        self.milestone = MilestoneFactory(
             label="Proposal Presentation", category="Core", order=2, report=True
         )
 
-        self.project1 = ProjectFactory.create(prj_cd="LHA_IA14_111", owner=self.user)
+        self.project1 = ProjectFactory(prj_cd="LHA_IA14_111", owner=self.user)
 
-        self.project2 = ProjectFactory.create(prj_cd="LHA_IA14_222", owner=self.user)
+        self.project2 = ProjectFactory(prj_cd="LHA_IA14_222", owner=self.user)
 
         self.project1.approve()
         self.project2.approve()
@@ -69,7 +69,6 @@ class SisterWarningRendersonConfirmationPageTestCase(WebTest):
         self.report.projectreport.add(self.pmst)
         self.report.save()
 
-        signoff = MilestoneFactory(label="Sign Off")
         ProjectMilestonesFactory(project=self.project1, milestone=signoff)
         ProjectMilestonesFactory(project=self.project2, milestone=signoff)
 

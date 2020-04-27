@@ -333,6 +333,20 @@ class Project(models.Model):
     Class to hold a record for each project
     """
 
+    PROJECT_STATUS_CHOICES = [
+        ("submitted", "Submitted"),
+        ("ongoing", "Ongoing"),
+        ("complete", "Complete"),
+        ("canceled", "Canceled"),
+    ]
+
+    status = models.CharField(
+        max_length=10,
+        choices=PROJECT_STATUS_CHOICES,
+        default="submitted",
+        db_index=True,
+    )
+
     active = models.BooleanField(default=True)
     cancelled = models.BooleanField(default=False)
     cancelled_by = models.ForeignKey(
@@ -417,6 +431,60 @@ class Project(models.Model):
         ordering = ["-prj_date1"]
         indexes = [GinIndex(fields=["content_search"])]
 
+    def save(self, *args, **kwargs):
+        """
+        from:http://stackoverflow.com/questions/7971689/
+             generate-slug-field-in-existing-table
+        Slugify name if it doesn't exist. IMPORTANT: doesn't check to see
+        if slug is a dupicate!
+        """
+        new = False
+        if not self.slug or not self.year:
+            self.slug = slugify(self.prj_cd)
+            # self.year = self.prj_date0.year
+            yr = self.prj_cd[6:8]
+            self.year = "20" + yr if int(yr) < 50 else "19" + yr
+            new = True
+
+        if self.abstract:
+            self.abstract = strip_carriage_returns(self.abstract)
+            self.abstract_html = markdown(
+                self.abstract, extras={"demote-headers": DEMOTE_HEADERS}
+            )
+            self.abstract_html = replace_links(
+                self.abstract_html, link_patterns=LINK_PATTERNS
+            )
+
+        if self.comment:
+            self.comment = strip_carriage_returns(self.comment)
+            self.comment_html = markdown(
+                self.comment, extras={"demote-headers": DEMOTE_HEADERS}
+            )
+            self.comment_html = replace_links(
+                self.comment_html, link_patterns=LINK_PATTERNS
+            )
+
+        if self.risk:
+            self.risk = strip_carriage_returns(self.risk)
+            self.risk_html = markdown(
+                self.risk, extras={"demote-headers": DEMOTE_HEADERS}
+            )
+            self.risk_html = replace_links(self.risk_html, link_patterns=LINK_PATTERNS)
+
+        super(Project, self).save(*args, **kwargs)
+        if new:
+            self.initialize_milestones()
+        self.status = self._get_status()
+
+    # @models.permalink
+    def get_absolute_url(self):
+        """
+        return the url for the project
+        """
+
+        url = reverse("project_detail", kwargs={"slug": self.slug})
+        return url
+
     def approve(self):
         """
         a helper method to make approving projects easier.  A
@@ -441,6 +509,7 @@ class Project(models.Model):
             projectmilestone = ProjectMilestones(
                 project=self, milestone=milestone, required=True, completed=now
             )
+        self.save()
 
     def unapprove(self):
         """
@@ -459,13 +528,17 @@ class Project(models.Model):
 
         except ProjectMilestones.DoesNotExist:
             pass
+        self.save()
 
     def is_approved(self):
         """Is the current project approved?  Returns true if it is, otherwise
         false."""
-        approved = ProjectMilestones.objects.get(
+        approved = ProjectMilestones.objects.filter(
             project=self, milestone__label="Approved"
-        )
+        ).first()
+        if approved is None:
+            return False
+
         if approved.completed is not None:
             return True
         else:
@@ -512,7 +585,7 @@ class Project(models.Model):
         else:
             return False
 
-    def status(self):
+    def _get_status(self):
         """
         The status of a project must be one of:
 
@@ -939,59 +1012,6 @@ class Project(models.Model):
         if familysize == 1:
             ProjectSisters.objects.filter(family=family).delete()
             Family.objects.filter(id=family.id).delete()
-
-    # @models.permalink
-    def get_absolute_url(self):
-        """
-        return the url for the project
-        """
-
-        url = reverse("project_detail", kwargs={"slug": self.slug})
-        return url
-
-    def save(self, *args, **kwargs):
-        """
-        from:http://stackoverflow.com/questions/7971689/
-             generate-slug-field-in-existing-table
-        Slugify name if it doesn't exist. IMPORTANT: doesn't check to see
-        if slug is a dupicate!
-        """
-        new = False
-        if not self.slug or not self.year:
-            self.slug = slugify(self.prj_cd)
-            # self.year = self.prj_date0.year
-            yr = self.prj_cd[6:8]
-            self.year = "20" + yr if int(yr) < 50 else "19" + yr
-            new = True
-
-        if self.abstract:
-            self.abstract = strip_carriage_returns(self.abstract)
-            self.abstract_html = markdown(
-                self.abstract, extras={"demote-headers": DEMOTE_HEADERS}
-            )
-            self.abstract_html = replace_links(
-                self.abstract_html, link_patterns=LINK_PATTERNS
-            )
-
-        if self.comment:
-            self.comment = strip_carriage_returns(self.comment)
-            self.comment_html = markdown(
-                self.comment, extras={"demote-headers": DEMOTE_HEADERS}
-            )
-            self.comment_html = replace_links(
-                self.comment_html, link_patterns=LINK_PATTERNS
-            )
-
-        if self.risk:
-            self.risk = strip_carriage_returns(self.risk)
-            self.risk_html = markdown(
-                self.risk, extras={"demote-headers": DEMOTE_HEADERS}
-            )
-            self.risk_html = replace_links(self.risk_html, link_patterns=LINK_PATTERNS)
-
-        super(Project, self).save(*args, **kwargs)
-        if new:
-            self.initialize_milestones()
 
     def get_sample_points(self):
         """
