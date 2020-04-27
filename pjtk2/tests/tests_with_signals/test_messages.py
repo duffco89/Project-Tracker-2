@@ -607,6 +607,8 @@ class TestGetMessagesDict(TestCase):
             label="Notice", category="Core", order=3, report=False
         )
 
+        MilestoneFactory(label="Sign Off")
+
         # now create a project owned by jerry - nothing to do with george
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", owner=self.user1)
 
@@ -941,6 +943,8 @@ class TestSendNoticeWhenProjectMilestonesChange(TestCase):
         self.milestone2 = MilestoneFactory.create(
             label="Approved", category="Core", order=2, report=False
         )
+
+        MilestoneFactory(label="Sign Off")
 
         # now create a project with an owner and dba.
         self.project1 = ProjectFactory.create(

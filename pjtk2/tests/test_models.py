@@ -36,6 +36,7 @@ def test_project_image_str():
     prj_nm = "Fake Project"
     figure_caption = "My cool picture."
 
+    MilestoneFactory(label="Approved")
     project = ProjectFactory(prj_cd=prj_cd, prj_nm=prj_nm)
     image = ProjectImage(caption=figure_caption, project=project)
     shouldbe = "{} ({}) - {}".format(prj_nm, prj_cd, figure_caption)
@@ -164,7 +165,7 @@ class TestProjectModel(TestCase):
         )
 
         # self.employee = EmployeeFactory(user=self.user)
-
+        MilestoneFactory(label="Approved")
         # define these as strings here so that we can access them later
         # and verify that the returned values match.
         self.commentStr = "This is a fake comment."
@@ -604,7 +605,7 @@ def test_project_link_in_comments():
     """
 
     comment_text = """this is similar to project: LHA_IA11_123"""
-
+    MilestoneFactory(label="Approved")
     project = ProjectFactory(comment=comment_text)
     project.save()
 
@@ -618,6 +619,8 @@ def test_multiple_project_links_in_comments():
     replaced with hyperlinks.
 
     """
+    MilestoneFactory(label="Approved")
+
     prj1 = "LHA_IA99_999"
     prj2 = "LHA_XX00_000"
     prj3 = "LHA_ZZ11_111"
@@ -646,6 +649,9 @@ def test_project_links_case_insensitive():
     of their letters.  Additionally they will be updated to have lower
     case url and uppercase project code.
     """
+
+    MilestoneFactory(label="Approved")
+
     prj1 = "lha_ia99_999"  # all lower
     prj2 = "lha_XX00_000"  # mixed case
     prj3 = "LHA_ZZ11_111"  # all upper
@@ -677,7 +683,7 @@ def test_project_link_in_risk():
     """
 
     risk_text = """this is similar to project: LHA_IA11_999"""
-
+    MilestoneFactory(label="Approved")
     project = ProjectFactory(risk=risk_text)
     project.save()
 
@@ -867,7 +873,7 @@ class TestModelReports(TestCase):
         self.core2 = MilestoneFactory.create(
             label="core2", report=True, category="Core", order=2
         )
-
+        MilestoneFactory(label="Approved")
         self.project = ProjectFactory.create()
 
         # retrieve the projectreport that would have been created for
@@ -1116,6 +1122,8 @@ class TestModelBookmarks(TestCase):
             username="mburns", first_name="Monty", last_name="Burns"
         )
 
+        MilestoneFactory(label="Approved")
+
         self.ProjType = ProjTypeFactory(project_type="Nearshore Index")
 
         self.project = ProjectFactory.create(
@@ -1168,7 +1176,7 @@ class TestProjectTagging(TestCase):
         self.user = UserFactory(
             username="hsimpson", first_name="Homer", last_name="Simpson"
         )
-
+        MilestoneFactory(label="Approved")
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", owner=self.user)
         self.project2 = ProjectFactory.create(prj_cd="LHA_IA12_222", owner=self.user)
         self.project3 = ProjectFactory.create(prj_cd="LHA_IA12_333", owner=self.user)
@@ -1397,6 +1405,10 @@ class TestMilestoneStatus(TestCase):
             label="Completed", category="Core", order=2, report=False
         )
 
+        self.milestone2 = MilestoneFactory.create(
+            label="Sign Off", category="Core", order=3, report=False
+        )
+
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", owner=self.user)
 
     def test_somthing_other_than_milestones(self):
@@ -1470,6 +1482,7 @@ class TestProjdectFundingProperties(TestCase):
         """To test the methods we will need a project and at least two funding
         sources."""
 
+        MilestoneFactory(label="Approved")
         self.project = ProjectFactory.create(prj_cd="LHA_IA99_123")
         self.source1 = FundingSourceFactory.create(abbrev="spa")
         self.source2 = FundingSourceFactory.create(name="COA", abbrev="coa")
@@ -1518,6 +1531,7 @@ class TestProjectFunding(TestCase):
     def setUp(self):
         """"""
 
+        MilestoneFactory(label="Approved")
         self.project = ProjectFactory.create(prj_cd="LHA_IA99_123")
         self.fundingsource = FundingSourceFactory.create(abbrev="spa")
 
@@ -1599,14 +1613,16 @@ class TestProjectStatus(TestCase):
         """if a project has been submitted, but has not been approved,
         cancelled or signed off, it should be submitted.
         """
-        self.assertEqual(self.project1.status(), "Submitted")
+        self.assertEqual(self.project1._get_status(), "Submitted")
+        self.assertEqual(self.project1.status, "Submitted")
 
     def test_status_ongoing(self):
         """if a project has been submitted, but has not been approved,
         cancelled or signed off, it should be submitted.
         """
         self.project1.approve()
-        self.assertEqual(self.project1.status(), "Ongoing")
+        self.assertEqual(self.project1._get_status(), "Ongoing")
+        self.assertEqual(self.project1.status, "Ongoing")
 
     def test_status_cancelled(self):
         """if a project has been submitted, but has not been approved,
@@ -1615,7 +1631,8 @@ class TestProjectStatus(TestCase):
         self.project1.approve()
         self.project1.cancelled = True
         self.project1.save()
-        self.assertEqual(self.project1.status(), "Cancelled")
+        self.assertEqual(self.project1._get_status(), "Cancelled")
+        self.assertEqual(self.project1.status, "Cancelled")
 
     def test_status_complete(self):
         """if a project has been submitted, but has not been approved,
@@ -1623,4 +1640,5 @@ class TestProjectStatus(TestCase):
         """
         self.project1.approve()
         self.project1.signoff(self.user)
-        self.assertEqual(self.project1.status(), "Complete")
+        self.assertEqual(self.project1._get_status(), "Complete")
+        self.assertEqual(self.project1.status, "Complete")
