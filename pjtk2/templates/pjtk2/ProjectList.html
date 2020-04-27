@@ -46,7 +46,7 @@
       </td>
           <td><a href="{% url 'user_project_list' project.prj_ldr.username %}">
               {{ project.prj_ldr.first_name}} {{ project.prj_ldr.last_name }}</a></td>
-      <td> {{ project.project_type }} </td>
+      <td> {{ project.project_type.project_type }} </td>
       <td style="color:{{ project.status|highlight_status  }}">
         {{ project.status  }}
       </td>
