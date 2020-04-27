@@ -637,9 +637,21 @@
 
      }
 
+     let bbox = {{ project.lake.envelope_ontario.json|safe }};
 
-     // we will initialize the map over lake huron - this could be customized at some point in the future.
-     var  my_map = new L.map('main_map').setView([45,-82], 7);
+     function leafletBounds(bbox){
+         let pt1 = bbox.coordinates[0][0]
+         let pt2 = bbox.coordinates[0][2]
+         return [
+             [pt1[1], pt1[0]],
+             [pt2[1], pt2[0]],                         
+         ]
+     }
+     
+     //var  my_map = new L.map('main_map').setView([45,-82], 7);
+     let my_map = new L.map('main_map', {
+         zoomSnap: 0.1
+     }).fitBounds(leafletBounds(bbox));
 
      L.mapbox.accessToken = 'pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ';
      // Replace 'mapbox.streets' with your map id.

@@ -1315,6 +1315,11 @@ class Bookmark(models.Model):
 
     class Meta:
         ordering = ["-date"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["project", "user"], name="unique_user_project_bookmark"
+            )
+        ]
 
     def __str__(self):
         """return the name of the associated project as our representation"""

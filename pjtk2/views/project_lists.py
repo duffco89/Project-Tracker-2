@@ -82,20 +82,20 @@ class ListFilteredMixin(object):
         applying the FilterSet
         """
 
+        queryset = Project.objects.select_related("prj_ldr", "project_type")
+
         # ==========
         self.tag = self.kwargs.get("tag", None)
         self.username = self.kwargs.get("username", None)
 
         if self.tag:
-            queryset = Project.objects.filter(tags__name__in=[self.tag])
+            queryset = queryset.filter(tags__name__in=[self.tag])
         elif self.username:
             # get the projects that involve this user:
-            queryset = Project.objects.filter(
+            queryset = queryset.filter(
                 Q(prj_ldr__username=self.username)
                 | Q(field_ldr__username=self.username)
             )
-        else:
-            queryset = Project.objects.all()
 
         return queryset
 
@@ -233,7 +233,9 @@ class ProjectList(ListFilteredMixin, ListView):
     A list view that can be filtered by django-filter
     """
     # modified to accept tag argument
-    queryset = Project.objects.select_related("project_type", "prj_ldr").all()
+    queryset = (
+        Project.objects.select_related("prj_ldr").prefetch_related("project_type").all()
+    )
     filter_set = ProjectFilter
     # filterset_class = ProjectFilter
     template_name = "pjtk2/ProjectList.html"
