@@ -1,10 +1,11 @@
-{% extends "auth/auth_base.html" %}
+{% extends "registration/auth_base.html" %}
 
-{% block title %}Login{% endblock %}
+{% block title %}New User{% endblock %}
 
 {% block content %}
 
-<div id="Login">
+
+<div id="Register">
   <div class="row top-buffer">
     <!-- Alignment -->
     <div class="col-sm-offset-3 col-sm-5">
@@ -12,7 +13,7 @@
       <!-- Form itself -->
       <form method="POST" action="" class="well">
         {% csrf_token %}
-        <legend>UGLMU Project Tracker Login</legend>
+        <legend>New User Registration</legend>
 
         {% if form.errors %}
         <div class="alert alert-danger">
@@ -22,6 +23,7 @@
             <li>{{ error|striptags }}</li>
             {% endfor %}
           </ul>
+
         </div>
         {% endif %}
 
@@ -35,23 +37,30 @@
           </div>
         </div>
 
-        <!-- Password -->
+        <!-- Password1 -->
         <div class="form-group">
           <div class="controls">
             <input type="password" class="form-control" placeholder="password"
-                   name="password" id="password" required />
+                   name="password1" id="password1" required />
           </div>
         </div>
-        <br />
+
+        <!-- Password2 -->
+        <div class="form-group">
+          <div class="controls">
+            <input type="password" class="form-control" placeholder="password (again)"
+                   name="password2" id="password2" required />
+          </div>
+        </div>
         <div class="row">
-          <button type="submit" class="btn btn-primary pull-right">Login</button><br /></p>
-</div>
+          <p>Already registered? <a href="{% url 'login' %}" tabindex="-1">login here</a>
+          <button type="submit" class="btn btn-primary pull-right">Register</button><br /></p>
+        </div>
 
-</form>
+      </form>
+    </div>
+  </div>
 </div>
-</div>
-</div>
-
 
 
 {% endblock %}

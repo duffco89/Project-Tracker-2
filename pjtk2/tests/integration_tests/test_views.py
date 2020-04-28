@@ -2,6 +2,7 @@ import unittest
 import pdb
 
 from django.conf import settings
+from django.contrib.auth import get_user
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
 from django.db.models.signals import pre_save, post_save
@@ -219,20 +220,19 @@ class LogoutTestCase(TestCase):
         # first login a user
         login = self.client.login(username="hsimpson", password="Abcd1234")
         response = self.client.get(reverse("login"))
+
+        user = get_user(self.client)
+        assert user.is_authenticated is True
+
         self.assertEqual(response.status_code, 200)
         self.assertTrue(login)
 
         # now log them out:
         response = self.client.get(reverse("logout"), follow=True)
         self.assertEqual(response.status_code, 200)
-        # self.assertRedirects(response, reverse('login'))
-        # self.assertTemplateUsed(response, 'auth/login.html')
-        # self.assertContains(response,"Username:")
-        # self.assertContains(response,"Password:")
 
-        # for some reason this behaves differently than the development server
-        # the test server does not re-direct back to the login page,
-        self.assertTemplateUsed(response, "auth/logout.html")
+        user = get_user(self.client)
+        assert user.is_authenticated is False
 
     def tearDown(self):
         self.user.delete()
@@ -539,7 +539,7 @@ class CancelProjectTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "auth/login.html")
+        self.assertTemplateUsed(response, "registration/login.html")
         # it still should not be cancelled :
         proj = Project.objects.get(slug=self.project.slug)
         self.assertFalse(proj.cancelled)
@@ -844,7 +844,7 @@ class ReOpenProjectTestCase(TestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "auth/login.html")
+        self.assertTemplateUsed(response, "registration/login.html")
         # it still should still be complete:
         proj = Project.objects.get(slug=self.project.slug)
         self.assertTrue(proj.is_complete())
