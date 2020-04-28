@@ -827,7 +827,7 @@ class EmployeeProjectsTestCase(WebTest):
         url = reverse("EmployeeProjects", kwargs={"employee_name": self.user.username})
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "auth/login.html")
+        self.assertTemplateUsed(response, "registration/login.html")
 
     def tearDown(self):
         self.project1.delete()

@@ -117,12 +117,7 @@ WSGI_APPLICATION = "main.wsgi.application"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            root("templates"),
-            root("pjtk2/templates"),
-            root("simple_auth/templates"),
-            root("tickets/templates"),
-        ],
+        "DIRS": [root("templates"), root("pjtk2/templates")],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -204,7 +199,8 @@ LOGGING = {
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"
 
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "home"
+LOGOUT_REDIRECT_URL = "home"
 LOGIN_URL = "/accounts/login/"
 
 POSTGIS_VERSION = (2, 1, 2)

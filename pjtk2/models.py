@@ -1414,7 +1414,7 @@ class Employee(models.Model):
         return self.user.username
 
     def get_lakes(self):
-        return ", ".join([l.lake for l in self.lake.all()])
+        return ", ".join([l.lake_name for l in self.lake.all()])
 
 
 class Message(models.Model):

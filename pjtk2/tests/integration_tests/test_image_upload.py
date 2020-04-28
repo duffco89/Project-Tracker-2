@@ -95,7 +95,7 @@ def test_image_urls_redirect_to_login(client, project, user):
         assert response.status_code == 200
         content = response.content.decode("utf-8")
         assert "Project Tracker Login" in content
-        assert "auth/login.html" in [t.name for t in response.templates]
+        assert "registration/login.html" in [t.name for t in response.templates]
 
 
 @pytest.mark.django_db

@@ -62,7 +62,8 @@ class Admin_Project(admin.ModelAdmin):
 
     search_fields = ["prj_cd", "prj_nm"]
     list_display = ("prj_cd", "prj_nm", "prj_ldr", "project_type", "year")
-    list_filter = ("lake", "project_type", "year", "prj_ldr")
+    list_filter = ("lake__lake_name", "project_type", "year", "prj_ldr")
+    # list_filter = ("project_type", "year", "prj_ldr")
 
 
 class Admin_FundingSource(admin.ModelAdmin):

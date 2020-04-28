@@ -4,9 +4,7 @@ from django.conf.urls import include, url
 from django.conf import settings
 from django.contrib import admin
 from django.views.static import serve as serve_static
-
-# from django.conf.urls.static import static
-# from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+from django.contrib.auth import views as authviews
 
 warnings.simplefilter("error", DeprecationWarning)
 
@@ -19,11 +17,18 @@ urlpatterns = [
     url(r"^$", project_list, name="index"),
     url(r"^admin/doc/", include("django.contrib.admindocs.urls")),
     url(r"^coregonusclupeaformis/admin/", admin.site.urls),
-    url(r"^accounts/", include("simple_auth.urls")),
     url(r"^accounts/", include("django.contrib.auth.urls")),
-    url(r"^password_reset/", include("password_reset.urls")),
+    url(
+        "^accounts/password-change/$",
+        authviews.PasswordChangeView.as_view(),
+        name="change_password",
+    ),
+    url(
+        "^accounts/password-change/done/$",
+        authviews.PasswordChangeDoneView.as_view(),
+        name="password_change_done",
+    ),
     url(r"^projects/", include("pjtk2.urls")),
-    url(r"^tickets/", include("tickets.urls")),
     url(
         r"^static/(?P<path>.*)$", serve_static, {"document_root": settings.STATIC_ROOT}
     ),

@@ -71,7 +71,7 @@
                     </li>
 
                     {% block navbar_other_apps %}
-                    <li><a href="{% url 'ticket_list' %}" class="sel">Tickets</a></li>
+
                     {% endblock %}
 
                     {% if user.is_authenticated %}
@@ -83,7 +83,7 @@
 
                             {% if user.is_superuser %}
                             <li><a href="{% url 'admin:index' %}">Django Admin</a></li>
-                            <li><a href="{% url 'password_reset' %}">Reset Password</a></li>
+
                             {% endif %}
 
                         </ul>
