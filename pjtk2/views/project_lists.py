@@ -256,9 +256,6 @@ class ProjectList(ListFilteredMixin, ListView):
         else:
             prj_ldr = None
 
-        # import pdb; pdb.set_trace()
-
-        # import pdb;pdb.set_trace()
         paginator = Paginator(self.object_list, self.paginate_by)
         page = self.request.GET.get("page")
         try:

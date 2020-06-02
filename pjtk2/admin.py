@@ -106,6 +106,7 @@ class Admin_Report(admin.ModelAdmin):
 class Admin_Employee(admin.ModelAdmin):
     """Admin class for Employees"""
 
+    search_fields = ["user__first_name", "user__last_name"]
     list_display = ("user", "position", "role", "get_lakes", "supervisor")
 
 

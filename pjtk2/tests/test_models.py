@@ -1359,6 +1359,10 @@ class TestEmployeeFunctions(TestCase):
         ]
         minions = [str(x) for x in minions]
         shouldbe = [str(x) for x in shouldbe]
+
+        minions.sort()
+        shouldbe.sort()
+
         self.assertListEqual(minions, shouldbe)
 
     def tearDown(self):

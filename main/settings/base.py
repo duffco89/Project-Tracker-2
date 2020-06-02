@@ -205,7 +205,7 @@ LOGIN_URL = "/accounts/login/"
 
 POSTGIS_VERSION = (2, 1, 2)
 
-PRJ_CD_REGEX = r"(?P<slug>[A-Za-z]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$"
+PRJ_CD_REGEX = r"(?P<slug>[A-Za-z0-9]{3}_[A-Za-z]{2}\d{2}_([A-Za-z]|\d){3})/$"
 
 LINK_PATTERNS = [
     {
