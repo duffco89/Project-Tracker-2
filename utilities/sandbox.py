@@ -489,3 +489,81 @@ for x in protocols:
 
 query_count1 = len(connection.queries)
 print("queries run: {}".format((query_count1 - query_count0)))
+
+
+import psycopg2
+
+con_pars = {
+    "HOST": "localhost",
+    "NAME": "superior",
+    "USER": "cottrillad",
+    "PASSWORD": "django123",
+}
+
+pg_constring = "host='{HOST}' dbname='{NAME}' user='{USER}'" + " password='{PASSWORD}'"
+pg_constring = pg_constring.format(**con_pars)
+
+pg_conn = psycopg2.connect(pg_constring)
+pg_cur = pg_conn.cursor()
+
+
+sql = "select prj_cd, comment from pjtk2_project where year='2019'"
+pg_cur.execute(sql)
+abstracts = pg_cur.fetchall()
+
+
+for item in abstracts:
+    proj = Project.objects.get(prj_cd=item[0])
+    proj.abstract = item[1]
+    proj.save()
+print("done!")
+
+
+# now to get the lake erie and lake ontario creel points:
+import django_settings
+import csv
+from django.contrib.gis.geos import GEOSGeometry
+from pjtk2.models import Project, SamplePoint
+
+# csv_file = "C:/Users/COTTRILLAD/1work/Python/djcode/apps/pjtk2/utilities/glb_data/LEMU_SC_Points.csv"
+csv_file = "C:/Users/COTTRILLAD/1work/Python/djcode/apps/pjtk2/utilities/glb_data/LOMU_SC_Points.csv"
+
+csv_file = "C:/Users/COTTRILLAD/1work/ScrapBook/project_tracker/pjtk2_sample_points.csv"
+
+points = []
+
+with open(csv_file, newline="") as csvfile:
+    reader = csv.reader(csvfile)
+    next(reader, None)  # skip header
+    for row in reader:
+        x = [row[0], row[1], float(row[2]), float(row[3])]
+        points.append(x)
+
+# create a cache for projects
+prj_cds = list(set([x[0] for x in points]))
+project_cache = {x.prj_cd: x for x in Project.objects.filter(prj_cd__in=prj_cds)}
+
+# now loop over our points, create a sample point, get the associated
+# project, and add the point to our list of item to create:
+
+items = []
+
+for pt in points:
+    proj = project_cache.get(pt[0])
+    if proj is None:
+        print("Unable to find project: {}".format(pt[0]))
+        continue
+    label = pt[1].replace("{} - ".format(pt[0]), "")
+    ddlat = pt[2]
+    ddlon = pt[3]
+    geom = GEOSGeometry("POINT({} {})".format(ddlon, ddlat))
+    sample_point = SamplePoint(project=proj, label=label, geom=geom)
+    items.append(sample_point)
+
+SamplePoint.objects.bulk_create(items)
+
+# update the assocaited geomeries of our project so we find them in spatial searches:
+for prj_cd, project in project_cache.items():
+    project.update_convex_hull()
+    project.update_multipoints()
+print("Done!")

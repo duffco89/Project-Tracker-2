@@ -1,8 +1,14 @@
-# from django.contrib.auth.models import User, Group
 from django.urls import reverse
 from django_webtest import WebTest
 
-from pjtk2.tests.factories import *
+
+from pjtk2.tests.factories import (
+    ProjectFactory,
+    MilestoneFactory,
+    UserFactory,
+    EmployeeFactory,
+)
+
 
 # import datetime
 # import pytz

@@ -6,7 +6,7 @@
 import collections
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 from django.contrib.gis.db.models import Collect, Union
 from django.contrib.gis.geos import MultiPoint
@@ -30,6 +30,7 @@ import pytz
 
 from .utils.helpers import get_supervisors, replace_links, strip_carriage_returns
 
+User = get_user_model()
 
 LINK_PATTERNS = getattr(settings, "LINK_PATTERNS", None)
 # for markdown2 (<h1> becomes <h3>)
@@ -1031,7 +1032,7 @@ class Project(models.Model):
         """
 
         points = SamplePoint.objects.filter(project__id=self.id).values_list(
-            "sam", "geom"
+            "label", "geom"
         )
 
         return points
@@ -1177,7 +1178,7 @@ class SamplePoint(models.Model):
     """
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE)
-    sam = models.CharField(max_length=30, null=True, blank=True)
+    label = models.CharField(max_length=60, null=True, blank=True)
     geom = models.PointField(
         srid=4326, help_text="Represented as (longitude, latitude)"
     )
@@ -1208,13 +1209,16 @@ class SamplePoint(models.Model):
         us with a way to get more inforamtion about specific net
         sets.
         """
-        return "{} - {}".format(self.project.prj_cd, self.sam)
+        return str(self)
 
     def __str__(self):
         """
-        Return a string that include the project code and sample
+        Return a string that include the project code and label
         """
-        return "%s - %s" % (self.project.prj_cd, self.sam)
+        if self.label:
+            return "{} - {}".format(self.project.prj_cd, self.label)
+        else:
+            return "{}".format(self.project.prj_cd)
 
 
 class ProjectImage(models.Model):

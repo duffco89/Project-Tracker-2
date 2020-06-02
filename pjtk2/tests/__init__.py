@@ -7,7 +7,7 @@ import hashlib
 import logging
 
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.core import exceptions
 
 # from django.core.urlresolvers import reverse
@@ -17,6 +17,8 @@ from django.test import Client, TestCase
 from django.test.testcases import _AssertNumQueriesContext
 
 logger = logging.getLogger("tests.demo")
+
+User = get_user_model()
 
 # You could set up your logging to include something like:
 """
