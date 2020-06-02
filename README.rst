@@ -12,7 +12,9 @@ More detailed documentation is in the "docs" directory.
 Quick start
 -----------
 
-0. > pip install pjtk2.zip
+0. INstall pjtk2's dependencies (django-taggit, markdown2, django-leaflet, and pillow), then
+
+   > pip install pjtk2.zip
 
 1. Add django-taggid, pjtk2, and common and to your INSTALLED_APPS setting like this::
 

@@ -4,28 +4,29 @@ recursive-include pjtk2/docs *
 recursive-include pjtk2/static *
 recursive-include pjtk2/templates *
 recursive-exclude utilities *
-  .git *
-  .cache *
-  __pycache__ *
-  .pytest_cache *
-  main *
-  static *
-  static_root *
-  uploads *
-  htmlcov *
- 
+recursive-exclude  .git *
+recursive-exclude  .cache *
+recursive-exclude  __pycache__ *
+recursive-exclude  .pytest_cache *
+recursive-exclude  main *
+recursive-exclude  static *
+recursive-exclude  static_root *
+recursive-exclude  uploads *
+recursive-exclude  htmlcov *
 
+exclude pjtk2/utils/sandbox.py
+exclude pjtk2/utils/sandbox2.py
 exclude conftest.py
- .coverage
- .coveragerc
- .dir-locals.el
- djangoplugin.py
- django_settings.py
- .flake8
- .gitignore
- httplogger.py
- manage.py
- pytest.ini
- READ_ME.org
- runserver.py
+exclude .coverage
+exclude .coveragerc
+exclude .dir-locals.el
+exclude djangoplugin.py
+exclude django_settings.py
+exclude .flake8
+exclude .gitignore
+exclude httplogger.py
+exclude manage.py
+exclude pytest.ini
+exclude READ_ME.org
+exclude runserver.py
 
