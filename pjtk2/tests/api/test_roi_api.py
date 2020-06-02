@@ -8,13 +8,13 @@ from rest_framework import status
 
 import pytest
 
-from pjtk2.models import Project
+from pjtk2.models import Project, SamplePoint
 from pjtk2.api.serializers import (
     ProjectPolygonSerializer,
     ProjectPointSerializer,
     ProjectSerializer,
 )
-from pjtk2.tests.factories import *
+from pjtk2.tests.factories import ProjectFactory, SamplePointFactory
 
 from rest_framework.test import APITestCase
 
@@ -48,7 +48,7 @@ class ProjectAPITest(APITestCase):
         # with the current year.
 
         prj_cd = "LHA_IA16_INN"
-        self.project1 = ProjectFactory.create(prj_cd=prj_cd, prj_nm="All In Roi")
+        self.project1 = ProjectFactory(prj_cd=prj_cd, prj_nm="All In Roi")
 
         # these are four randomly selected points that all fall within the roi
         pts = [
@@ -58,14 +58,14 @@ class ProjectAPITest(APITestCase):
             "POINT(-82.0017671634393 44.0513359855003)",
         ]
         for i, pt in enumerate(pts):
-            SamplePointFactory.create(
+            SamplePointFactory(
                 project=self.project1, sam="In-{}".format(i), geom=GEOSGeometry(pt)
             )
 
-        self.project1.update_convex_hull()
+        self.project1.update_multipoints()
 
         prj_cd = "LHA_IA16_LAP"
-        self.project2 = ProjectFactory.create(prj_cd=prj_cd, prj_nm="Some In Roi")
+        self.project2 = ProjectFactory(prj_cd=prj_cd, prj_nm="Some In Roi")
 
         # the first two points are in the roi, the last two are not:
         pts = [
@@ -76,13 +76,15 @@ class ProjectAPITest(APITestCase):
         ]
 
         for i, pt in enumerate(pts):
-            SamplePointFactory.create(
+            SamplePointFactory(
                 project=self.project2, sam="some-{}".format(i), geom=GEOSGeometry(pt)
             )
 
+        self.project2.update_multipoints()
+
         # a project with all of its points outside our region of interest
         prj_cd = "LHA_IA16_OUT"
-        self.project3 = ProjectFactory.create(prj_cd=prj_cd, prj_nm="NOT In Roi")
+        self.project3 = ProjectFactory(prj_cd=prj_cd, prj_nm="NOT In Roi")
 
         # these are four points north, south, east and west of the roi
         pts = [
@@ -93,12 +95,14 @@ class ProjectAPITest(APITestCase):
         ]
 
         for i, pt in enumerate(pts):
-            SamplePointFactory.create(
+            SamplePointFactory(
                 project=self.project3, sam="out-{}".format(i), geom=GEOSGeometry(pt)
             )
 
+        self.project3.update_multipoints()
+
         prj_cd = "LHA_IA16_000"
-        self.project4 = ProjectFactory.create(prj_cd=prj_cd, prj_nm="No Points")
+        self.project4 = ProjectFactory(prj_cd=prj_cd, prj_nm="No Points")
 
     def test_points_in_roi_api_get_put_delete(self):
         """the points api is currently readonly, but requires a post request
@@ -133,6 +137,7 @@ class ProjectAPITest(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), len(serializer.data))
         self.assertEqual(response.data, serializer.data)
 
     def test_points_in_roi_api_post_good_roi_json(self):

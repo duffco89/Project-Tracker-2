@@ -1,12 +1,13 @@
+from django.db.models import Q
+from django.http import Http404
+from django.contrib.gis.geos import GEOSGeometry, Polygon
+
 from rest_framework import viewsets, status
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-
-from django.http import Http404
-from django.contrib.gis.geos import GEOSGeometry
 
 from django_filters import rest_framework as filters
 
@@ -87,6 +88,10 @@ def points_roi(request, how="contained"):
 
     """
 
+    first_year = request.GET.get("first_year")
+    last_year = request.GET.get("last_year")
+    project_types = request.GET.get("project_type")
+
     # get the region of interest from the request - raise an error if we can't
     request_roi = request.GET.get("roi")
     if request_roi is None:
@@ -106,42 +111,84 @@ def points_roi(request, how="contained"):
     if roi.geom_type not in ("Polygon", "MultiPolygon"):
         try:
             roi = Polygon(roi)
-        except:
+        except TypeError:
             errmsg = "roi is not a valid polygon."
             raise ValidationError(errmsg)
 
     if how == "points_in":
-        # we just want the points in the ROI, regardless of project.
+        # return all of the sample points in the roi
         sample_points = SamplePoint.objects.filter(geom__within=roi).order_by(
             "-project__year", "sam"
         )
-        sample_point_filter = SamplePointFilter(request.GET, sample_points)
-        serializer = ProjectPointSerializer(
-            sample_point_filter.qs, many=True, context={"request": request}
-        )
 
+    elif how == "contained":
+        # return only points from projects that are completely contained within the roi
+        sample_points = SamplePoint.objects.filter(
+            project__multipoints__geom__within=roi
+        ).order_by("-project__year", "sam")
     else:
-        # get the unique project codes for all of the points that fall in
-        # the region of interest
-        sample_points = (
-            SamplePoint.objects.filter(geom__within=roi)
-            .distinct("project__prj_cd", "project__year")
-            .values_list("project__prj_cd")
-            .order_by("-project__year")
+        project_ids = (
+            Project.objects.filter(multipoints__geom__intersects=roi)
+            .exclude(multipoints__geom__within=roi)
+            .values_list("id")
+            .distinct()
+        )
+        sample_points = SamplePoint.objects.filter(
+            project__pk__in=project_ids
+        ).order_by("-project__year", "sam")
+        # If we want to clip our points to just those in the region, do it here:
+        # sample_points = sample_points.filter(geom__within=roi)
+
+    if project_types:
+        sample_points = sample_points.filter(
+            project__project_type__pk__in=project_types.split(",")
         )
 
-        # use django-filter to parse any url parameters and filter our
-        # results accordingly.
-        sample_point_filter = SamplePointFilter(request.GET, sample_points)
+    if first_year:
+        sample_points = sample_points.filter(project__year__gte=first_year)
 
-        # get our list of unique project codes after filtering:
-        prj_cds = [x[0] for x in sample_point_filter.qs]
-        points = find_roi_points(roi, prj_cds)
+    if last_year:
+        sample_points = sample_points.filter(project__year__lte=last_year)
 
-        # serialize the points based on the value of 'how' (either 'overlapping' or
-        #'contained'):
-        serializer = ProjectPointSerializer(
-            points[how], many=True, context={"request": request}
-        )
+    serializer = ProjectPointSerializer(
+        sample_points, many=True, context={"request": request}
+    )
+
+    # if how == "points_in":
+    #     # we just want the points in the ROI, regardless of project.
+    #     sample_points = (
+    #         SamplePoint.objects.filter(geom__within=roi)
+    #         .select_related("project")
+    #         .order_by("-project__year", "sam")
+    #     )
+    #     sample_point_filter = SamplePointFilter(request.GET, sample_points)
+    #     serializer = ProjectPointSerializer(
+    #         sample_point_filter.qs, many=True, context={"request": request}
+    #     )
+
+    # else:
+    #     # get the unique project codes for all of the points that fall in
+    #     # the region of interest
+    #     sample_points = (
+    #         SamplePoint.objects.filter(geom__within=roi)
+    #         .select_related("project")
+    #         .distinct("project__prj_cd", "project__year")
+    #         .values_list("project__prj_cd")
+    #         .order_by("-project__year")
+    #     )
+
+    #     # use django-filter to parse any url parameters and filter our
+    #     # results accordingly.
+    #     sample_point_filter = SamplePointFilter(request.GET, sample_points)
+
+    #     # get our list of unique project codes after filtering:
+    #     prj_cds = [x[0] for x in sample_point_filter.qs]
+    #     points = find_roi_points(roi, prj_cds)
+
+    #     # serialize the points based on the value of 'how' (either 'overlapping' or
+    #     #'contained'):
+    #     serializer = ProjectPointSerializer(
+    #         points[how], many=True, context={"request": request}
+    #     )
 
     return Response(serializer.data)

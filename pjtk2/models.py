@@ -8,7 +8,8 @@ import collections
 from django.conf import settings
 from django.contrib.auth.models import User
 
-from django.contrib.gis.db.models import Collect
+from django.contrib.gis.db.models import Collect, Union
+from django.contrib.gis.geos import MultiPoint
 from django.contrib.postgres.search import SearchVectorField, SearchVector
 from django.contrib.postgres.indexes import GinIndex
 
@@ -641,22 +642,30 @@ class Project(models.Model):
         this project - (these are just milestone events where report==False)"""
 
         if required is True:
-            return ProjectMilestones.objects.filter(
-                project=self, required=True, milestone__report=False
-            ).order_by("milestone__order")
+            return (
+                ProjectMilestones.objects.filter(
+                    project=self, required=True, milestone__report=False
+                )
+                .order_by("milestone__order")
+                .select_related("project", "milestone")
+            )
         else:
-            return ProjectMilestones.objects.filter(
-                project=self, milestone__report=False
-            ).order_by("milestone__order")
+            return (
+                ProjectMilestones.objects.filter(project=self, milestone__report=False)
+                .order_by("milestone__order")
+                .select_related("project", "milestone")
+            )
 
     def get_reporting_requirements(self):
         """
         get all of the reports have been assigned to
         this project - no distinction between core or custom reports"""
 
-        return ProjectMilestones.objects.filter(
-            project=self, milestone__report=True
-        ).order_by("milestone__order")
+        return (
+            ProjectMilestones.objects.filter(project=self, milestone__report=True)
+            .order_by("milestone__order")
+            .select_related("project", "milestone")
+        )
 
     def get_uploaded_reports(self):
         """
@@ -1027,6 +1036,48 @@ class Project(models.Model):
 
         return points
 
+    def update_multipoints(self):
+        """
+        get the coordinates of sample points associated with this
+        project.  Returns a list of tuples.  Each tuple contains the
+        sample id, dd_lat and dd_lon
+
+        """
+
+        # see if there already is a polygon, if not create one
+        try:
+            project_points = self.multipoints
+        except ProjectMultiPoints.DoesNotExist:
+            project_points = ProjectMultiPoints(project=self)
+
+        points = self.get_sample_points()
+        if points:
+            try:
+                multipoints = points.aggregate(pts=Union("geom")).get("pts")
+            except:
+                if hasattr(self, "multipoints"):
+                    self.multipoints.delete()
+                    self.save()
+                else:
+                    return None
+
+            if multipoints.geom_type == "Point":
+                # there was only one point and we need to cast it to a multipoint:
+                project_points.geom = MultiPoint(multipoints)
+            else:
+                project_points.geom = multipoints
+            project_points.save()
+        else:
+            # if there are no points, there should be not be a project points record
+            # associated with this project if there was one originally
+            # or not.
+            if project_points.id:
+                self.multipoints.delete()
+                self.save()
+                return self
+            else:
+                project_points = None
+
     def update_convex_hull(self):
         """
         A method to update the assocaited table containing the project
@@ -1201,6 +1252,29 @@ class ProjectImage(models.Model):
         - `self`:
         """
         return "{} - {}".format(self.project, self.caption)
+
+
+class ProjectMultiPoints(models.Model):
+    """A class/table to hold all of the spatial points in a project. A 1:1
+    relationship between prjects and the multi point record. Used for
+    spatil searches - accounts for cases with where a convex hull
+    cannot be calcualted because there is one or two points.  intesect
+    and contains can still be used.
+
+    """
+
+    project = models.OneToOneField(
+        Project, on_delete=models.CASCADE, related_name="multipoints"
+    )
+    geom = models.MultiPointField(srid=4326)
+
+    objects = models.Manager()
+
+    def __str__(self):
+        """
+        Return a string that include the project code
+        """
+        return "<{}>".format(self.project.prj_cd)
 
 
 class ProjectPolygon(models.Model):
@@ -1408,6 +1482,11 @@ class Employee(models.Model):
     )
     # supervisor = models.ForeignKey(User, unique=False, blank=True, null=True,
     #                               related_name='supervisor')
+
+    # to do - add custom manager to return all emplyees and just active employees
+
+    class Meta:
+        ordering = ["user__username"]
 
     def __str__(self):
         """Use the username of the Employee as the string representation"""

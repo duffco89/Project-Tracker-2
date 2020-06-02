@@ -1,9 +1,12 @@
 {% extends "pjtk2/pjtk2_base.html" %}
 {% load pjtk2_tags %}
 
+{% load static %}
+
 {% block extrahead  %}
 
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
+    <link rel="stylesheet" href="{% static "css/theme.bootstrap.css" %}" />
+    
 
 {% endblock %}
 
@@ -222,6 +225,7 @@
                                 <th>Project Type</th>
                             </tr>
                         </thead>
+                        <tbody>
                         {% for project in object_list %}
                             <tr>
                                 <td> {{ project.year }} </td>
@@ -236,6 +240,7 @@
                                 <td> {{ project.project_type }} </td>
                             </tr>
                         {% endfor %}
+                        </tbody>
                     </table>
 
 

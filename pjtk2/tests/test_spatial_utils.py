@@ -47,7 +47,9 @@ def assign_pts_to_project(project, points):
     """
     """
     for pt in points:
-        SamplePointFactory.create(project=project, geom=GEOSGeometry(pt, srid=4326))
+        SamplePointFactory(project=project, geom=GEOSGeometry(pt, srid=4326))
+    project.update_multipoints()
+    project.save()
 
 
 @pytest.fixture
@@ -175,8 +177,8 @@ def test_find_project_roi_contained(roi, project_all_in):
 
     projects = find_roi_projects(roi)
     assert sorted(projects.keys()) == ["contained", "overlapping"]
-    assert projects["contained"] == [project_all_in]
-    assert projects["overlapping"] == []
+    assert list(projects["contained"]) == [project_all_in]
+    assert list(projects["overlapping"]) == []
 
 
 @pytest.mark.django_db
@@ -189,8 +191,8 @@ def test_find_project_roi_overlapping(roi, project_some_in):
 
     projects = find_roi_projects(roi)
     assert sorted(projects.keys()) == ["contained", "overlapping"]
-    assert projects["contained"] == []
-    assert projects["overlapping"] == [project_some_in]
+    assert list(projects["contained"]) == []
+    assert list(projects["overlapping"]) == [project_some_in]
 
 
 @pytest.mark.django_db
@@ -203,8 +205,8 @@ def test_find_project_roi_disjoint(roi, project_disjoint):
 
     projects = find_roi_projects(roi)
     assert sorted(projects.keys()) == ["contained", "overlapping"]
-    assert projects["contained"] == []
-    assert projects["overlapping"] == []
+    assert list(projects["contained"]) == []
+    assert list(projects["overlapping"]) == []
 
 
 @pytest.mark.django_db
@@ -223,8 +225,8 @@ def test_find_project_roi_both_contained_and_overlapping(
 
     projects = find_roi_projects(roi)
     assert sorted(projects.keys()) == ["contained", "overlapping"]
-    assert projects["contained"] == [project_all_in]
-    assert projects["overlapping"] == [project_some_in]
+    assert list(projects["contained"]) == [project_all_in]
+    assert list(projects["overlapping"]) == [project_some_in]
 
 
 @pytest.mark.django_db
