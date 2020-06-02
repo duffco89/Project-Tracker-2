@@ -19,7 +19,7 @@
 # pylint: disable=E1101, E1120
 
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import ImproperlyConfigured
@@ -42,6 +42,9 @@ from ..filters import ProjectFilter
 from ..utils.helpers import is_manager
 
 from ..utils.spatial_utils import find_roi_projects  # ,  get_map
+
+
+User = get_user_model()
 
 
 class HomePageView(TemplateView):

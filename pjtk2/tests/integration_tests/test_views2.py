@@ -1,16 +1,34 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.db.models.signals import pre_save
 from django.urls import reverse
-from django.db.models.signals import pre_save, post_save
-from django_webtest import WebTest
-
-# from testfixtures import compare
-from pjtk2.tests.factories import *
-from pjtk2.models import Bookmark
-
 from django.template.defaultfilters import slugify
 
-import datetime
+from django_webtest import WebTest
+
+from datetime import datetime
 import pytz
+
+from pjtk2.models import (
+    Bookmark,
+    Project,
+    ProjectMilestones,
+    Milestone,
+    send_notice_prjms_changed,
+)
+
+from pjtk2.tests.factories import (
+    ProjectFactory,
+    ProjTypeFactory,
+    MilestoneFactory,
+    ProjectMilestonesFactory,
+    UserFactory,
+    DBA_Factory,
+    EmployeeFactory,
+)
+
+
+User = get_user_model()
 
 
 def setup():
@@ -33,7 +51,7 @@ class BookmarkTestCase(WebTest):
 
         self.ProjType = ProjTypeFactory(project_type="Nearshore Index")
 
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
         prj_cd = "LHA_IA{}_111".format(year)
         self.project = ProjectFactory.create(
             prj_cd=prj_cd, owner=self.user, project_type=self.ProjType
@@ -94,7 +112,7 @@ class ProjectTaggingTestCase(WebTest):
             username="hsimpson", first_name="Homer", last_name="Simpson"
         )
 
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
 
         self.ProjType = ProjTypeFactory(project_type="Nearshore Index")
 
@@ -341,7 +359,7 @@ class UpdateReportsTestCase(WebTest):
         )
 
         # PROJECTS
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
         prj_cd = "LHA_IA{}_111".format(year)
 
         self.project1 = ProjectFactory.create(prj_cd=prj_cd, owner=self.user1)
@@ -566,7 +584,7 @@ class MyProjectViewTestCase(WebTest):
 
         """
 
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
 
         # self.client = Client()
 
@@ -713,7 +731,7 @@ class EmployeeProjectsTestCase(WebTest):
         """create two employees, one supervises the other. Additionally,
         create 3 projects, one run by the supervisor, 2 by the employee."""
 
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
 
         self.user = UserFactory(
             username="hsimpson", first_name="Homer", last_name="Simpson"
@@ -884,7 +902,7 @@ class TestProjectDetailForm(WebTest):
         )
 
         # PROJECTS
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
         prj_cd = "LHA_IA{}_111".format(year)
         self.project1 = ProjectFactory.create(
             prj_cd=prj_cd, owner=self.user1, dba=self.dba
@@ -897,7 +915,7 @@ class TestProjectDetailForm(WebTest):
         """
 
         # first update the 'completed' field for a number of milestones:
-        now = datetime.datetime.now(pytz.utc)
+        now = datetime.now(pytz.utc)
         ms = [self.ms1.label, self.ms2.label, self.ms3.label]
         ProjectMilestones.objects.filter(
             project=self.project1, milestone__report=False, milestone__label__in=ms
@@ -927,7 +945,7 @@ class TestProjectDetailForm(WebTest):
         are checked"""
 
         # first update the 'completed' field for a number of milestones:
-        now = datetime.datetime.now(pytz.utc)
+        now = datetime.now(pytz.utc)
         ProjectMilestones.objects.filter(
             project=self.project1, milestone__report=False
         ).exclude(milestone__label__iexact="Sign Off").update(completed=now)
@@ -1037,7 +1055,7 @@ class TestProjectDetailForm(WebTest):
         - i.e. milestones that were complete, aren't
         """
         # first update the 'completed' field for a number of milestones:
-        now = datetime.datetime.now(pytz.utc)
+        now = datetime.now(pytz.utc)
         ms = [self.ms1.label, self.ms2.label, self.ms3.label]
         ProjectMilestones.objects.filter(
             project=self.project1, milestone__report=False, milestone__label__in=ms
@@ -1253,7 +1271,7 @@ class TestCanCopyProject(WebTest):
         self.dba = DBA_Factory.create()
         self.dba_role = EmployeeFactory.create(user=self.dba, role="dba")
 
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
         prj_cd = "LHA_IA{}_111".format(year)
 
         self.project1 = ProjectFactory.create(
@@ -1348,7 +1366,7 @@ class TestFieldLeader(WebTest):
         self.dba = DBA_Factory.create()
         self.dba_role = EmployeeFactory.create(user=self.dba, role="dba")
 
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
 
         prj_cd = "LHA_IA{}_111".format(year)
         self.project1 = ProjectFactory.create(
@@ -1494,7 +1512,7 @@ class TestUserChoiceFilesProjectForm(WebTest):
             username="bgumble", first_name="Barney", last_name="Gumble", is_active=False
         )
 
-        year = str(datetime.datetime.today().year - 3)[2:]
+        year = str(datetime.today().year - 3)[2:]
         prj_cd = "LHA_IA{}_111".format(year)
 
         self.project1 = ProjectFactory.create(

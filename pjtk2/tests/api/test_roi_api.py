@@ -59,7 +59,7 @@ class ProjectAPITest(APITestCase):
         ]
         for i, pt in enumerate(pts):
             SamplePointFactory(
-                project=self.project1, sam="In-{}".format(i), geom=GEOSGeometry(pt)
+                project=self.project1, label="In-{}".format(i), geom=GEOSGeometry(pt)
             )
 
         self.project1.update_multipoints()
@@ -77,7 +77,7 @@ class ProjectAPITest(APITestCase):
 
         for i, pt in enumerate(pts):
             SamplePointFactory(
-                project=self.project2, sam="some-{}".format(i), geom=GEOSGeometry(pt)
+                project=self.project2, label="some-{}".format(i), geom=GEOSGeometry(pt)
             )
 
         self.project2.update_multipoints()
@@ -96,7 +96,7 @@ class ProjectAPITest(APITestCase):
 
         for i, pt in enumerate(pts):
             SamplePointFactory(
-                project=self.project3, sam="out-{}".format(i), geom=GEOSGeometry(pt)
+                project=self.project3, label="out-{}".format(i), geom=GEOSGeometry(pt)
             )
 
         self.project3.update_multipoints()
@@ -130,8 +130,8 @@ class ProjectAPITest(APITestCase):
         # get data from db using the same sort - order
         slug = self.project1.slug
         points = SamplePoint.objects.filter(
-            Q(project__slug=slug) | Q(sam__in=["some-0", "some-1"])
-        ).order_by("-project__year", "sam")
+            Q(project__slug=slug) | Q(label__in=["some-0", "some-1"])
+        ).order_by("-project__year", "label")
         serializer = ProjectPointSerializer(
             points, many=True, context={"request": request}
         )
@@ -154,8 +154,8 @@ class ProjectAPITest(APITestCase):
         # get data from db using the same sort - order
         slug = self.project1.slug
         points = SamplePoint.objects.filter(
-            Q(project__slug=slug) | Q(sam__in=["some-0", "some-1"])
-        ).order_by("-project__year", "sam")
+            Q(project__slug=slug) | Q(label__in=["some-0", "some-1"])
+        ).order_by("-project__year", "label")
         serializer = ProjectPointSerializer(
             points, many=True, context={"request": request}
         )

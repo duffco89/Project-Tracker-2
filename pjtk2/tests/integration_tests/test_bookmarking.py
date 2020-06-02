@@ -1,7 +1,9 @@
 import unittest
 
 from django.conf import settings
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+
 
 # from django.core.urlresolvers import reverse
 from django.urls import reverse
@@ -9,8 +11,16 @@ from django.db.models.signals import pre_save, post_save
 from django.test.client import Client
 from django.test import TestCase
 
+from pjtk2.models import send_notice_prjms_changed, Project, ProjectMilestones, Bookmark
+from pjtk2.tests.factories import (
+    ProjectFactory,
+    MilestoneFactory,
+    ProjectMilestonesFactory,
+    EmployeeFactory,
+    UserFactory,
+)
 
-from pjtk2.tests.factories import *
+User = get_user_model()
 
 
 def setup():

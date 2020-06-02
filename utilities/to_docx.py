@@ -9,6 +9,9 @@ abstracts for the given year into individual word documents to
 facilitate editing and review.  Word documents are saved by project
 lead and project code.
 
+05 May 2020 - Updated to use python-docx and new project tracker data
+model.  (abstract not comment, and common_lake.abbrev rather than
+lake.lake_name)
 
 A. Cottrill
 =============================================================
@@ -20,19 +23,20 @@ import psycopg2
 
 from docx import Document
 
-PG_HOST = "142.143.160.56"
+# PG_HOST = "142.143.160.56"
+PG_HOST = "localhost"
 PG_USER = "uglmu"
 PG_PWD = "uglmu"
-# PG_DB = "pjtk2"
-PG_DB = "superior"
+PG_DB = "pjtk2"
+# PG_DB = "superior"
 
-
-OUTDIR = "Y:/Information Resources/Dataset_Utilities/Annual_Report/WordDocs"
+OUTDIR = "C:/Users/COTTRILLAD/1work/ScrapBook/ProjectAbstracts"
+# OUTDIR = "Y:/Information Resources/Dataset_Utilities/Annual_Report/WordDocs"
 
 YEAR = "2019"
-# LAKE = "Lake Huron"
+LAKE = "HU"
 
-LAKE = "Lake Superior"
+# LAKE = "Lake Superior"
 
 constr = "host={} dbname={} user={} password={}"
 
@@ -41,11 +45,11 @@ pgcur = pgconn.cursor()
 
 print("Getting Project Tracker Data...")
 
-sql = """SELECT last_name, PRJ_CD, PRJ_NM, comment
+sql = """SELECT last_name, PRJ_CD, PRJ_NM, abstract
 from pjtk2_project as project
 join auth_user on auth_user.id=project.prj_ldr_id
-join pjtk2_lake as lake on lake.id=project.lake_id
-where year= %s and lake.lake=%s
+join common_lake as lake on lake.id=project.lake_id
+where year= %s and lake.abbrev=%s
 order by last_name, prj_cd
 """
 
@@ -68,7 +72,7 @@ for x in rs:
 
     document.add_paragraph("Project abstract:").bold = True
 
-    abstract = record["comment"]
+    abstract = record["abstract"]
     for paragraph in abstract.split("\r\n"):
         document.add_paragraph(paragraph)
 

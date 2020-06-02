@@ -26,7 +26,7 @@ import pytz
 
 import collections
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.forms.models import modelformset_factory
 from django.forms import formset_factory
@@ -49,6 +49,7 @@ from ..utils.helpers import (
     get_sisters_dict,
 )
 
+User = get_user_model()
 
 # ==========================
 #      Managers

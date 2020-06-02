@@ -1,21 +1,41 @@
 import unittest
-import pdb
 
-from django.conf import settings
 from django.contrib.auth import get_user
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.urls import reverse
-from django.db.models.signals import pre_save, post_save
+from django.db.models.signals import pre_save
 from django.test.client import Client
 from django.test import TestCase
 
+from datetime import datetime
+import pytz
 
-from pjtk2.tests.factories import *
+from pjtk2.models import (
+    send_notice_prjms_changed,
+    Project,
+    ProjectMilestones,
+    Milestone,
+)
+
+from pjtk2.tests.factories import (
+    ProjectFactory,
+    MilestoneFactory,
+    ProjectMilestonesFactory,
+    UserFactory,
+    EmployeeFactory,
+    FundingSourceFactory,
+    ProjectFundingFactory,
+)
+
+
 from pjtk2.views import can_edit
 
 # from pjtk2.functions import can_edit
 
 import pytest
+
+User = get_user_model()
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -501,7 +521,7 @@ class CancelProjectTestCase(TestCase):
         # I don't know what time it will be, but it should populated with a
         # datetime object
         self.assertTrue(pms.completed != None)
-        self.assertTrue(pms.completed.__class__ == datetime.datetime)
+        self.assertTrue(pms.completed.__class__ == datetime)
 
     def test_user_cannot_cancel_project(self):
         """A regular user cannot access the cancel project url and should be
@@ -764,7 +784,7 @@ class ReOpenProjectTestCase(TestCase):
         pms = ProjectMilestones.objects.get(
             project=self.project, milestone=self.signoff
         )
-        pms.completed = datetime.datetime.now(pytz.utc)
+        pms.completed = datetime.now(pytz.utc)
         pms.save()
 
     def test_manager_reopens_nonproject_returns_404(self):
@@ -1041,7 +1061,7 @@ class TestDetailPageReOpenProject(TestCase):
         pms = ProjectMilestones.objects.get(
             project=self.project1, milestone=self.signoff
         )
-        pms.completed = datetime.datetime.now(pytz.utc)
+        pms.completed = datetime.now(pytz.utc)
         pms.save()
 
         login = self.client.login(username=self.user2.username, password="Abcd1234")
@@ -1069,7 +1089,7 @@ class TestDetailPageReOpenProject(TestCase):
         pms = ProjectMilestones.objects.get(
             project=self.project1, milestone=self.signoff
         )
-        pms.completed = datetime.datetime.now(pytz.utc)
+        pms.completed = datetime.now(pytz.utc)
         pms.save()
 
         login = self.client.login(username=self.user1.username, password="Abcd1234")
@@ -1351,7 +1371,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
         # with the current year (the actual model objects use the real
         # current year so the project codes must be dynamically built
         # to ensure the tests pass in the future).
-        self.year = datetime.datetime.now().year
+        self.year = datetime.now().year
 
         # Two projects from this year:
         prj_cd = "LHA_IA%s_111" % str(self.year)[-2:]
@@ -1722,7 +1742,7 @@ class ApproveProjectsEmptyTestCase(TestCase):
         # make Mr. Burns the manager:
         managerGrp, created = Group.objects.get_or_create(name="manager")
         self.user.groups.add(managerGrp)
-        self.year = datetime.datetime.now().year
+        self.year = datetime.now().year
 
     def test_with_Login(self):
         """if we login with as a manager, we will be allowed to view

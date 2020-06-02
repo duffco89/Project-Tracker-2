@@ -59,11 +59,14 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProjectPointViewSet(viewsets.ReadOnlyModelViewSet):
 
+    queryset = SamplePoint.objects.select_related("project", "project__project_type")
     serializer_class = ProjectPointSerializer
 
     def get_queryset(self):
+
+        queryset = super(ProjectPointViewSet, self).get_queryset()
         slug = self.kwargs.get("slug").lower()
-        return SamplePoint.objects.filter(project__slug=slug)
+        return queryset.filter(project__slug=slug)
 
 
 class ProjectPolygonViewSet(viewsets.ReadOnlyModelViewSet):
@@ -118,14 +121,14 @@ def points_roi(request, how="contained"):
     if how == "points_in":
         # return all of the sample points in the roi
         sample_points = SamplePoint.objects.filter(geom__within=roi).order_by(
-            "-project__year", "sam"
+            "-project__year", "label"
         )
 
     elif how == "contained":
         # return only points from projects that are completely contained within the roi
         sample_points = SamplePoint.objects.filter(
             project__multipoints__geom__within=roi
-        ).order_by("-project__year", "sam")
+        ).order_by("-project__year", "label")
     else:
         project_ids = (
             Project.objects.filter(multipoints__geom__intersects=roi)
@@ -135,7 +138,7 @@ def points_roi(request, how="contained"):
         )
         sample_points = SamplePoint.objects.filter(
             project__pk__in=project_ids
-        ).order_by("-project__year", "sam")
+        ).order_by("-project__year", "label")
         # If we want to clip our points to just those in the region, do it here:
         # sample_points = sample_points.filter(geom__within=roi)
 
@@ -159,7 +162,7 @@ def points_roi(request, how="contained"):
     #     sample_points = (
     #         SamplePoint.objects.filter(geom__within=roi)
     #         .select_related("project")
-    #         .order_by("-project__year", "sam")
+    #         .order_by("-project__year", "label")
     #     )
     #     sample_point_filter = SamplePointFilter(request.GET, sample_points)
     #     serializer = ProjectPointSerializer(

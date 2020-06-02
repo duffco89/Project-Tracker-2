@@ -1,11 +1,13 @@
 import factory
 from datetime import datetime
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.template.defaultfilters import slugify
 from django.contrib.gis.geos import GEOSGeometry
 
 from pjtk2.models import *
 from common.models import Lake
+
+User = get_user_model()
 
 
 class UserFactory(factory.DjangoModelFactory):
@@ -321,6 +323,6 @@ class SamplePointFactory(factory.DjangoModelFactory):
         model = SamplePoint
 
     project = factory.SubFactory(ProjectFactory)
-    sam = "123"
+    label = "123"
     # centroid of grid 2826
     geom = GEOSGeometry("POINT(-82.0416679344936 44.041664015521)")

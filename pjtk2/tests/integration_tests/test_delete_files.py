@@ -1,7 +1,20 @@
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.db.models.signals import pre_save, post_save
 from django.urls import reverse
 from django_webtest import WebTest
-from pjtk2.tests.factories import *
+
+
+from pjtk2.models import send_notice_prjms_changed, ProjectMilestones, Report
+from pjtk2.tests.factories import (
+    ProjectFactory,
+    MilestoneFactory,
+    ProjectMilestonesFactory,
+    ReportFactory,
+    UserFactory,
+    DBA_Factory,
+)
+
 
 from django.test.client import Client
 from django.test import TestCase
@@ -9,6 +22,8 @@ from django.test import TestCase
 # from django.http import Http404
 
 import pytest
+
+User = get_user_model()
 
 
 @pytest.fixture(scope="module", autouse=True)

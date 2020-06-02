@@ -15,13 +15,14 @@
 
 from functools import partial, wraps
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 
 from django.forms import inlineformset_factory, formset_factory
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 
+User = get_user_model()
 
 from ..models import Project, ProjectFunding, AssociatedFile, Report
 

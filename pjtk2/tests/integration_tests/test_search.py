@@ -1,18 +1,14 @@
-import unittest
-
-from django.contrib.auth.models import User, Group
+from django.contrib.auth import get_user_model
 from django.urls import reverse
-from django.db.models.signals import pre_save, post_save
-from django.test.client import Client
+from django.db.models.signals import pre_save
+
 from django_webtest import WebTest
 
-# from django.test import TestCase
-from django.conf import settings
+from pjtk2.models import ProjectMilestones, send_notice_prjms_changed
+from pjtk2.tests.factories import ProjectFactory, ProjTypeFactory, UserFactory
 
-# import haystack
 
-# from pjtk2.models import Bookmark
-from pjtk2.tests.factories import *
+User = get_user_model()
 
 
 def setup():
@@ -31,7 +27,7 @@ class CanViewSearchForm(WebTest):
     def setUp(self):
         """ """
         # USER
-        self.user = UserFactory.create(
+        self.user = UserFactory(
             username="hsimpson", first_name="Homer", last_name="Simpson"
         )
 
@@ -69,21 +65,21 @@ class CanUseSearchForm(WebTest):
         """ """
 
         # USER
-        self.user = UserFactory.create(
+        self.user = UserFactory(
             username="hsimpson", first_name="Homer", last_name="Simpson"
         )
 
         self.ProjType = ProjTypeFactory(project_type="Nearshore Index")
 
-        self.project1 = ProjectFactory.create(
+        self.project1 = ProjectFactory(
             prj_cd="LHA_IA12_111", prj_nm="Parry Sound Index", owner=self.user
         )
 
         comment = "Test of UGLMU Project Tracker - Salvelinus"
-        self.project2 = ProjectFactory.create(
+        self.project2 = ProjectFactory(
             prj_cd="LHA_IA12_222", owner=self.user, comment=comment
         )
-        self.project3 = ProjectFactory.create(
+        self.project3 = ProjectFactory(
             prj_cd="LHA_IA12_333", owner=self.user, project_type=self.ProjType
         )
 
@@ -131,6 +127,8 @@ class CanUseSearchForm(WebTest):
         linkstring = baselink.format(
             self.project2.get_absolute_url(), self.project2.prj_cd
         )
+        print("linkstring={}".format(linkstring))
+        print("response={}".format(response))
         self.assertContains(response, linkstring, html=True)
         self.assertContains(response, self.project2.prj_nm)
 

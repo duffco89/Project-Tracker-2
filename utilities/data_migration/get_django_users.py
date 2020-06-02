@@ -25,8 +25,10 @@ import csv
 import os
 
 import django_settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
+
+User = get_user_model()
 
 #here is the csv file of users, and user names:
 csv_file = 'c:/1work/Python/djcode/pjtk2/migration/data/django_users.csv'
@@ -36,7 +38,7 @@ users = []
 with open(csv_file, 'rb') as csvfile:
     reader = csv.reader(csvfile, delimiter=',', quotechar='"')
     for row in reader:
-        users.append(row)        
+        users.append(row)
 
 #loop over the users and create new user objects - if they are still
 #staff, set their is_active and is_staff flags to true, otherwise false
@@ -65,15 +67,12 @@ steve = User(username='steve',
              is_superuser=True
             )
 steve.save()
-    
-    
-#so that we know we're done   
+
+
+#so that we know we're done
 print "Done!"
 
 #check:
 all_users = User.objects.all()
 for user in all_users[:6]:
     print user.first_name, user.last_name, user
-
-
-    
