@@ -5,6 +5,7 @@ from .project_images import urlpatterns as project_images
 from .bookmarks import urlpatterns as bookmarks
 from .misc import urlpatterns as misc
 
+
 # app_name = "pjtk2"
 
 urlpatterns = []

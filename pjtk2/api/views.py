@@ -61,6 +61,7 @@ class ProjectPointViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = SamplePoint.objects.select_related("project", "project__project_type")
     serializer_class = ProjectPointSerializer
+    pagination_class = None
 
     def get_queryset(self):
 
