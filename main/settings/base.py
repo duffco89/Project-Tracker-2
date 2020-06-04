@@ -57,7 +57,7 @@ MEDIA_ROOT = root("uploads/")
 # trailing slash.
 # Examples: "http://media.lawrence.com/media/", "http://example.com/media/"
 # MEDIA_URL = root()
-MEDIA_URL = "uploads/"
+MEDIA_URL = "/uploads/"
 # MEDIA_URL = 'milestone_reports/'
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"

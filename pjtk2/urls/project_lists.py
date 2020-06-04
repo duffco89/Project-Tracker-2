@@ -31,6 +31,7 @@ from pjtk2.views import (
 urlpatterns = [
     # ==============================
     # Project Lists
+    path("", project_list, name="index"),
     path("projects/approved/", approved_projects_list, name="ApprovedProjectsList"),
     path("projects/<str:username>/", user_project_list, name="user_project_list"),
     path("projects/", project_list, name="ProjectList"),

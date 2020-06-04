@@ -22,13 +22,13 @@
                 {% for img in project.images.all %}
                 <div class="item {% if forloop.first %}active{% endif %}">
 
-                    <a href="../../../{{ img.image_path.url }}">
-                        <img class="img-responsive center-block"  src="../../../{{ img.image_path.url }}"></a>
+                    <a href="{{ img.image_path.url }}">
+                        <img class="img-responsive center-block"  src="{{ img.image_path.url }}"></a>
 
 
 
                         <p  style="text-align:center">{{ img.caption }}
-
+                            
                             {% if img.report is True %}
                             {% if edit %}
                             <a href="{% url 'project_edit_image' img.id %}" class="btn btn-default btn-xs pull-right"
