@@ -1,4 +1,4 @@
-Django==2.2.11
+inDjango==2.2.11
 django-crispy-forms==1.7.2
 django-geojson==2.12.0
 django-leaflet==0.26.0

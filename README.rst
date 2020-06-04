@@ -12,18 +12,24 @@ More detailed documentation is in the "docs" directory.
 Quick start
 -----------
 
-0. INstall pjtk2's dependencies (django-taggit, markdown2, django-leaflet, and pillow), then
+0. INstall pjtk2's dependencies (django-taggit, markdown2, django-leaflet, pillow,
+   django-crispy-forms), then
 
    > pip install pjtk2.zip
 
-1. Add django-taggid, pjtk2, and common and to your INSTALLED_APPS setting like this::
+1. Add django-taggit, pjtk2, and common and to your INSTALLED_APPS setting like this::
 
     INSTALLED_APPS = [
         ...,        
         "taggit",
         "common",
         "pjtk2",
-    ]g
+    ]
+
+1.1 ensure that the django apps
+    "django.contrib.humanize",
+    "django.contrib.postgres", and 
+    "django.contrib.gis", are also included in your list of installed apps.
 
 2. Include the pjtk2 URLconf in your project urls.py like this::
 

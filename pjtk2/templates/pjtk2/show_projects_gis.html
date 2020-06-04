@@ -2,13 +2,15 @@
 
 {% block extrahead %}
 
-{% load geojson_tags %}
-{% load leaflet_tags %}
+    {% load geojson_tags %}
+    {% load leaflet_tags %}
 
-<!-- Leaflet js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.js" integrity="sha256-CNm+7c26DTTCGRQkM9vp7aP85kHFMqs9MhPEuytF+fQ=" crossorigin="anonymous"></script>
-<!-- Leaflet css -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/leaflet.css" integrity="sha256-iYUgmrapfDGvBrePJPrMWQZDcObdAcStKBpjP3Az+3s=" crossorigin="anonymous" />
+    <!-- Leaflet js -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.js" integrity="sha256-fNoRrwkP2GuYPbNSJmMJOCyfRB2DhPQe0rGTgzRsyso=" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.6.0/leaflet.css" integrity="sha256-SHMGCYmST46SoyGgo4YR/9AlK1vf3ff84Aq9yK4hdqM=" crossorigin="anonymous" />
+
 
 <!-- end Leaflet -->
 
@@ -143,9 +145,6 @@
 
 </script>
 
-<script src='https://api.mapbox.com/mapbox.js/v2.2.4/mapbox.js'></script>
-<link href='https://api.mapbox.com/mapbox.js/v2.2.4/mapbox.css' rel='stylesheet' />
-
 <script type="text/javascript">
 
  $(document).ready(function(){
@@ -157,12 +156,12 @@
 
          var roi = {{ roi.geojson|safe }}
 
-         if (roi){
-             popup_text = "<h4>Region of Interest as WKT:<\h4><p>{{ roi }}<\p>"
-             roi_layer.addData(roi).bindPopup(popup_text);
-             roi_layer.addTo(map);
-             map.fitBounds(roi_layer.getBounds());
-         }
+             if (roi){
+                 popup_text = "<h4>Region of Interest as WKT:<\h4><p>{{ roi }}<\p>"
+                 roi_layer.addData(roi).bindPopup(popup_text);
+                 roi_layer.addTo(map);
+                 map.fitBounds(roi_layer.getBounds());
+             }
      }
 
 
@@ -296,11 +295,13 @@
      //point in the future.
      var  my_map = new L.map('main_map').setView([45,-82], 7);
 
-     L.mapbox.accessToken = 'pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ';
-     var mapboxTiles = L.tileLayer('https://api.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=' + L.mapbox.accessToken, {
-         attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
+
+     // add the OpenStreetMap tiles
+     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+         attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
      }).addTo(my_map);
 
+     
      // create our containers before we get our points:
      var roi_layer = new L.geoJson();
      var overlapping_pts = new L.LayerGroup();

@@ -35,14 +35,14 @@ urlpatterns = [
     path("projects/<str:username>/", user_project_list, name="user_project_list"),
     path("projects/", project_list, name="ProjectList"),
     path("search/", ProjectSearch.as_view(), name="project_search"),
-    path("myprojects/", my_projects, name="MyProjects"),
+    path("my_projects/", my_projects, name="MyProjects"),
     path(
-        "employeeprojects/<str:employee_name>/",
+        "employee_projects/<str:employee_name>/",
         employee_projects,
         name="EmployeeProjects",
     ),
     # tagging/keywords
-    path("taggedprojects/<str:tag>/", taggedprojects, name="TaggedProjects"),
+    path("tagged_projects/<str:tag>/", taggedprojects, name="TaggedProjects"),
     path("tags/", project_tag_list, name="project_tag_list"),
     # projects by region of interest:
     path("projects_roi/", find_projects_roi_view, name="find_projects_roi"),

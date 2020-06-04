@@ -34,7 +34,7 @@ PRJ_CD_REGEX = settings.PRJ_CD_REGEX
 urlpatterns = [
     # ==============================
     # Project Management
-    path("approveprojects/", approveprojects, name="ApproveProjects"),
+    path("approve_projects/", approveprojects, name="ApproveProjects"),
     re_path(
         (r"^approve_project/" + PRJ_CD_REGEX), approve_project, name="approve_project"
     ),
@@ -56,6 +56,6 @@ urlpatterns = [
         (r"^reopen_project/" + PRJ_CD_REGEX), reopen_project, name="reopen_project"
     ),
     re_path(
-        (r"^sisterprojects/" + PRJ_CD_REGEX), sisterprojects, name="SisterProjects"
+        (r"^sister_projects/" + PRJ_CD_REGEX), sisterprojects, name="SisterProjects"
     ),
 ]

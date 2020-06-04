@@ -25,10 +25,12 @@ PRJ_CD_REGEX = settings.PRJ_CD_REGEX
 urlpatterns = [
     # bookmarking
     re_path(
-        (r"^bookmarkproject/" + PRJ_CD_REGEX), bookmark_project, name="Bookmark_Project"
+        (r"^bookmark_project/" + PRJ_CD_REGEX),
+        bookmark_project,
+        name="Bookmark_Project",
     ),
     re_path(
-        (r"^unbookmarkproject/" + PRJ_CD_REGEX),
+        (r"^unbookmark_project/" + PRJ_CD_REGEX),
         unbookmark_project,
         name="Unbookmark_Project",
     ),

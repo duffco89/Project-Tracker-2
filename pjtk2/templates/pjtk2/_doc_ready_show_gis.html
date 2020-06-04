@@ -1,6 +1,6 @@
 
 <script type="text/javascript">
-{% load geojson_tags %}
+ {% load geojson_tags %}
 
 
  $(document).ready(function(){
@@ -23,17 +23,18 @@
      // region of interest - could be an arbirary section or pre-defined polygon
      var roi = {{ roi|geojsonfeature|safe }}
 
-     L.mapbox.accessToken = 'pk.eyJ1IjoiYWNvdHRyaWxsIiwiYSI6ImNpazVmb3Q2eDAwMWZpZm0yZTQ1cjF3NTkifQ.Pb1wCYs0lKgjnTGz43DjVQ';
-     // Replace 'mapbox.streets' with your map id.
-     var mapboxTiles = L.tileLayer('https://api.mapbox.com/v4/mapbox.streets/{z}/{x}/{y}.png?access_token=' + L.mapbox.accessToken, {
-         attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
-     }).addTo(my_map);
 
+         // add the OpenStreetMap tiles
+         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+             attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+         }).addTo(my_map);
+     
+     
      if (roi){
          var roi_layer = L.geoJson(roi);
          roi_layer.addTo(my_map);
          my_map.fitBounds(roi_layer.getBounds());
-         }
+     }
 
      var contained = {{ contained|geojsonfeature:"popup_text"|safe }};
 
