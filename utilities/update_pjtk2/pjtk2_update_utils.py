@@ -113,6 +113,7 @@ def get_projects(pgpars):
                prj_date0,
                prj_date1,
                prj_nm,
+               abstract,
         			 COMMENT,
                risk,
                prj_ldr.username AS prj_ldr,

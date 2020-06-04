@@ -526,9 +526,9 @@ from django.contrib.gis.geos import GEOSGeometry
 from pjtk2.models import Project, SamplePoint
 
 # csv_file = "C:/Users/COTTRILLAD/1work/Python/djcode/apps/pjtk2/utilities/glb_data/LEMU_SC_Points.csv"
-csv_file = "C:/Users/COTTRILLAD/1work/Python/djcode/apps/pjtk2/utilities/glb_data/LOMU_SC_Points.csv"
-
-csv_file = "C:/Users/COTTRILLAD/1work/ScrapBook/project_tracker/pjtk2_sample_points.csv"
+# csv_file = "C:/Users/COTTRILLAD/1work/Python/djcode/apps/pjtk2/utilities/glb_data/LOMU_SC_Points.csv"
+# csv_file = "C:/Users/COTTRILLAD/1work/ScrapBook/project_tracker/pjtk2_sample_points.csv"
+csv_file = "C:/Users/COTTRILLAD/1work/ScrapBook/project_tracker/pjtk2_sample_points/superior_points.txt"
 
 points = []
 
@@ -567,3 +567,70 @@ for prj_cd, project in project_cache.items():
     project.update_convex_hull()
     project.update_multipoints()
 print("Done!")
+
+
+# users (get or create)
+# employee
+# milestone
+# project type
+# project Protocol
+# database
+# funding source (essentailly a m2m with project throgh projectfunding)
+# Project
+# projectImages
+# projectFunding
+# samplePoint
+# projectmilestones
+# report
+# associatedFile
+# bookmark
+# family
+# projectsisters
+# message
+# message2user
+
+
+import sys
+from django.core import serializers
+
+from pjtk2.models import (
+    Milestone,
+    ProjectType,
+    ProjectProtocol,
+    Database,
+    FundingSource,
+)
+
+
+def migrate(model, size=500, start=0):
+    count = model.objects.using("default").count()
+    print("{} objects in model {}.".format(count, model))
+    for i in range(start, count, size):
+        print(i)
+        sys.stdout.flush()
+        original_data = model.objects.using("default").all()[i : i + size]
+        original_data_json = serializers.serialize("json", original_data)
+        new_data = serializers.deserialize("json", original_data_json, using="gldjango")
+        for n in new_data:
+            n.save(using="gldjango")
+
+
+# load users and employees manually
+
+migrate(Milestone)
+migrate(ProjectType)
+
+migrate(ProjectProtocol)
+migrate(Database)
+migrate(FundingSource)
+
+
+# Users and employees are a little tougher - they use custom user objects
+
+
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+original_data = Employee.objects.all()[:10]
+original_data_json = serializers.serialize("json", original_data)

@@ -12,7 +12,13 @@ DATABASES = {
         "NAME": "pjtk2",
         "USER": "cottrillad",
         "PASSWORD": "django123",
-    }
+    },
+    "gldjango": {
+        "ENGINE": "django.contrib.gis.db.backends.postgis",
+        "NAME": "gldjango",
+        "USER": "cottrillad",
+        "PASSWORD": "django123",
+    },
 }
 
 

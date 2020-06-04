@@ -33,10 +33,12 @@ PRJ_CD_REGEX = settings.PRJ_CD_REGEX
 urlpatterns = [
     # ==============================
     #  Project CRUD
-    path("newproject/", new_project, name="NewProject"),
-    re_path((r"^copyproject/" + PRJ_CD_REGEX), copy_project, name="CopyProject"),
-    re_path((r"^editproject/" + PRJ_CD_REGEX), edit_project, name="EditProject"),
-    re_path((r"^projectdetail/" + PRJ_CD_REGEX), project_detail, name="project_detail"),
+    path("new_project/", new_project, name="NewProject"),
+    re_path((r"^copy_project/" + PRJ_CD_REGEX), copy_project, name="CopyProject"),
+    re_path((r"^edit_project/" + PRJ_CD_REGEX), edit_project, name="EditProject"),
+    re_path(
+        (r"^project_detail/" + PRJ_CD_REGEX), project_detail, name="project_detail"
+    ),
     # ==============================
     # Reports and milestones
     re_path(r"^reports/" + PRJ_CD_REGEX, report_milestones, name="Reports"),
@@ -49,9 +51,9 @@ urlpatterns = [
         view=delete_report,
         name="delete_report",
     ),
-    re_path((r"^reportupload/" + PRJ_CD_REGEX), report_upload, name="ReportUpload"),
+    re_path((r"^report_upload/" + PRJ_CD_REGEX), report_upload, name="ReportUpload"),
     re_path(
-        (r"^associatedfileupload/" + PRJ_CD_REGEX),
+        (r"^associated_file_upload/" + PRJ_CD_REGEX),
         associated_file_upload,
         name="associated_file_upload",
     ),
