@@ -47,9 +47,47 @@ from ..utils.helpers import (
     my_messages,
     get_minions,
     get_sisters_dict,
+    make_proj_ms_dict,
 )
 
 User = get_user_model()
+
+
+def get_proj_ms(project_ids, milestones):
+    """
+
+    Arguments:
+    - `project_ids`:
+    """
+
+    project_milestones = (
+        ProjectMilestones.objects.select_related("project", "milestone")
+        # .exclude(
+        #    milestone__label__in=["Approved", "Submitted", "Cancelled", "Sign off"]
+        # )
+        .filter(milestone__in=milestones)
+        .filter(project__pk__in=project_ids)
+        .prefetch_related("project__project_type", "project__prj_ldr")
+        .order_by("-project__year", "project__prj_cd", "milestone__order")
+        .values(
+            "project__prj_cd",
+            "project__prj_nm",
+            "project__year",
+            "project__slug",
+            "project__prj_ldr__first_name",
+            "project__prj_ldr__last_name",
+            "project__prj_ldr__username",
+            "project__project_type__project_type",
+            "milestone__category",
+            "milestone__report",
+            "milestone__label",
+            "required",
+            "completed",
+        )
+    )
+
+    return project_milestones
+
 
 # ==========================
 #      Managers
@@ -230,7 +268,7 @@ def signoff_project(request, slug):
     from the project detail page.
     """
 
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
     project = get_object_or_404(Project, slug=slug)
     if is_manager(user):
         project.signoff(user)
@@ -322,12 +360,18 @@ def my_projects(request):
     Gather all of the things a user needs and render them on a single
     page.
     """
+
     # TODO - write more tests to verify this works as expected.
     bookmarks = Bookmark.objects.filter(user__pk=request.user.id)
 
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
 
-    milestones = Milestone.objects.filter(category="Core").order_by("order").all()
+    milestones = (
+        Milestone.objects.filter(category="Core")
+        .exclude(label__in=["Approved", "Submitted", "Cancelled", "Sign off"])
+        .order_by("order")
+        .all()
+    )
 
     milestone_dict = collections.OrderedDict()
     for ms in milestones:
@@ -351,7 +395,7 @@ def my_projects(request):
         raise Http404(msg)
 
     employees = get_minions(myself)
-    employees = [x.user.username for x in employees]
+    employees = [x.user.id for x in employees]
 
     boss = False
     if len(employees) > 1:
@@ -359,30 +403,75 @@ def my_projects(request):
 
     # get the submitted, approved and completed projects from the last five years
     this_year = datetime.datetime.now(pytz.utc).year
-    submitted = (
+
+    # submitted = (
+    #     Project.objects.submitted()
+    #     .select_related("project_type", "prj_ldr")
+    #     .filter(owner__pk__in=employees)
+    #     .filter(year__gte=this_year - 5)
+    # )
+    # approved = (
+    #     Project.objects.approved()
+    #     .select_related("project_type", "prj_ldr")
+    #     .filter(owner__pk__in=employees)
+    #     .filter(year__gte=this_year - 5)
+    # )
+    # cancelled = (
+    #     Project.objects.cancelled()
+    #     .select_related("project_type", "prj_ldr")
+    #     .filter(owner__pk__in=employees)
+    #     .filter(year__gte=this_year - 5)
+    # )
+    #
+    # complete = (
+    #     Project.objects.completed()
+    #     .select_related("project_type", "prj_ldr")
+    #     .filter(owner__pk__in=employees)
+    #     .filter(year__gte=this_year - 15)
+    # )
+
+    # ============================================
+
+    submitted_projects = (
         Project.objects.submitted()
-        .select_related("project_type", "prj_ldr")
-        .filter(owner__username__in=employees)
+        .filter(owner__pk__in=employees)
         .filter(year__gte=this_year - 5)
+        .values_list("pk")
     )
-    approved = (
+
+    prj_milestones = get_proj_ms(submitted_projects, milestones)
+    submitted = make_proj_ms_dict(prj_milestones, milestones)
+
+    approved_projects = (
         Project.objects.approved()
-        .select_related("project_type", "prj_ldr")
-        .filter(owner__username__in=employees)
+        .filter(owner__pk__in=employees)
         .filter(year__gte=this_year - 5)
+        .values_list("pk")
     )
-    cancelled = (
+    prj_milestones = get_proj_ms(approved_projects, milestones)
+    approved = make_proj_ms_dict(prj_milestones, milestones)
+
+    cancelled_projects = (
         Project.objects.cancelled()
-        .select_related("project_type", "prj_ldr")
-        .filter(owner__username__in=employees)
+        .filter(owner__pk__in=employees)
         .filter(year__gte=this_year - 5)
+        .values_list("pk")
     )
-    complete = (
+
+    prj_milestones = get_proj_ms(cancelled_projects, milestones)
+    cancelled = make_proj_ms_dict(prj_milestones, milestones)
+
+    completed_projects = (
         Project.objects.completed()
-        .select_related("project_type", "prj_ldr")
-        .filter(owner__username__in=employees)
+        .filter(owner__pk__in=employees)
         .filter(year__gte=this_year - 15)
+        .values_list("pk")
     )
+
+    prj_milestones = get_proj_ms(completed_projects, milestones)
+    complete = make_proj_ms_dict(prj_milestones, milestones)
+
+    # ============================================
 
     notices = get_messages_dict(my_messages(user))
     notices_count = len(notices)
@@ -408,9 +497,13 @@ def my_projects(request):
             "bookmarks": bookmarks,
             "formset": notices_formset,
             "complete": complete,
+            "complete_count": len(completed_projects),
             "approved": approved,
+            "approved_count": len(approved_projects),
             "cancelled": cancelled,
+            "cancelled_count": len(cancelled_projects),
             "submitted": submitted,
+            "submitted_count": len(submitted_projects),
             "boss": boss,
             "notices_count": notices_count,
             "milestones": milestone_dict,
@@ -427,7 +520,7 @@ def employee_projects(request, employee_name):
     """
     # get the employee user object
     my_employee = get_object_or_404(User, username=employee_name)
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
 
     # if I am not a manager or in the list of supervisors associated
     # with this employee, return me to my projects page
@@ -438,7 +531,12 @@ def employee_projects(request, employee_name):
     # if I am the employees supervisor - get their projects and
     # associated milestones:
 
-    milestones = Milestone.objects.filter(category="Core").order_by("order").all()
+    milestones = (
+        Milestone.objects.filter(category="Core")
+        .exclude(label__in=["Approved", "Submitted", "Cancelled", "Sign off"])
+        .order_by("order")
+        .all()
+    )
 
     milestone_dict = collections.OrderedDict()
     for ms in milestones:
@@ -455,30 +553,69 @@ def employee_projects(request, employee_name):
 
     # get the submitted, approved and completed projects from the last five years
     this_year = datetime.datetime.now(pytz.utc).year
-    submitted = (
+    # submitted = (
+    #     Project.objects.submitted()
+    #     .filter(owner__username=my_employee)
+    #     .filter(year__gte=this_year - 5)
+    #     .select_related("project_type", "prj_ldr")
+    # )
+    # approved = (
+    #     Project.objects.approved()
+    #     .filter(owner__username=my_employee)
+    #     .filter(year__gte=this_year - 5)
+    #     .select_related("project_type", "prj_ldr")
+    # )
+    # cancelled = (
+    #     Project.objects.cancelled()
+    #     .filter(owner__username=my_employee)
+    #     .filter(year__gte=this_year - 5)
+    #     .select_related("project_type", "prj_ldr")
+    # )
+    # complete = (
+    #     Project.objects.completed()
+    #     .filter(owner__username=my_employee)
+    #     .filter(year__gte=this_year - 15)
+    #     .select_related("project_type", "prj_ldr")
+    # )
+
+    submitted_projects = (
         Project.objects.submitted()
-        .filter(owner__username=my_employee)
+        .filter(owner=my_employee)
         .filter(year__gte=this_year - 5)
-        .select_related("project_type", "prj_ldr")
+        .values_list("pk")
     )
-    approved = (
+
+    prj_milestones = get_proj_ms(submitted_projects, milestones)
+    submitted = make_proj_ms_dict(prj_milestones, milestones)
+
+    approved_projects = (
         Project.objects.approved()
-        .filter(owner__username=my_employee)
+        .filter(owner=my_employee)
         .filter(year__gte=this_year - 5)
-        .select_related("project_type", "prj_ldr")
+        .values_list("pk")
     )
-    cancelled = (
+    prj_milestones = get_proj_ms(approved_projects, milestones)
+    approved = make_proj_ms_dict(prj_milestones, milestones)
+
+    cancelled_projects = (
         Project.objects.cancelled()
-        .filter(owner__username=my_employee)
+        .filter(owner=my_employee)
         .filter(year__gte=this_year - 5)
-        .select_related("project_type", "prj_ldr")
+        .values_list("pk")
     )
-    complete = (
+
+    prj_milestones = get_proj_ms(cancelled_projects, milestones)
+    cancelled = make_proj_ms_dict(prj_milestones, milestones)
+
+    completed_projects = (
         Project.objects.completed()
-        .filter(owner__username=my_employee)
+        .filter(owner=my_employee)
         .filter(year__gte=this_year - 15)
-        .select_related("project_type", "prj_ldr")
+        .values_list("pk")
     )
+
+    prj_milestones = get_proj_ms(completed_projects, milestones)
+    complete = make_proj_ms_dict(prj_milestones, milestones)
 
     template_name = "pjtk2/employee_projects.html"
 
@@ -498,6 +635,10 @@ def employee_projects(request, employee_name):
             "approved": approved,
             "cancelled": cancelled,
             "submitted": submitted,
+            "complete_count": len(completed_projects),
+            "approved_count": len(approved_projects),
+            "cancelled_count": len(cancelled_projects),
+            "submitted_count": len(submitted_projects),
             "milestones": milestone_dict,
             "edit": True,
         },

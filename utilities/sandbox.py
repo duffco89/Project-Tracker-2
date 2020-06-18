@@ -634,3 +634,116 @@ User = get_user_model()
 
 original_data = Employee.objects.all()[:10]
 original_data_json = serializers.serialize("json", original_data)
+
+
+# I need all of the project milestones from my completed projects in the last 5 years,
+# including the project lead, and proejct type
+import django_settings
+from pjtk2.models import Project, ProjectType, Milestone, ProjectMilestones
+from django.contrib.auth import get_user_model
+from django.db import connection
+
+
+User = get_user_model()
+
+employees = User.objects.filter(username="cottrillad")
+this_year = 2020
+
+
+query_count0 = len(connection.queries)
+completed = (
+    Project.objects.completed()
+    .filter(owner__pk__in=employees)
+    .filter(year__gte=this_year - 15)
+).values_list("pk")
+len(completed)
+
+# completed = Project.objects.filter(prj_cd__in=["LHA_IA09_002", "LHA_IA10_002"])
+# proj_ms = (
+#     ProjectMilestones.objects.select_related("project")
+#     .exclude(milestone__label="Submitted")
+#     .filter(project__pk__in=completed)
+#     .prefetch_related("project__project_type", "project__prj_ldr")
+# )
+
+# this could be genric utilyt function = pass in a list of project_id's
+# and get a list of dictionaries containing the status of the
+# milestones associated with each project.
+
+
+# what we need is a dictionary with keys:
+# project
+# + Project Attrs:
+# project code, project name, url, project type, project lead
+# + milestones (pre-populate with milestone keys):
+# each milestone: report/milestone
+# required - True/False
+# completed - True/False
+
+
+milestones = [
+    x[0]
+    for x in (
+        Milestone.objects.filter(category="Core")
+        .order_by("order")
+        .exclude(label__in=["Submitted", "Cancelled"])
+        .values_list("label")
+    )
+]
+
+
+completed_projects = (
+    Project.objects.completed()
+    .filter(owner__pk__in=employees)
+    .filter(year__gte=this_year - 15)
+).values_list("pk")
+
+prj_milestones = get_proj_ms(completed_projects)
+
+completed = make_proj_ms_dict(prj_milestones, milestones)
+
+
+# query_count1 = len(connection.queries)
+# print("queries run: {}".format((query_count1 - query_count0)))
+
+milestones = (
+    Milestone.objects.filter(category="Core")
+    .exclude(label__in=["Approved", "Submitted", "Cancelled", "Sign off"])
+    .order_by("order")
+    .all()
+)
+
+project_milestones = (
+    ProjectMilestones.objects.select_related("project", "milestone")
+    # .exclude(
+    #    milestone__label__in=["Approved", "Submitted", "Cancelled", "Sign off"]
+    # )
+    .filter(milestone__in=milestones)
+    .filter(project__prj_cd="LHA_FS16_001")
+    .prefetch_related("project__project_type", "project__prj_ldr")
+    .order_by("-project__year", "project__prj_cd", "milestone__order")
+    .values(
+        "project__prj_cd",
+        "project__prj_nm",
+        "project__year",
+        "project__slug",
+        "project__prj_ldr__first_name",
+        "project__prj_ldr__last_name",
+        "project__prj_ldr__username",
+        "project__project_type__project_type",
+        "milestone__category",
+        "milestone__report",
+        "milestone__label",
+        "required",
+        "completed",
+    )
+)
+
+for ms in project_milestones:
+    print(
+        ms["milestone__label"], ms["milestone__report"], ms["required"], ms["completed"]
+    )
+
+
+for k, v in x["LHA_FS16_001"]["milestones"].items():
+    print(k, "\t", v["required"], "\t", v["completed"], "\t", v["status"])

@@ -49,13 +49,17 @@ class ProjectsManager(models.Manager):
         """return a queryset containing only those projects that have been
         submitted, but have not yet been approved or completed.
         """
-        return self.filter(
-            active=True,
-            projectmilestones__milestone__label="Approved",
-            projectmilestones__completed__isnull=True,
-        ).filter(
-            projectmilestones__milestone__label="Sign off",
-            projectmilestones__completed__isnull=True,
+        return (
+            self.prefetch_related("projectmilestones__milestone")
+            .filter(
+                active=True,
+                projectmilestones__milestone__label="Approved",
+                projectmilestones__completed__isnull=True,
+            )
+            .filter(
+                projectmilestones__milestone__label="Sign off",
+                projectmilestones__completed__isnull=True,
+            )
         )
 
     def approved(self):
@@ -86,14 +90,18 @@ class ProjectsManager(models.Manager):
         """return a queryset containing only those projects that have been
         both approved and completed but not cancelled.
         """
-        return self.filter(
-            active=True,
-            cancelled=False,
-            projectmilestones__milestone__label="Approved",
-            projectmilestones__completed__isnull=False,
-        ).filter(
-            projectmilestones__milestone__label="Sign off",
-            projectmilestones__completed__isnull=False,
+        return (
+            self.prefetch_related("projectmilestones__milestone")
+            .filter(
+                active=True,
+                cancelled=False,
+                projectmilestones__milestone__label="Approved",
+                projectmilestones__completed__isnull=False,
+            )
+            .filter(
+                projectmilestones__milestone__label="Sign off",
+                projectmilestones__completed__isnull=False,
+            )
         )
 
 
