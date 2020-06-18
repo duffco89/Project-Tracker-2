@@ -98,11 +98,11 @@
 
         <div id="submitted" class="tab-pane" >
 
-            <h3>Submitted Projects  (N={{ submitted.count }})</h3>
+            <h3>Submitted Projects  (N={{ submitted_count }})</h3>
             {% if submitted %}
 
             {% with projects=submitted what="submitted" %}
-            {% include "pjtk2/_milestone_table.html" %}
+            {% include "pjtk2/_proj_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -112,11 +112,11 @@
         </div> <!-- submitted -->
 
         <div id="approved" class="tab-pane active" >
-            <h3>Approved Projects (N={{ approved.count }})</h3>
+            <h3>Approved Projects (N={{ approved_count }})</h3>
             {% if approved %}
 
             {% with projects=approved what="approved" %}
-            {% include "pjtk2/_milestone_table.html" %}
+            {% include "pjtk2/_proj_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -126,11 +126,11 @@
 
 
         <div id="cancelled" class="tab-pane" >
-            <h3>Cancelled Projects (N={{ cancelled.count }})</h3>
+            <h3>Cancelled Projects (N={{ cancelled_count }})</h3>
             {% if cancelled %}
 
             {% with projects=cancelled what="cancelled" %}
-            {% include "pjtk2/_milestone_table.html" %}
+            {% include "pjtk2/_proj_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -140,11 +140,11 @@
 
 
         <div id="completed" class="tab-pane" >
-            <h3>Completed Projects (N={{ complete.count }})</h3>
+            <h3>Completed Projects (N={{ complete_count }})</h3>
             {% if complete %}
 
             {% with projects=complete what="complete" %}
-            {% include "pjtk2/_milestone_table.html" %}
+            {% include "pjtk2/_proj_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -162,9 +162,11 @@
 
 
 <!-- tablesorter plugin -->
-<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.js"></script>
-<!-- tablesorter widget file - loaded after the plugin -->
-<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.widgets.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js" integrity="sha256-dtGH1XcAyKopMui5x20KnPxuGuSx9Rs6piJB/4Oqu6I=" crossorigin="anonymous"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.widgets.min.js" integrity="sha256-GxbszpUzg+iYIcyDGyNVLz9Y0dQvzmQgXXVk5cHJbw0=" crossorigin="anonymous"></script>
+
 
 
 <script type="text/javascript">

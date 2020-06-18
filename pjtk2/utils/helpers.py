@@ -359,3 +359,82 @@ def get_sisters_dict(slug):
                 )
             )
     return initial
+
+
+def make_proj_ms_dict(proj_ms, milestones):
+    """
+
+    # given a list of dictionaries containing project
+    # milesstones return a dictionary keyed by project code that contains
+    # the status of each milestone (represents a row in 'my projects table')
+
+
+    Arguments:
+    - `proj_ms`:
+    """
+
+    ms_dict = {}
+    for ms in milestones:
+        ms_dict[ms.label] = {
+            "type": "report" if ms.report else "milestone",
+            "required": False,
+            "completed": False,
+            "status": "notRequired-notDone",
+        }
+
+    # add an empty custom report
+    ms_dict["custom"] = {
+        "type": "report",
+        "required": False,
+        "completed": False,
+        "status": "notRequired-notDone",
+    }
+
+    proj_ms_dict = {}
+
+    for item in proj_ms:
+        prj_cd = item.get("project__prj_cd")
+        proj = proj_ms_dict.get(prj_cd)
+        if proj is None:
+            prj_attrs = {
+                "prj_nm": item["project__prj_nm"],
+                "year": item["project__year"],
+                "slug": item["project__slug"],
+                "prj_cd": item["project__prj_cd"],
+                "prj_ldr": item["project__prj_ldr__username"],
+                "prj_lead": "{} {}".format(
+                    item["project__prj_ldr__first_name"],
+                    item["project__prj_ldr__last_name"],
+                ),
+                "project_type": item["project__project_type__project_type"],
+            }
+            # add our empty milestone entries here. they will be updated on subsequent iterations:
+            proj_ms_dict[prj_cd] = {"attrs": prj_attrs, "milestones": dict(ms_dict)}
+        else:
+            proj = proj_ms_dict.pop(prj_cd)
+            # build a dictionary that contains the status of this milestone:
+            status = {
+                "type": "report" if item["milestone__report"] else "milestone",
+                "required": item["required"],
+                "completed": True if item["completed"] else False,
+            }
+            # add status code here - keep logic out of templates:
+            if status["completed"] is True:
+                if status["required"] is True:
+                    status["status"] = "required-done"
+                else:
+                    status["status"] = "notRequired-done"
+            else:
+                if status["required"] is True:
+                    status["status"] = "required-notDone"
+                else:
+                    status["status"] = "notRequired-notDone"
+            # get the project milestones
+            ms = proj.pop("milestones")
+
+            # add our current mileone
+            ms[item["milestone__label"]] = status
+            proj["milestones"] = ms
+            proj_ms_dict[prj_cd] = dict(proj)
+
+    return proj_ms_dict

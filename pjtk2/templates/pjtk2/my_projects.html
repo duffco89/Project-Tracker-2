@@ -154,11 +154,11 @@ table.tablesorter {
 
         <div id="submitted" class="tab-pane" >
 
-            <h3>Submitted Projects  (N={{ submitted.count }})</h3>
+            <h3>Submitted Projects  (N={{ submitted_count }})</h3>
             {% if submitted %}
 
             {% with projects=submitted what="submitted" %}
-            {% include "pjtk2/_milestone_table.html" %}
+                {% include "pjtk2/_proj_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -168,11 +168,11 @@ table.tablesorter {
         </div> <!-- submitted -->
 
         <div id="approved" class="tab-pane" >
-            <h3>Approved Projects (N={{ approved.count }})</h3>
+            <h3>Approved Projects (N={{ approved_count }})</h3>
             {% if approved %}
 
             {% with projects=approved what="approved" %}
-            {% include "pjtk2/_milestone_table.html" %}
+            {% include "pjtk2/_proj_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -182,11 +182,11 @@ table.tablesorter {
 
 
         <div id="cancelled" class="tab-pane" >
-            <h3>Cancelled Projects (N={{ cancelled.count }})</h3>
+            <h3>Cancelled Projects (N={{ cancelled_count }})</h3>
             {% if cancelled %}
 
             {% with projects=cancelled what="cancelled" %}
-            {% include "pjtk2/_milestone_table.html" %}
+            {% include "pjtk2/_proj_milestone_table.html" %}
             {% endwith %}
 
             {% else %}
@@ -196,13 +196,14 @@ table.tablesorter {
 
 
         <div id="completed" class="tab-pane" >
-            <h3>Completed Projects (N={{ complete.count }})</h3>
+            <h3>Completed Projects (N={{ complete_count }})</h3>
             {% if complete %}
 
             {% with projects=complete what="complete" %}
-            {% include "pjtk2/_milestone_table.html" %}
+            {% include "pjtk2/_proj_milestone_table.html" %}
             {% endwith %}
 
+            
             {% else %}
             <p><em>You do not have any complete projects </em></p>
             {% endif%}
@@ -261,81 +262,81 @@ table.tablesorter {
 {% block extrascripts  %}
 
 <!-- tablesorter plugin -->
-<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.js"></script>
-<!-- tablesorter widget file - loaded after the plugin -->
-<script src="https://mottie.github.io/tablesorter/js/jquery.tablesorter.widgets.js"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.min.js" integrity="sha256-dtGH1XcAyKopMui5x20KnPxuGuSx9Rs6piJB/4Oqu6I=" crossorigin="anonymous"></script>
 
-<script type="text/javascript">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.3/js/jquery.tablesorter.widgets.min.js" integrity="sha256-GxbszpUzg+iYIcyDGyNVLz9Y0dQvzmQgXXVk5cHJbw0=" crossorigin="anonymous"></script>
+    
+    <script type="text/javascript">
 
- $(document).ready(function() {
-     $('#check-all').on('click', function(){
-         $("input:checkbox").attr('checked', true);
+     $(document).ready(function() {
+         $('#check-all').on('click', function(){
+             $("input:checkbox").attr('checked', true);
+         });
+         $('#uncheck-all').on('click', function(){
+             $("input:checkbox").attr('checked', false);
+         });
+         $('#bookmarks-header').height('15px');
+
+         $('.report').show();
+         $('.milestone').show();
+
      });
-     $('#uncheck-all').on('click', function(){
-         $("input:checkbox").attr('checked', false);
+
+
+
+     $(".tablesorter").tablesorter({
+         theme: 'bootstrap',
+         widthFixed: true,
+         showProcessing: true,
+         headerTemplate: '{content} {icon}',
+         cssHeaderRow: 'vertical-align: bottom',
+         widgets: ['zebra', 'uitheme', 'scroller', 'stickyHeaders'],
+         widgetOptions: {
+             scroller_height: 300,
+             scroller_barWidth: 17,
+             scroller_jumpToHeader: true,
+             scroller_idPrefix: 's_',
+
+             stickyHeaders : '',
+             // number or jquery selector targeting the position:fixed element
+             stickyHeaders_offset : 0,
+             // added to table ID, if it exists
+             stickyHeaders_cloneId : '-sticky',
+             // trigger "resize" event on headers
+             stickyHeaders_addResizeEvent : true,
+             // if false and a caption exist, it won't be included in the sticky header
+             stickyHeaders_includeCaption : true,
+             // The zIndex of the stickyHeaders, allows the user to adjust this to their needs
+             stickyHeaders_zIndex : 2,
+             // jQuery selector or object to attach sticky header to
+             stickyHeaders_attachTo : null,
+             // jQuery selector or object to monitor horizontal scroll position (defaults: xScroll > attachTo > window)
+             stickyHeaders_xScroll : null,
+             // jQuery selector or object to monitor vertical scroll position (defaults: yScroll > attachTo > window)
+             stickyHeaders_yScroll : null,
+
+             // scroll table top into view after filtering
+             stickyHeaders_filteredToTop: true,
+
+
+         }
      });
-     $('#bookmarks-header').height('15px');
-
-     $('.report').show();
-     $('.milestone').show();
-
-});
 
 
+     function toggleReports(cb) {
+         $('.report').toggle();
+     }
 
- $(".tablesorter").tablesorter({
-   theme: 'bootstrap',
-   widthFixed: true,
-   showProcessing: true,
-   headerTemplate: '{content} {icon}',
-   cssHeaderRow: 'vertical-align: bottom',
-   widgets: ['zebra', 'uitheme', 'scroller', 'stickyHeaders'],
-   widgetOptions: {
-     scroller_height: 300,
-     scroller_barWidth: 17,
-     scroller_jumpToHeader: true,
-     scroller_idPrefix: 's_',
-
-         stickyHeaders : '',
-         // number or jquery selector targeting the position:fixed element
-         stickyHeaders_offset : 0,
-         // added to table ID, if it exists
-         stickyHeaders_cloneId : '-sticky',
-         // trigger "resize" event on headers
-         stickyHeaders_addResizeEvent : true,
-         // if false and a caption exist, it won't be included in the sticky header
-         stickyHeaders_includeCaption : true,
-         // The zIndex of the stickyHeaders, allows the user to adjust this to their needs
-         stickyHeaders_zIndex : 2,
-         // jQuery selector or object to attach sticky header to
-         stickyHeaders_attachTo : null,
-         // jQuery selector or object to monitor horizontal scroll position (defaults: xScroll > attachTo > window)
-         stickyHeaders_xScroll : null,
-         // jQuery selector or object to monitor vertical scroll position (defaults: yScroll > attachTo > window)
-         stickyHeaders_yScroll : null,
-
-         // scroll table top into view after filtering
-         stickyHeaders_filteredToTop: true,
+     function toggleMilestones(cb) {
+         $('.milestone').toggle();
+     }
 
 
-   }
- });
-
-
- function toggleReports(cb) {
-     $('.report').toggle();
- }
-
- function toggleMilestones(cb) {
-     $('.milestone').toggle();
- }
-
-
- $('#myTab a').click(function (e) {
-   e.preventDefault()
-   $(this).tab('show')
- })
-</script>
+     $('#myTab a').click(function (e) {
+         e.preventDefault()
+         $(this).tab('show')
+     })
+    </script>
 
 {% endblock %}

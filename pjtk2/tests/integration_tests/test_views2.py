@@ -614,6 +614,10 @@ class MyProjectViewTestCase(WebTest):
             label="Approved", category="Core", order=1, report=False
         )
         self.milestone2 = MilestoneFactory.create(
+            label="Protocol", category="Core", order=2, report=True
+        )
+
+        self.milestone3 = MilestoneFactory.create(
             label="Sign off", category="Core", order=999, report=False
         )
 
@@ -756,11 +760,14 @@ class EmployeeProjectsTestCase(WebTest):
             label="Approved", category="Core", order=1, report=False
         )
         self.milestone2 = MilestoneFactory.create(
+            label="Protocol", category="Core", order=2, report=True
+        )
+        self.milestone3 = MilestoneFactory.create(
             label="Sign off", category="Core", order=999, report=False
         )
 
         prj_cd = "LHA_IA{}_111".format(year)
-        self.project1 = ProjectFactory.create(
+        self.project1 = ProjectFactory(
             prj_cd=prj_cd,
             prj_ldr=self.user,
             owner=self.user,
@@ -768,7 +775,7 @@ class EmployeeProjectsTestCase(WebTest):
         )
 
         prj_cd = "LHA_IA{}_222".format(year)
-        self.project2 = ProjectFactory.create(
+        self.project2 = ProjectFactory(
             prj_cd=prj_cd,
             prj_ldr=self.user,
             owner=self.user,
@@ -776,7 +783,7 @@ class EmployeeProjectsTestCase(WebTest):
         )
         # this one is run by mr. burns
         prj_cd = "LHA_IA{}_333".format(year)
-        self.project3 = ProjectFactory.create(
+        self.project3 = ProjectFactory(
             prj_cd=prj_cd,
             prj_ldr=self.user2,
             owner=self.user2,
