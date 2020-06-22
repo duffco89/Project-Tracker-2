@@ -283,7 +283,7 @@ def reopen_project(request, slug):
     entries edited.
     """
 
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
     project = get_object_or_404(Project, slug=slug)
     if is_manager(user):
         project.reopen()
@@ -404,34 +404,6 @@ def my_projects(request):
     # get the submitted, approved and completed projects from the last five years
     this_year = datetime.datetime.now(pytz.utc).year
 
-    # submitted = (
-    #     Project.objects.submitted()
-    #     .select_related("project_type", "prj_ldr")
-    #     .filter(owner__pk__in=employees)
-    #     .filter(year__gte=this_year - 5)
-    # )
-    # approved = (
-    #     Project.objects.approved()
-    #     .select_related("project_type", "prj_ldr")
-    #     .filter(owner__pk__in=employees)
-    #     .filter(year__gte=this_year - 5)
-    # )
-    # cancelled = (
-    #     Project.objects.cancelled()
-    #     .select_related("project_type", "prj_ldr")
-    #     .filter(owner__pk__in=employees)
-    #     .filter(year__gte=this_year - 5)
-    # )
-    #
-    # complete = (
-    #     Project.objects.completed()
-    #     .select_related("project_type", "prj_ldr")
-    #     .filter(owner__pk__in=employees)
-    #     .filter(year__gte=this_year - 15)
-    # )
-
-    # ============================================
-
     submitted_projects = (
         Project.objects.submitted()
         .filter(owner__pk__in=employees)
@@ -470,8 +442,6 @@ def my_projects(request):
 
     prj_milestones = get_proj_ms(completed_projects, milestones)
     complete = make_proj_ms_dict(prj_milestones, milestones)
-
-    # ============================================
 
     notices = get_messages_dict(my_messages(user))
     notices_count = len(notices)
@@ -553,30 +523,6 @@ def employee_projects(request, employee_name):
 
     # get the submitted, approved and completed projects from the last five years
     this_year = datetime.datetime.now(pytz.utc).year
-    # submitted = (
-    #     Project.objects.submitted()
-    #     .filter(owner__username=my_employee)
-    #     .filter(year__gte=this_year - 5)
-    #     .select_related("project_type", "prj_ldr")
-    # )
-    # approved = (
-    #     Project.objects.approved()
-    #     .filter(owner__username=my_employee)
-    #     .filter(year__gte=this_year - 5)
-    #     .select_related("project_type", "prj_ldr")
-    # )
-    # cancelled = (
-    #     Project.objects.cancelled()
-    #     .filter(owner__username=my_employee)
-    #     .filter(year__gte=this_year - 5)
-    #     .select_related("project_type", "prj_ldr")
-    # )
-    # complete = (
-    #     Project.objects.completed()
-    #     .filter(owner__username=my_employee)
-    #     .filter(year__gte=this_year - 15)
-    #     .select_related("project_type", "prj_ldr")
-    # )
 
     submitted_projects = (
         Project.objects.submitted()

@@ -54,8 +54,8 @@ def project_detail(request, slug):
     core = get_assignments_with_paths(project)
     custom = get_assignments_with_paths(project, core=False)
 
-    # user = User.objects.get(username__exact=request.user)
-    user = get_or_none(User, username__exact=request.user)
+    # user = User.objects.get(pk=request.user.id)
+    user = get_or_none(User, pk=request.user.id)
     edit = can_edit(user, project)
     manager = is_manager(user)
 
@@ -129,7 +129,7 @@ def crud_project(request, slug, action="New"):
 
     # find out if the user is a manager or superuser, if so set manager
     # to true so that he or she can edit all fields.
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
     manager = is_manager(user)
 
     if action == "Copy":
