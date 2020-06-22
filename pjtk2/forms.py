@@ -48,6 +48,7 @@ from .models import (
     ProjectMilestones,
     Report,
     ProjectType,
+    ProjectProtocol,
     Database,
     Lake,
     Messages2Users,
@@ -673,6 +674,14 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
+    protocol = forms.ModelChoiceField(
+        label="Protocol:",
+        queryset=ProjectProtocol.objects.filter(deprecated__isnull=True).order_by(
+            "protocol"
+        ),
+        required=False,
+    )
+
     master_database = forms.ModelChoiceField(
         label="Master Database:", queryset=Database.objects.all(), required=True
     )
@@ -706,6 +715,7 @@ class ProjectForm(forms.ModelForm):
             "prj_date1",
             "risk",
             "project_type",
+            "protocol",
             "master_database",
             "lake",
             "abstract",
