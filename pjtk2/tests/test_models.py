@@ -1609,7 +1609,11 @@ class TestProjectStatus(TestCase):
             label="Approved", category="Core", order=1, report=False
         )
         self.milestone2 = MilestoneFactory.create(
-            label="Sign off", category="Core", order=999, report=False
+            label="Sign off", category="Core", order=2, report=False
+        )
+
+        self.milestone3 = MilestoneFactory.create(
+            label="Cancelled", category="Core", order=3, report=False
         )
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", owner=self.user)
 
@@ -1618,7 +1622,7 @@ class TestProjectStatus(TestCase):
         cancelled or signed off, it should be submitted.
         """
         self.assertEqual(self.project1._get_status(), "Submitted")
-        self.assertEqual(self.project1.status, "Submitted")
+        self.assertEqual(self.project1.status, "submitted")
 
     def test_status_ongoing(self):
         """if a project has been submitted, but has not been approved,
@@ -1626,17 +1630,17 @@ class TestProjectStatus(TestCase):
         """
         self.project1.approve()
         self.assertEqual(self.project1._get_status(), "Ongoing")
-        self.assertEqual(self.project1.status, "Ongoing")
+        self.assertEqual(self.project1.status, "ongoing")
 
     def test_status_cancelled(self):
         """if a project has been submitted, but has not been approved,
         cancelled or signed off, it should be submitted.
         """
-        self.project1.approve()
-        self.project1.cancelled = True
-        self.project1.save()
+        self.project1.cancel(self.user)
+
+        self.assertTrue(self.project1.cancelled)
         self.assertEqual(self.project1._get_status(), "Cancelled")
-        self.assertEqual(self.project1.status, "Cancelled")
+        self.assertEqual(self.project1.status, "cancelled")
 
     def test_status_complete(self):
         """if a project has been submitted, but has not been approved,
@@ -1645,4 +1649,4 @@ class TestProjectStatus(TestCase):
         self.project1.approve()
         self.project1.signoff(self.user)
         self.assertEqual(self.project1._get_status(), "Complete")
-        self.assertEqual(self.project1.status, "Complete")
+        self.assertEqual(self.project1.status, "complete")

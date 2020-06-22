@@ -15,11 +15,11 @@ django-crispy-forms==1.7.2  # via -r base.in
 django-debug-toolbar==2.0  # via -r local.in
 django-extensions==2.2.1  # via -r local.in
 django-geojson==2.12.0    # via -r base.in
-django-leaflet==0.25.0    # via -r base.in
+django-leaflet==0.26.0    # via -r base.in
 django-password-reset==2.0  # via -r base.in
 django-taggit==1.1.0      # via -r base.in
 django-webtest==1.9.7     # via -r local.in
-django==2.2.11            # via -r base.in, django-debug-toolbar, django-geojson, django-leaflet, django-password-reset, django-taggit
+django==2.2.13            # via -r base.in, django-debug-toolbar, django-geojson, django-leaflet, django-password-reset, django-taggit
 djangorestframework==3.10.3  # via -r base.in
 factory-boy==2.12.0       # via -r local.in
 faker==2.0.4              # via factory-boy
@@ -28,7 +28,7 @@ markdown2==2.3.8          # via -r base.in
 more-itertools==7.2.0     # via pytest, zipp
 packaging==19.2           # via pytest
 pillow==6.2.1             # via -r base.in
-pip-tools==4.2.0          # via -r base.in
+pip-tools==5.2.1          # via -r base.in
 pluggy==0.13.0            # via pytest
 psycopg2==2.8.3           # via -r base.in
 py==1.8.0                 # via pytest
@@ -47,3 +47,6 @@ wcwidth==0.1.7            # via pytest
 webob==1.8.5              # via webtest
 webtest==2.0.33           # via django-webtest
 zipp==0.6.0               # via importlib-metadata
+
+# The following packages are considered to be unsafe in a requirements file:
+# pip

@@ -347,7 +347,7 @@ class Project(models.Model):
         ("submitted", "Submitted"),
         ("ongoing", "Ongoing"),
         ("complete", "Complete"),
-        ("canceled", "Canceled"),
+        ("cancelled", "Cancelled"),
     ]
 
     status = models.CharField(
@@ -480,11 +480,9 @@ class Project(models.Model):
                 self.risk, extras={"demote-headers": DEMOTE_HEADERS}
             )
             self.risk_html = replace_links(self.risk_html, link_patterns=LINK_PATTERNS)
-
         super(Project, self).save(*args, **kwargs)
         if new:
             self.initialize_milestones()
-        self.status = self._get_status()
 
     # @models.permalink
     def get_absolute_url(self):
@@ -502,23 +500,17 @@ class Project(models.Model):
         exist.
         """
         now = datetime.datetime.now(pytz.utc)
-        try:
-            # ProjectMilestones.objects.filter(project=self,
-            #                         milestone__label='Approved').update(
-            #                             completed=now)
-            prjms = ProjectMilestones.objects.get(
-                project=self, milestone__label="Approved"
-            )
 
-            prjms.completed = now
-            # save sends pre_save signal
-            prjms.save()
-        except ProjectMilestones.DoesNotExist:
-            # create it if it doesn't exist
-            milestone = Milestone.objects.get(label="Approved")
-            projectmilestone = ProjectMilestones(
-                project=self, milestone=milestone, required=True, completed=now
-            )
+        milestone = Milestone.objects.get(label="Approved")
+        projectmilestone, created = ProjectMilestones.objects.get_or_create(
+            project=self, milestone=milestone, required=True
+        )
+
+        projectmilestone.completed = now
+        # save sends pre_save signal
+        projectmilestone.save()
+
+        self.status = "ongoing"
         self.save()
 
     def unapprove(self):
@@ -526,9 +518,6 @@ class Project(models.Model):
         a helper method to reverse project.approved(), a project-milestone
         object will be created if it doesn't exist."""
         try:
-            # ProjectMilestones.objects.filter(project=self,
-            #                     milestone__label='Approved').update(
-            #                         completed=None)
             prjms = ProjectMilestones.objects.get(
                 project=self, milestone__label="Approved"
             )
@@ -538,6 +527,48 @@ class Project(models.Model):
 
         except ProjectMilestones.DoesNotExist:
             pass
+        self.status = "submitted"
+        self.save()
+
+    def cancel(self, user):
+        """
+        a helper method to make approving projects easier.  A
+        project-milestone object will be created if it doesn't
+        exist.
+        """
+        now = datetime.datetime.now(pytz.utc)
+
+        milestone = Milestone.objects.get(label="Cancelled")
+        projectmilestone, created = ProjectMilestones.objects.get_or_create(
+            project=self, milestone=milestone, required=True
+        )
+
+        projectmilestone.completed = now
+        # save sends pre_save signal
+        projectmilestone.save()
+
+        self.status = "cancelled"
+        self.cancelled = True
+        self.cancelled_by = user
+        self.save()
+
+    def uncancel(self):
+        """
+        a helper method to reverse project.canceld(), a project-milestone
+        object will be created if it doesn't exist."""
+        try:
+            prjms = ProjectMilestones.objects.get(
+                project=self, milestone__label="Cancelled"
+            )
+            prjms.completed = None
+            # save sends pre_save signal
+            prjms.save()
+
+        except ProjectMilestones.DoesNotExist:
+            pass
+        self.status = "ongoing"
+        self.cancelled = False
+        self.cancelled_by = None
         self.save()
 
     def is_approved(self):
@@ -569,6 +600,7 @@ class Project(models.Model):
         prjms.save()
 
         self.signoff_by = user
+        self.status = "complete"
         self.save()
 
     def reopen(self):
@@ -581,6 +613,7 @@ class Project(models.Model):
             project=self, milestone=milestone
         )
         prjms.completed = None
+        self.status = "ongoing"
         prjms.save()
 
     def is_complete(self):
@@ -609,12 +642,12 @@ class Project(models.Model):
 
         """
 
-        if not self.is_approved():
-            return "Submitted"
-        elif self.cancelled:
+        if self.cancelled:
             return "Cancelled"
         elif self.is_complete():
             return "Complete"
+        elif not self.is_approved():
+            return "Submitted"
         else:
             return "Ongoing"
 
