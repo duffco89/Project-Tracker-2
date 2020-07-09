@@ -620,9 +620,13 @@ class Project(models.Model):
         """Is the current project completed (ie. signoff=True)?  Returns true
         if it is, otherwise false.
         """
-        completed = ProjectMilestones.objects.get(
-            project=self, milestone__label__iexact="Sign Off"
-        )
+        try:
+            completed = ProjectMilestones.objects.get(
+                project=self, milestone__label__iexact="Sign Off"
+            )
+        except ProjectMilestones.DoesNotExist:
+            return False
+
         if completed.completed is not None:
             return True
         else:
@@ -1608,7 +1612,7 @@ def build_msg_recipients(project, level=None, dba=True, ops=True):
     """
 
     prj_owner = project.owner
-    prj_owner = Employee.objects.get(user__username=prj_owner)
+    prj_owner = Employee.objects.get(user__id=prj_owner.id)
     recipients = get_supervisors(prj_owner)
     # convert the employees to user objects
     recipients = [x.user for x in recipients]
