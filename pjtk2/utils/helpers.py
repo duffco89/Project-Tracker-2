@@ -199,22 +199,39 @@ def group_required(*group_names):
 def is_manager(user):
     """
     A simple little function to find out if the current user is a
-    manager (or better)
+    project tracker manager.
     """
+    # this code uses Django groups, we want to use roles in Project Tracker Employee:
+    # manager = False
+    # if user:
+    #     if user.groups.filter(name="manager").count() > 0 | user.is_superuser:
+    #         manager = True
+    #     # else:
+    #     #    manager = False
+    # return manager
+
     manager = False
-    if user:
-        if user.groups.filter(name="manager").count() > 0 | user.is_superuser:
-            manager = True
-        # else:
-        #    manager = False
+    if hasattr(user, "employee"):
+        manager = True if user.employee.role == "manager" else False
     return manager
+
+
+def is_dba(user):
+    """
+    A simple little function to find out if the supplied user is a
+    project tracker dba.
+    """
+    dba = False
+    if hasattr(user, "employee"):
+        dba = True if user.employee.role == "dba" else False
+    return dba
 
 
 def can_edit(user, project):
     """
     Another helper function to see if this user should be allowed
     to edit this project.  In order to edit the use must be either the
-    project owner, a manager or a superuser.
+    project owner or lead, a manager, a superuser, a dba, or the field lead.
     """
 
     if project.is_complete():
@@ -222,10 +239,12 @@ def can_edit(user, project):
 
     if user:
         canedit = (
-            (user.groups.filter(name="manager").count() > 0)
-            or (user.is_superuser)
+            # (user.groups.filter(name="manager").count() > 0)
+            (user.is_superuser)
             or (user == project.owner)
             or (user == project.field_ldr)
+            or (is_dba(user))
+            or (is_manager(user))
         )
     else:
         canedit = False

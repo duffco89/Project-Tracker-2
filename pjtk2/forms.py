@@ -624,7 +624,7 @@ class ProjectForm(forms.ModelForm):
         queryset=User.objects.filter(is_active=True).order_by(
             "first_name", "last_name"
         ),
-        required=False,
+        required=True,
     )
 
     project_team = UserMultipleChoiceField(
@@ -728,6 +728,7 @@ class ProjectForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop("readonly", False)
         manager = kwargs.pop("manager", False)
+        dba = kwargs.pop("dba", False)
 
         milestones = kwargs.pop("milestones", None)
 
@@ -742,6 +743,9 @@ class ProjectForm(forms.ModelForm):
         self.readonly = readonly
         self.manager = manager
 
+        if not (manager or dba):
+            self.fields["owner"].widget.attrs["disabled"] = "disabled"
+
         if readonly:
             self.fields["prj_cd"].widget.attrs["readonly"] = True
             # this is an edit so our project lead could be anyone:
@@ -751,6 +755,7 @@ class ProjectForm(forms.ModelForm):
             self.fields["field_ldr"].queryset = User.objects.order_by(
                 "first_name", "last_name"
             ).all()
+
             self.fields["owner"].queryset = (
                 User.objects.order_by("first_name", "last_name")
                 .filter(is_active=True)

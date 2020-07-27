@@ -30,6 +30,7 @@ from pjtk2.tests.factories import (
 
 
 from pjtk2.views import can_edit
+from pjtk2.utils.helpers import is_manager, is_dba
 
 # from pjtk2.functions import can_edit
 
@@ -76,8 +77,9 @@ class TestCanEditFunction(TestCase):
         )
 
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         # PROJECTS
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", owner=self.user1)
@@ -198,17 +200,36 @@ class CreateManagerTestCase(TestCase):
     group"""
 
     def setUp(self):
-        self.user = UserFactory()
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user.groups.add(managerGrp)
+        self.user1 = UserFactory()
+        EmployeeFactory(user=self.user1, role="manager")
+        self.user2 = UserFactory()
 
     def test_is_manager(self):
-        grpcnt = self.user.groups.filter(name="manager").count()
-        self.assertTrue(grpcnt > 0)
+        # grpcnt = self.user.groups.filter(name="manager").count()
+        self.assertTrue(is_manager(self.user1))
+        self.assertFalse(is_manager(self.user2))
 
     def tearDown(self):
-        self.user.delete()
-        # managerGrp.delete()
+        self.user1.delete()
+        self.user2.delete()
+
+
+class IsDbaTestCase(TestCase):
+    """verify that we can create a use that belongs to the 'dba'
+    group"""
+
+    def setUp(self):
+        self.user1 = UserFactory()
+        EmployeeFactory(user=self.user1, role="dba")
+        self.user2 = UserFactory()
+
+    def test_is_dba(self):
+        self.assertTrue(is_dba(self.user1))
+        self.assertFalse(is_dba(self.user2))
+
+    def tearDown(self):
+        self.user1.delete()
+        self.user2.delete()
 
 
 class LoginTestCase(TestCase):
@@ -480,8 +501,9 @@ class CancelProjectTestCase(TestCase):
         )
 
         # make george the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user.groups.add(managerGrp)
+        EmployeeFactory(user=self.user, role="manager")
 
         self.ms = MilestoneFactory.create(
             label="Cancelled", protected=True, category="Core", order=99, report=False
@@ -601,8 +623,9 @@ class TestDetailPageCancelledProjects(TestCase):
         ProjectMilestonesFactory(project=self.project1, milestone=signoff)
 
         # Barney is the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         self.message = "This project was cancelled."
 
@@ -770,8 +793,9 @@ class ReOpenProjectTestCase(TestCase):
         )
 
         # make george the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user.groups.add(managerGrp)
+        EmployeeFactory(user=self.user, role="manager")
 
         self.signoff = MilestoneFactory.create(
             label="Sign Off", protected=True, category="Core", order=99, report=False
@@ -1010,8 +1034,9 @@ class TestDetailPageReOpenProject(TestCase):
         ProjectMilestonesFactory(project=self.project1, milestone=self.signoff)
 
         # Barney is the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         self.EditBtn = (
             '<button type="button" '
@@ -1144,8 +1169,9 @@ class ProjectDetailManagerTestCase(TestCase):
             username="gcostansa", first_name="George", last_name="Costansa"
         )
         # make george the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user.groups.add(managerGrp)
+        EmployeeFactory(user=self.user, role="manager")
 
         # now create a project using a different user
         self.owner = UserFactory()
@@ -1295,8 +1321,9 @@ class ApprovedProjectListManagerTestCase(TestCase):
             username="gconstansa", first_name="George", last_name="Costansa"
         )
         # make george the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user.groups.add(managerGrp)
+        EmployeeFactory(user=self.user, role="manager")
 
     def test_with_Login(self):
         """if we login with a valid user, we will be allowed to view
@@ -1356,8 +1383,9 @@ class ApproveUnapproveProjectsTestCase(TestCase):
             username="mburns", first_name="Burns", last_name="Montgomery"
         )
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         # create milestones
         self.milestone1 = MilestoneFactory.create(
@@ -1740,8 +1768,9 @@ class ApproveProjectsEmptyTestCase(TestCase):
             username="mburns", first_name="Burns", last_name="Montgomery"
         )
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user.groups.add(managerGrp)
+        EmployeeFactory(user=self.user, role="manager")
         self.year = datetime.now().year
 
     def test_with_Login(self):
@@ -1780,8 +1809,9 @@ class ChangeReportingRequirementsTestCase2(TestCase):
             username="mburns", first_name="Burns", last_name="Montgomery"
         )
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         # create milestones
         self.milestone1 = MilestoneFactory.create(
