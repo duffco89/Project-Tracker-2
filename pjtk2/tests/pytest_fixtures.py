@@ -50,7 +50,7 @@ def joe_user(db):
 
 @pytest.fixture(scope=SCOPE)
 def dba(db):
-    """return a normal user named homer
+    """return a normal user named kramer
     """
     password = "Abcd1234"
     kramer = DBA_Factory.create(
@@ -68,8 +68,10 @@ def manager(db):
         username="mburns", first_name="monty", last_name="burns", password=password
     )
     # make Mr. Burns the manager:
-    managerGrp, created = Group.objects.get_or_create(name="manager")
-    monty.groups.add(managerGrp)
+    # managerGrp, created = Group.objects.get_or_create(name="manager")
+    # monty.groups.add(managerGrp)
+
+    manager = EmployeeFactory(user=monty, role="manager")
 
     return monty
 

@@ -176,12 +176,15 @@ def approveprojects(request):
 
 
 @login_required
-@group_required("manager")
+# @group_required("manager")
 def approve_project(request, slug):
     """
     A quick little view that will allow managers to approve projects
     from the project detail page.
     """
+
+    if not is_manager(request.user):
+        HttpResponseRedirect(reverse("ProjectList"))
 
     project = get_object_or_404(Project, slug=slug)
     project.approve()
@@ -190,12 +193,15 @@ def approve_project(request, slug):
 
 
 @login_required
-@group_required("manager")
+# @group_required("manager")
 def unapprove_project(request, slug):
     """
     A quick little view that will allow managers to unapprove projects
     from the project detail page.
     """
+
+    if not is_manager(request.user):
+        HttpResponseRedirect(reverse("ProjectList"))
 
     project = Project.objects.get(slug=slug)
     project.unapprove()
@@ -291,13 +297,16 @@ def reopen_project(request, slug):
 
 
 @login_required
-@group_required("manager")
+# @group_required("manager")
 def report_milestones(request, slug):
     """
     This function will render a form of requested reporting
     requirements for each project.  Used by managers to update
     reporting requirements for each project.
     """
+
+    if not is_manager(request.user):
+        return HttpResponseRedirect(reverse("ProjectList"))
 
     project = Project.objects.get(slug=slug)
     reports = project.get_milestone_dicts()

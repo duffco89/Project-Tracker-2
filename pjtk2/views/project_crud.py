@@ -35,6 +35,7 @@ from ..forms import (
 
 from ..utils.helpers import (
     get_assignments_with_paths,
+    is_dba,
     is_manager,
     can_edit,
     get_or_none,
@@ -122,6 +123,7 @@ def crud_project(request, slug, action="New"):
 
     if slug:
         instance = Project.objects.get(slug=slug)
+        orig_owner = instance.owner
         milestones = instance.get_milestones()
     else:
         instance = Project()
@@ -131,6 +133,7 @@ def crud_project(request, slug, action="New"):
     # to true so that he or she can edit all fields.
     user = User.objects.get(pk=request.user.id)
     manager = is_manager(user)
+    dba = is_dba(user)
 
     if action == "Copy":
         milestones = None
@@ -147,24 +150,28 @@ def crud_project(request, slug, action="New"):
     if request.method == "POST":
         if action == "Copy":
             instance = None
+
         form = ProjectForm(
             request.POST,
             instance=instance,
             milestones=milestones,
             readonly=readonly,
             manager=manager,
+            dba=dba,
         )
 
         funding_formset = ProjectFundingFormset(
             request.POST, request.FILES, instance=instance
         )
 
+        # if form.owner is None and (dba or manager):
+        #    form.owner = orig_owner
+
         if form.is_valid():
             tags = form.cleaned_data["tags"]
             form_ms = form.cleaned_data.get("milestones", None)
             form = form.save(commit=False)
-            if action == "Copy" or action == "New":
-                form.owner = request.user
+
             funding_formset = ProjectFundingFormset(request.POST, instance=form)
             if funding_formset.is_valid():
                 form.save()
@@ -183,11 +190,25 @@ def crud_project(request, slug, action="New"):
                     "funding_formset": funding_formset,
                     "action": action,
                     "project": instance,
+                    "manager": manager,
+                    "dba": dba,
                 },
             )
     else:
+
+        if action == "Copy" and not (dba or manager):
+            instance.owner = user
+            instance.prj_ldr = user
+
+        if action == "New" and not (dba or manager):
+            instance.owner = user
+
         form = ProjectForm(
-            instance=instance, readonly=readonly, manager=manager, milestones=milestones
+            instance=instance,
+            readonly=readonly,
+            manager=manager,
+            dba=dba,
+            milestones=milestones,
         )
 
     return render(
@@ -199,6 +220,8 @@ def crud_project(request, slug, action="New"):
             "milestones": milestones,
             "action": action,
             "project": instance,
+            "manager": manager,
+            "dba": dba,
         },
     )
 

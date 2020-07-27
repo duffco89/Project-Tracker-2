@@ -22,18 +22,6 @@ class UserFactory(factory.DjangoModelFactory):
     # admin = False
     password = "Abcd1234"
 
-    # from: http://www.rkblog.rk.edu.pl/w/p/
-    #               using-factory-boy-django-application-tests/
-    #    @classmethod
-    #    def _prepare(cls, create, **kwargs):
-    #        password = kwargs.pop('password', None)
-    #        user = super(UserFactory, cls)._prepare(create, **kwargs)
-    #        if password:
-    #            user.set_password(password)
-    #            if create:
-    #                user.save()
-    #        return user
-
     @classmethod
     def _create(cls, model_class, *args, **kwargs):
         """Override the default ``_create`` with our custom call."""
