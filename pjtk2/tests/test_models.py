@@ -1630,6 +1630,25 @@ class TestProjectFunding(TestCase):
 
         self.assertEqual(self.projectfunding.total, 6000)
 
+    def test_funding_source_total_null_salary(self):
+        """If the salary is null, the total should return just the odeo (treat
+        salary as 0)"""
+        self.projectfunding.salary = None
+        self.assertEqual(self.projectfunding.total, 1000)
+
+    def test_funding_source_total_null_odoe(self):
+        """If the odoe is null, the total should return just the odeo (treat
+        odoe as 0)"""
+        self.projectfunding.odoe = None
+        self.assertEqual(self.projectfunding.total, 5000)
+
+    def test_funding_source_total_null_odoe_null_salary(self):
+        """If both odoe and salary are null, the total should be 0 (treat both
+        null values as 0)"""
+        self.projectfunding.odoe = None
+        self.projectfunding.salary = None
+        self.assertEqual(self.projectfunding.total, 0)
+
     def tearDown(self):
 
         self.projectfunding.delete()

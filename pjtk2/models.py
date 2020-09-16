@@ -336,7 +336,9 @@ class ProjectFunding(models.Model):
         and the odoe.
         """
 
-        return self.odoe + self.salary
+        salary = self.salary if self.salary else 0
+        odoe = self.odoe if self.odoe else 0
+        return salary + odoe
 
 
 class Project(models.Model):
