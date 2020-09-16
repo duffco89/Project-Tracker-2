@@ -112,8 +112,16 @@ def approveprojects(request):
     # TODO - test that projects in the future are included in this year
     # thisyears = Project.this_year.all().filter(SignOff=False)
     # lastyears = Project.last_year.all().filter(SignOff=False)
-    thisyears = Project.this_year.all()
-    lastyears = Project.last_year.all()
+    thisyears = (
+        Project.this_year.all()
+        .select_related("prj_ldr", "project_type")
+        .prefetch_related("projectmilestones", "projectmilestones__milestone")
+    )
+    lastyears = (
+        Project.last_year.all()
+        .select_related("prj_ldr", "project_type")
+        .prefetch_related("projectmilestones", "projectmilestones__milestone")
+    )
 
     year = datetime.datetime.now().year
 
@@ -603,7 +611,7 @@ def employee_projects(request, employee_name):
 def sisterprojects(request, slug):
     """
     Render a form that can be used to create groupings of sister
-    projects.  Only approved projects in the same year, and of the
+    projects.  Only approved projects in the same year, same lake, and of the
     same project type will be presented.  existing sister projects
     will be checked off.  When the form is submitted the sibling
     relationships will be updated according to the values in the

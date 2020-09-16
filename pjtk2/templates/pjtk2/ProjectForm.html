@@ -302,9 +302,10 @@
                                             {{ form.project_team }}
                                             {% if form.project_team.errors %}
                                             {% for error in form.project_team.errors %}
-                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                                <div class="has-error help-block text-danger">{{ error }}</div>
                                             {% endfor %}
                                             {% endif %}
+                                            <p class="help-block">{{form.project_team.help_text}}</p>
                                         </div>
                                     </div> <!-- column  -->
 

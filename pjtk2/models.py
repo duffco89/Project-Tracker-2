@@ -335,6 +335,7 @@ class ProjectFunding(models.Model):
         """the total of funding for the project will be the sum of the salary
         and the odoe.
         """
+
         return self.odoe + self.salary
 
 
@@ -1024,6 +1025,8 @@ class Project(models.Model):
                     Project.objects.approved()
                     .filter(
                         project_type=self.project_type,
+                        protocol=self.protocol,
+                        lake=self.lake,
                         year=self.year,
                         projectsisters__isnull=True,
                     )
