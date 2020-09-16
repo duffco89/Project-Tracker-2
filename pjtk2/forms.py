@@ -628,7 +628,7 @@ class ProjectForm(forms.ModelForm):
     )
 
     project_team = UserMultipleChoiceField(
-        label="Other Team Members (optional):",
+        label="Other Team Members (optional)",
         widget=forms.SelectMultiple(attrs={"size": 15}),
         queryset=User.objects.filter(is_active=True).order_by(
             "first_name", "last_name"
@@ -733,6 +733,11 @@ class ProjectForm(forms.ModelForm):
         milestones = kwargs.pop("milestones", None)
 
         super(ProjectForm, self).__init__(*args, **kwargs)
+
+        self.fields[
+            "project_team"
+        ].help_text = "Control-click to select more than one team member."
+
         for visible in self.visible_fields():
             if "class" in visible.field.widget.attrs.keys():
                 class_attrs = visible.field.widget.attrs["class"]
