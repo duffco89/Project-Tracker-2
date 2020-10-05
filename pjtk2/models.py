@@ -1518,6 +1518,19 @@ class ProjectSisters(models.Model):
         return str("Project - %s - Family %s" % (self.project, self.family))
 
 
+class EmployeeManager(models.Manager):
+    """the default manager for employees will only return active users."""
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("user", "supervisor__user")
+            .filter(user__is_active=True)
+            .order_by("user__username")
+        )
+
+
 class Employee(models.Model):
     """The employee model is an extension to the user model that captures
     the hierachical employee-supervisor relationship between users."""
@@ -1538,6 +1551,9 @@ class Employee(models.Model):
     #                               related_name='supervisor')
 
     # to do - add custom manager to return all emplyees and just active employees
+    # return all species for admin page, tagged species by default
+    all_objects = models.Manager()
+    objects = EmployeeManager()
 
     class Meta:
         ordering = ["user__username"]
