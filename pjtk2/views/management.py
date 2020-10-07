@@ -54,6 +54,7 @@ from ..utils.helpers import (
     get_minions,
     get_sisters_dict,
     make_proj_ms_dict,
+    get_project_filters,
 )
 
 User = get_user_model()
@@ -99,38 +100,6 @@ def get_proj_ms(project_ids, milestones):
 #      Managers
 
 
-def get_project_filters(this_year, last_year):
-    """Return a dictionary containing the unique values for lake, project
-    leader and project type from the list of project to be approved this
-    and those from last year.
-
-    Arguments:
-    - `projects`:
-
-    """
-
-    values = {}
-    values["lakes"] = set(
-        [x["lake"] for x in this_year] + [x["lake"] for x in last_year]
-    )
-
-    # project leads are a little harder because they should be sorted.
-    project_leads = list(
-        set(
-            [x["prj_ldr_label"] for x in this_year]
-            + [x["prj_ldr_label"] for x in last_year]
-        )
-    )
-    project_leads.sort()
-    values["project_leader"] = project_leads
-
-    values["project_types"] = set(
-        [x["project_type"] for x in this_year] + [x["project_type"] for x in last_year]
-    )
-
-    return values
-
-
 @login_required
 # @permission_required('Project.can_change_Approved')
 def approveprojects2(request):
@@ -142,8 +111,8 @@ def approveprojects2(request):
 
     """
 
-    # if is_manager(request.user) is False:
-    #     return HttpResponseRedirect(reverse("ApprovedProjectsList"))
+    if is_manager(request.user) is False:
+        return HttpResponseRedirect(reverse("ApprovedProjectsList"))
 
     project_formset = formset_factory(form=ApproveProjectsForm2, extra=0)
 

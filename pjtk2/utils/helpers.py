@@ -536,3 +536,35 @@ def get_approve_project_dict(year, this_year=True):
         )
     )
     return dictionary_list
+
+
+def get_project_filters(this_year, last_year):
+    """Return a dictionary containing the unique values for lake, project
+    leader and project type from the list of project to be approved this
+    and those from last year.
+
+    Arguments:
+    - `projects`:
+
+    """
+
+    values = {}
+    values["lakes"] = set(
+        [x["lake"] for x in this_year] + [x["lake"] for x in last_year]
+    )
+
+    # project leads are a little harder because they should be sorted.
+    project_leads = list(
+        set(
+            [x["prj_ldr_label"] for x in this_year]
+            + [x["prj_ldr_label"] for x in last_year]
+        )
+    )
+    project_leads.sort()
+    values["project_leader"] = project_leads
+
+    values["project_types"] = set(
+        [x["project_type"] for x in this_year] + [x["project_type"] for x in last_year]
+    )
+
+    return values
