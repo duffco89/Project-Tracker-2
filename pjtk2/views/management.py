@@ -28,7 +28,7 @@ import collections
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.forms.models import modelformset_factory
+from django.forms.models import modelformset_factory, formset_factory
 from django.forms import formset_factory
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
@@ -36,14 +36,20 @@ from django.urls import reverse
 
 from ..models import Project, ProjectMilestones, Milestone, Employee, Bookmark
 
-from ..forms import ApproveProjectsForm, ReportsForm, NoticesForm, SisterProjectsForm
-
+from ..forms import (
+    ApproveProjectsForm,
+    ReportsForm,
+    NoticesForm,
+    SisterProjectsForm,
+    ApproveProjectsForm2,
+)
 
 from ..utils.helpers import (
     is_manager,
-    group_required,
+    # group_required,
     make_possessive,
     get_messages_dict,
+    get_approve_project_dict,
     my_messages,
     get_minions,
     get_sisters_dict,
@@ -91,6 +97,109 @@ def get_proj_ms(project_ids, milestones):
 
 # ==========================
 #      Managers
+
+
+def get_project_filters(this_year, last_year):
+    """Return a dictionary containing the unique values for lake, project
+    leader and project type from the list of project to be approved this
+    and those from last year.
+
+    Arguments:
+    - `projects`:
+
+    """
+
+    values = {}
+    values["lakes"] = set(
+        [x["lake"] for x in this_year] + [x["lake"] for x in last_year]
+    )
+
+    # project leads are a little harder because they should be sorted.
+    project_leads = list(
+        set(
+            [x["prj_ldr_label"] for x in this_year]
+            + [x["prj_ldr_label"] for x in last_year]
+        )
+    )
+    project_leads.sort()
+    values["project_leader"] = project_leads
+
+    values["project_types"] = set(
+        [x["project_type"] for x in this_year] + [x["project_type"] for x in last_year]
+    )
+
+    return values
+
+
+@login_required
+# @permission_required('Project.can_change_Approved')
+def approveprojects2(request):
+    """Create a list of projects, project names and an approved/unapproved
+    checkbox widget.  This version of the view was modified from the
+    original to use ProjectMilestone object instead of Projects - the
+    action actually update project milestone objects, so this approach
+    should be considerably faster.
+
+    """
+
+    # if is_manager(request.user) is False:
+    #     return HttpResponseRedirect(reverse("ApprovedProjectsList"))
+
+    project_formset = formset_factory(form=ApproveProjectsForm2, extra=0)
+
+    # TODO - test that signed off and unactive projects are not included.
+    # TODO - test that projects in the future are included in this year
+
+    year = datetime.datetime.now().year
+
+    this_year = get_approve_project_dict(year, this_year=True)
+    last_year = get_approve_project_dict(year, this_year=False)
+
+    project_filters = get_project_filters(this_year, last_year)
+
+    if request.method == "POST":
+
+        this_year_formset = project_formset(
+            request.POST, request.FILES, initial=this_year, prefix="this_year"
+        )
+
+        last_year_formset = project_formset(
+            request.POST, request.FILES, initial=last_year, prefix="last_year"
+        )
+
+        if this_year_formset.is_valid() and last_year_formset.is_valid():
+            for form in this_year_formset:
+                form.save()
+            for form in last_year_formset:
+                form.save()
+
+            return HttpResponseRedirect(reverse("ApprovedProjectsList"))
+        else:
+            return render(
+                request,
+                "pjtk2/ApproveProjects2.html",
+                {
+                    "year": year,
+                    "this_year_formset": this_year_formset,
+                    "last_year_formset": last_year_formset,
+                    "filters": project_filters,
+                },
+            )
+
+    else:
+        this_year_formset = project_formset(initial=this_year, prefix="this_year")
+        last_year_formset = project_formset(initial=last_year, prefix="last_year")
+
+    return render(
+        request,
+        "pjtk2/ApproveProjects2.html",
+        {
+            "year": year,
+            "this_year_formset": this_year_formset,
+            "last_year_formset": last_year_formset,
+            "filters": project_filters,
+        },
+    )
 
 
 @login_required

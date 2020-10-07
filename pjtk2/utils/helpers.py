@@ -9,6 +9,9 @@ import re
 import datetime
 import pytz
 
+from django.db.models import Subquery, Case, When, BooleanField, F, Value
+from django.db.models.functions import Concat
+
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import get_object_or_404
 
@@ -457,3 +460,79 @@ def make_proj_ms_dict(proj_ms, milestones):
             proj_ms_dict[prj_cd] = dict(proj)
 
     return proj_ms_dict
+
+
+def get_projects_for_approval(year, this_year=True):
+    # get projects_for_approval - returns a queryset containing the
+    # project that are eligible for approval either this year, or last year.
+    # we could filter here - lakes__in.
+
+    from pjtk2.models import Project
+
+    projects = Project.objects.filter(
+        projectmilestones__milestone__label="Sign off",
+        projectmilestones__completed__isnull=True,
+        cancelled=False,
+    )
+
+    if this_year:
+        return projects.filter(year__gte=year)
+    else:
+        return projects.filter(year=(year - 1))
+
+
+def get_approve_project_dict(year, this_year=True):
+    """
+    Get the approve_projects_dict - takes a queryset that returns the
+    list of active projects (not cancelled, not complete) and returns a dictionary
+    that can be passed to the ApproveProjectForm.
+
+    Arguments:
+    - `projects`:
+    """
+    from pjtk2.models import ProjectMilestones
+
+    projects = get_projects_for_approval(year, this_year)
+
+    dictionary_list = (
+        ProjectMilestones.objects.filter(
+            project__in=Subquery(projects.values("pk")), milestone__label="Approved"
+        )
+        .select_related(
+            "project",
+            "project__prj_ldr",
+            "project__project_type",
+            "project__protocol",
+            "project__lake",
+        )
+        .annotate(
+            approved=Case(
+                When(completed=None, then=False),
+                default=True,
+                output_field=BooleanField(),
+            ),
+            lake=F("project__lake__lake_name"),
+            prj_cd=F("project__prj_cd"),
+            prj_nm=F("project__prj_nm"),
+            prj_ldr=F("project__prj_ldr__username"),
+            prj_ldr_label=Concat(
+                "project__prj_ldr__first_name",
+                Value(" "),
+                "project__prj_ldr__last_name",
+            ),
+            project_type=F("project__project_type__project_type"),
+            protocol=F("project__protocol__protocol"),
+        )
+        .values(
+            "id",
+            "lake",
+            "approved",
+            "prj_cd",
+            "prj_nm",
+            "prj_ldr",
+            "prj_ldr_label",
+            "project_type",
+            "protocol",
+        )
+    )
+    return dictionary_list
