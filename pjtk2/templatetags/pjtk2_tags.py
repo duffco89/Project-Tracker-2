@@ -181,3 +181,24 @@ def strip_parameter(context, param):
         return "?" + query.urlencode()
     else:
         return context["request"].path
+
+
+@register.filter
+@stringfilter
+def space(string):
+    """A simple little template filter to replace underscores with spaces
+    """
+    return mark_safe(string.replace("_", " "))
+
+
+@register.filter
+@stringfilter
+def classify(project_attribute):
+    """Given a project attribute, return a string representation that could
+    be used to to assign a class in an html template.
+
+    """
+
+    classString = project_attribute.replace(" ", "-").replace("_", "-").lower()
+
+    return mark_safe(classString)

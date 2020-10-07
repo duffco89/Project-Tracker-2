@@ -20,8 +20,9 @@
   year }}{% endif %}{% if tag %}tagged with '{{ tag }}'{% endif %}
   {% if prj_ldr %} associated with {{ prj_ldr.first_name }} {{ prj_ldr.last_name }}: {% endif %}</h1>
 
-<p>N = {{ project_count }}</p>
-
+  {% if preject_count %}
+      <p>N = {{ project_count }}</p>
+  {% endif %}
   {% if object_list %}
 
   <table cellspacing="0" class="tablesorter">

@@ -137,11 +137,16 @@ def crud_project(request, slug, action="New"):
 
     if action == "Copy":
         milestones = None
-
+        if not (dba or manager):
+            instance.owner = user
+            instance.prj_ldr = user
     if action == "Edit":
         readonly = True
     else:
         readonly = False
+
+    if action == "New" and not (dba or manager):
+        instance.owner = user
 
     ProjectFundingFormset = inlineformset_factory(
         Project, ProjectFunding, form=ProjectFundingForm, extra=2
@@ -195,13 +200,6 @@ def crud_project(request, slug, action="New"):
                 },
             )
     else:
-
-        if action == "Copy" and not (dba or manager):
-            instance.owner = user
-            instance.prj_ldr = user
-
-        if action == "New" and not (dba or manager):
-            instance.owner = user
 
         form = ProjectForm(
             instance=instance,
