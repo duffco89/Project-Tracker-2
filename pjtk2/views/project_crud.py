@@ -160,6 +160,7 @@ def crud_project(request, slug, action="New"):
             request.POST,
             instance=instance,
             milestones=milestones,
+            user=request.user,
             readonly=readonly,
             manager=manager,
             dba=dba,
@@ -204,6 +205,7 @@ def crud_project(request, slug, action="New"):
         form = ProjectForm(
             instance=instance,
             readonly=readonly,
+            user=request.user,
             manager=manager,
             dba=dba,
             milestones=milestones,

@@ -91,7 +91,7 @@ def test_owner_widget_visibility_new_project_employee(client, employee):
 
     html = (
         '<select name="owner" class="form-control " disabled="disabled" '
-        + 'required id="id_owner">'
+        + 'id="id_owner">'
     )
     assert html in content
 
@@ -152,7 +152,7 @@ def test_owner_widget_visibility_copied_project_user(client, employee, project):
 
     html = (
         '<select name="owner" class="form-control " disabled="disabled" '
-        + 'required id="id_owner">'
+        + 'id="id_owner">'
     )
     assert html in content
 
@@ -217,7 +217,7 @@ def test_owner_widget_visibility_edit_project_user(client, employee, project):
 
     html = (
         '<select name="owner" class="form-control " disabled="disabled" '
-        + 'required id="id_owner">'
+        + 'id="id_owner">'
     )
     assert html in content
 

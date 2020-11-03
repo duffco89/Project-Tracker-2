@@ -829,6 +829,8 @@ class ProjectForm(forms.ModelForm):
         manager = kwargs.pop("manager", False)
         dba = kwargs.pop("dba", False)
 
+        self.user = kwargs.pop("user", None)
+
         milestones = kwargs.pop("milestones", None)
 
         super(ProjectForm, self).__init__(*args, **kwargs)
@@ -846,9 +848,12 @@ class ProjectForm(forms.ModelForm):
 
         self.readonly = readonly
         self.manager = manager
+        self.dba = dba
 
         if not (manager or dba):
+            self.fields["owner"].required = False
             self.fields["owner"].widget.attrs["disabled"] = "disabled"
+            # self.fields["owner"].widget.attrs["readonly"] = True
 
         if readonly:
             self.fields["prj_cd"].widget.attrs["readonly"] = True
@@ -919,6 +924,14 @@ class ProjectForm(forms.ModelForm):
         self.save_m2m()
 
         return instance
+
+    def clean_owner(self):
+        """if the user is not a manager or a dba, they must be the owner"""
+
+        if not (self.manager or self.dba):
+            return self.user
+        else:
+            return self.cleaned_data["owner"]
 
     def clean_approved(self):
         """if this wasn't a manager, reset the Approved value to the
