@@ -142,7 +142,7 @@ class TestProjectForm(TestCase):
             # salary=1000
         )
 
-        form = ProjectForm(data=proj)
+        form = ProjectForm(data=proj, user=self.user)
         form.is_valid()
         if form.errors:
             print("form.errors: %s" % form.errors)
@@ -171,7 +171,7 @@ class TestProjectForm(TestCase):
             project_team=[self.user_bart.id, self.user_lisa.id],
         )
 
-        form = ProjectForm(data=proj)
+        form = ProjectForm(data=proj, user=self.user)
         form.is_valid()
         if form.errors:
             print("form.errors: %s" % form.errors)

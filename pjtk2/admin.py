@@ -113,7 +113,10 @@ class NameChoiceField(ModelChoiceField):
     name, first name.  Used in Employee admin form."""
 
     def label_from_instance(self, obj):
-        return f"{obj.last_name}, {obj.first_name}"
+        if hasattr(obj, "last_name"):
+            return f"{obj.last_name}, {obj.first_name}"
+        else:
+            return f"{obj.user.last_name}, {obj.user.first_name}"
 
 
 class EmployeeAdminForm(forms.ModelForm):
@@ -128,7 +131,9 @@ class EmployeeAdminForm(forms.ModelForm):
     )
 
     supervisor = NameChoiceField(
-        queryset=User.objects.filter(is_active=True).order_by("username")
+        queryset=Employee.objects.filter(user__is_active=True).order_by(
+            "user__username"
+        )
     )
 
     class Meta:
@@ -151,7 +156,7 @@ class Admin_Employee(admin.ModelAdmin):
     list_display = ("username", "position", "role", "supervisor")
 
     def change_view(self, request, object_id, form_url="", extra_context=None):
-        self.exclude = ("user",)
+
         obj = self.get_object(request, object_id)
         if extra_context is None:
             extra_context = {}
