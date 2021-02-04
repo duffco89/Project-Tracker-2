@@ -1,8 +1,5 @@
 from main.settings.base import *
 
-GEOS_LIBRARY_PATH = "c:/OSGeo4W/bin/geos_c.dll"
-GDAL_LIBRARY_PATH = "C:/OSGeo4W/bin/gdal300.dll"
-
 
 ALLOWED_HOSTS = ["*"]
 
