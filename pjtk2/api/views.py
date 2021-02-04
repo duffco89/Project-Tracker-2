@@ -57,6 +57,18 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = ProjectFilter
 
 
+# class ProjectReportViewSet(viewsets.ReadOnlyModelViewSet):
+#     """A read only endpoint that returns the data need to create the UGLMU
+#     annual Assessment Report."""
+
+#     queryset = Project.objects.filter(cancelled=False, active=True).order_by()
+#     serializer_class = ProjectReportSerializer
+#     pagination_class = StandardResultsSetPagination
+#     lookup_field = "slug"
+#     filter_backends = (filters.DjangoFilterBackend,)
+#     filterset_class = ProjectFilter
+
+
 class ProjectPointViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = SamplePoint.objects.select_related("project", "project__project_type")

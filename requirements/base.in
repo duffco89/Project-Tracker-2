@@ -1,4 +1,5 @@
-inDjango==2.2.11
+Django==2.2.11
+django-filter==2.4.0
 django-crispy-forms==1.7.2
 django-geojson==2.12.0
 django-leaflet==0.26.0
@@ -7,6 +8,5 @@ django-taggit==1.1.0
 djangorestframework==3.10.3
 markdown2==2.3.8
 Pillow==6.2.1
-pip-tools==4.2.0
 psycopg2==2.8.3
 #ticket-tracker==0.1

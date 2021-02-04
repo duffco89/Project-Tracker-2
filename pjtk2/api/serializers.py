@@ -56,6 +56,55 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
         )
 
 
+# class ProjectImageSerializer(serializers.HyperlinkedModelSerializer):
+#     """A serializer that returns attributes of images - uses as a
+#     component of the project report serializer."""
+
+#     prj_cd = serializers.CharField(source="project.prj_cd", read_only=True)
+
+#     class Meta:
+#         model = SamplePoint
+#         fields = (  #'project',
+#             "prj_cd",
+#             "order",
+#             "image_path",
+#             "caption",
+#             # "aria-text",
+#             "report",
+#         )
+
+
+# class ProjectReportSerializer(serializers.HyperlinkedModelSerializer):
+#     """An api endpoint that returns project elements required to generate
+#     the annual assessment reports, including any assoicatiated images.
+
+#     TODO: ADD IMAGES
+
+#     """
+
+#     prj_ldr = UserSerializer()
+#     # images = ProjectImageSerializer()
+#     project_type = serializers.CharField(
+#         source="project_type.project_type", read_only=True
+#     )
+
+#     class Meta:
+#         model = Project
+#         lookup_field = "slug"
+#         fields = (
+#             "year",
+#             "prj_cd",
+#             "slug",
+#             "prj_nm",
+#             "prj_date0",
+#             "prj_date1",
+#             "project_type",
+#             "prj_ldr",
+#             "comment",
+#             # "images",
+#         )
+
+
 class ProjectPointSerializer(serializers.HyperlinkedModelSerializer):
 
     # project = serializers.HyperlinkedIdentityField(
