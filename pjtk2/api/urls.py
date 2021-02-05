@@ -9,6 +9,7 @@ from .views import (
     ProjectTypeViewSet,
     ProjectPointViewSet,
     ProjectPolygonViewSet,
+    ProjectAbstractViewSet,
     points_roi,
 )
 
@@ -21,8 +22,16 @@ router = routers.DefaultRouter()
 router.register(r"projects", ProjectViewSet)
 router.register(r"project_leads", UserViewSet, basename="project_lead")
 router.register(r"project_types", ProjectTypeViewSet, basename="project_type")
+router.register(
+    r"project_abstracts", ProjectAbstractViewSet, basename="project_abstract"
+)
 
 urlpatterns = [
+    #    url(
+    #        r"^project_abstracts/",
+    #        ProjectAbstractViewSet.as_view({"get": "list"}),
+    #        name="project_abstracts",
+    #    ),
     url(
         r"^project_points/" + PRJ_CD_REGEX,
         ProjectPointViewSet.as_view({"get": "list"}),

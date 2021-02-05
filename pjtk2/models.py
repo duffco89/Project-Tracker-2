@@ -942,9 +942,11 @@ class Project(models.Model):
         if family:
             try:
                 if excludeself:
-                    sisters = Project.objects.filter(
-                        projectsisters__family=family
-                    ).exclude(slug=self.slug)
+                    sisters = (
+                        Project.objects.filter(projectsisters__family=family)
+                        .exclude(slug=self.slug)
+                        .order_by("prj_cd")
+                    )
                 else:
                     sisters = Project.objects.filter(projectsisters__family=family)
             except Project.DoesNotExist:
