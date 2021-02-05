@@ -31,6 +31,7 @@ from ..forms import (
     ProjectFundingForm,
     AssociatedFileUploadForm,
     ReportUploadForm,
+    SpatialPointUploadForm,
 )
 
 from ..utils.helpers import (
@@ -334,4 +335,43 @@ def delete_associated_file(request, id):
             request,
             "pjtk2/confirm_file_delete.html",
             {"associated_file": associated_file, "project": project},
+        )
+
+
+@login_required
+def spatial_point_upload(request, slug):
+    """This view will allow authorized users to upload a xlsx or csv file
+    containing spatial information for a specific project.
+
+    """
+
+    project = Project.objects.get(slug=slug)
+    # verify that only authorized users can add spatial data.
+    if can_edit(request.user, project) is False:
+        return HttpResponseRedirect(project.get_absolute_url())
+
+    form = SpatialPointUploadForm()
+
+    if request.method == "POST":
+        form = SpatialPointUploadForm(request.POST, request.FILES)
+
+        import pdb
+
+        pdb.set_trace()
+
+        # form = AssociatedFileUploadForm(
+        #    request.POST, request.FILES, project=project, user=request.user
+        # )
+        # if form.is_valid():
+        #    form.save()
+        #    # m = ExampleModel.objects.get(pk=course_id)
+        #    # m.model_pic = form.cleaned_data['image']
+        #    # m.save()
+        return HttpResponseRedirect(project.get_absolute_url())
+
+    else:
+        return render(
+            request,
+            "pjtk2/UploadSpatialPoints.html",
+            {"project": project, "form": form},
         )

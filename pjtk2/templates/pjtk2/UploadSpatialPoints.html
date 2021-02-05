@@ -1,0 +1,85 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+
+{% block content %}
+
+    <div class="container">
+
+        <h2> Upload Spatial Points </h2>
+
+        <h3>{{ project.prj_nm }} (<a href="{{ project.get_absoulte_url }}">
+            {{ project.prj_cd }}</a>)</h3>
+
+        <hr />
+
+
+        <p>about spatial data and how data uploaded in this form is used</p>
+        <p>suggestions for different proejct types - random netting, fixed site, or integrated analysis</p>
+        <p>example data</p>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <strong>Spatial Data Upload</strong>
+            </div>
+            
+            <div class="panel-body">
+
+
+                    
+                    <form action="{% url 'spatial_point_upload' project.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+                        
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                            <div class="has-error help-block text-danger">
+                                {{ form.non_field_errors }}
+                            </div>                                
+                        {% endif %}
+                        
+                        {% for hidden_field in form.hidden_fields %}
+                            {{ hidden_field.errors }}
+                            {{ hidden_field }}
+                        {% endfor %}
+
+                        <div class="panel panel-default">
+                            <div class="panel-body">                               
+                                
+                                <div class="form-group {% if form.points_file.errors %}has-error{% endif %}">
+                                    {{ form.points_file.label }}
+                                    {{ form.points_file }}
+                                    {% if form.points_file.errors %}
+                                        {% for error in form.points_file.errors %}
+                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+
+                                <p>How should we handle any existing points?</p>
+                                <div class="form-group {% if form.replace.errors %}has-error{% endif %}">
+                                    <div class="radio-inline">
+                                        {{ form.replace }}
+                                        {% if form.replace.errors %}
+                                            {% for error in form.replace.errors %}
+                                                <div class="has-error help-block text-danger">{{ error }}</div>
+                                            {% endfor %}
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary pull-right">Upload Points</button>
+                        
+                    </form>
+
+
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+
