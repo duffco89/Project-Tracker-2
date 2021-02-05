@@ -26,6 +26,7 @@ from pjtk2.views import (
     report_upload,
     associated_file_upload,
     delete_associated_file,
+    spatial_point_upload,
 )
 
 PRJ_CD_REGEX = settings.PRJ_CD_REGEX
@@ -61,5 +62,10 @@ urlpatterns = [
         "delete_associated_file/<int:id>/",
         view=delete_associated_file,
         name="delete_associated_file",
+    ),
+    re_path(
+        (r"upload_spatial_points/" + PRJ_CD_REGEX),
+        spatial_point_upload,
+        name="spatial_point_upload",
     ),
 ]

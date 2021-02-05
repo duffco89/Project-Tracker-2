@@ -65,7 +65,7 @@ User = get_user_model()
 
 def make_custom_datefield(fld, **kwargs):
     """from: http://strattonbrazil.blogspot.ca/2011/03/
-                 using-jquery-uis-date-picker-on-all.html"""
+    using-jquery-uis-date-picker-on-all.html"""
     from django.db import models
 
     formfield = fld.formfield(**kwargs)
@@ -1093,3 +1093,27 @@ class EditImageForm(ModelForm):
         model = ProjectImage
         fields = ("caption", "report")
         widgets = {"caption": forms.Textarea(attrs={"rows": 4})}
+
+
+class SpatialPointUploadForm(forms.Form):
+    """A simple little form for uploading spatial points for a project.
+    Accepts only text files (csv or txt) or xlsx files.  A required
+    select field determines if the points should replace any that are
+    already associated with the project or add to them.
+    """
+
+    points_file = forms.FileField(label="Data File", required=True)
+
+    REPLACE_CHOICES = [
+        ("replace", "Replace Existing Points"),
+        ("append", "Append to Existing Points"),
+    ]
+
+    replace = forms.ChoiceField(
+        choices=REPLACE_CHOICES, required=True, widget=forms.RadioSelect
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(SpatialPointUploadForm, self).__init__(*args, **kwargs)
+        self.fields["points_file"].widget.attrs["class"] = "fileinput"
+        self.fields["points_file"].widget.attrs["accept"] = ".csv,.txt,.xlsx"
