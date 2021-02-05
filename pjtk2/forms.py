@@ -2,24 +2,32 @@
 # E1120 - No value passed for parameter 'cls' in function call
 # pylint: disable=E1101, E1120
 
+import csv
 import datetime
+import io
+import hashlib
 import pytz
 import re
-import hashlib
+
+
+from openpyxl import load_workbook
 
 
 from django.contrib.gis import forms
 from django.contrib.gis.forms.fields import PolygonField
+from django.contrib.gis.geos import Point
 
 # from django import forms
 from django.contrib.auth import get_user_model
 from django.db.models.aggregates import Max, Min
 from django.forms.formsets import BaseFormSet
+
 from django.forms import (
-    ModelForm,
-    ModelChoiceField,
     CharField,
+    ModelChoiceField,
+    ModelForm,
     ModelMultipleChoiceField,
+    ValidationError,
 )
 from django.forms.widgets import (
     CheckboxSelectMultiple,
@@ -42,6 +50,7 @@ from crispy_forms.layout import Submit, Layout, Fieldset, Field, ButtonHolder, D
 from crispy_forms.bootstrap import PrependedText
 
 from taggit.forms import *
+
 from .models import (
     Milestone,
     Project,
@@ -55,6 +64,7 @@ from .models import (
     ProjectFunding,
     FundingSource,
     ProjectImage,
+    SamplePoint,
 )
 
 User = get_user_model()
@@ -1096,13 +1106,22 @@ class EditImageForm(ModelForm):
 
 
 class SpatialPointUploadForm(forms.Form):
-    """A simple little form for uploading spatial points for a project.
+    """A form for uploading spatial points for a project.
     Accepts only text files (csv or txt) or xlsx files.  A required
     select field determines if the points should replace any that are
     already associated with the project or add to them.
+
+    Most of the code associated wth this form is for the spatial point
+    validation - only fields with records than can be successfully
+    converted to points that fall within the lake associated with the
+    project can be saved.
+
     """
 
-    points_file = forms.FileField(label="Data File", required=True)
+    points_file = forms.FileField(
+        label="Data File",
+        required=True,
+    )
 
     REPLACE_CHOICES = [
         ("replace", "Replace Existing Points"),
@@ -1114,6 +1133,97 @@ class SpatialPointUploadForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        self.project = kwargs.pop("project")
+        self.lake_geom = self.project.lake.geom
         super(SpatialPointUploadForm, self).__init__(*args, **kwargs)
         self.fields["points_file"].widget.attrs["class"] = "fileinput"
         self.fields["points_file"].widget.attrs["accept"] = ".csv,.txt,.xlsx"
+
+    def handle_csv_data(self, csv_file):
+        csv_file = io.TextIOWrapper(csv_file)
+        reader = csv.reader(csv_file)
+        pts = list(reader)
+        return [x for x in pts if x != []]
+
+    def handle_xlsx_data(self, xlsx_file):
+        wb = load_workbook(filename=xlsx_file)
+        pts = []
+
+        for row in wb.worksheets[0]:
+            pts.append([cell.value for cell in row])
+        return pts
+
+    def clean_points_file(self):
+        """verify that our file can be parsed, contains the data we think it
+        contains, and that the points are actually in the bounding box of the
+        lake assoicated with this project.
+        """
+        validation_errors = []
+        geoPoints = None
+
+        points_file = self.cleaned_data.get("points_file", False)
+        if points_file:
+            if points_file.size > 0.5 * 1024 * 1024:
+                raise ValidationError("Points_File file way too large ( > 0.5mb )")
+
+            if points_file.name.endswith("xlsx"):
+                pts = self.handle_xlsx_data(points_file.file)
+            else:
+                pts = self.handle_csv_data(points_file.file)
+
+            if not len(pts):
+                raise ValidationError(
+                    "Points_File does not appear to contain any data!"
+                )
+
+            expected_header = ["Point Label", "DD_LAT", "DD_LON"]
+            recieved_header = pts.pop(0)
+            if not recieved_header == expected_header:
+                validation_errors.append("Malformed header in submitted file.")
+
+            empty_labels = [x for x in pts if x == "" or x is None]
+            if len(empty_labels):
+                validation_errors.append("At least one point is missing a label")
+
+            try:
+                geoPoints = [[x[0], Point(float(x[2]), float(x[1]))] for x in pts]
+            except (ValueError, TypeError, IndexError):
+                validation_errors.append(
+                    "At least one point has an invalid latitude or longitude."
+                )
+
+            if geoPoints and self.lake_geom:
+                envelope = self.lake_geom.envelope
+                out_of_bounds = [x for x in geoPoints if not envelope.contains(x[1])]
+                if len(out_of_bounds):
+                    msg = """{} of the supplied points are not within the bounds of the lake
+                    associated with this project.""".format(
+                        len(out_of_bounds)
+                    )
+                    validation_errors.append(msg)
+
+            if len(validation_errors):
+                raise ValidationError(" ".join(validation_errors))
+            else:
+                return geoPoints
+        else:
+            raise ValidationError("Couldn't read uploaded points_file")
+
+    def save(self):
+        """when we save the form - we need to create a bunch of project sample
+        points, and either append them to our project or replace the
+        existing ones.
+
+        """
+        sample_points = []
+        project = self.project
+        for pt in self.cleaned_data["points_file"]:
+            sample_points.append(SamplePoint(project=project, label=pt[0], geom=pt[1]))
+
+        if self.cleaned_data["replace"] == "replace":
+            SamplePoint.objects.filter(project=project).delete()
+
+        SamplePoint.objects.bulk_create(sample_points)
+
+        project.update_multipoints()
+        project.update_convex_hull()

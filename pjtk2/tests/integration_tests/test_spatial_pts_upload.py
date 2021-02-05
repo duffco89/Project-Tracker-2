@@ -132,3 +132,11 @@ def test_replace_csv():
     """if the replace option is specified when the data is submitted as an
     csv file, the points should replace any that are already present."""
     assert 0 == 1
+
+
+def test_project_polygon_updated():
+    """Verify that the project polygon for our proejct is updated after we
+    submit new points.
+
+    """
+    assert 0 == 1

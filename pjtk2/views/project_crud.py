@@ -350,23 +350,13 @@ def spatial_point_upload(request, slug):
     if can_edit(request.user, project) is False:
         return HttpResponseRedirect(project.get_absolute_url())
 
-    form = SpatialPointUploadForm()
-
     if request.method == "POST":
-        form = SpatialPointUploadForm(request.POST, request.FILES)
+        form = SpatialPointUploadForm(request.POST, request.FILES, project=project)
+    else:
+        form = SpatialPointUploadForm(project=project)
 
-        import pdb
-
-        pdb.set_trace()
-
-        # form = AssociatedFileUploadForm(
-        #    request.POST, request.FILES, project=project, user=request.user
-        # )
-        # if form.is_valid():
-        #    form.save()
-        #    # m = ExampleModel.objects.get(pk=course_id)
-        #    # m.model_pic = form.cleaned_data['image']
-        #    # m.save()
+    if form.is_valid():
+        form.save()
         return HttpResponseRedirect(project.get_absolute_url())
 
     else:
