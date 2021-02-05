@@ -20,7 +20,7 @@ from rest_framework.test import APITestCase
 User = get_user_model()
 
 
-class ProjjctAPITest(APITestCase):
+class ProjectAPITest(APITestCase):
     def setUp(self):
 
         self.factory = RequestFactory()
@@ -140,10 +140,10 @@ class ProjjctAPITest(APITestCase):
 
     def test_project_list_api_get_filter_first_and_last_year(self):
         """The project list api accepts url filters for first and last year -
-        if the filters are included in the url, the response should only
-       return projects that occur between the specified years (including
-        first and last year). The response should be a series of json
-        objects that satisfy that criteria.
+         if the filters are included in the url, the response should only
+        return projects that occur between the specified years (including
+         first and last year). The response should be a series of json
+         objects that satisfy that criteria.
 
         """
 

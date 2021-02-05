@@ -218,7 +218,7 @@ class ProjectImageFactory(factory.DjangoModelFactory):
         model = ProjectImage
 
     project = factory.SubFactory(ProjectFactory)
-    order = 0
+    order = factory.Sequence(lambda n: n)
     image_path = factory.Sequence(lambda n: "FakeImage-{}.png".format(n))
     caption = "Image caption placeholder"
     report = True

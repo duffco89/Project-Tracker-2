@@ -1,8 +1,9 @@
-from django.db.models import Q
+from django.db.models import Q, Prefetch
 from django.http import Http404
+from django.contrib.auth import get_user_model
 from django.contrib.gis.geos import GEOSGeometry, Polygon
 
-from rest_framework import viewsets, status
+from rest_framework import generics, viewsets, status
 from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 
@@ -17,16 +18,19 @@ from rest_framework.exceptions import ValidationError
 
 from .serializers import (
     ProjectSerializer,
+    ProjectAbstractSerializer,
     ProjectTypeSerializer,
     ProjectPointSerializer,
     ProjectPolygonSerializer,
     UserSerializer,
 )
-from pjtk2.models import Project, ProjectType, SamplePoint, ProjectPolygon, User
+from pjtk2.models import Project, ProjectType, SamplePoint, ProjectPolygon, ProjectImage
 
 from pjtk2.filters import SamplePointFilter, ProjectFilter
 
 from pjtk2.utils.spatial_utils import find_roi_points
+
+User = get_user_model()
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -57,16 +61,31 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     filterset_class = ProjectFilter
 
 
-# class ProjectReportViewSet(viewsets.ReadOnlyModelViewSet):
-#     """A read only endpoint that returns the data need to create the UGLMU
-#     annual Assessment Report."""
+class ProjectAbstractViewSet(viewsets.ReadOnlyModelViewSet):
+    """A read only endpoint that returns the data need to create the UGLMU
+    annual Assessment Report."""
 
-#     queryset = Project.objects.filter(cancelled=False, active=True).order_by()
-#     serializer_class = ProjectReportSerializer
-#     pagination_class = StandardResultsSetPagination
-#     lookup_field = "slug"
-#     filter_backends = (filters.DjangoFilterBackend,)
-#     filterset_class = ProjectFilter
+    queryset = (
+        Project.objects.filter(cancelled=False, active=True)
+        .select_related("project_type", "prj_ldr")
+        .prefetch_related(
+            Prefetch("images", queryset=ProjectImage.objects.filter(report=True))
+        )
+        .order_by("-year", "project_type__project_type", "prj_nm")
+    )
+    serializer_class = ProjectAbstractSerializer
+    pagination_class = StandardResultsSetPagination
+    lookup_field = "slug"
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = ProjectFilter
+
+    # def get_queryset(self):
+    #     queryset = super(ProjectAbstractListView, self).get_queryset()
+    #     slug = self.kwargs.get("slug")
+    #     if slug:
+    #         return queryset.filter(project__slug=slug.lower())
+    #     else:
+    #         return queryset
 
 
 class ProjectPointViewSet(viewsets.ReadOnlyModelViewSet):

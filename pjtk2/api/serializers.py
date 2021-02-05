@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from pjtk2.models import Project, ProjectType, SamplePoint, ProjectPolygon
+from pjtk2.models import Project, ProjectType, SamplePoint, ProjectPolygon, ProjectImage
 
 User = get_user_model()
 
@@ -56,53 +56,55 @@ class ProjectSerializer(serializers.HyperlinkedModelSerializer):
         )
 
 
-# class ProjectImageSerializer(serializers.HyperlinkedModelSerializer):
-#     """A serializer that returns attributes of images - uses as a
-#     component of the project report serializer."""
+class ProjectImageSerializer(serializers.ModelSerializer):
+    """A serializer that returns attributes of images - uses as a
+    nested component of the project abstract serializer."""
 
-#     prj_cd = serializers.CharField(source="project.prj_cd", read_only=True)
-
-#     class Meta:
-#         model = SamplePoint
-#         fields = (  #'project',
-#             "prj_cd",
-#             "order",
-#             "image_path",
-#             "caption",
-#             # "aria-text",
-#             "report",
-#         )
+    class Meta:
+        model = ProjectImage
+        fields = (
+            "order",
+            "image_path",
+            "caption",
+            # "aria-text",
+            "report",
+        )
 
 
-# class ProjectReportSerializer(serializers.HyperlinkedModelSerializer):
-#     """An api endpoint that returns project elements required to generate
-#     the annual assessment reports, including any assoicatiated images.
+class ProjectAbstractSerializer(serializers.HyperlinkedModelSerializer):
+    """An api endpoint that returns project elements required to generate
+    the annual assessment reports, including any assoicatiated images.
 
-#     TODO: ADD IMAGES
+    TODO: ADD IMAGES
 
-#     """
+    """
 
-#     prj_ldr = UserSerializer()
-#     # images = ProjectImageSerializer()
-#     project_type = serializers.CharField(
-#         source="project_type.project_type", read_only=True
-#     )
+    project_leader = serializers.SerializerMethodField()
+    images = ProjectImageSerializer(many=True)
+    project_type = serializers.CharField(
+        source="project_type.project_type", read_only=True
+    )
 
-#     class Meta:
-#         model = Project
-#         lookup_field = "slug"
-#         fields = (
-#             "year",
-#             "prj_cd",
-#             "slug",
-#             "prj_nm",
-#             "prj_date0",
-#             "prj_date1",
-#             "project_type",
-#             "prj_ldr",
-#             "comment",
-#             # "images",
-#         )
+    class Meta:
+        model = Project
+        lookup_field = "slug"
+        fields = (
+            "year",
+            "prj_cd",
+            "slug",
+            "prj_nm",
+            "prj_date0",
+            "prj_date1",
+            "project_type",
+            "project_leader",
+            "abstract",
+            "images",
+        )
+
+    def get_project_leader(self, obj):
+        """return the project lead as a concatenated string that includes the
+        first name and last name."""
+        return "{} {}".format(obj.prj_ldr.first_name, obj.prj_ldr.last_name)
 
 
 class ProjectPointSerializer(serializers.HyperlinkedModelSerializer):
