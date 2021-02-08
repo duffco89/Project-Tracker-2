@@ -227,17 +227,17 @@
 
 
             {% if edit %}
-            {% with  project.abstract|length as abstract_length %}
-            {% if abstract_length > 2500 %}
-            <div class="alert alert-danger" role="alert">
-                <p>The abstract for this project exceeds the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
-            </div>
-            {% elif  abstract_length > 2000 %}
-            <div class="alert alert-warning" role="alert">
-                <p>The abstract for this project is approaching the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
-            </div>
-            {% endif %}
-            {% endwith %}
+                {% with  project.abstract|length as abstract_length %}
+                    {% if abstract_length > 2500 %}
+                        <div class="alert alert-danger" role="alert">
+                            <p>The abstract for this project exceeds the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
+                        </div>
+                    {% elif  abstract_length > 2000 %}
+                        <div class="alert alert-warning" role="alert">
+                            <p>The abstract for this project is approaching the length limit and may not render properly when the annual report is created. The abstract is currently {{ abstract_length }} characters.</p>
+                        </div>
+                    {% endif %}
+                {% endwith %}
             {% endif %}
 
             <p><strong>Project Abstract (public facing):</strong></p>
@@ -245,56 +245,56 @@
             <div class="panel panel-default" >
                 <div class="panel-body" >
                     {% if project.abstract_html %}
-                    <p>{{ project.abstract_html|safe  }} </p>
+                        <p>{{ project.abstract_html|safe  }} </p>
                     {% else %}
-                    <p><em>Sorry. No project abstract has been provided. </em>   </p>
+                        <p><em>Sorry. No project abstract has been provided. </em>   </p>
                     {% endif %}
                 </div>
             </div>
 
             {% if user.is_authenticated %}
-            <p><strong>Comments or Remarks:</strong></p>
+                <p><strong>Comments or Remarks:</strong></p>
 
-            <div class="panel panel-default" >
-                <div class="panel-body" >
-                    {% if project.comment_html %}
-                    <p>{{ project.comment_html|safe  }} </p>
-                    {% else %}
-                    <p><em>Sorry. No project description has been provided. </em>   </p>
-                    {% endif %}
+                <div class="panel panel-default" >
+                    <div class="panel-body" >
+                        {% if project.comment_html %}
+                            <p>{{ project.comment_html|safe  }} </p>
+                        {% else %}
+                            <p><em>Sorry. No project description has been provided. </em>   </p>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
             {% endif %}
 
             {% if project.risk_html %}
-            <p><strong>Risks:</strong></p>
-            <div class="panel panel-default" >
-                <div class="panel-body" >
-                    <p>{{ project.risk_html|safe  }} </p>
+                <p><strong>Risks:</strong></p>
+                <div class="panel panel-default" >
+                    <div class="panel-body" >
+                        <p>{{ project.risk_html|safe  }} </p>
+                    </div>
                 </div>
-            </div>
             {% endif %}
 
             {% if project.has_sister %}
-            <p><strong>Sister Projects:</strong></p>
-            <div class="panel panel-default" >
-                <div class="panel-body" >
-                    {% for sister in project.get_sisters %}
-                    <p><a href="{{ sister.get_absolute_url  }}">{{ sister.prj_cd }}</a>  - {{ sister.prj_nm }}</p>
-                    {% endfor%}
+                <p><strong>Sister Projects:</strong></p>
+                <div class="panel panel-default" >
+                    <div class="panel-body" >
+                        {% for sister in project.get_sisters %}
+                            <p><a href="{{ sister.get_absolute_url  }}">{{ sister.prj_cd }}</a>  - {{ sister.prj_nm }}</p>
+                        {% endfor%}
+                    </div>
                 </div>
-            </div>
             {% endif %}
 
             <p><strong>keywords:</strong></p>
             <div class="panel panel-default" >
                 <div class="panel-body" >
                     {% if project.tags.all %}
-                    {% for tag in project.tags.all %}
-                    <a href="{% url 'TaggedProjects' tag.name %}">{{ tag.name }}</a>,
-                    {% endfor %}
+                        {% for tag in project.tags.all %}
+                            <a href="{% url 'TaggedProjects' tag.name %}">{{ tag.name }}</a>,
+                        {% endfor %}
                     {% else %}
-                    <p><em>No keywords have have been associated with this project. </em>   </p>
+                        <p><em>No keywords have have been associated with this project. </em>   </p>
                     {% endif%}
                 </div>
             </div>
@@ -305,7 +305,13 @@
             <div class="panel panel-default">
                 <div class="panel-body">
                     <div id="main_map" style="width: 600px; height: 600px;"></div>
+                    {% if edit %}                    
+                        <a class="btn btn-info btn-xs pull-right" style="margin-top:5px;" href="{% url 'spatial_point_upload' project.slug %}">
+                            Upload Spatial Points
+                        </a>
+                    {% endif %}
                 </div>
+
             </div>
 
             <!-- IMAGES -->

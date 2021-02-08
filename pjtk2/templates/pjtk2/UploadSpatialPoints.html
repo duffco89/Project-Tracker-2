@@ -4,7 +4,7 @@
 
     <div class="container">
 
-        <h2> Upload Spatial Points </h2>
+        <h2>Upload Spatial Points</h2>
 
         <h3>{{ project.prj_nm }} (<a href="{{ project.get_absoulte_url }}">
             {{ project.prj_cd }}</a>)</h3>
@@ -12,10 +12,164 @@
         <hr />
 
 
-        <p>about spatial data and how data uploaded in this form is used</p>
-        <p>suggestions for different proejct types - random netting, fixed site, or integrated analysis</p>
-        <p>example data</p>
+        <a class="btn btn-info btn-sm" style="margin-bottom:5px"role="button" data-toggle="collapse" href="#additional-information" aria-expanded="false" aria-controls="additional-information">
+            Additional Details....
+        </a>
 
+        <div class="collapse" id="additional-information">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    
+                    
+                    <p>
+                        Spatial data allows
+                        Project Tracker to show sampling events
+                        associated with a project on a map and find
+                        projects within an arbitrary region of
+                        interest.  Ultimately, the spatial data
+                        associated with most projects will be
+                        populated from master databases, but
+                        currently the spatial data must be uploaded by
+                        the project lead in either csv or xlsx files.                        
+                    </p>
+                    
+                    <p>
+                        The most appropriate level of spatial
+                        resolution associated with a project depends a
+                        lot on the type of project and available data:
+
+                        <ul>
+                            <li><strong>Coordinates of Each
+                                Sample</strong> - For projects that
+                                have a unique coordinate for each
+                                sampling event, it is most appropriate
+                                to report the actual location
+                                associated with the sample. In this
+                                instance, SAM can be used as the label
+                                to identify the specific event.  This
+                                approach applies to most of our
+                                independent netting projects and
+                                on-board catch sampling programs as
+                                examples.</li>
+                            
+                            <li><strong>Fixed Sites</strong> - For
+                                projects that collect a large number of
+                                samples from a small number of sites, it
+                                is most appropriate to report these by
+                                using the site names as the point labels,
+                                and the associated coordinates for each
+                                site rather that uploading a large number
+                                of duplicate points. Examples of this type of project
+                                include creels, derby sampling, or fishway
+                                monitoring.</li>
+
+                            <li><strong>Grid Centroids</strong> - For
+                                some projects (e.g. - commercial harvest
+                                reporting), the 5-minute grid might be the
+                                finest level of resolution available, in
+                                which case, a list of 5-minute grid
+                                centroids where the events occured would
+                                adequately capture the spatial extent of
+                                the project.
+                            </li>
+                            
+                            <li><strong>Synthesis/Integrated
+                                Analysis</strong> - these are projects
+                                that summarize data collected in other
+                                projects. In most cases, the appropriate
+                                level of spatial resolution are the sites
+                                or samples used in the project that were
+                                integrated into this analysis. Labels are
+                                usually created by combining the source
+                                project-site or source project-sample
+                                identifiers so that users are able to find
+                                the original original data associated with
+                                a point.  Some examples of this type of
+                                project include Lamprey wounding, CWT
+                                recoveries, or non-fish species
+                                reporting.</li>
+                            
+                        </ul>
+                        
+                    </p>
+
+                    
+                    <p>The uploaded file must meet to a number of criteria in order be processed(see
+                        table below for a small but complete example):</p>
+
+                    <ul id="spatial-validation-rules">
+                        <li>only *.csv or *.xlsx files are currently accepted</li>
+                        <li>the file must contain a header with the <em>uppercase</em>
+                            values "POINT_LABEL", "DD_LAT", and "DD_LON"</li>
+                        <ul>
+                            
+                            <li>POINT_LABEL is the text that is
+                                displayed on maps in Project Tracker
+                                when the point is clicked on. Do not
+                                include Project Code in this label.
+                                Project Tracker add that
+                                automatically.  POINT_LABEL is most
+                                often SAM or site name.</li>
+                            
+                            <li>DD_LAT is the latitude of the site or
+                                sampling event in decimal degrees</li>
+                            
+                            <li>DD_LON is the longitude of the site or
+                                sampling event in decimal degrees. (Note
+                                that it must be negative)</li>
+                        </ul>
+                        <li>All three fields must be populated in each row.</li>
+                        <li>DD_LAT and DD_LON must form a valid
+                            coordinate, and that coordinate must be
+                            contained within the bounding box of the lake
+                            associated with the project.</li>
+                        <li>The file must contain less than 1000 sample points.</li>
+                        
+                    </ul>
+                    
+
+
+                    <div class="panel panel-default" id="example-spatial-data">
+                        <div class="panel-heading">Example Data</div>
+                        <div class="panel-body">
+                            
+                            <table id="example-input" class="table">
+                                <thead>
+                                    <tr>
+                                        <th>POINT_LABEL</th>
+                                        <th>DD_LAT</th>
+                                        <th>DD_LON</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Yardley Point</td>
+                                        <td>44.708</td>
+                                        <td>-80.018</td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>Collingwood Harbor</td>
+                                        <td>44.513</td>
+                                        <td>-80.227</td>
+
+                                    </tr>
+
+                                    <tr>
+                                        <td>Severn Sound</td>
+                                        <td>44.799</td>
+                                        <td>-79.826</td>
+                                    </tr>
+                                    
+                                </tbody>
+                            </table>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
 
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -25,52 +179,52 @@
             <div class="panel-body">
 
 
+                
+                <form action="{% url 'spatial_point_upload' project.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
                     
-                    <form action="{% url 'spatial_point_upload' project.slug %}" method="post" enctype="multipart/form-data">{% csrf_token %}
-                        
-                        {% csrf_token %}
+                    {% csrf_token %}
 
-                        {% if form.non_field_errors %}
-                            <div class="has-error help-block text-danger">
-                                {{ form.non_field_errors }}
-                            </div>                                
-                        {% endif %}
-                        
-                        {% for hidden_field in form.hidden_fields %}
-                            {{ hidden_field.errors }}
-                            {{ hidden_field }}
-                        {% endfor %}
+                    {% if form.non_field_errors %}
+                        <div class="has-error help-block text-danger">
+                            {{ form.non_field_errors }}
+                        </div>                                
+                    {% endif %}
+                    
+                    {% for hidden_field in form.hidden_fields %}
+                        {{ hidden_field.errors }}
+                        {{ hidden_field }}
+                    {% endfor %}
 
-                        <div class="panel panel-default">
-                            <div class="panel-body">                               
-                                
-                                <div class="form-group {% if form.points_file.errors %}has-error{% endif %}">
-                                    {{ form.points_file.label }}
-                                    {{ form.points_file }}
-                                    {% if form.points_file.errors %}
-                                        {% for error in form.points_file.errors %}
+                    <div class="panel panel-default">
+                        <div class="panel-body">                               
+                            
+                            <div class="form-group {% if form.points_file.errors %}has-error{% endif %}">
+                                {{ form.points_file.label }}
+                                {{ form.points_file }}
+                                {% if form.points_file.errors %}
+                                    {% for error in form.points_file.errors %}
+                                        <div class="has-error help-block text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+
+                            <p>How should we handle any existing points?</p>
+                            <div class="form-group {% if form.replace.errors %}has-error{% endif %}">
+                                <div class="radio-inline">
+                                    {{ form.replace }}
+                                    {% if form.replace.errors %}
+                                        {% for error in form.replace.errors %}
                                             <div class="has-error help-block text-danger">{{ error }}</div>
                                         {% endfor %}
                                     {% endif %}
                                 </div>
-
-
-                                <p>How should we handle any existing points?</p>
-                                <div class="form-group {% if form.replace.errors %}has-error{% endif %}">
-                                    <div class="radio-inline">
-                                        {{ form.replace }}
-                                        {% if form.replace.errors %}
-                                            {% for error in form.replace.errors %}
-                                                <div class="has-error help-block text-danger">{{ error }}</div>
-                                            {% endfor %}
-                                        {% endif %}
-                                    </div>
-                                </div>
-
                             </div>
-                        </div>
 
-                        <button type="submit" class="btn btn-primary pull-right">Upload Points</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary pull-right">Upload Points</button>
                         
                     </form>
 
