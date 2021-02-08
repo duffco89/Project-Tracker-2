@@ -634,3 +634,32 @@ User = get_user_model()
 
 original_data = Employee.objects.all()[:10]
 original_data_json = serializers.serialize("json", original_data)
+
+
+import csv
+from io import StringIO
+
+mylist = [["a", "b"], ["c", "d"]]
+f = StringIO()
+foo = csv.writer(f).writerows(mylist)
+
+
+from io import StringIO, BytesIO
+from openpyxl import Workbook
+
+
+data = [["a", "b"], ["c", "d"]]
+virtual_workbook = BytesIO()
+wb = Workbook()
+sheet = wb.active
+for row in data:
+    sheet.append(row)
+wb.save(virtual_workbook)
+
+
+pts = [
+    ["Point Label", "DD_LAT", "DD_LON"],
+    ["1", "44.608", "-80.580"],
+    ["10,44.718", "-80.636"],
+    ["11", "44.692", "-80.629"],
+]

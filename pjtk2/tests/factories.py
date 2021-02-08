@@ -10,7 +10,7 @@ from common.models import Lake
 User = get_user_model()
 
 
-class UserFactory(factory.DjangoModelFactory):
+class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
 
@@ -42,7 +42,7 @@ class UserFactory(factory.DjangoModelFactory):
         return manager.create_user(*args, **kwargs)
 
 
-class DBA_Factory(factory.DjangoModelFactory):
+class DBA_Factory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
 
@@ -72,7 +72,7 @@ class DBA_Factory(factory.DjangoModelFactory):
         return manager.create_user(*args, **kwargs)
 
 
-class ManagerFactory(factory.DjangoModelFactory):
+class ManagerFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = User
 
@@ -100,7 +100,7 @@ class ManagerFactory(factory.DjangoModelFactory):
         return manager.create_user(*args, **kwargs)
 
 
-class LakeFactory(factory.DjangoModelFactory):
+class LakeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Lake
         django_get_or_create = ("abbrev",)
@@ -109,7 +109,7 @@ class LakeFactory(factory.DjangoModelFactory):
     abbrev = "HU"
 
 
-class EmployeeFactory(factory.DjangoModelFactory):
+class EmployeeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Employee
 
@@ -120,7 +120,7 @@ class EmployeeFactory(factory.DjangoModelFactory):
     supervisor = None
 
 
-class ProjTypeFactory(factory.DjangoModelFactory):
+class ProjTypeFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ProjectType
         django_get_or_create = ("project_type",)
@@ -129,7 +129,7 @@ class ProjTypeFactory(factory.DjangoModelFactory):
     scope = "FI"
 
 
-class ProjProtocolFactory(factory.DjangoModelFactory):
+class ProjProtocolFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ProjectProtocol
         django_get_or_create = ("abbrev",)
@@ -139,7 +139,7 @@ class ProjProtocolFactory(factory.DjangoModelFactory):
     abbrev = "BSM"
 
 
-class DatabaseFactory(factory.DjangoModelFactory):
+class DatabaseFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Database
 
@@ -147,14 +147,14 @@ class DatabaseFactory(factory.DjangoModelFactory):
     path = "C:/Path/to/somedb.mdb"
 
 
-class FamilyFactory(factory.DjangoModelFactory):
+class FamilyFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Family
 
     id = factory.Sequence(lambda n: n)
 
 
-class ProjectFactory(factory.DjangoModelFactory):
+class ProjectFactory(factory.django.DjangoModelFactory):
     """year and slug are built by the project save method"""
 
     class Meta:
@@ -209,7 +209,7 @@ class ProjectFactory(factory.DjangoModelFactory):
         return year
 
 
-class ProjectImageFactory(factory.DjangoModelFactory):
+class ProjectImageFactory(factory.django.DjangoModelFactory):
     """
     A factory to create fake images for our projects.
     """
@@ -224,7 +224,7 @@ class ProjectImageFactory(factory.DjangoModelFactory):
     report = True
 
 
-class ProjectSisters(factory.DjangoModelFactory):
+class ProjectSisters(factory.django.DjangoModelFactory):
     class Meta:
         model = ProjectSisters
 
@@ -232,7 +232,7 @@ class ProjectSisters(factory.DjangoModelFactory):
     project = factory.SubFactory(ProjectFactory)
 
 
-class MilestoneFactory(factory.DjangoModelFactory):
+class MilestoneFactory(factory.django.DjangoModelFactory):
     """
     Look-up table of reporting milestones
     """
@@ -248,7 +248,7 @@ class MilestoneFactory(factory.DjangoModelFactory):
     order = 1
 
 
-class FundingSourceFactory(factory.DjangoModelFactory):
+class FundingSourceFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = FundingSource
 
@@ -258,7 +258,7 @@ class FundingSourceFactory(factory.DjangoModelFactory):
     abbrev = "spa"
 
 
-class ProjectFundingFactory(factory.DjangoModelFactory):
+class ProjectFundingFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ProjectFunding
 
@@ -271,7 +271,7 @@ class ProjectFundingFactory(factory.DjangoModelFactory):
     salary = 5000
 
 
-class ProjectMilestonesFactory(factory.DjangoModelFactory):
+class ProjectMilestonesFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = ProjectMilestones
         django_get_or_create = ("project", "milestone")
@@ -281,7 +281,7 @@ class ProjectMilestonesFactory(factory.DjangoModelFactory):
     milestone = factory.SubFactory(MilestoneFactory)
 
 
-class ReportFactory(factory.DjangoModelFactory):
+class ReportFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Report
 
@@ -306,7 +306,7 @@ class ReportFactory(factory.DjangoModelFactory):
     #            self.projectmilestones.add(extracted)
 
 
-class AssociatedFactory(factory.DjangoModelFactory):
+class AssociatedFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = AssociatedFile
 
@@ -318,7 +318,7 @@ class AssociatedFactory(factory.DjangoModelFactory):
     report_hash = "1234"
 
 
-class SamplePointFactory(factory.DjangoModelFactory):
+class SamplePointFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = SamplePoint
 
