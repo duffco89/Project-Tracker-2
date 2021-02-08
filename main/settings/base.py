@@ -10,7 +10,6 @@ root = lambda *x: os.path.join(os.path.abspath(PROJECT_ROOT), *x)
 
 DEBUG = True
 
-
 ADMINS = (("Adam Cottrill", "racottrill@bmts.com"),)
 
 MANAGERS = ADMINS
@@ -277,3 +276,20 @@ LEAFLET_CONFIG = {
     #'MAX_ZOOM': 18,
     "RESET_VIEW": True,
 }
+
+
+# install gdal in virtualenv:
+VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
+OSGEO_VENV = os.path.join(VIRTUAL_ENV, "Lib/site-packages/osgeo")
+GEOS_LIBRARY_PATH = os.path.join(OSGEO_VENV, "geos_c.dll")
+GDAL_LIBRARY_PATH = os.path.join(OSGEO_VENV, "gdal302.dll")
+PROJ_LIB = os.path.join(OSGEO_VENV, "data/proj")
+os.environ["PROJ_LIB"] = PROJ_LIB
+os.environ["PATH"] += os.pathsep + str(OSGEO_VENV)
+
+if not os.path.exists(GDAL_LIBRARY_PATH):
+    print("Unable to find GDAL_DLL {}: ".format(GDAL_LIBRARY_PATH))
+if not os.path.exists(GEOS_LIBRARY_PATH):
+    print("Unable to find GEOS_DLL {}: ".format(GEOS_LIBRARY_PATH))
+if not os.path.exists(PROJ_LIB):
+    print("Unable to find PROJ_LIB {}: ".format(PROJ_LIB))
