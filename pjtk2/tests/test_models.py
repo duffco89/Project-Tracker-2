@@ -1,13 +1,31 @@
 from django.test import TestCase
 from django.db.models.signals import pre_save, post_save
-from pjtk2.models import *
-from pjtk2.tests.factories import *
+from pjtk2.models import (
+    Bookmark,
+    Family,
+    Project,
+    ProjectMilestones,
+    ProjectImage,
+    send_notice_prjms_changed,
+)
+from pjtk2.tests.factories import (
+    UserFactory,
+    LakeFactory,
+    EmployeeFactory,
+    FundingSourceFactory,
+    ProjectFactory,
+    ProjTypeFactory,
+    ProjProtocolFactory,
+    ProjectFundingFactory,
+    MilestoneFactory,
+    ProjectMilestonesFactory,
+    ReportFactory,
+)
 
 from ..utils.helpers import get_minions, get_supervisors
 
 import datetime
 import pytz
-import pdb
 import sys
 
 import pytest
@@ -51,8 +69,6 @@ class TestProjectApproveUnapproveMethods(TestCase):
 
     def setUp(self):
         """we will need three projects with easy to rember project codes"""
-
-        import os
 
         self.user = UserFactory(
             username="hsimpson", first_name="Homer", last_name="Simpson"
@@ -281,7 +297,7 @@ def test_milestone_status_dict():
         report=True,
     )
 
-    milestone4 = MilestoneFactory.create(
+    MilestoneFactory.create(
         label="Final Report",
         label_abbrev="final-report",
         category="Core",
@@ -354,7 +370,7 @@ def test_milestone_status_dict_custom_report():
 
     project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
 
-    pms = ProjectMilestonesFactory.create(
+    ProjectMilestonesFactory.create(
         project=project1, milestone=milestone1, required=True, completed=None
     )
 
@@ -390,7 +406,7 @@ def test_milestone_status_dict_custom_report_complete():
 
     # this time, the project milestone is completed
     timestamp = datetime.datetime.now(pytz.utc)
-    pms = ProjectMilestonesFactory.create(
+    ProjectMilestonesFactory.create(
         project=project1, milestone=milestone1, required=True, completed=timestamp
     )
 
@@ -437,7 +453,7 @@ def test_milestone_status_dict_custom_reports():
     project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
 
     # this time, the project milestone is Not completed
-    pms = ProjectMilestonesFactory.create(
+    ProjectMilestonesFactory.create(
         project=project1, milestone=milestone1, required=True, completed=None
     )
 
@@ -491,13 +507,13 @@ def test_milestone_status_dict_custom_reports_one_done():
     project1 = ProjectFactory.create(prj_cd="LHA_IA12_111")
 
     # this time, the project milestone is Not completed
-    pms = ProjectMilestonesFactory.create(
+    ProjectMilestonesFactory.create(
         project=project1, milestone=milestone1, required=True, completed=None
     )
 
     # this time, the project milestone is completed
     timestamp = datetime.datetime.now(pytz.utc)
-    pms2 = ProjectMilestonesFactory.create(
+    ProjectMilestonesFactory.create(
         project=project1, milestone=milestone2, required=True, completed=timestamp
     )
 
@@ -551,12 +567,12 @@ def test_milestone_status_dict_custom_reports_both_done():
 
     timestamp = datetime.datetime.now(pytz.utc)
     # this time, the project milestone is completed
-    pms = ProjectMilestonesFactory.create(
+    ProjectMilestonesFactory.create(
         project=project1, milestone=milestone1, required=True, completed=timestamp
     )
 
     # this time, the project milestone is completed too
-    pms2 = ProjectMilestonesFactory.create(
+    ProjectMilestonesFactory.create(
         project=project1, milestone=milestone2, required=True, completed=timestamp
     )
 
@@ -942,8 +958,20 @@ class TestModelSisters(TestCase):
             username="hsimpson", first_name="Homer", last_name="Simpson"
         )
 
+        self.lake0 = LakeFactory(abbrev="HU", lake_name="Lake Huron")
+        self.lake1 = LakeFactory(abbrev="ON", lake_name="Lake Ontario")
+
         self.ProjType = ProjTypeFactory()
         self.ProjType2 = ProjTypeFactory(project_type="Nearshore Index")
+
+        self.protocol0 = ProjProtocolFactory(
+            protocol="Fall Walleye Index Netting", abbrev="FWIN"
+        )
+        self.protocol1 = ProjProtocolFactory(
+            protocol="Broad Scale Monitoring", abbrev="BSM"
+        )
+
+        # add in protocols here - differnt protocols cannot be sisters
 
         # create milestones
         self.milestone1 = MilestoneFactory.create(
@@ -953,37 +981,80 @@ class TestModelSisters(TestCase):
             label="Sign off", category="Core", order=999, report=False
         )
 
-        # projects
+        # projects this project is a differnt protocol and should not
+        # be a canditate sister
+        self.project0 = ProjectFactory.create(
+            prj_cd="LHA_IA12_000",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol0,
+        )
+
         self.project1 = ProjectFactory.create(
-            prj_cd="LHA_IA12_111", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA12_111",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
 
         self.project2 = ProjectFactory.create(
-            prj_cd="LHA_IA12_222", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA12_222",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
 
         self.project3 = ProjectFactory.create(
-            prj_cd="LHA_IA12_333", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA12_333",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
 
         self.project4 = ProjectFactory.create(
-            prj_cd="LHA_IA12_444", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA12_444",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
 
         self.project5 = ProjectFactory.create(
-            prj_cd="LHA_IA12_555", owner=self.user, project_type=self.ProjType2
+            prj_cd="LHA_IA12_555",
+            owner=self.user,
+            project_type=self.ProjType2,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
 
         self.project6 = ProjectFactory.create(
-            prj_cd="LHA_IA11_666", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA11_666",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake1,
+            protocol=self.protocol1,
         )
 
+        self.project7 = ProjectFactory.create(
+            prj_cd="LOA_IA11_999",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake1,
+            protocol=self.protocol1,
+        )
+
+        self.project0.approve()
         self.project1.approve()
         self.project2.approve()
         self.project3.approve()
         # self.project4.approve()  - #4 Not Approved
         self.project5.approve()
         self.project6.approve()
+        self.project7.approve()  # different Lake
 
     def test_sisters(self):
 
@@ -1102,10 +1173,13 @@ class TestModelSisters(TestCase):
         self.project4.delete()
         self.project5.delete()
         self.project6.delete()
+        self.project7.delete()
         self.ProjType.delete()
         self.ProjType2.delete()
         self.milestone1.delete()
         self.milestone2.delete()
+        self.lake0.delete()
+        self.lake1.delete()
         self.user.delete()
 
 
@@ -1558,6 +1632,25 @@ class TestProjectFunding(TestCase):
 
         self.assertEqual(self.projectfunding.total, 6000)
 
+    def test_funding_source_total_null_salary(self):
+        """If the salary is null, the total should return just the odeo (treat
+        salary as 0)"""
+        self.projectfunding.salary = None
+        self.assertEqual(self.projectfunding.total, 1000)
+
+    def test_funding_source_total_null_odoe(self):
+        """If the odoe is null, the total should return just the odeo (treat
+        odoe as 0)"""
+        self.projectfunding.odoe = None
+        self.assertEqual(self.projectfunding.total, 5000)
+
+    def test_funding_source_total_null_odoe_null_salary(self):
+        """If both odoe and salary are null, the total should be 0 (treat both
+        null values as 0)"""
+        self.projectfunding.odoe = None
+        self.projectfunding.salary = None
+        self.assertEqual(self.projectfunding.total, 0)
+
     def tearDown(self):
 
         self.projectfunding.delete()
@@ -1610,7 +1703,11 @@ class TestProjectStatus(TestCase):
             label="Approved", category="Core", order=1, report=False
         )
         self.milestone2 = MilestoneFactory.create(
-            label="Sign off", category="Core", order=999, report=False
+            label="Sign off", category="Core", order=2, report=False
+        )
+
+        self.milestone3 = MilestoneFactory.create(
+            label="Cancelled", category="Core", order=3, report=False
         )
         self.project1 = ProjectFactory.create(prj_cd="LHA_IA12_111", owner=self.user)
 
@@ -1619,7 +1716,7 @@ class TestProjectStatus(TestCase):
         cancelled or signed off, it should be submitted.
         """
         self.assertEqual(self.project1._get_status(), "Submitted")
-        self.assertEqual(self.project1.status, "Submitted")
+        self.assertEqual(self.project1.status, "submitted")
 
     def test_status_ongoing(self):
         """if a project has been submitted, but has not been approved,
@@ -1627,17 +1724,17 @@ class TestProjectStatus(TestCase):
         """
         self.project1.approve()
         self.assertEqual(self.project1._get_status(), "Ongoing")
-        self.assertEqual(self.project1.status, "Ongoing")
+        self.assertEqual(self.project1.status, "ongoing")
 
     def test_status_cancelled(self):
         """if a project has been submitted, but has not been approved,
         cancelled or signed off, it should be submitted.
         """
-        self.project1.approve()
-        self.project1.cancelled = True
-        self.project1.save()
+        self.project1.cancel(self.user)
+
+        self.assertTrue(self.project1.cancelled)
         self.assertEqual(self.project1._get_status(), "Cancelled")
-        self.assertEqual(self.project1.status, "Cancelled")
+        self.assertEqual(self.project1.status, "cancelled")
 
     def test_status_complete(self):
         """if a project has been submitted, but has not been approved,
@@ -1646,4 +1743,4 @@ class TestProjectStatus(TestCase):
         self.project1.approve()
         self.project1.signoff(self.user)
         self.assertEqual(self.project1._get_status(), "Complete")
-        self.assertEqual(self.project1.status, "Complete")
+        self.assertEqual(self.project1.status, "complete")

@@ -9,6 +9,9 @@ import re
 import datetime
 import pytz
 
+from django.db.models import Subquery, Case, When, BooleanField, F, Value
+from django.db.models.functions import Concat
+
 from django.contrib.auth.decorators import user_passes_test
 from django.shortcuts import get_object_or_404
 
@@ -199,22 +202,39 @@ def group_required(*group_names):
 def is_manager(user):
     """
     A simple little function to find out if the current user is a
-    manager (or better)
+    project tracker manager.
     """
+    # this code uses Django groups, we want to use roles in Project Tracker Employee:
+    # manager = False
+    # if user:
+    #     if user.groups.filter(name="manager").count() > 0 | user.is_superuser:
+    #         manager = True
+    #     # else:
+    #     #    manager = False
+    # return manager
+
     manager = False
-    if user:
-        if user.groups.filter(name="manager").count() > 0 | user.is_superuser:
-            manager = True
-        # else:
-        #    manager = False
+    if hasattr(user, "employee"):
+        manager = True if user.employee.role == "manager" else False
     return manager
+
+
+def is_dba(user):
+    """
+    A simple little function to find out if the supplied user is a
+    project tracker dba.
+    """
+    dba = False
+    if hasattr(user, "employee"):
+        dba = True if user.employee.role == "dba" else False
+    return dba
 
 
 def can_edit(user, project):
     """
     Another helper function to see if this user should be allowed
     to edit this project.  In order to edit the use must be either the
-    project owner, a manager or a superuser.
+    project owner or lead, a manager, a superuser, a dba, or the field lead.
     """
 
     if project.is_complete():
@@ -222,10 +242,12 @@ def can_edit(user, project):
 
     if user:
         canedit = (
-            (user.groups.filter(name="manager").count() > 0)
-            or (user.is_superuser)
+            # (user.groups.filter(name="manager").count() > 0)
+            (user.is_superuser)
             or (user == project.owner)
             or (user == project.field_ldr)
+            or (is_dba(user))
+            or (is_manager(user))
         )
     else:
         canedit = False
@@ -359,3 +381,190 @@ def get_sisters_dict(slug):
                 )
             )
     return initial
+
+
+def make_proj_ms_dict(proj_ms, milestones):
+    """
+
+    # given a list of dictionaries containing project
+    # milesstones return a dictionary keyed by project code that contains
+    # the status of each milestone (represents a row in 'my projects table')
+
+
+    Arguments:
+    - `proj_ms`:
+    """
+
+    ms_dict = {}
+    for ms in milestones:
+        ms_dict[ms.label] = {
+            "type": "report" if ms.report else "milestone",
+            "required": False,
+            "completed": False,
+            "status": "notRequired-notDone",
+        }
+
+    # add an empty custom report
+    ms_dict["custom"] = {
+        "type": "report",
+        "required": False,
+        "completed": False,
+        "status": "notRequired-notDone",
+    }
+
+    proj_ms_dict = {}
+
+    for item in proj_ms:
+        prj_cd = item.get("project__prj_cd")
+        proj = proj_ms_dict.get(prj_cd)
+        if proj is None:
+            prj_attrs = {
+                "prj_nm": item["project__prj_nm"],
+                "year": item["project__year"],
+                "slug": item["project__slug"],
+                "prj_cd": item["project__prj_cd"],
+                "prj_ldr": item["project__prj_ldr__username"],
+                "prj_lead": "{} {}".format(
+                    item["project__prj_ldr__first_name"],
+                    item["project__prj_ldr__last_name"],
+                ),
+                "project_type": item["project__project_type__project_type"],
+            }
+            # add our empty milestone entries here. they will be updated on subsequent iterations:
+            proj_ms_dict[prj_cd] = {"attrs": prj_attrs, "milestones": dict(ms_dict)}
+        else:
+            proj = proj_ms_dict.pop(prj_cd)
+            # build a dictionary that contains the status of this milestone:
+            status = {
+                "type": "report" if item["milestone__report"] else "milestone",
+                "required": item["required"],
+                "completed": True if item["completed"] else False,
+            }
+            # add status code here - keep logic out of templates:
+            if status["completed"] is True:
+                if status["required"] is True:
+                    status["status"] = "required-done"
+                else:
+                    status["status"] = "notRequired-done"
+            else:
+                if status["required"] is True:
+                    status["status"] = "required-notDone"
+                else:
+                    status["status"] = "notRequired-notDone"
+            # get the project milestones
+            ms = proj.pop("milestones")
+
+            # add our current mileone
+            ms[item["milestone__label"]] = status
+            proj["milestones"] = ms
+            proj_ms_dict[prj_cd] = dict(proj)
+
+    return proj_ms_dict
+
+
+def get_projects_for_approval(year, this_year=True):
+    # get projects_for_approval - returns a queryset containing the
+    # project that are eligible for approval either this year, or last year.
+    # we could filter here - lakes__in.
+
+    from pjtk2.models import Project
+
+    projects = Project.objects.filter(
+        projectmilestones__milestone__label="Sign off",
+        projectmilestones__completed__isnull=True,
+        cancelled=False,
+    )
+
+    if this_year:
+        return projects.filter(year__gte=year)
+    else:
+        return projects.filter(year=(year - 1))
+
+
+def get_approve_project_dict(year, this_year=True):
+    """
+    Get the approve_projects_dict - takes a queryset that returns the
+    list of active projects (not cancelled, not complete) and returns a dictionary
+    that can be passed to the ApproveProjectForm.
+
+    Arguments:
+    - `projects`:
+    """
+    from pjtk2.models import ProjectMilestones
+
+    projects = get_projects_for_approval(year, this_year)
+
+    dictionary_list = (
+        ProjectMilestones.objects.filter(
+            project__in=Subquery(projects.values("pk")), milestone__label="Approved"
+        )
+        .select_related(
+            "project",
+            "project__prj_ldr",
+            "project__project_type",
+            "project__protocol",
+            "project__lake",
+        )
+        .annotate(
+            approved=Case(
+                When(completed=None, then=False),
+                default=True,
+                output_field=BooleanField(),
+            ),
+            lake=F("project__lake__lake_name"),
+            prj_cd=F("project__prj_cd"),
+            prj_nm=F("project__prj_nm"),
+            prj_ldr=F("project__prj_ldr__username"),
+            prj_ldr_label=Concat(
+                "project__prj_ldr__first_name",
+                Value(" "),
+                "project__prj_ldr__last_name",
+            ),
+            project_type=F("project__project_type__project_type"),
+            protocol=F("project__protocol__protocol"),
+        )
+        .values(
+            "id",
+            "lake",
+            "approved",
+            "prj_cd",
+            "prj_nm",
+            "prj_ldr",
+            "prj_ldr_label",
+            "project_type",
+            "protocol",
+        )
+    )
+    return dictionary_list
+
+
+def get_project_filters(this_year, last_year):
+    """Return a dictionary containing the unique values for lake, project
+    leader and project type from the list of project to be approved this
+    and those from last year.
+
+    Arguments:
+    - `projects`:
+
+    """
+
+    values = {}
+    values["lakes"] = set(
+        [x["lake"] for x in this_year] + [x["lake"] for x in last_year]
+    )
+
+    # project leads are a little harder because they should be sorted.
+    project_leads = list(
+        set(
+            [x["prj_ldr_label"] for x in this_year]
+            + [x["prj_ldr_label"] for x in last_year]
+        )
+    )
+    project_leads.sort()
+    values["project_leader"] = project_leads
+
+    values["project_types"] = set(
+        [x["project_type"] for x in this_year] + [x["project_type"] for x in last_year]
+    )
+
+    return values

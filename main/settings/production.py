@@ -1,5 +1,8 @@
 from main.settings.base import *
 
+GEOS_LIBRARY_PATH = "c:/OSGeo4W/bin/geos_c.dll"
+GDAL_LIBRARY_PATH = "C:/OSGeo4W/bin/gdal300.dll"
+
 DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
@@ -11,7 +14,7 @@ DATABASES = {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "pjtk2",
         "USER": "cottrillad",
-        "PASSWORD": "django",
-        "HOST": "***REMOVED***",
+        "PASSWORD": "django123",
+        "HOST": "142.143.160.110",
     }
 }

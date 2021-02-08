@@ -19,6 +19,7 @@ from django.urls import include, path, re_path
 from pjtk2.views import (
     # project management
     approveprojects,
+    approveprojects2,
     approve_project,
     cancel_project,
     uncancel_project,
@@ -35,6 +36,7 @@ urlpatterns = [
     # ==============================
     # Project Management
     path("approve_projects/", approveprojects, name="ApproveProjects"),
+    path("approve_projects2/", approveprojects2, name="ApproveProjects2"),
     re_path(
         (r"^approve_project/" + PRJ_CD_REGEX), approve_project, name="approve_project"
     ),

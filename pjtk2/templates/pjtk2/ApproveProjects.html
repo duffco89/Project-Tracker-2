@@ -6,9 +6,6 @@
 <!-- bootstrap widget theme -->
 <link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
 <!-- tablesorter plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.js"></script>
-<!-- tablesorter widget file - loaded after the plugin -->
-<script src="{{ STATIC_URL }}js/jquery.tablesorter.widgets.js"></script>
 
 
 
@@ -75,34 +72,34 @@
         {% csrf_token %}
         {{ thisyearsformset.management_form }}
         {{ thisyearsformset.non_form_errors.as_ul }}
-        <table id="myTable" class="tablesorter">
-          {% for form in thisyearsformset.forms %}
-          {% if forloop.first %}
-          <thead><tr>
-              {% for field in form.visible_fields %}
-              <th>{{ field.label|capfirst }}</th>
+          <table id="myTable1" class="table tablesorter">
+              {% for form in thisyearsformset.forms %}
+                  {% if forloop.first %}
+                      <thead><tr>
+                          {% for field in form.visible_fields %}
+                              <th>{{ field.label|capfirst }}</th>
+                          {% endfor %}
+                      </tr></thead>
+                  {% endif %}
+                  <tr class="{% cycle row1 row2 %}">
+                      {% for field in form.visible_fields %}
+                          <td>
+                              {# Include the hidden fields in the form #}
+                              {% if forloop.first %}
+                                  {% for hidden in form.hidden_fields %}
+                                      {{ hidden }}
+                                  {% endfor %}
+                              {% endif %}
+                              {{ field.errors.as_ul }}
+                              {{ field }}
+                          </td>
+                      {% endfor %}
+                  </tr>
               {% endfor %}
-          </tr></thead>
-          {% endif %}
-          <tr class="{% cycle row1 row2 %}">
-            {% for field in form.visible_fields %}
-            <td>
-              {# Include the hidden fields in the form #}
-              {% if forloop.first %}
-              {% for hidden in form.hidden_fields %}
-              {{ hidden }}
-              {% endfor %}
-              {% endif %}
-              {{ field.errors.as_ul }}
-              {{ field }}
-            </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </table>
-        <hr />
-        <input type="hidden" name="form-type" value="thisyear" />
-        <input type="submit" name="ThisYear" class="btn btn-default" value="Approve Projects" />
+          </table>
+          <hr />
+          <input type="hidden" name="form-type" value="thisyear" />
+          <input type="submit" name="ThisYear" class="btn btn-default" value="Approve Projects" />
       </form>
       {% else %}
       <p><em>There are currently no projects for {{ year }}  </em></p>
@@ -110,45 +107,45 @@
     </div>
     <div id="last-year" class="tab-pane" >
 
-      <h2>{{ year|add:"-1" }}</h2>
+        <h2>{{ year|add:"-1" }}</h2>
 
-      {% if lastYearEmpty == False %}
-      <form id="lastyear" method="post" action="">
-        {% csrf_token %}
-        {{ lastyearsformset.management_form }}
-        {{ lastyearsformset.non_form_errors.as_ul }}
-        <table id="myTable" class="tablesorter">
-          {% for form in lastyearsformset.forms %}
-          {% if forloop.first %}
-          <thead><tr>
-            {% for field in form.visible_fields %}
-            <th>{{ field.label|capfirst }}</th>
-            {% endfor %}
-          </tr></thead>
-          {% endif %}
-          <tr class="{% cycle row1 row2 %}">
-            {% for field in form.visible_fields %}
-            <td>
-              {# Include the hidden fields in the form #}
-              {% if forloop.first %}
-              {% for hidden in form.hidden_fields %}
-              {{ hidden }}
-              {% endfor %}
-              {% endif %}
-              {{ field.errors.as_ul }}
-              {{ field }}
-            </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </table>
-        <hr />
-        <input type="hidden" name="form-type" value="lastyear" />
-        <input type="submit" name="LastYear" class="btn btn-default" value="Approve Projects" />
-      </form>
-      {% else %}
-      <p><em>There are currently no projects for {{ year|add:"-1" }} </em></p>
-      {% endif %}
+        {% if lastYearEmpty == False %}
+            <form id="lastyear" method="post" action="">
+                {% csrf_token %}
+                {{ lastyearsformset.management_form }}
+                {{ lastyearsformset.non_form_errors.as_ul }}
+                <table id="myTable2" class="table tablesorter">
+                    {% for form in lastyearsformset.forms %}
+                        {% if forloop.first %}
+                            <thead><tr>
+                                {% for field in form.visible_fields %}
+                                    <th>{{ field.label|capfirst }}</th>
+                                {% endfor %}
+                            </tr></thead>
+                        {% endif %}
+                        <tr class="{% cycle row1 row2 %}">
+                            {% for field in form.visible_fields %}
+                                <td>
+                                    {# Include the hidden fields in the form #}
+                                    {% if forloop.first %}
+                                        {% for hidden in form.hidden_fields %}
+                                            {{ hidden }}
+                                        {% endfor %}
+                                    {% endif %}
+                                    {{ field.errors.as_ul }}
+                                    {{ field }}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </table>
+                <hr />
+                <input type="hidden" name="form-type" value="lastyear" />
+                <input type="submit" name="LastYear" class="btn btn-default" value="Approve Projects" />
+            </form>
+        {% else %}
+            <p><em>There are currently no projects for {{ year|add:"-1" }} </em></p>
+        {% endif %}
 
     </div>
   </div>
@@ -158,30 +155,41 @@
 
 {% block extrascripts %}
 
-<script type="text/javascript">
 
- $(".tablesorter").tablesorter({
-   theme: 'bootstrap',
-   widthFixed: true,
-   showProcessing: true,
-   headerTemplate: '{content} {icon}',
-   widgets: ['zebra', 'uitheme', 'scroller'],
-   widgetOptions: {
-     scroller_height: 300,
-     scroller_barWidth: 17,
-     scroller_jumpToHeader: true,
-     scroller_idPrefix: 's_'
-   }
- });
 
-</script>
 
-<script type="text/javascript">
- $('#myTab a').click(function (e) {
-   e.preventDefault()
-   $(this).tab('show')
- })
-</script>
+    <!-- tablesorter plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.30.6/js/jquery.tablesorter.js" integrity="sha256-/zMRoPUv1Wfxf3urIyUFn8m1Ot0QmGwXAFHshnwubaE=" crossorigin="anonymous"></script>
+
+    <!-- tablesorter widget file - loaded after the plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.30.6/js/jquery.tablesorter.widgets.js" integrity="sha256-UIl6E2cmeTSpfPbrMkitLrbyAYUqlOz+zwC+Dc7bglI=" crossorigin="anonymous"></script>
+
+
+
+    <script type="text/javascript">
+
+     $(".tablesorter").tablesorter({
+         theme: 'bootstrap',
+         widthFixed: true,
+         showProcessing: true,
+         headerTemplate: '{content} {icon}',
+         widgets: ['zebra', 'uitheme', 'scroller'],
+         widgetOptions: {
+             scroller_height: 300,
+             scroller_barWidth: 17,
+             scroller_jumpToHeader: true,
+             scroller_idPrefix: 's_'
+         }
+     });
+
+    </script>
+    
+    <script type="text/javascript">
+     $('#myTab a').click(function (e) {
+         e.preventDefault()
+         $(this).tab('show')
+     })
+    </script>
 
 
 
