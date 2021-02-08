@@ -19,6 +19,7 @@ from django.contrib.gis.geos import Point
 
 # from django import forms
 from django.contrib.auth import get_user_model
+from django.core.validators import FileExtensionValidator
 from django.db.models.aggregates import Max, Min
 from django.forms.formsets import BaseFormSet
 
@@ -1121,6 +1122,7 @@ class SpatialPointUploadForm(forms.Form):
     points_file = forms.FileField(
         label="Data File",
         required=True,
+        validators=[FileExtensionValidator(["csv", "xlsx"])],
     )
 
     REPLACE_CHOICES = [
@@ -1171,17 +1173,30 @@ class SpatialPointUploadForm(forms.Form):
             else:
                 pts = self.handle_csv_data(points_file.file)
 
+            MAX_UPLOAD_POINTS = 1000
+            if len(pts) > MAX_UPLOAD_POINTS:
+                error_msg = (
+                    "The points file contains more than {} points! ".format(
+                        MAX_UPLOAD_POINTS
+                    )
+                    + "Reduce the number of points and try again."
+                )
+                raise ValidationError(error_msg)
+
+            expected_header = ["POINT_LABEL", "DD_LAT", "DD_LON"]
+            recieved_header = pts.pop(0)
+            if not recieved_header == expected_header:
+                validation_errors.append(
+                    "Malformed header in submitted file."
+                    "The header must contain the fields: 'POINT_LABEL', 'DD_LAT' and 'DD_LON'"
+                )
+
             if not len(pts):
                 raise ValidationError(
                     "Points_File does not appear to contain any data!"
                 )
 
-            expected_header = ["Point Label", "DD_LAT", "DD_LON"]
-            recieved_header = pts.pop(0)
-            if not recieved_header == expected_header:
-                validation_errors.append("Malformed header in submitted file.")
-
-            empty_labels = [x for x in pts if x == "" or x is None]
+            empty_labels = [x for x in pts if x[0] == "" or x[0] is None]
             if len(empty_labels):
                 validation_errors.append("At least one point is missing a label")
 
