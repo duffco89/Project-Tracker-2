@@ -424,8 +424,10 @@ class SisterFormTestCase(WebTest):
 
         # verify that the project 1 has the sisters we think:
         sisters1 = self.project1.get_sisters()
-        self.assertQuerysetEqual(
-            sisters1, [self.project2.prj_cd, self.project3.prj_cd], lambda a: a.prj_cd
+        prj_cds = [x.prj_cd for x in sisters1]
+        # use sets - order doesn't matter
+        self.assertEqual(
+            set(prj_cds), set([self.project2.prj_cd, self.project3.prj_cd])
         )
 
         url = reverse("SisterProjects", args=(self.project1.slug,))
@@ -469,15 +471,18 @@ class SisterFormTestCase(WebTest):
         self.assertNotIn(self.project6.prj_cd, response)
         self.assertNotIn(self.project7.prj_cd, response)
 
-        # resubmit the form with one of the check boxes unchecked:
-        form.fields["form-1-sister"][0].value = None
+        # resubmit the form the check boxe corresponding to LAH_IA12_333 unchecked:
+        html_id = "form-{}-sister".format(prj_cds.index("LHA_IA12_333"))
+        form.fields[html_id][0].value = None
+
         form.submit()
 
-        # project 1 shouldn't have any sisters now
+        # project at index [0] shouldn't have any sisters now
         sisters = self.project1.get_sisters()
         self.assertEqual(len(sisters), 1)
         self.assertEqual(sisters[0].prj_cd, self.project2.prj_cd)
 
+        # project at index [0] shouldn't have any sisters now
         self.assertEqual(len(self.project3.get_sisters()), 0)
 
     def test_disown_sister(self):

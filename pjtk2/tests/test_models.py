@@ -352,9 +352,9 @@ def test_milestone_status_dict():
 @pytest.mark.django_db
 def test_milestone_status_dict_custom_report():
     """the ordered dictionary returned by the milestone_status_dict()
-     method should include a key 'custom', the status of the
-     milestone should be 'required-NotDone' and the type should be
-     'report'
+    method should include a key 'custom', the status of the
+    milestone should be 'required-NotDone' and the type should be
+    'report'
     """
 
     # need an additional custom milestone - one that is not core, but
@@ -385,8 +385,7 @@ def test_milestone_status_dict_custom_report():
 
 @pytest.mark.django_db
 def test_milestone_status_dict_custom_report_complete():
-    """
-    """
+    """"""
 
     # we need custom report, and it should be completed.
     # the ordered dictionary returned by the milestone_status_dict()
@@ -1097,8 +1096,12 @@ class TestModelSisters(TestCase):
         sisters2 = self.project2.get_sisters()
         sisters3 = self.project3.get_sisters()
 
-        self.assertEqual(sisters1[0].prj_cd, "LHA_IA12_222")
-        self.assertEqual(sisters1[1].prj_cd, "LHA_IA12_333")
+        # order changes sometimes and doesn't matter, as long as the
+        # project codes are in the returned values:
+        prj_cds = [x.prj_cd for x in sisters1]
+        self.assertIn("LHA_IA12_222", prj_cds)
+        self.assertIn("LHA_IA12_333", prj_cds)
+
         # self.assertEqual(sisters1[2].prj_cd,"LHA_IA12_333")
 
         FamilyCnt = Family.objects.all().count()
@@ -1603,8 +1606,7 @@ class TestProjdectFundingProperties(TestCase):
 
 
 class TestProjectFunding(TestCase):
-    """test the methods associated with our funding source model.
-    """
+    """test the methods associated with our funding source model."""
 
     def setUp(self):
         """"""
@@ -1657,8 +1659,7 @@ class TestProjectFunding(TestCase):
 
 
 class TestFundingSource(TestCase):
-    """test the methods associated with our funding source model.
-    """
+    """test the methods associated with our funding source model."""
 
     def setUp(self):
         """"""
@@ -1668,7 +1669,7 @@ class TestFundingSource(TestCase):
 
     def test_funding_source_repr(self):
         """the string representation of our model should include the project
-        code and the funding source.  'Special Purpose Account (spa)'  """
+        code and the funding source.  'Special Purpose Account (spa)'"""
 
         should_be = "Special Purpose Account (spa)"
         self.assertEqual(str(self.fundingsource), should_be)
