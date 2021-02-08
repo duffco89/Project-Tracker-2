@@ -1,10 +1,20 @@
 from django.urls import reverse
 
-# from django.db.models.signals import pre_save, post_save
+#
+from django.db.models.signals import pre_save, post_save
 from django_webtest import WebTest
 
+from pjtk2.models import send_notice_prjms_changed, ProjectMilestones, Project
+
 # from testfixtures import compare
-from pjtk2.tests.factories import *
+from pjtk2.tests.factories import (
+    UserFactory,
+    LakeFactory,
+    ProjTypeFactory,
+    ProjProtocolFactory,
+    ProjectFactory,
+    MilestoneFactory,
+)
 
 import pytest
 
@@ -33,8 +43,20 @@ class SisterFormTestCase(WebTest):
             username="hsimpson", first_name="Homer", last_name="Simpson"
         )
 
+        self.lake0 = LakeFactory(abbrev="HU", lake_name="Lake Huron")
+        self.lake1 = LakeFactory(abbrev="ON", lake_name="Lake Ontario")
+
         self.ProjType = ProjTypeFactory()
         self.ProjType2 = ProjTypeFactory(project_type="Nearshore Index")
+
+        # add in protocols here - differnt protocols cannot be sisters
+
+        self.protocol0 = ProjProtocolFactory(
+            protocol="Fall Walleye Index Netting", abbrev="FWIN"
+        )
+        self.protocol1 = ProjProtocolFactory(
+            protocol="Broad Scale Monitoring", abbrev="BSM"
+        )
 
         # create milestones
         self.milestone1 = MilestoneFactory.create(
@@ -44,36 +66,79 @@ class SisterFormTestCase(WebTest):
             label="Sign off", category="Core", order=999, report=False
         )
 
+        self.project0 = ProjectFactory.create(
+            prj_cd="LHA_IA12_000",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol0,
+        )
+
         self.project1 = ProjectFactory.create(
-            prj_cd="LHA_IA12_111", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA12_111",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
         self.project2 = ProjectFactory.create(
-            prj_cd="LHA_IA12_222", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA12_222",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
         self.project3 = ProjectFactory.create(
-            prj_cd="LHA_IA12_333", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA12_333",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
 
         # same project type, but not approved
         self.project4 = ProjectFactory.create(
-            prj_cd="LHA_IA12_444", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA12_444",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
 
         # approved, different project type
         self.project5 = ProjectFactory.create(
-            prj_cd="LHA_IA12_555", owner=self.user, project_type=self.ProjType2
+            prj_cd="LHA_IA12_555",
+            owner=self.user,
+            project_type=self.ProjType2,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
         # approved, same project type, different year
         self.project6 = ProjectFactory.create(
-            prj_cd="LHA_IA11_666", owner=self.user, project_type=self.ProjType
+            prj_cd="LHA_IA11_666",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake0,
+            protocol=self.protocol1,
         )
 
+        # different lake - should never be eligible
+        self.project7 = ProjectFactory.create(
+            prj_cd="LOA_IA12_999",
+            owner=self.user,
+            project_type=self.ProjType,
+            lake=self.lake1,
+            protocol=self.protocol1,
+        )
+
+        self.project0.approve()
         self.project1.approve()
         self.project2.approve()
         self.project3.approve()
         # self.project4.approve()
         self.project5.approve()
         self.project6.approve()
+        self.project7.approve()
 
     def test_sisterbtn(self):
         """from the details pages, verify that the sisters button
@@ -145,9 +210,11 @@ class SisterFormTestCase(WebTest):
 
         # make sure that the projects that should be candidates or
         # sisters aren't in the response
+        self.assertNotIn(self.project0.prj_cd, response)
         self.assertNotIn(self.project4.prj_cd, response)
         self.assertNotIn(self.project5.prj_cd, response)
         self.assertNotIn(self.project6.prj_cd, response)
+        self.assertNotIn(self.project7.prj_cd, response)
 
     def test_sisterlist_onesister(self):
         """the sister project page for a project with one candidate,
@@ -190,6 +257,7 @@ class SisterFormTestCase(WebTest):
 
         # make sure that the projects that should be candidates or
         # sisters aren't in the response
+        self.assertNotIn(self.project0.prj_cd, response)
         self.assertNotIn(self.project4.prj_cd, response)
         self.assertNotIn(self.project5.prj_cd, response)
         self.assertNotIn(self.project6.prj_cd, response)
@@ -216,11 +284,13 @@ class SisterFormTestCase(WebTest):
 
         # make sure that the projects that should not be candidates or
         # sisters aren't in the response
+        self.assertNotIn(self.project0.prj_cd, response)
         self.assertNotIn(self.project1.prj_cd, response)
         self.assertNotIn(self.project2.prj_cd, response)
         self.assertNotIn(self.project3.prj_cd, response)
         self.assertNotIn(self.project5.prj_cd, response)
         self.assertNotIn(self.project6.prj_cd, response)
+        self.assertNotIn(self.project7.prj_cd, response)
 
         # Differnt Project Type
         url = reverse("SisterProjects", args=(self.project5.slug,))
@@ -236,11 +306,13 @@ class SisterFormTestCase(WebTest):
 
         # make sure that the projects that should not be candidates or
         # sisters aren't in the response
+        self.assertNotIn(self.project0.prj_cd, response)
         self.assertNotIn(self.project1.prj_cd, response)
         self.assertNotIn(self.project2.prj_cd, response)
         self.assertNotIn(self.project3.prj_cd, response)
         self.assertNotIn(self.project4.prj_cd, response)
         self.assertNotIn(self.project6.prj_cd, response)
+        self.assertNotIn(self.project7.prj_cd, response)
 
         # approved project, different year
         url = reverse("SisterProjects", args=(self.project6.slug,))
@@ -256,11 +328,13 @@ class SisterFormTestCase(WebTest):
 
         # make sure that the projects that should not be candidates or
         # sisters aren't in the response
+        self.assertNotIn(self.project0.prj_cd, response)
         self.assertNotIn(self.project1.prj_cd, response)
         self.assertNotIn(self.project2.prj_cd, response)
         self.assertNotIn(self.project3.prj_cd, response)
         self.assertNotIn(self.project4.prj_cd, response)
         self.assertNotIn(self.project5.prj_cd, response)
+        self.assertNotIn(self.project7.prj_cd, response)
 
     def test_add_remove_sisters(self):
         """this test will test the whole process.  We will log into
@@ -391,9 +465,11 @@ class SisterFormTestCase(WebTest):
 
         # make sure that the projects that should be candidates or
         # sisters aren't in the response
+        self.assertNotIn(self.project0.prj_cd, response)
         self.assertNotIn(self.project4.prj_cd, response)
         self.assertNotIn(self.project5.prj_cd, response)
         self.assertNotIn(self.project6.prj_cd, response)
+        self.assertNotIn(self.project7.prj_cd, response)
 
         # resubmit the form the check boxe corresponding to LAH_IA12_333 unchecked:
         html_id = "form-{}-sister".format(prj_cds.index("LHA_IA12_333"))

@@ -38,6 +38,8 @@ from django.forms.widgets import (
 )
 
 # from django.utils.encoding import force_unicode
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
@@ -58,6 +60,7 @@ from .models import (
     ProjectMilestones,
     Report,
     ProjectType,
+    ProjectProtocol,
     Database,
     Lake,
     Messages2Users,
@@ -362,6 +365,103 @@ class ApproveProjectsForm(forms.ModelForm):
         return super(ApproveProjectsForm, self).save(commit)
 
 
+class ApproveProjectsForm2(forms.Form):
+    """This project form is used for view to approve/unapprove
+    multiple projects."""
+
+    id = forms.CharField(widget=forms.HiddenInput())
+    lake = forms.CharField(widget=forms.HiddenInput())
+    approved = forms.BooleanField(required=False)
+    # prj_cd = forms.CharField(widget=ReadOnlyText, label="Project Code", required=False)
+    prj_nm = forms.CharField(widget=ReadOnlyText, label="Project Name", required=False)
+    prj_ldr_label = forms.CharField(
+        widget=ReadOnlyText, label="Project Lead", required=False
+    )
+    project_type = forms.CharField(
+        widget=ReadOnlyText, label="Project Type", required=False
+    )
+    protocol = forms.CharField(widget=ReadOnlyText, label="Protocol", required=False)
+
+    def __init__(self, *args, **kwargs):
+
+        super(ApproveProjectsForm2, self).__init__(*args, **kwargs)
+
+        self.fields["approved"].widget.attrs["class"] = "form-check-input"
+
+        self.initial = kwargs.get("initial", {})
+
+        prj_cd = self.initial.get("prj_cd", None)
+        if prj_cd:
+            self.fields.update(
+                {
+                    "prj_cd": forms.CharField(
+                        widget=HyperlinkWidget(
+                            url=reverse("project_detail", kwargs={"slug": prj_cd}),
+                            text=prj_cd,
+                        ),
+                        label="Project Code",
+                        max_length=12,
+                        required=False,
+                    )
+                }
+            )
+
+            # make sure that Approved appears first
+            self.order_fields(
+                [
+                    "approved",
+                    "prj_cd",
+                    "prj_nm",
+                    "prj_ldr_label",
+                    "project_type",
+                    "protocol",
+                    "id",
+                    "lake",
+                ]
+            )
+
+    def clean_prj_cd(self):
+        """return the original value of prj_cd"""
+        return self.initial.get("prj_cd", "")
+
+    def clean_prj_nm(self):
+        """return the original value of prj_nm"""
+        return self.initial.get("prj_nm", "")
+
+    def clean_project_type(self):
+        """return the original value of prj_type"""
+        return self.initial.get("project_type", "")
+
+    def clean_protocol(self):
+        """return the original value of protocol"""
+        return self.initial.get("protocol", "")
+
+    def clean_prj_ldr_label(self):
+        """return the original value of prj_ldr_label none - make sure
+        nothing is returned
+        """
+        return self.initial.get("prj_ldr_label", "")
+
+    def save(self, commit=True):
+
+        # approved_now = self.cleaned_data["approved"]
+        # approved_before = self.initial["approved"]
+
+        # if approved_now is not approved_before:
+        if self.has_changed():
+            id = self.cleaned_data["id"]
+            pms = ProjectMilestones.objects.get(id=id)
+            if self.cleaned_data["approved"]:
+                now = timezone.now()
+            else:
+                now = None
+            pms.completed = now
+            # need to call save to send signals:
+            pms.save()
+
+        return None
+
+
 class ReportsForm(forms.Form):
     """This form is used to update reporting requirements for a
     particular project.  Checkbox widgets are dynamically added to the
@@ -634,11 +734,11 @@ class ProjectForm(forms.ModelForm):
         queryset=User.objects.filter(is_active=True).order_by(
             "first_name", "last_name"
         ),
-        required=False,
+        required=True,
     )
 
     project_team = UserMultipleChoiceField(
-        label="Other Team Members (optional):",
+        label="Other Team Members (optional)",
         widget=forms.SelectMultiple(attrs={"size": 15}),
         queryset=User.objects.filter(is_active=True).order_by(
             "first_name", "last_name"
@@ -684,6 +784,14 @@ class ProjectForm(forms.ModelForm):
         required=True,
     )
 
+    protocol = forms.ModelChoiceField(
+        label="Protocol:",
+        queryset=ProjectProtocol.objects.filter(deprecated__isnull=True).order_by(
+            "protocol"
+        ),
+        required=False,
+    )
+
     master_database = forms.ModelChoiceField(
         label="Master Database:", queryset=Database.objects.all(), required=True
     )
@@ -717,6 +825,7 @@ class ProjectForm(forms.ModelForm):
             "prj_date1",
             "risk",
             "project_type",
+            "protocol",
             "master_database",
             "lake",
             "abstract",
@@ -729,10 +838,18 @@ class ProjectForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         readonly = kwargs.pop("readonly", False)
         manager = kwargs.pop("manager", False)
+        dba = kwargs.pop("dba", False)
+
+        self.user = kwargs.pop("user", None)
 
         milestones = kwargs.pop("milestones", None)
 
         super(ProjectForm, self).__init__(*args, **kwargs)
+
+        self.fields[
+            "project_team"
+        ].help_text = "Control-click to select more than one team member."
+
         for visible in self.visible_fields():
             if "class" in visible.field.widget.attrs.keys():
                 class_attrs = visible.field.widget.attrs["class"]
@@ -742,6 +859,12 @@ class ProjectForm(forms.ModelForm):
 
         self.readonly = readonly
         self.manager = manager
+        self.dba = dba
+
+        if not (manager or dba):
+            self.fields["owner"].required = False
+            self.fields["owner"].widget.attrs["disabled"] = "disabled"
+            # self.fields["owner"].widget.attrs["readonly"] = True
 
         if readonly:
             self.fields["prj_cd"].widget.attrs["readonly"] = True
@@ -752,6 +875,7 @@ class ProjectForm(forms.ModelForm):
             self.fields["field_ldr"].queryset = User.objects.order_by(
                 "first_name", "last_name"
             ).all()
+
             self.fields["owner"].queryset = (
                 User.objects.order_by("first_name", "last_name")
                 .filter(is_active=True)
@@ -811,6 +935,14 @@ class ProjectForm(forms.ModelForm):
         self.save_m2m()
 
         return instance
+
+    def clean_owner(self):
+        """if the user is not a manager or a dba, they must be the owner"""
+
+        if not (self.manager or self.dba):
+            return self.user
+        else:
+            return self.cleaned_data["owner"]
 
     def clean_approved(self):
         """if this wasn't a manager, reset the Approved value to the

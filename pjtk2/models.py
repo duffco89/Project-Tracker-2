@@ -49,13 +49,17 @@ class ProjectsManager(models.Manager):
         """return a queryset containing only those projects that have been
         submitted, but have not yet been approved or completed.
         """
-        return self.filter(
-            active=True,
-            projectmilestones__milestone__label="Approved",
-            projectmilestones__completed__isnull=True,
-        ).filter(
-            projectmilestones__milestone__label="Sign off",
-            projectmilestones__completed__isnull=True,
+        return (
+            self.prefetch_related("projectmilestones__milestone")
+            .filter(
+                active=True,
+                projectmilestones__milestone__label="Approved",
+                projectmilestones__completed__isnull=True,
+            )
+            .filter(
+                projectmilestones__milestone__label="Sign off",
+                projectmilestones__completed__isnull=True,
+            )
         )
 
     def approved(self):
@@ -86,14 +90,18 @@ class ProjectsManager(models.Manager):
         """return a queryset containing only those projects that have been
         both approved and completed but not cancelled.
         """
-        return self.filter(
-            active=True,
-            cancelled=False,
-            projectmilestones__milestone__label="Approved",
-            projectmilestones__completed__isnull=False,
-        ).filter(
-            projectmilestones__milestone__label="Sign off",
-            projectmilestones__completed__isnull=False,
+        return (
+            self.prefetch_related("projectmilestones__milestone")
+            .filter(
+                active=True,
+                cancelled=False,
+                projectmilestones__milestone__label="Approved",
+                projectmilestones__completed__isnull=False,
+            )
+            .filter(
+                projectmilestones__milestone__label="Sign off",
+                projectmilestones__completed__isnull=False,
+            )
         )
 
 
@@ -327,7 +335,10 @@ class ProjectFunding(models.Model):
         """the total of funding for the project will be the sum of the salary
         and the odoe.
         """
-        return self.odoe + self.salary
+
+        salary = self.salary if self.salary else 0
+        odoe = self.odoe if self.odoe else 0
+        return salary + odoe
 
 
 class Project(models.Model):
@@ -339,7 +350,7 @@ class Project(models.Model):
         ("submitted", "Submitted"),
         ("ongoing", "Ongoing"),
         ("complete", "Complete"),
-        ("canceled", "Canceled"),
+        ("cancelled", "Cancelled"),
     ]
 
     status = models.CharField(
@@ -472,11 +483,9 @@ class Project(models.Model):
                 self.risk, extras={"demote-headers": DEMOTE_HEADERS}
             )
             self.risk_html = replace_links(self.risk_html, link_patterns=LINK_PATTERNS)
-
         super(Project, self).save(*args, **kwargs)
         if new:
             self.initialize_milestones()
-        self.status = self._get_status()
 
     # @models.permalink
     def get_absolute_url(self):
@@ -494,23 +503,17 @@ class Project(models.Model):
         exist.
         """
         now = datetime.datetime.now(pytz.utc)
-        try:
-            # ProjectMilestones.objects.filter(project=self,
-            #                         milestone__label='Approved').update(
-            #                             completed=now)
-            prjms = ProjectMilestones.objects.get(
-                project=self, milestone__label="Approved"
-            )
 
-            prjms.completed = now
-            # save sends pre_save signal
-            prjms.save()
-        except ProjectMilestones.DoesNotExist:
-            # create it if it doesn't exist
-            milestone = Milestone.objects.get(label="Approved")
-            projectmilestone = ProjectMilestones(
-                project=self, milestone=milestone, required=True, completed=now
-            )
+        milestone = Milestone.objects.get(label="Approved")
+        projectmilestone, created = ProjectMilestones.objects.get_or_create(
+            project=self, milestone=milestone, required=True
+        )
+
+        projectmilestone.completed = now
+        # save sends pre_save signal
+        projectmilestone.save()
+
+        self.status = "ongoing"
         self.save()
 
     def unapprove(self):
@@ -518,9 +521,6 @@ class Project(models.Model):
         a helper method to reverse project.approved(), a project-milestone
         object will be created if it doesn't exist."""
         try:
-            # ProjectMilestones.objects.filter(project=self,
-            #                     milestone__label='Approved').update(
-            #                         completed=None)
             prjms = ProjectMilestones.objects.get(
                 project=self, milestone__label="Approved"
             )
@@ -530,6 +530,48 @@ class Project(models.Model):
 
         except ProjectMilestones.DoesNotExist:
             pass
+        self.status = "submitted"
+        self.save()
+
+    def cancel(self, user):
+        """
+        a helper method to make approving projects easier.  A
+        project-milestone object will be created if it doesn't
+        exist.
+        """
+        now = datetime.datetime.now(pytz.utc)
+
+        milestone = Milestone.objects.get(label="Cancelled")
+        projectmilestone, created = ProjectMilestones.objects.get_or_create(
+            project=self, milestone=milestone, required=True
+        )
+
+        projectmilestone.completed = now
+        # save sends pre_save signal
+        projectmilestone.save()
+
+        self.status = "cancelled"
+        self.cancelled = True
+        self.cancelled_by = user
+        self.save()
+
+    def uncancel(self):
+        """
+        a helper method to reverse project.canceld(), a project-milestone
+        object will be created if it doesn't exist."""
+        try:
+            prjms = ProjectMilestones.objects.get(
+                project=self, milestone__label="Cancelled"
+            )
+            prjms.completed = None
+            # save sends pre_save signal
+            prjms.save()
+
+        except ProjectMilestones.DoesNotExist:
+            pass
+        self.status = "ongoing"
+        self.cancelled = False
+        self.cancelled_by = None
         self.save()
 
     def is_approved(self):
@@ -561,6 +603,7 @@ class Project(models.Model):
         prjms.save()
 
         self.signoff_by = user
+        self.status = "complete"
         self.save()
 
     def reopen(self):
@@ -573,15 +616,20 @@ class Project(models.Model):
             project=self, milestone=milestone
         )
         prjms.completed = None
+        self.status = "ongoing"
         prjms.save()
 
     def is_complete(self):
         """Is the current project completed (ie. signoff=True)?  Returns true
         if it is, otherwise false.
         """
-        completed = ProjectMilestones.objects.get(
-            project=self, milestone__label__iexact="Sign Off"
-        )
+        try:
+            completed = ProjectMilestones.objects.get(
+                project=self, milestone__label__iexact="Sign Off"
+            )
+        except ProjectMilestones.DoesNotExist:
+            return False
+
         if completed.completed is not None:
             return True
         else:
@@ -601,12 +649,12 @@ class Project(models.Model):
 
         """
 
-        if not self.is_approved():
-            return "Submitted"
-        elif self.cancelled:
+        if self.cancelled:
             return "Cancelled"
         elif self.is_complete():
             return "Complete"
+        elif not self.is_approved():
+            return "Submitted"
         else:
             return "Ongoing"
 
@@ -981,6 +1029,8 @@ class Project(models.Model):
                     Project.objects.approved()
                     .filter(
                         project_type=self.project_type,
+                        protocol=self.protocol,
+                        lake=self.lake,
                         year=self.year,
                         projectsisters__isnull=True,
                     )
@@ -1470,6 +1520,19 @@ class ProjectSisters(models.Model):
         return str("Project - %s - Family %s" % (self.project, self.family))
 
 
+class EmployeeManager(models.Manager):
+    """the default manager for employees will only return active users."""
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .select_related("user", "supervisor__user")
+            .filter(user__is_active=True)
+            .order_by("user__username")
+        )
+
+
 class Employee(models.Model):
     """The employee model is an extension to the user model that captures
     the hierachical employee-supervisor relationship between users."""
@@ -1490,6 +1553,9 @@ class Employee(models.Model):
     #                               related_name='supervisor')
 
     # to do - add custom manager to return all emplyees and just active employees
+    # return all species for admin page, tagged species by default
+    all_objects = models.Manager()
+    objects = EmployeeManager()
 
     class Meta:
         ordering = ["user__username"]
@@ -1569,7 +1635,7 @@ def build_msg_recipients(project, level=None, dba=True, ops=True):
     """
 
     prj_owner = project.owner
-    prj_owner = Employee.objects.get(user__username=prj_owner)
+    prj_owner = Employee.objects.get(user__id=prj_owner.id)
     recipients = get_supervisors(prj_owner)
     # convert the employees to user objects
     recipients = [x.user for x in recipients]

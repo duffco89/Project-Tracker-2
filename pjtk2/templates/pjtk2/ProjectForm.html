@@ -134,19 +134,33 @@
 
                         <div  class="row" >
 
-                            <div  class="col-md-6" >
+                            <div  class="col-md-4" >
                                 <div class="form-group {% if form.project_type.errors %}has-error{% endif %}">
                                     {{ form.project_type.label_tag }}
                                     {{ form.project_type }}
                                     {% if form.project_type.errors %}
                                     {% for error in form.project_type.errors %}
-                                    <div class="has-error help-block text-danger">{{ error }}</div>
+                                        <div class="has-error help-block text-danger">{{ error }}</div>
                                     {% endfor %}
                                     {% endif %}
                                 </div>
                             </div> <!-- column  -->
 
-                            <div  class="col-md-6" >
+                            <div  class="col-md-4" >
+                                <div class="form-group {% if form.protocol.errors %}has-error{% endif %}">
+                                    {{ form.protocol.label_tag }}
+                                    {{ form.protocol }}
+                                    {% if form.protocol.errors %}
+                                        {% for error in form.protocol.errors %}
+                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div> <!-- column  -->
+
+
+                            
+                            <div  class="col-md-4" >
                                 <div class="form-group {% if form.master_database.errors %}has-error{% endif %}">
                                     {{ form.master_database.label_tag }}
                                     {{ form.master_database }}
@@ -256,6 +270,8 @@
                                             {% endif %}
                                         </div>
 
+
+
                                         <div class="form-group {% if form.owner.errors %}has-error{% endif %}">
                                             {{ form.owner.label_tag }}
                                             {{ form.owner }}
@@ -266,6 +282,8 @@
                                             {% endif %}
                                         </div>
 
+
+                                        
                                         <div class="form-group {% if form.dba.errors %}has-error{% endif %}">
                                             {{ form.dba.label_tag }}
                                             {{ form.dba }}
@@ -284,9 +302,10 @@
                                             {{ form.project_team }}
                                             {% if form.project_team.errors %}
                                             {% for error in form.project_team.errors %}
-                                            <div class="has-error help-block text-danger">{{ error }}</div>
+                                                <div class="has-error help-block text-danger">{{ error }}</div>
                                             {% endfor %}
                                             {% endif %}
+                                            <p class="help-block">{{form.project_team.help_text}}</p>
                                         </div>
                                     </div> <!-- column  -->
 
@@ -423,7 +442,7 @@
 
 <script type="text/javascript">
  $(document).ready(function() {
-     $('.datepicker').datepicker({ dateFormat: "yyyy-mm-dd" });
+     $('.datepicker').datepicker({ dateFormat: "yy-mm-dd" });
  });
 </script>
 

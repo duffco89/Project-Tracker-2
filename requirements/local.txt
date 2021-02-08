@@ -4,15 +4,15 @@
 #
 #    pip-compile --output-file=local.txt base.in local.in
 #
-atomicwrites==1.3.0
+atomicwrites==1.4.0
     # via pytest
-attrs==19.3.0
+attrs==20.3.0
     # via pytest
 beautifulsoup4==4.9.3
     # via webtest
-click==7.0
+click==7.1.2
     # via pip-tools
-colorama==0.4.1
+colorama==0.4.4
     # via pytest
 coverage==5.4
     # via
@@ -54,9 +54,9 @@ et-xmlfile==1.0.1
     # via openpyxl
 factory-boy==3.2.0
     # via -r local.in
-faker==2.0.4
+faker==6.0.0
     # via factory-boy
-importlib-metadata==0.23
+importlib-metadata==3.4.0
     # via
     #   pluggy
     #   pytest
@@ -70,19 +70,21 @@ more-itertools==7.2.0
     # via zipp
 openpyxl==3.0.6
     # via -r base.in
-packaging==19.2
+openpyxl==3.0.6
+    # via -r base.in
+packaging==20.9
     # via pytest
 pillow==8.1.0
     # via -r base.in
 pip-tools==5.5.0
     # via -r local.in
-pluggy==0.13.0
+pluggy==0.13.1
     # via pytest
 psycopg2==2.8.6
     # via -r base.in
 py==1.10.0
     # via pytest
-pyparsing==2.4.5
+pyparsing==2.4.7
     # via packaging
 pytest-cov==2.11.1
     # via -r local.in
@@ -95,17 +97,15 @@ pytest==6.2.2
     #   pytest-django
 python-dateutil==2.8.1
     # via faker
-pytz==2019.3
+pytz==2021.1
     # via django
-six==1.13.0
+six==1.15.0
     # via
-    #   faker
-    #   packaging
     #   python-dateutil
     #   webtest
-soupsieve==1.9.5
+soupsieve==2.1
     # via beautifulsoup4
-sqlparse==0.3.0
+sqlparse==0.4.1
     # via
     #   django
     #   django-debug-toolbar
@@ -113,13 +113,15 @@ text-unidecode==1.3
     # via faker
 toml==0.10.2
     # via pytest
-waitress==1.3.1
+typing-extensions==3.7.4.3
+    # via importlib-metadata
+waitress==1.4.4
     # via webtest
-webob==1.8.5
+webob==1.8.6
     # via webtest
-webtest==2.0.33
+webtest==2.0.35
     # via django-webtest
-zipp==0.6.0
+zipp==3.4.0
     # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:

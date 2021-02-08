@@ -1,0 +1,243 @@
+{% extends "pjtk2/pjtk2_base.html" %}
+{% load pjtk2_tags %}
+
+{% block extrahead  %}
+
+
+    <!-- bootstrap widget theme -->
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/theme.bootstrap.css">
+    <!-- tablesorter plugin -->
+
+
+
+{% endblock %}
+
+{% block title  %} {{ block.super }}| Approve Projects  {% endblock %}
+
+{% block content  %}
+
+
+    <div class="row">
+        <div class="col-md-2">
+            <h4>Filter Projects by:.</h4>
+
+            {% include 'pjtk2/project_filters.html' %}
+            
+        </div>
+        <div class="col-md-10">
+            
+            <div class="container-fluid" >
+
+                <h2> Approve Projects</h2>
+                <hr />
+
+
+                {{ this_year_formset.non_form_errors }}
+                {% for dict in this_year_formset.errors %}
+                    {% for error in dict.values %}
+                        {{ error }}
+                    {% endfor %}
+                {% endfor %}
+
+                {{ last_year_formset.non_form_errors }}
+                {% for dict in last_year_formset.errors %}
+                    {% for error in dict.values %}
+                        {{ error }}
+                    {% endfor %}
+                {% endfor %}
+
+
+                <form id="this_year" method="post" action="">
+                    <ul class="nav nav-tabs" id="myTab" >
+                        <li><a href="#this-year">This Year</a> </li>
+                        <li><a href="#last-year">Last Year</a> </li>
+                    </ul>
+
+                    <div id="content" class="tab-content" >
+                        <div id="this-year" class="tab-pane active" >
+                            <h2>{{ year }}</h2>
+                            {% if this_year_formset.forms %}
+                                {% csrf_token %}
+                                {{ this_year_formset.management_form }}
+                                {{ this_year_formset.non_form_errors.as_ul }}
+                                <table id="myTable1" class="table table-condensed tablesorter">
+                                    {% for form in this_year_formset.forms %}
+                                        {% if forloop.first %}
+                                            <thead><tr>
+                                                {% for field in form.visible_fields %}
+                                                    <th>{{ field.label|capfirst }}</th>
+                                                {% endfor %}
+                                            </tr></thead>
+                                        {% endif %}
+                                        <tr class="project {% cycle row1 row2 %}"  data-category="lakes-{{ form.lake.value|classify }} project-leader-{{ form.prj_ldr_label.value|classify }} project-types-{{ form.project_type.value|classify }}">                                        
+                                            
+                                            {% for field in form.visible_fields %}
+                                                <td {% if field.label|lower == 'approved' %}  style="text-align:center; vertical-align:middle;"   {%endif%}%}>
+                                                    {# Include the hidden fields in the form #}
+                                                    {% if forloop.first %}
+                                                        {% for hidden in form.hidden_fields %}
+                                                            {{ hidden }}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                    {{ field.errors.as_ul }}
+                                                    {{ field }}
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+                            {% else %}
+                                <p><em>There are currently no projects for {{ year }}  </em></p>
+                            {% endif %}
+                        </div>
+                        <div id="last-year" class="tab-pane" >
+
+                            <h2>{{ year|add:"-1" }}</h2>
+
+                            {% if last_year_formset.form %}
+
+                                {{ last_year_formset.management_form }}
+                                {{ last_year_formset.non_form_errors.as_ul }}
+                                <table id="myTable2" class="table table-condensed tablesorter">
+                                    {% for form in last_year_formset.forms %}
+                                        {% if forloop.first %}
+                                            <thead><tr>
+                                                {% for field in form.visible_fields %}
+                                                    <th>{{ field.label|capfirst }}</th>
+                                                {% endfor %}
+                                            </tr></thead>
+                                        {% endif %}
+                                        <tr class="project {% cycle row1 row2 %}"  data-category="lakes-{{ form.lake.value|classify }} project-leader-{{ form.prj_ldr_label.value|classify }} project-types-{{ form.project_type.value|classify }}">
+                                            {% for field in form.visible_fields %}
+                                                <td {% if field.label|lower == 'approved' %}  style="text-align:center; vertical-align:middle;"   {%endif%}%}>
+                                                    {# Include the hidden fields in the form #}
+                                                    {% if forloop.first %}
+                                                        {% for hidden in form.hidden_fields %}
+                                                            {{ hidden }}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                    {{ field.errors.as_ul }}
+                                                    {{ field }}
+                                                </td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </table>
+
+                            {% else %}
+                                <p><em>There are currently no projects for {{ year|add:"-1" }} </em></p>
+                            {% endif %}
+
+                            
+                        </div>
+                    </div>
+                    <input type="submit" class="btn btn-primary" value="Approve Projects" />
+                </form>
+            </div>
+            
+
+
+{% endblock %}
+
+{% block extrascripts %}
+
+
+
+
+    <!-- tablesorter plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.30.6/js/jquery.tablesorter.js" integrity="sha256-/zMRoPUv1Wfxf3urIyUFn8m1Ot0QmGwXAFHshnwubaE=" crossorigin="anonymous"></script>
+
+    <!-- tablesorter widget file - loaded after the plugin -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.30.6/js/jquery.tablesorter.widgets.js" integrity="sha256-UIl6E2cmeTSpfPbrMkitLrbyAYUqlOz+zwC+Dc7bglI=" crossorigin="anonymous"></script>
+
+
+
+    <script type="text/javascript">
+
+     $(".tablesorter").tablesorter({
+         theme: 'bootstrap',
+         widthFixed: true,
+         showProcessing: true,
+         headerTemplate: '{content} {icon}',
+         widgets: ['zebra', 'uitheme', 'scroller'],
+         widgetOptions: {
+             scroller_height: 300,
+             scroller_barWidth: 17,
+             scroller_jumpToHeader: true,
+             scroller_idPrefix: 's_'
+         }
+     });
+
+    </script>
+    
+    <script type="text/javascript">
+     $('#myTab a').click(function (e) {
+         e.preventDefault()
+         $(this).tab('show')
+     })
+
+
+
+     /* modified from http://jsfiddle.net/n3EmN/171/ */
+
+     var $filterCheckboxes = $('#filter-accordion input[type="checkbox"]');
+
+     $filterCheckboxes.on('change', function() {
+
+         var selectedFilters = {};
+
+         $filterCheckboxes.filter(':checked').each(function() {
+
+             var formId = this.closest('form').id;
+             var ckboxVal = this.value;
+
+             if (!selectedFilters.hasOwnProperty(formId)) {
+                 selectedFilters[formId] = [];
+             }
+             selectedFilters[formId].push(ckboxVal);
+
+         });
+
+
+         // create a collection containing all of the filterable elements
+         var filteredResults = $('.project');
+
+         // loop over the selected filter name -> (array) values pairs
+         $.each(selectedFilters, function(name, filterValues) {
+
+             // filter each .flower element
+             filteredResults = filteredResults.filter(function() {
+
+                 var matched = false;
+                 var currentFilterValues = $(this).data('category').split(' ');
+
+                 
+                 // loop over each category value in the current .flower's data-category
+                 $.each(currentFilterValues, function(_, currentFilterValue) {
+
+                     // if the current category exists in the selected filters array
+                     // set matched to true, and stop looping. as we're ORing in each
+                     // set of filters, we only need to match once
+
+                     if ($.inArray(currentFilterValue, filterValues) != -1) {
+                         matched = true;
+                         return false;
+                     }
+                 });
+
+                 // if matched is true the current .flower element is returned
+                 return matched;
+
+             });
+         });
+
+         $('.project').hide().filter(filteredResults).show();
+
+     });
+
+     
+    </script>
+
+
+
+{% endblock %}

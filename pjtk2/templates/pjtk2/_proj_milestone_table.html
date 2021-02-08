@@ -1,0 +1,65 @@
+{% load pjtk2_tags %}
+
+<table id="{{ what }}-table" class="table rotate-table-grid tablesorter ">
+    <thead>
+        <tr>
+            <th>Year</th>
+            <th>Project Code</th>
+            <th>Project Type</th>
+            <th>Project Name</th>
+            {% if boss %}
+            <th>Project Lead</th>
+            {% endif %}
+
+            {% if edit %}
+            <th class="rotated"><div><span class="rotate" >Edit Requirements</span></div></th>
+            {% endif %}
+
+            {% for milestone, attrs in milestones.items %}
+            <th id="{{ what }}-{{ milestone }}-col" class="rotated {{ attrs.type }}">
+                <div><span class="rotate" > {{ attrs.label }}</span></div></th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        
+        {% for prj_cd, project in projects.items %}
+            <tr class="{% cycle row1 row2 %}">
+                
+        <td> {{ project.attrs.year }} </td>
+        <td>
+        <a href="{% url 'project_detail' slug=project.attrs.slug %}"> {{ prj_cd }}</a>
+        </td>
+        <td> {{ project.attrs.project_type }} </td>
+        <td>
+        {{ project.attrs.prj_nm  }}
+        </td>
+        {% if boss %}
+        <td>
+        <a href="{% url 'EmployeeProjects' project.attrs.prj_ldr %}">
+        {{ project.attrs.prj_lead }}</a> </td>
+        {% endif %}
+
+        {% if edit %}
+        <td>
+        <a href="{% url 'Reports' project.attrs.slug %}?next={{ request.path|urlencode }}"
+        onclick="javascript:window.location=this.href">
+        <button type="button" class="btn btn-primary btn-xs" aria-label="edit">
+        <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
+        </button>
+        </a>
+        </td>
+        {% endif %}
+
+        {% for key, ms in project.milestones.items %}
+            <td class="{{ms.type}}" name="{{prj_cd|slugify}}-{{key|slugify}}" value="{{ms.status}}">
+                {{ms.status | milestone_status_glyph}}              
+            </td>
+        {% endfor %}
+
+        </tr>
+        {% endfor %}
+
+        
+    </tbody>
+</table>

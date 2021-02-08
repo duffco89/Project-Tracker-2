@@ -12,6 +12,7 @@ from pjtk2.tests.factories import (
     ProjectMilestonesFactory,
     ReportFactory,
     UserFactory,
+    EmployeeFactory,
     DBA_Factory,
 )
 
@@ -213,8 +214,7 @@ class DeleteReportLinkOnDetailPageTestCase(WebTest):
         )
 
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         response = self.app.get(
             reverse("project_detail", args=(self.project.slug,)), user=self.user2
@@ -452,8 +452,7 @@ class DeleteReportTestCase(TestCase):
         )
 
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         login = self.client.login(username=self.user2.username, password=self.password)
         self.assertTrue(login)
@@ -482,8 +481,7 @@ class DeleteReportTestCase(TestCase):
         )
 
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         login = self.client.login(username=self.user2.username, password=self.password)
         self.assertTrue(login)

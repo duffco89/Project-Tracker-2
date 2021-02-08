@@ -1,5 +1,8 @@
 from leaflet.admin import LeafletGeoAdmin
+from django import forms
+from django.forms import ModelChoiceField
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
 from pjtk2.models import (
     Milestone,
@@ -17,6 +20,8 @@ from pjtk2.models import (
     Message,
     Messages2Users,
 )
+
+User = get_user_model()
 
 
 class Admin_Milestone(admin.ModelAdmin):
@@ -103,11 +108,73 @@ class Admin_Report(admin.ModelAdmin):
     list_display = ("current", "report_path", "uploaded_on", "uploaded_by")
 
 
+class NameChoiceField(ModelChoiceField):
+    """A custom name model form field that displays the users as last
+    name, first name.  Used in Employee admin form."""
+
+    def label_from_instance(self, obj):
+        if hasattr(obj, "last_name"):
+            return f"{obj.last_name}, {obj.first_name}"
+        else:
+            return f"{obj.user.last_name}, {obj.user.first_name}"
+
+
+class EmployeeAdminForm(forms.ModelForm):
+    """Custome form model that will allow us to add queryset to the choice
+    fields taht will limit them to active users and present them in a
+    user-friendly manner."""
+
+    # user, position, fol lake, supervisor
+
+    user = NameChoiceField(
+        queryset=User.objects.filter(is_active=True).order_by("username")
+    )
+
+    supervisor = NameChoiceField(
+        queryset=Employee.objects.filter(user__is_active=True).order_by(
+            "user__username"
+        )
+    )
+
+    class Meta:
+        model = Employee
+        fields = ["user", "position", "role", "lake", "supervisor"]
+        field_order = ["user", "position", "role", "lake", "supervisor"]
+
+
 class Admin_Employee(admin.ModelAdmin):
     """Admin class for Employees"""
 
+    form = EmployeeAdminForm
+
+    def username(self, instance):
+        return "{}, {} ({})".format(
+            instance.user.last_name, instance.user.first_name, instance.user.username
+        )
+
     search_fields = ["user__first_name", "user__last_name"]
-    list_display = ("user", "position", "role", "get_lakes", "supervisor")
+    list_display = ("username", "position", "role", "supervisor")
+
+    def change_view(self, request, object_id, form_url="", extra_context=None):
+
+        obj = self.get_object(request, object_id)
+        if extra_context is None:
+            extra_context = {}
+        extra_context["title"] = "Update employee Attributes for {} {} ({})".format(
+            obj.user.first_name, obj.user.last_name, obj.user.username
+        )
+        return super(Admin_Employee, self).change_view(
+            request, object_id, form_url, extra_context
+        )
+
+    def get_queryset(self, request):
+        return (
+            super()
+            .get_queryset(request)
+            .filter(user__is_active=True)
+            .select_related("user", "supervisor__user")
+            .order_by("user__username")
+        )
 
 
 class Admin_Message(admin.ModelAdmin):

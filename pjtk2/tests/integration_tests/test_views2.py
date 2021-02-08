@@ -304,12 +304,12 @@ class ProjectTaggingTestCase(WebTest):
         msg = "Sorry no projects available."
         self.assertContains(response, msg)
 
-    def tearDown(self):
-        self.project1.delete()
-        self.project2.delete()
-        self.project3.delete()
-        self.ProjType.delete()
-        self.user.delete()
+    # def tearDown(self):
+    #     self.project1.delete()
+    #     self.project2.delete()
+    #     self.project3.delete()
+    #     self.ProjType.delete()
+    #     self.user.delete()
 
 
 class UpdateReportsTestCase(WebTest):
@@ -327,8 +327,9 @@ class UpdateReportsTestCase(WebTest):
             username="mburns", first_name="Burns", last_name="Montgomery"
         )
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
         # required reports
         self.rep1 = MilestoneFactory.create(
@@ -372,9 +373,10 @@ class UpdateReportsTestCase(WebTest):
         url = reverse("Reports", args=(self.project1.slug,))
         response = self.app.get(url, user=self.user1)
 
-        login_url = reverse("login")
-        new_url = "{}?next={}".format(login_url, url)
+        # login_url = reverse("login")
+        # new_url = "{}?next={}".format(login_url, url)
 
+        new_url = reverse("ProjectList")
         self.assertRedirects(response, new_url)
 
     def test_report_form_renders(self):
@@ -551,19 +553,21 @@ class UpdateReportsTestCase(WebTest):
             lambda a: str(a.milestone.label),
         )
 
-    def tearDown(self):
 
-        self.project1.delete()
-        self.ms3.delete()
-        self.ms2.delete()
-        self.ms1.delete()
-        self.rep5.delete()
-        self.rep4.delete()
-        self.rep3.delete()
-        self.rep2.delete()
-        self.rep1.delete()
-        self.user1.delete()
-        self.user2.delete()
+#    def tearDown(self):
+#
+#        self.project1.delete()
+#        self.ms3.delete()
+#        self.ms2.delete()
+#        self.ms1.delete()
+#        self.rep5.delete()
+#        self.rep4.delete()
+#        self.rep3.delete()
+#        self.rep2.delete()
+#        self.rep1.delete()
+#        self.user1.delete()
+#        self.user2.delete()
+#
 
 
 class MyProjectViewTestCase(WebTest):
@@ -614,6 +618,10 @@ class MyProjectViewTestCase(WebTest):
             label="Approved", category="Core", order=1, report=False
         )
         self.milestone2 = MilestoneFactory.create(
+            label="Protocol", category="Core", order=2, report=True
+        )
+
+        self.milestone3 = MilestoneFactory.create(
             label="Sign off", category="Core", order=999, report=False
         )
 
@@ -713,13 +721,13 @@ class MyProjectViewTestCase(WebTest):
         self.assertContains(response, self.project2.prj_cd)
         self.assertContains(response, self.project3.prj_cd)
 
-    def tearDown(self):
-        self.project1.delete()
-        self.project2.delete()
-        self.project3.delete()
-        self.ProjType.delete()
-        self.user.delete()
-        self.user2.delete()
+    # def tearDown(self):
+    #     self.project1.delete()
+    #     self.project2.delete()
+    #     self.project3.delete()
+    #     self.ProjType.delete()
+    #     self.user.delete()
+    #     self.user2.delete()
 
 
 class EmployeeProjectsTestCase(WebTest):
@@ -741,11 +749,11 @@ class EmployeeProjectsTestCase(WebTest):
             username="mburns", first_name="Burns", last_name="Montgomery"
         )
 
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user2.groups.add(managerGrp)
 
         # mr. burns is an employee without a boss
-        self.employee2 = EmployeeFactory(user=self.user2)
+        self.employee2 = EmployeeFactory(user=self.user2, role="manager")
         # make mr. burns homer's boss
         self.employee = EmployeeFactory(user=self.user, supervisor=self.employee2)
 
@@ -756,11 +764,14 @@ class EmployeeProjectsTestCase(WebTest):
             label="Approved", category="Core", order=1, report=False
         )
         self.milestone2 = MilestoneFactory.create(
+            label="Protocol", category="Core", order=2, report=True
+        )
+        self.milestone3 = MilestoneFactory.create(
             label="Sign off", category="Core", order=999, report=False
         )
 
         prj_cd = "LHA_IA{}_111".format(year)
-        self.project1 = ProjectFactory.create(
+        self.project1 = ProjectFactory(
             prj_cd=prj_cd,
             prj_ldr=self.user,
             owner=self.user,
@@ -768,7 +779,7 @@ class EmployeeProjectsTestCase(WebTest):
         )
 
         prj_cd = "LHA_IA{}_222".format(year)
-        self.project2 = ProjectFactory.create(
+        self.project2 = ProjectFactory(
             prj_cd=prj_cd,
             prj_ldr=self.user,
             owner=self.user,
@@ -776,7 +787,7 @@ class EmployeeProjectsTestCase(WebTest):
         )
         # this one is run by mr. burns
         prj_cd = "LHA_IA{}_333".format(year)
-        self.project3 = ProjectFactory.create(
+        self.project3 = ProjectFactory(
             prj_cd=prj_cd,
             prj_ldr=self.user2,
             owner=self.user2,
@@ -847,66 +858,65 @@ class EmployeeProjectsTestCase(WebTest):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "registration/login.html")
 
-    def tearDown(self):
-        self.project1.delete()
-        self.project2.delete()
-        self.project3.delete()
-        self.ProjType.delete()
-        self.user.delete()
-        self.user2.delete()
+    # def tearDown(self):
+    #     self.project1.delete()
+    #     self.project2.delete()
+    #     self.project3.delete()
+    #     self.ProjType.delete()
+    #     self.user.delete()
+    #     self.user2.delete()
 
 
 class TestProjectDetailForm(WebTest):
     def setUp(self):
 
         # USER
-        self.user1 = UserFactory.create(
+        self.user1 = UserFactory(
             username="hsimpson", first_name="Homer", last_name="Simpson"
         )
         self.employee = EmployeeFactory(user=self.user1)
 
-        self.user2 = UserFactory.create(
+        self.user2 = UserFactory(
             username="mburns", first_name="Burns", last_name="Montgomery"
         )
 
-        self.user3 = UserFactory.create(
+        self.user3 = UserFactory(
             username="bgumble", first_name="Barney", last_name="Gumble"
         )
 
         # make Mr. Burns the manager:
-        managerGrp, created = Group.objects.get_or_create(name="manager")
-        self.user2.groups.add(managerGrp)
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user2.groups.add(managerGrp)
+        EmployeeFactory(user=self.user2, role="manager")
 
-        self.dba = DBA_Factory.create()
-        self.dba_role = EmployeeFactory.create(user=self.dba, role="dba")
+        self.dba = DBA_Factory()
+        self.dba_role = EmployeeFactory(user=self.dba, role="dba")
 
         # milestones
-        self.ms1 = MilestoneFactory.create(
+        self.ms1 = MilestoneFactory(
             label="Approved", protected=True, category="Core", order=1, report=False
         )
 
-        self.ms2 = MilestoneFactory.create(
+        self.ms2 = MilestoneFactory(
             label="Fieldwork Complete", report=False, category="Core", order=2
         )
 
-        self.ms3 = MilestoneFactory.create(
+        self.ms3 = MilestoneFactory(
             label="Data Scrubbed", report=False, category="Core", order=3
         )
 
-        self.ms4 = MilestoneFactory.create(
+        self.ms4 = MilestoneFactory(
             label="Data Merged", report=False, category="Core", order=4
         )
 
-        self.ms5 = MilestoneFactory.create(
+        self.ms5 = MilestoneFactory(
             label="Sign Off", protected=True, category="Core", order=999, report=False
         )
 
         # PROJECTS
         year = str(datetime.today().year - 3)[2:]
         prj_cd = "LHA_IA{}_111".format(year)
-        self.project1 = ProjectFactory.create(
-            prj_cd=prj_cd, owner=self.user1, dba=self.dba
-        )
+        self.project1 = ProjectFactory(prj_cd=prj_cd, owner=self.user1, dba=self.dba)
 
     def test_milestones_render_properly_in_form(self):
         """verify that the status of the check boxes reflects the status of
@@ -1190,7 +1200,7 @@ class TestProjectDetailForm(WebTest):
         form.fields["milestones"][2].value = "on"
         form.fields["description"] = "This is a new description."
         response = form.submit().follow()
-
+        # response = form.submit()
         # response.showbrowser()
 
         # make sure that the form is valid and processed properly
@@ -1241,16 +1251,16 @@ class TestProjectDetailForm(WebTest):
         # sufficient priveledges to approve or unapprove projects.
         self.assertFalse(self.project1.is_approved())
 
-    def tearDown(self):
-        self.project1.delete()
-        self.ms5.delete()
-        self.ms4.delete()
-        self.ms3.delete()
-        self.ms2.delete()
-        self.ms1.delete()
-        self.user3.delete()
-        self.user2.delete()
-        self.user1.delete()
+    # def tearDown(self):
+    #     self.project1.delete()
+    #     self.ms5.delete()
+    #     self.ms4.delete()
+    #     self.ms3.delete()
+    #     self.ms2.delete()
+    #     self.ms1.delete()
+    #     self.user3.delete()
+    #     self.user2.delete()
+    #     self.user1.delete()
 
 
 class TestCanCopyProject(WebTest):
@@ -1286,7 +1296,7 @@ class TestCanCopyProject(WebTest):
         autopopulated fields get filled in appropriately and that the original
         project remains unchanged."""
 
-        # we want to make sure that none of the attributes of proejct1
+        # we want to make sure that none of the attributes of project1
         # are changed by making a copy of it
         old_prj_cd = self.project1.prj_cd
         old_prj_ldr = self.project1.prj_ldr
@@ -1341,10 +1351,10 @@ class TestCanCopyProject(WebTest):
         self.assertEqual(project.owner, old_owner)
         self.assertEqual(project.year, str(old_year))
 
-    def tearDown(self):
-        self.project1.delete()
-        self.user2.delete()
-        self.user1.delete()
+    # def tearDown(self):
+    # self.project1.delete()
+    # self.user2.delete()
+    # self.user1.delete()
 
 
 class TestFieldLeader(WebTest):
@@ -1488,11 +1498,11 @@ class TestFieldLeader(WebTest):
     #        self.assertContains(response, "ODOE:")
     #        self.assertContains(response, "Total Cost:")
 
-    def tearDown(self):
-        self.project2.delete()
-        self.project1.delete()
-        self.user2.delete()
-        self.user1.delete()
+    # def tearDown(self):
+    #     self.project2.delete()
+    #     self.project1.delete()
+    #     self.user2.delete()
+    #     self.user1.delete()
 
 
 class TestUserChoiceFilesProjectForm(WebTest):

@@ -46,7 +46,9 @@
  }
 
 
-
+ .missing {
+     color: red;
+ }
 
 </style>
 
@@ -329,8 +331,12 @@
                     <legend> Milestones:</legend>
 
                     {% for milestone in milestones %}
-                    <input type="checkbox" disabled="disabled"
-                           {% if milestone.completed  %} checked="checked" {% endif %}> {{ milestone.milestone.label }}
+                        <input type="checkbox" disabled="disabled"
+                               {% if milestone.completed  %}
+                               checked="checked"
+                               {% endif %}
+                        />
+                        {{ milestone.milestone.label }}
                     {% endfor %}
 
                 </fieldset>
@@ -468,7 +474,7 @@
                     {% else %}
                     {% if report.required %}
                     <td>
-                        <div class="na"><em> Report not available yet. </em></div>
+                        <div class="missing"><em> Report not available yet. </em></div>
                     </td>
                     {% else %}
                     <td><div class="na"><em> Not requested. </em></div></td>
@@ -524,7 +530,7 @@
                     {% else %}
                     {% if report.required %}
                     <td>
-                        <div class="na"><em> Report not available yet. </em></div>
+                        <div class="missing"><em> Report not available yet. </em></div>
                     </td>
                     {% else %}
                     <td><div class="na"><em> Not requested. </em></div></td>

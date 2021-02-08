@@ -50,7 +50,7 @@
                             {% endif %}
                             <li><a href="{% url 'ProjectList' %}">All Projects</a></li>
                             <li><a href="{% url 'ApprovedProjectsList' %}">Approved Projects</a></li>
-                            {% if user.is_staff and user.is_authenticated %}
+                            {% if user.is_active and user.is_authenticated %}
                             <li class="divider"></li>
                             <li><a href="{% url 'NewProject' %}">New Project</a></li>
                             <li class="divider"></li>

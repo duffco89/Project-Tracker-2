@@ -28,7 +28,7 @@ import collections
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.forms.models import modelformset_factory
+from django.forms.models import modelformset_factory, formset_factory
 from django.forms import formset_factory
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
@@ -36,23 +36,139 @@ from django.urls import reverse
 
 from ..models import Project, ProjectMilestones, Milestone, Employee, Bookmark
 
-from ..forms import ApproveProjectsForm, ReportsForm, NoticesForm, SisterProjectsForm
-
+from ..forms import (
+    ApproveProjectsForm,
+    ReportsForm,
+    NoticesForm,
+    SisterProjectsForm,
+    ApproveProjectsForm2,
+)
 
 from ..utils.helpers import (
     is_manager,
-    group_required,
+    # group_required,
     make_possessive,
     get_messages_dict,
+    get_approve_project_dict,
     my_messages,
     get_minions,
     get_sisters_dict,
+    make_proj_ms_dict,
+    get_project_filters,
 )
 
 User = get_user_model()
 
+
+def get_proj_ms(project_ids, milestones):
+    """
+
+    Arguments:
+    - `project_ids`:
+    """
+
+    project_milestones = (
+        ProjectMilestones.objects.select_related("project", "milestone")
+        # .exclude(
+        #    milestone__label__in=["Approved", "Submitted", "Cancelled", "Sign off"]
+        # )
+        .filter(milestone__in=milestones)
+        .filter(project__pk__in=project_ids)
+        .prefetch_related("project__project_type", "project__prj_ldr")
+        .order_by("-project__year", "project__prj_cd", "milestone__order")
+        .values(
+            "project__prj_cd",
+            "project__prj_nm",
+            "project__year",
+            "project__slug",
+            "project__prj_ldr__first_name",
+            "project__prj_ldr__last_name",
+            "project__prj_ldr__username",
+            "project__project_type__project_type",
+            "milestone__category",
+            "milestone__report",
+            "milestone__label",
+            "required",
+            "completed",
+        )
+    )
+
+    return project_milestones
+
+
 # ==========================
 #      Managers
+
+
+@login_required
+# @permission_required('Project.can_change_Approved')
+def approveprojects2(request):
+    """Create a list of projects, project names and an approved/unapproved
+    checkbox widget.  This version of the view was modified from the
+    original to use ProjectMilestone object instead of Projects - the
+    action actually update project milestone objects, so this approach
+    should be considerably faster.
+
+    """
+
+    if is_manager(request.user) is False:
+        return HttpResponseRedirect(reverse("ApprovedProjectsList"))
+
+    project_formset = formset_factory(form=ApproveProjectsForm2, extra=0)
+
+    # TODO - test that signed off and unactive projects are not included.
+    # TODO - test that projects in the future are included in this year
+
+    year = datetime.datetime.now().year
+
+    this_year = get_approve_project_dict(year, this_year=True)
+    last_year = get_approve_project_dict(year, this_year=False)
+
+    project_filters = get_project_filters(this_year, last_year)
+
+    if request.method == "POST":
+
+        this_year_formset = project_formset(
+            request.POST, request.FILES, initial=this_year, prefix="this_year"
+        )
+
+        last_year_formset = project_formset(
+            request.POST, request.FILES, initial=last_year, prefix="last_year"
+        )
+
+        if this_year_formset.is_valid() and last_year_formset.is_valid():
+            for form in this_year_formset:
+                form.save()
+            for form in last_year_formset:
+                form.save()
+
+            return HttpResponseRedirect(reverse("ApprovedProjectsList"))
+        else:
+            return render(
+                request,
+                "pjtk2/ApproveProjects2.html",
+                {
+                    "year": year,
+                    "this_year_formset": this_year_formset,
+                    "last_year_formset": last_year_formset,
+                    "filters": project_filters,
+                },
+            )
+
+    else:
+        this_year_formset = project_formset(initial=this_year, prefix="this_year")
+        last_year_formset = project_formset(initial=last_year, prefix="last_year")
+
+    return render(
+        request,
+        "pjtk2/ApproveProjects2.html",
+        {
+            "year": year,
+            "this_year_formset": this_year_formset,
+            "last_year_formset": last_year_formset,
+            "filters": project_filters,
+        },
+    )
 
 
 @login_required
@@ -74,8 +190,16 @@ def approveprojects(request):
     # TODO - test that projects in the future are included in this year
     # thisyears = Project.this_year.all().filter(SignOff=False)
     # lastyears = Project.last_year.all().filter(SignOff=False)
-    thisyears = Project.this_year.all()
-    lastyears = Project.last_year.all()
+    thisyears = (
+        Project.this_year.all()
+        .select_related("prj_ldr", "project_type")
+        .prefetch_related("projectmilestones", "projectmilestones__milestone")
+    )
+    lastyears = (
+        Project.last_year.all()
+        .select_related("prj_ldr", "project_type")
+        .prefetch_related("projectmilestones", "projectmilestones__milestone")
+    )
 
     year = datetime.datetime.now().year
 
@@ -138,12 +262,15 @@ def approveprojects(request):
 
 
 @login_required
-@group_required("manager")
+# @group_required("manager")
 def approve_project(request, slug):
     """
     A quick little view that will allow managers to approve projects
     from the project detail page.
     """
+
+    if not is_manager(request.user):
+        HttpResponseRedirect(reverse("ProjectList"))
 
     project = get_object_or_404(Project, slug=slug)
     project.approve()
@@ -152,12 +279,15 @@ def approve_project(request, slug):
 
 
 @login_required
-@group_required("manager")
+# @group_required("manager")
 def unapprove_project(request, slug):
     """
     A quick little view that will allow managers to unapprove projects
     from the project detail page.
     """
+
+    if not is_manager(request.user):
+        HttpResponseRedirect(reverse("ProjectList"))
 
     project = Project.objects.get(slug=slug)
     project.unapprove()
@@ -230,7 +360,7 @@ def signoff_project(request, slug):
     from the project detail page.
     """
 
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
     project = get_object_or_404(Project, slug=slug)
     if is_manager(user):
         project.signoff(user)
@@ -245,7 +375,7 @@ def reopen_project(request, slug):
     entries edited.
     """
 
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
     project = get_object_or_404(Project, slug=slug)
     if is_manager(user):
         project.reopen()
@@ -253,13 +383,16 @@ def reopen_project(request, slug):
 
 
 @login_required
-@group_required("manager")
+# @group_required("manager")
 def report_milestones(request, slug):
     """
     This function will render a form of requested reporting
     requirements for each project.  Used by managers to update
     reporting requirements for each project.
     """
+
+    if not is_manager(request.user):
+        return HttpResponseRedirect(reverse("ProjectList"))
 
     project = Project.objects.get(slug=slug)
     reports = project.get_milestone_dicts()
@@ -322,12 +455,18 @@ def my_projects(request):
     Gather all of the things a user needs and render them on a single
     page.
     """
+
     # TODO - write more tests to verify this works as expected.
     bookmarks = Bookmark.objects.filter(user__pk=request.user.id)
 
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
 
-    milestones = Milestone.objects.filter(category="Core").order_by("order").all()
+    milestones = (
+        Milestone.objects.filter(category="Core")
+        .exclude(label__in=["Approved", "Submitted", "Cancelled", "Sign off"])
+        .order_by("order")
+        .all()
+    )
 
     milestone_dict = collections.OrderedDict()
     for ms in milestones:
@@ -351,7 +490,7 @@ def my_projects(request):
         raise Http404(msg)
 
     employees = get_minions(myself)
-    employees = [x.user.username for x in employees]
+    employees = [x.user.id for x in employees]
 
     boss = False
     if len(employees) > 1:
@@ -359,30 +498,45 @@ def my_projects(request):
 
     # get the submitted, approved and completed projects from the last five years
     this_year = datetime.datetime.now(pytz.utc).year
-    submitted = (
+
+    submitted_projects = (
         Project.objects.submitted()
-        .select_related("project_type", "prj_ldr")
-        .filter(owner__username__in=employees)
+        .filter(owner__pk__in=employees)
         .filter(year__gte=this_year - 5)
+        .values_list("pk")
     )
-    approved = (
+
+    prj_milestones = get_proj_ms(submitted_projects, milestones)
+    submitted = make_proj_ms_dict(prj_milestones, milestones)
+
+    approved_projects = (
         Project.objects.approved()
-        .select_related("project_type", "prj_ldr")
-        .filter(owner__username__in=employees)
+        .filter(owner__pk__in=employees)
         .filter(year__gte=this_year - 5)
+        .values_list("pk")
     )
-    cancelled = (
+    prj_milestones = get_proj_ms(approved_projects, milestones)
+    approved = make_proj_ms_dict(prj_milestones, milestones)
+
+    cancelled_projects = (
         Project.objects.cancelled()
-        .select_related("project_type", "prj_ldr")
-        .filter(owner__username__in=employees)
+        .filter(owner__pk__in=employees)
         .filter(year__gte=this_year - 5)
+        .values_list("pk")
     )
-    complete = (
+
+    prj_milestones = get_proj_ms(cancelled_projects, milestones)
+    cancelled = make_proj_ms_dict(prj_milestones, milestones)
+
+    completed_projects = (
         Project.objects.completed()
-        .select_related("project_type", "prj_ldr")
-        .filter(owner__username__in=employees)
+        .filter(owner__pk__in=employees)
         .filter(year__gte=this_year - 15)
+        .values_list("pk")
     )
+
+    prj_milestones = get_proj_ms(completed_projects, milestones)
+    complete = make_proj_ms_dict(prj_milestones, milestones)
 
     notices = get_messages_dict(my_messages(user))
     notices_count = len(notices)
@@ -408,9 +562,13 @@ def my_projects(request):
             "bookmarks": bookmarks,
             "formset": notices_formset,
             "complete": complete,
+            "complete_count": len(completed_projects),
             "approved": approved,
+            "approved_count": len(approved_projects),
             "cancelled": cancelled,
+            "cancelled_count": len(cancelled_projects),
             "submitted": submitted,
+            "submitted_count": len(submitted_projects),
             "boss": boss,
             "notices_count": notices_count,
             "milestones": milestone_dict,
@@ -427,7 +585,7 @@ def employee_projects(request, employee_name):
     """
     # get the employee user object
     my_employee = get_object_or_404(User, username=employee_name)
-    user = User.objects.get(username__exact=request.user)
+    user = User.objects.get(pk=request.user.id)
 
     # if I am not a manager or in the list of supervisors associated
     # with this employee, return me to my projects page
@@ -438,7 +596,12 @@ def employee_projects(request, employee_name):
     # if I am the employees supervisor - get their projects and
     # associated milestones:
 
-    milestones = Milestone.objects.filter(category="Core").order_by("order").all()
+    milestones = (
+        Milestone.objects.filter(category="Core")
+        .exclude(label__in=["Approved", "Submitted", "Cancelled", "Sign off"])
+        .order_by("order")
+        .all()
+    )
 
     milestone_dict = collections.OrderedDict()
     for ms in milestones:
@@ -455,30 +618,45 @@ def employee_projects(request, employee_name):
 
     # get the submitted, approved and completed projects from the last five years
     this_year = datetime.datetime.now(pytz.utc).year
-    submitted = (
+
+    submitted_projects = (
         Project.objects.submitted()
-        .filter(owner__username=my_employee)
+        .filter(owner=my_employee)
         .filter(year__gte=this_year - 5)
-        .select_related("project_type", "prj_ldr")
+        .values_list("pk")
     )
-    approved = (
+
+    prj_milestones = get_proj_ms(submitted_projects, milestones)
+    submitted = make_proj_ms_dict(prj_milestones, milestones)
+
+    approved_projects = (
         Project.objects.approved()
-        .filter(owner__username=my_employee)
+        .filter(owner=my_employee)
         .filter(year__gte=this_year - 5)
-        .select_related("project_type", "prj_ldr")
+        .values_list("pk")
     )
-    cancelled = (
+    prj_milestones = get_proj_ms(approved_projects, milestones)
+    approved = make_proj_ms_dict(prj_milestones, milestones)
+
+    cancelled_projects = (
         Project.objects.cancelled()
-        .filter(owner__username=my_employee)
+        .filter(owner=my_employee)
         .filter(year__gte=this_year - 5)
-        .select_related("project_type", "prj_ldr")
+        .values_list("pk")
     )
-    complete = (
+
+    prj_milestones = get_proj_ms(cancelled_projects, milestones)
+    cancelled = make_proj_ms_dict(prj_milestones, milestones)
+
+    completed_projects = (
         Project.objects.completed()
-        .filter(owner__username=my_employee)
+        .filter(owner=my_employee)
         .filter(year__gte=this_year - 15)
-        .select_related("project_type", "prj_ldr")
+        .values_list("pk")
     )
+
+    prj_milestones = get_proj_ms(completed_projects, milestones)
+    complete = make_proj_ms_dict(prj_milestones, milestones)
 
     template_name = "pjtk2/employee_projects.html"
 
@@ -498,6 +676,10 @@ def employee_projects(request, employee_name):
             "approved": approved,
             "cancelled": cancelled,
             "submitted": submitted,
+            "complete_count": len(completed_projects),
+            "approved_count": len(approved_projects),
+            "cancelled_count": len(cancelled_projects),
+            "submitted_count": len(submitted_projects),
             "milestones": milestone_dict,
             "edit": True,
         },
@@ -507,7 +689,7 @@ def employee_projects(request, employee_name):
 def sisterprojects(request, slug):
     """
     Render a form that can be used to create groupings of sister
-    projects.  Only approved projects in the same year, and of the
+    projects.  Only approved projects in the same year, same lake, and of the
     same project type will be presented.  existing sister projects
     will be checked off.  When the form is submitted the sibling
     relationships will be updated according to the values in the
