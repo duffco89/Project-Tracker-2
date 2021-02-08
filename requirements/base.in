@@ -10,3 +10,4 @@ markdown2==2.4.0
 Pillow==8.1.0
 psycopg2==2.8.6
 #ticket-tracker==0.1
+openpyxl==3.0.6

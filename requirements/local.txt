@@ -50,6 +50,8 @@ django==2.2.18
     #   djangorestframework
 djangorestframework==3.12.2
     # via -r base.in
+et-xmlfile==1.0.1
+    # via openpyxl
 factory-boy==3.2.0
     # via -r local.in
 faker==2.0.4
@@ -60,10 +62,14 @@ importlib-metadata==0.23
     #   pytest
 iniconfig==1.1.1
     # via pytest
+jdcal==1.4.1
+    # via openpyxl
 markdown2==2.4.0
     # via -r base.in
 more-itertools==7.2.0
     # via zipp
+openpyxl==3.0.6
+    # via -r base.in
 packaging==19.2
     # via pytest
 pillow==8.1.0
