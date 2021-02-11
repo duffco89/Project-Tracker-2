@@ -1144,11 +1144,13 @@ class AssociatedFileUploadForm(forms.Form):
         """fill in the project, user, uploaded time and file hash when we save
         it."""
 
+        fname = str(self.cleaned_data["file_path"])
+
         newReport = AssociatedFile(
             project=self.project,
             file_path=self.cleaned_data["file_path"],
             uploaded_by=self.user,
-            hash=hashlib.sha1(str(self.cleaned_data["file_path"])).hexdigest(),
+            hash=hashlib.sha1(fname.encode("utf-8")).hexdigest(),
         )
         newReport.save()
 
@@ -1274,10 +1276,14 @@ class SpatialPointUploadForm(forms.Form):
         self.fields["points_file"].widget.attrs["accept"] = ".csv,.txt,.xlsx"
 
     def handle_csv_data(self, csv_file):
-        csv_file = io.TextIOWrapper(csv_file)
-        reader = csv.reader(csv_file)
-        pts = list(reader)
-        return [x for x in pts if x != []]
+        # encoding catches the byte-order-mark that can cause issues:
+        csv_file = io.TextIOWrapper(csv_file, encoding="utf-8-sig")
+        reader = csv.reader(csv_file, delimiter=",", quotechar='"')
+        pts = [x for x in list(reader) if x != []]
+        for i, row in enumerate(pts):
+            pts[i] = [x.replace('"', "") for x in row]
+
+        return pts
 
     def handle_xlsx_data(self, xlsx_file):
         wb = load_workbook(filename=xlsx_file)
@@ -1317,6 +1323,7 @@ class SpatialPointUploadForm(forms.Form):
 
             expected_header = ["POINT_LABEL", "DD_LAT", "DD_LON"]
             recieved_header = pts.pop(0)
+
             if not recieved_header == expected_header:
                 validation_errors.append(
                     "Malformed header in submitted file."

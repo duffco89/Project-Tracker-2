@@ -491,6 +491,41 @@ def test_replace_xlsx(client, project, user, pts):
 
 
 @pytest.mark.django_db
+def test_append_quoted_csv(client, project, user, pts):
+    """There were issues with the csv upload depending on how the csv was
+    built.  Some application wrap values with quotes, some don't.  Values
+    with quote were causeing errors when they should have been fine.
+
+    """
+
+    # get the labels of points associated with our project before
+    prior_labels = [x[0] for x in project.get_sample_points()]
+
+    # wrap all of the values in our list in quotes before passing it
+    # to csv file upload
+    for i, item in enumerate(pts):
+        pts[i] = ['"{}"'.format(x) for x in item]
+
+    points_file = csv_file_upload(pts)
+    points_labels = [x[0].replace('"', "") for x in pts[1:]]
+
+    form_data = {"replace": "append", "points_file": points_file}
+
+    url = reverse("spatial_point_upload", kwargs={"slug": project.slug})
+
+    login = client.login(username=user.username, password="Abcd1234")
+    assert login is True
+    response = client.post(url, form_data, follow=True)
+    assert response.status_code == 200
+
+    observed_labels = [x[0] for x in project.get_sample_points()]
+    expected_labels = points_labels + prior_labels
+    # our expected labels should be the original ones plus the new
+    # ones we passed in:
+    assert set(expected_labels) == set(observed_labels)
+
+
+@pytest.mark.django_db
 def test_append_csv(client, project, user, pts):
     """if the append option is specified when the data is submitted as an
     csv file, the points should be added to ones already present."""
