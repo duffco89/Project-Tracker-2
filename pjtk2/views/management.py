@@ -315,21 +315,7 @@ def cancel_project(request, slug):
     project = get_object_or_404(Project, slug=slug)
 
     if is_manager(request.user):
-        cancelled_ms = Milestone.objects.get(label="Cancelled")
-        project_cancelled, created = ProjectMilestones.objects.get_or_create(
-            project=project, milestone=cancelled_ms
-        )
-        now = datetime.datetime.now(pytz.utc)
-        project_cancelled.completed = now
-        project_cancelled.save()
-        # any outstanding task will not longer be required:
-        # remaining_ms = ProjectMilestones.objects.filter(project=project,
-        #                                                 required=True,
-        #                                                 completed__isnull=True).update(required=False)
-        # keep track of who cancelled the project
-        project.cancelled_by = request.user
-        project.cancelled = True
-        project.save()
+        project.cancel(request.user)
     return HttpResponseRedirect(project.get_absolute_url())
 
 
@@ -340,16 +326,9 @@ def uncancel_project(request, slug):
     """
 
     project = get_object_or_404(Project, slug=slug)
-    cancelled_ms = get_object_or_404(Milestone, label="Cancelled")
-    project_cancelled = get_object_or_404(
-        ProjectMilestones, project=project, milestone=cancelled_ms
-    )
+
     if is_manager(request.user):
-        project_cancelled.completed = None
-        project_cancelled.save()
-        project.cancelled_by = None
-        project.cancelled = False
-        project.save()
+        project.uncancel()
     return HttpResponseRedirect(project.get_absolute_url())
 
 

@@ -532,11 +532,15 @@ class CancelProjectTestCase(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
+
+        msg = "This project was cancelled."
+        self.assertContains(response, msg)
+
         # it should be cancelled now:
         proj = Project.objects.get(slug=self.project.slug)
         self.assertTrue(proj.cancelled)
-        # make sure that who cancelled the project is recorded too
         self.assertEqual(proj.cancelled_by, self.user)
+        self.assertEqual(proj.status, "cancelled")
 
         # verify that the projectmilestone was created and has been populated
         pms = ProjectMilestones.objects.get(project=self.project, milestone=self.ms)
@@ -561,9 +565,15 @@ class CancelProjectTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
+
+        msg = "This project was cancelled."
+        self.assertNotContains(response, msg)
+
         # it still should not be cancelled :
         proj = Project.objects.get(slug=self.project.slug)
         self.assertFalse(proj.cancelled)
+        self.assertIsNone(proj.cancelled_by)
+        self.assertNotEqual(proj.status, "cancelled")
 
     def test_anonuser_cannot_cancel_project(self):
         """An anonmous user cannot access the cancel project url and should be
@@ -585,6 +595,116 @@ class CancelProjectTestCase(TestCase):
         # it still should not be cancelled :
         proj = Project.objects.get(slug=self.project.slug)
         self.assertFalse(proj.cancelled)
+
+        self.assertIsNone(proj.cancelled_by)
+        self.assertNotEqual(proj.status, "cancelled")
+
+    def tearDown(self):
+        self.project.delete()
+        self.user1.delete()
+        self.user.delete()
+
+
+class UncancelProjectTestCase(TestCase):
+    """verify that a manager can uncancel a cancelled project."""
+
+    def setUp(self):
+        self.client = Client()
+        self.user = UserFactory(
+            username="gcostansa", first_name="George", last_name="Costansa"
+        )
+
+        self.user1 = UserFactory(
+            username="hsimpson", first_name="Homer", last_name="Simpson"
+        )
+
+        # make george the manager:
+        # managerGrp, created = Group.objects.get_or_create(name="manager")
+        # self.user.groups.add(managerGrp)
+        EmployeeFactory(user=self.user, role="manager")
+
+        self.ms = MilestoneFactory.create(
+            label="Cancelled", protected=True, category="Core", order=99, report=False
+        )
+
+        # now create a project using a different user
+        self.owner = UserFactory()
+        self.project = ProjectFactory(owner=self.owner)
+
+        self.project.cancel(self.user)
+
+        signoff = MilestoneFactory(label="Sign Off")
+        ProjectMilestonesFactory(project=self.project, milestone=signoff)
+
+    def test_manager_can_uncancel_project(self):
+        """A manager should be able to access the cancel project url and
+        successfully cancel a project.
+        """
+        # make sure the project isn't cancelled to start with
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.cancelled)
+
+        login = self.client.login(username=self.user.username, password="Abcd1234")
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse("uncancel_project", kwargs={"slug": self.project.slug}), follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
+
+        msg = "This project was cancelled."
+        self.assertNotContains(response, msg)
+
+        # it is no longer cancelled:
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertFalse(proj.cancelled)
+        self.assertIsNone(proj.cancelled_by)
+        self.assertEqual(proj.status, "ongoing")
+
+    def test_user_cannot_uncancel_project(self):
+        """A regular user cannot uncancel a project url and should be
+        re-directed to project detail page.
+
+        """
+        # make sure the project isn't cancelled to start with
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.cancelled)
+
+        login = self.client.login(username=self.user1.username, password="Abcd1234")
+        self.assertTrue(login)
+        response = self.client.get(
+            reverse("uncancel_project", kwargs={"slug": self.project.slug}), follow=True
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "pjtk2/projectdetail.html")
+
+        msg = "This project was cancelled."
+        self.assertContains(response, msg)
+
+        # it still should not be cancelled :
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.cancelled)
+        self.assertEqual(proj.status, "cancelled")
+
+    def test_anonuser_cannot_cancel_project(self):
+        """An anonmous user cannot access the cancel project url and should be
+        re-directed to login-page.
+
+        """
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.cancelled)
+
+        response = self.client.get(
+            reverse("uncancel_project", kwargs={"slug": self.project.slug}), follow=True
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "registration/login.html")
+
+        proj = Project.objects.get(slug=self.project.slug)
+        self.assertTrue(proj.cancelled)
+        self.assertEqual(self.project.status, "cancelled")
 
     def tearDown(self):
         self.project.delete()
@@ -1109,7 +1229,7 @@ class TestDetailPageReOpenProject(TestCase):
     def test_no_reopen_btn_completed_project_user(self):
         """If the a logged in user views a completed project, there
         will not be buttons to to edit, sign-off, cancel or re-open
-        the project.  """
+        the project."""
 
         pms = ProjectMilestones.objects.get(
             project=self.project1, milestone=self.signoff
@@ -1287,7 +1407,7 @@ class ApprovedProjectListUserTestCase(TestCase):
 
 
 class ApprovedProjectListManagerTestCase(TestCase):
-    """ Managers should  be able to see the list of approved
+    """Managers should  be able to see the list of approved
     projects, and see the link to update the list"""
 
     def setUp(self):
@@ -1759,7 +1879,7 @@ class ApproveUnapproveProjectsTestCase(TestCase):
 
 
 class ApproveProjectsEmptyTestCase(TestCase):
-    """ Verify that a meaningful message is displayed if there aren't
+    """Verify that a meaningful message is displayed if there aren't
     any projects waiting to be approved."""
 
     def setUp(self):
