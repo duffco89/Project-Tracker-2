@@ -14,15 +14,6 @@ ADMINS = (("Adam Cottrill", "racottrill@bmts.com"),)
 
 MANAGERS = ADMINS
 
-##username and password: cottrillad, django
-# DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.sqlite3',
-#        'NAME': '%s/db/pjtk2.db' % root(),
-#    }
-# }
-
-# print 'database name: %s/db/pjtk2.db' % root()
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -90,10 +81,6 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
     #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = "0yo*&amp;!557a9o8=+2b_9mrcfc=n$*7vc-hr@b56y^x#&amp;a+pidx@"
-
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

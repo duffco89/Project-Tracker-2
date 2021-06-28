@@ -4,7 +4,7 @@ Project Tracker II
 
 pjtk2 is a Django application that provides an interface and API for
 reports and milestones associated with Great Lakes Fisheries
-Assessment Porgrams. It is built as an installable application that
+Assessment Programs. It is built as an installable application that
 can be added to other projects as needed.
 
 More detailed documentation is in the "docs" directory.
@@ -47,8 +47,8 @@ Updating the Application
 Rebuilding the App.
 ------------------------
 
-PJTK2 was built as a standard applicaiton can be rebuild for
-distrubition following the instructions found here:
+PJTK2 was built as a standard application can be rebuild for
+distribution following the instructions found here:
 
 https://docs.djangoproject.com/en/2.2/intro/reusable-apps/
 
@@ -70,10 +70,9 @@ To update an existing application issue the command:
 Running the tests
 ------------------------
 
-pjtk2 contains a number of unit tests that verify that the
-application works as expected and that any regregressions are caught
-early. The package uses pytest to run all of the tests, which can be
-run by issuing the command:
+pjtk2 contains a number of unit tests that verify that the application works as
+expected and that any regressions are caught early. The package uses pytest to
+run all of the tests, which can be run by issuing the command:
 
 > pytest
 

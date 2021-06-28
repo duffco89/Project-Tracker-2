@@ -496,8 +496,8 @@ import psycopg2
 con_pars = {
     "HOST": "localhost",
     "NAME": "superior",
-    "USER": "cottrillad",
-    "PASSWORD": "django123",
+    "USER": os.getenv("PGUSER"),
+    "PASSWORD": os.getenv("PGPASS"),
 }
 
 pg_constring = "host='{HOST}' dbname='{NAME}' user='{USER}'" + " password='{PASSWORD}'"
