@@ -59,7 +59,7 @@ SRC_DIR = os.path.join(ROOT_SRC, "uploads")
 TRG_DIR = "C:/Users/COTTRILLAD/1work/Python/djcode/pjtk2/uploads"
 
 PGPARS = {
-    "HOST": "***REMOVED***",
+    "HOST": "142.143.160.56",
     "DBNAME": "superior",
     "USER": os.getenv("PGUSER"),
     "PASSWORD": os.getenv("PGPASSWORD"),

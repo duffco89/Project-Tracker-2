@@ -23,7 +23,7 @@ import psycopg2
 
 from docx import Document
 
-# PG_HOST = "***REMOVED***"
+# PG_HOST = "142.143.160.56"
 PG_HOST = "localhost"
 PG_USER = "uglmu"
 PG_PWD = "uglmu"

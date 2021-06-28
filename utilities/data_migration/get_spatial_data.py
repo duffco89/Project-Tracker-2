@@ -49,7 +49,7 @@ import pyodbc
 PG_USER = "adam"
 PG_DB = "pjtk2"
 
-PG_HOST = "***REMOVED***"
+PG_HOST = "142.143.160.56"
 # PG_HOST = '127.0.0.1'
 
 OUTDIR = "c:/Users/COTTRILLAD/1work/scrapbook/project_tracker"

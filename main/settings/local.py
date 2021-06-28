@@ -7,14 +7,14 @@ DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "pjtk2",
-        "USER": "cottrillad",
-        "PASSWORD": "django123",
+        "USER": os.getenv("PGUSER"),
+        "PASSWORD": os.getenv("PGPASS"),
     },
     "gldjango": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
         "NAME": "gldjango",
-        "USER": "cottrillad",
-        "PASSWORD": "django123",
+        "USER": os.getenv("PGUSER"),
+        "PASSWORD": os.getenv("PGPASS"),
     },
 }
 
