@@ -4,72 +4,42 @@
 
 import csv
 import datetime
-import io
 import hashlib
-import pytz
+import io
 import re
+from itertools import chain
 
-
-from openpyxl import load_workbook
-
-
+import pytz
+from crispy_forms.bootstrap import PrependedText
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import (ButtonHolder, Div, Field, Fieldset, Layout,
+                                 Submit)
+# from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.gis import forms
 from django.contrib.gis.forms.fields import PolygonField
 from django.contrib.gis.geos import Point
-
-# from django import forms
-from django.contrib.auth import get_user_model
 from django.core.validators import FileExtensionValidator
 from django.db.models.aggregates import Max, Min
+from django.forms import (CharField, ModelChoiceField, ModelForm,
+                          ModelMultipleChoiceField, ValidationError)
 from django.forms.formsets import BaseFormSet
-
-from django.forms import (
-    CharField,
-    ModelChoiceField,
-    ModelForm,
-    ModelMultipleChoiceField,
-    ValidationError,
-)
-from django.forms.widgets import (
-    CheckboxSelectMultiple,
-    Select,
-    CheckboxInput,
-    mark_safe,
-)
-
+from django.forms.widgets import (CheckboxInput, CheckboxSelectMultiple,
+                                  Select, mark_safe)
 # from django.utils.encoding import force_unicode
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
-
 # from olwidget.fields import MapField, EditableLayerField
 from leaflet.forms.widgets import LeafletWidget
-
-from itertools import chain
-
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout, Fieldset, Field, ButtonHolder, Div
-from crispy_forms.bootstrap import PrependedText
-
+from openpyxl import load_workbook
 from taggit.forms import *
 
-from .models import (
-    Milestone,
-    Project,
-    ProjectMilestones,
-    Report,
-    ProjectType,
-    ProjectProtocol,
-    Database,
-    Lake,
-    Messages2Users,
-    AssociatedFile,
-    ProjectFunding,
-    FundingSource,
-    ProjectImage,
-    SamplePoint,
-)
+from .models import (AssociatedFile, Database, FundingSource, Lake,
+                     Messages2Users, Milestone, Project, ProjectFunding,
+                     ProjectImage, ProjectMilestones, ProjectProtocol,
+                     ProjectType, Report, SamplePoint)
 
 User = get_user_model()
 
@@ -165,7 +135,7 @@ class HyperlinkWidget(forms.Widget):
     def render(self, name, value, attrs=None, renderer=None):
         output = []
         output.append('<a href="%s">%s</a>' % (self.url, self.text))
-        return mark_safe(u"".join(output))
+        return mark_safe("".join(output))
 
 
 class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
@@ -182,7 +152,7 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
         has_id = attrs and "id" in attrs
         final_attrs = self.build_attrs(attrs)
 
-        output = [u""]
+        output = [""]
         # Normalize to strings
         str_values = set([v for v in value])
         for i, (option_value, option_label) in enumerate(chain(self.choices, choices)):
@@ -196,7 +166,7 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
             # so that the checkboxes don't all have the same ID attribute.
             if has_id:
                 final_attrs = dict(final_attrs, id="%s_%s" % (attrs["id"], i))
-                label_for = u' for="%s"' % final_attrs["id"]
+                label_for = ' for="%s"' % final_attrs["id"]
             else:
                 label_for = ""
             chbox = CheckboxInput(
@@ -207,11 +177,11 @@ class CheckboxSelectMultipleWithDisabled(CheckboxSelectMultiple):
             # option_label = conditional_escape(force_unicode(option_label))
             option_label = conditional_escape(option_label)
             output.append(
-                u'<div class="checkbox"><label%s>%s %s</label></div>'
+                '<div class="checkbox"><label%s>%s %s</label></div>'
                 % (label_for, rendered_cb, option_label)
             )
         # output.append(u'</ul>')
-        return mark_safe(u"\n".join(output))
+        return mark_safe("\n".join(output))
 
 
 # ==================================
@@ -1322,12 +1292,15 @@ class SpatialPointUploadForm(forms.Form):
                 raise ValidationError(error_msg)
 
             expected_header = ["POINT_LABEL", "DD_LAT", "DD_LON"]
-            recieved_header = pts.pop(0)
+            recieved_header = [x for x in pts.pop(0) if x is not None]
 
             if not recieved_header == expected_header:
                 validation_errors.append(
                     "Malformed header in submitted file."
-                    "The header must contain the fields: 'POINT_LABEL', 'DD_LAT' and 'DD_LON'"
+                    "The header must contain the fields: 'POINT_LABEL', 'DD_LAT' and 'DD_LON'".
+                    "The uploaded header is {}".format(
+                        ", ".join([f"'{x}'" for x in recieved_header])
+                    )
                 )
 
             if not len(pts):

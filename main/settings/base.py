@@ -14,6 +14,9 @@ ADMINS = (("Adam Cottrill", "racottrill@bmts.com"),)
 
 MANAGERS = ADMINS
 
+# set the secret as an environment varaible
+# more complex and random the better.
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

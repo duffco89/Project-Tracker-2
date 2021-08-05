@@ -1,34 +1,33 @@
+import datetime
+import sys
+
+import pytest
+import pytz
+from django.db.models.signals import post_save, pre_save
 from django.test import TestCase
-from django.db.models.signals import pre_save, post_save
 from pjtk2.models import (
     Bookmark,
     Family,
     Project,
-    ProjectMilestones,
     ProjectImage,
+    ProjectMilestones,
     send_notice_prjms_changed,
 )
 from pjtk2.tests.factories import (
-    UserFactory,
-    LakeFactory,
     EmployeeFactory,
     FundingSourceFactory,
-    ProjectFactory,
-    ProjTypeFactory,
-    ProjProtocolFactory,
-    ProjectFundingFactory,
+    LakeFactory,
     MilestoneFactory,
+    ProjectFactory,
+    ProjectFundingFactory,
     ProjectMilestonesFactory,
+    ProjProtocolFactory,
+    ProjTypeFactory,
     ReportFactory,
+    UserFactory,
 )
 
 from ..utils.helpers import get_minions, get_supervisors
-
-import datetime
-import pytz
-import sys
-
-import pytest
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -1287,13 +1286,15 @@ class TestProjectTagging(TestCase):
         self.project2.tags.add("project2", "project12", "allprojects")
         self.project3.tags.add("project3", "allprojects")
 
-        projects = Project.objects.filter(tags__name__in=["allprojects"])
-        self.assertEqual(projects.count(), 3)
-        self.assertQuerysetEqual(
-            projects,
-            [self.project1.prj_cd, self.project2.prj_cd, self.project3.prj_cd],
-            lambda a: a.prj_cd,
-        )
+        observed = [
+            x[0]
+            for x in Project.objects.filter(tags__name__in=["allprojects"]).values_list(
+                "prj_cd"
+            )
+        ]
+        self.assertEqual(len(observed), 3)
+        expected = [x.prj_cd for x in [self.project1, self.project2, self.project3]]
+        self.assertEqual(set(expected), set(observed))
 
         projects = Project.objects.filter(tags__name__in=["project12"])
         self.assertEqual(projects.count(), 2)

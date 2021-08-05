@@ -1,6 +1,5 @@
 from main.settings.base import *
 
-
 ALLOWED_HOSTS = ["*"]
 
 DATABASES = {
