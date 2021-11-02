@@ -12,8 +12,8 @@ from itertools import chain
 import pytz
 from crispy_forms.bootstrap import PrependedText
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import (ButtonHolder, Div, Field, Fieldset, Layout,
-                                 Submit)
+from crispy_forms.layout import ButtonHolder, Div, Field, Fieldset, Layout, Submit
+
 # from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.gis import forms
@@ -21,25 +21,48 @@ from django.contrib.gis.forms.fields import PolygonField
 from django.contrib.gis.geos import Point
 from django.core.validators import FileExtensionValidator
 from django.db.models.aggregates import Max, Min
-from django.forms import (CharField, ModelChoiceField, ModelForm,
-                          ModelMultipleChoiceField, ValidationError)
+from django.forms import (
+    CharField,
+    ModelChoiceField,
+    ModelForm,
+    ModelMultipleChoiceField,
+    ValidationError,
+)
 from django.forms.formsets import BaseFormSet
-from django.forms.widgets import (CheckboxInput, CheckboxSelectMultiple,
-                                  Select, mark_safe)
+from django.forms.widgets import (
+    CheckboxInput,
+    CheckboxSelectMultiple,
+    Select,
+    mark_safe,
+)
+
 # from django.utils.encoding import force_unicode
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
+
 # from olwidget.fields import MapField, EditableLayerField
 from leaflet.forms.widgets import LeafletWidget
 from openpyxl import load_workbook
 from taggit.forms import *
 
-from .models import (AssociatedFile, Database, FundingSource, Lake,
-                     Messages2Users, Milestone, Project, ProjectFunding,
-                     ProjectImage, ProjectMilestones, ProjectProtocol,
-                     ProjectType, Report, SamplePoint)
+from .models import (
+    AssociatedFile,
+    Database,
+    FundingSource,
+    Lake,
+    Messages2Users,
+    Milestone,
+    Project,
+    ProjectFunding,
+    ProjectImage,
+    ProjectMilestones,
+    ProjectProtocol,
+    ProjectType,
+    Report,
+    SamplePoint,
+)
 
 User = get_user_model()
 
@@ -1297,7 +1320,7 @@ class SpatialPointUploadForm(forms.Form):
             if not recieved_header == expected_header:
                 validation_errors.append(
                     "Malformed header in submitted file."
-                    "The header must contain the fields: 'POINT_LABEL', 'DD_LAT' and 'DD_LON'".
+                    "The header must contain the fields: 'POINT_LABEL', 'DD_LAT' and 'DD_LON'."
                     "The uploaded header is {}".format(
                         ", ".join([f"'{x}'" for x in recieved_header])
                     )
