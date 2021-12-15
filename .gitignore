@@ -22,3 +22,4 @@ conftest.py
 utilities/get_ON_ER_FN011_data.py
 utilities/glb_data/*
 
+venv/*
